@@ -40,6 +40,11 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Includes technical design, testing strategy, and implementation phases
   - Integrates with external library documentation (requires context7 MCP server)
   - Follows structured template for consistency
+- `/validate-and-fix` - Run quality checks and auto-fix discovered issues
+  - Executes lint, test, and type checking in parallel
+  - Analyzes errors and distributes fixes to concurrent agents
+  - Ensures non-overlapping fixes to avoid conflicts
+  - Verifies all issues are resolved after completion
 
 ### Git & GitHub Integration
 - `/git-commit` - Create commits following project conventions
@@ -139,6 +144,12 @@ Enforce code quality and run tests automatically:
   /spec fix-123 memory leak in data processor
   ```
   Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
+
+- **`/validate-and-fix`** - Run quality checks and auto-fix issues
+  ```
+  /validate-and-fix
+  ```
+  Runs all quality checks (lint, test, typecheck) in parallel, then launches concurrent agents to fix different categories of issues efficiently without conflicts.
 
 ### Git & GitHub Management
 
