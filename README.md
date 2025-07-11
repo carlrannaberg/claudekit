@@ -127,11 +127,11 @@ The Stop hook automatically creates a checkpoint when Claude Code finishes respo
 
 ## Documentation
 
-- [Checkpoint System](.claude/checkpoint-system.md) - Detailed checkpoint documentation
-- [Hooks Documentation](.claude/hooks-documentation.md) - Information about all hooks
-- [AGENT.md Commands](.claude/agent-commands-documentation.md) - Guide for agent-init and agent-migration
-- [AGENT.md Migration](.claude/agent-migration-documentation.md) - Detailed migration documentation
-- [Create Command](.claude/create-command-documentation.md) - How to create custom slash commands
+- [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
+- [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
+- [AGENT.md Commands](docs/agent-commands-documentation.md) - Guide for agent-init and agent-migration
+- [AGENT.md Migration](docs/agent-migration-documentation.md) - Detailed migration documentation
+- [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 
 ## Contributing
 
