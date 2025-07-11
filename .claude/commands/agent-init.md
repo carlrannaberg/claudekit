@@ -1,6 +1,6 @@
 ---
 description: Initialize project with AGENT.md and create symlinks for all AI assistants
-allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Read
+allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Read, Glob, Task
 ---
 
 # Initialize AGENT.md for Your Project
@@ -12,32 +12,39 @@ Create a comprehensive AGENT.md file following the universal standard, with syml
 
 ## Task
 
-Analyze this codebase and create an AGENT.md file that provides guidance to AI coding assistants.
+Please analyze this codebase and create an AGENT.md file containing:
+1. Build/lint/test commands - especially for running a single test
+2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.
 
-### 1. Analyze the Codebase
-First, examine the project to understand:
-- Project type by checking for:
-  - Node.js: package.json, package-lock.json, yarn.lock
-  - Python: requirements.txt, setup.py, pyproject.toml, Pipfile
-  - Go: go.mod, go.sum
-  - Rust: Cargo.toml, Cargo.lock
-  - Ruby: Gemfile, Gemfile.lock
-  - Java: pom.xml, build.gradle
-  - .NET: *.csproj, *.sln
-- Build system and available scripts
-- Test framework and patterns
-- Code style and conventions
-- Existing AI config files (.cursorrules, .github/copilot-instructions.md, etc.)
+Usage notes:
+- The file you create will be given to agentic coding agents (such as yourself) that operate in this repository
+- If there's already an AGENT.md, improve it
+- If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them
+- Start the file with: "# AGENT.md\nThis file provides guidance to AI coding assistants working in this repository."
 
-Look for:
-- Configuration files (package.json, tsconfig.json, .eslintrc, etc.)
-- Build scripts and commands
-- Test files to understand testing patterns
+### 1. Gather Repository Information
+Use Task tool with description "Gather repository information" to run these Glob patterns in parallel:
+- `package*.json` - Node.js project files
+- `*.md` - Documentation files
+- `.cursor/rules/**` - Cursor rules
+- `.cursorrules` - Cursor rules (alternate location)
+- `.github/copilot-instructions.md` - GitHub Copilot rules
+- `requirements.txt`, `setup.py`, `pyproject.toml` - Python projects
+- `go.mod` - Go projects
+- `Cargo.toml` - Rust projects
+- `Gemfile` - Ruby projects
+- `pom.xml`, `build.gradle` - Java projects
+- `*.csproj` - .NET projects
+- `Makefile` - Build automation
+- `.eslintrc*`, `.prettierrc*` - Code style configs
+- `tsconfig.json` - TypeScript config
+- `.env.example` - Environment configuration
+- `**/*.test.*`, `**/*.spec.*` - Test files (limit to a few)
+
+Also examine:
 - README.md for project overview
-- Existing code to infer style conventions
-- Scripts in package.json, Makefile, or other build files
-- Environment files (.env.example) for configuration needs
-- CI/CD files (.github/workflows, .gitlab-ci.yml) for quality checks
+- A few source files to infer coding conventions
+- Test files to understand testing patterns
 
 ### 2. Check for Existing Configs
 - If AGENT.md exists, improve it based on analysis
@@ -46,85 +53,71 @@ Look for:
 - If other AI configs exist (.clinerules, .windsurfrules), merge them
 
 ### 3. Create AGENT.md
-Based on your analysis, create a comprehensive AGENT.md that starts with:
+Based on your analysis, create AGENT.md with this exact format:
 
 ```markdown
 # AGENT.md
 This file provides guidance to AI coding assistants working in this repository.
 
-# [Project Name from package.json/README/etc]
+# [Project Name]
 
-[Brief description based on README or package.json description]
-```
-
-Then include the most important sections based on what you find:
-
-**Essential sections (always include):**
-1. **Build & Commands** - Extract from package.json scripts, Makefile, etc.
-   - Focus on: build, test, lint, typecheck, dev server
-   - IMPORTANT: Include how to run a single test file
-
-2. **Code Style** - Infer from existing code and config files
-   - Language/TypeScript settings from tsconfig.json
-   - Formatting from .prettierrc, .eslintrc
-   - Import style from existing code
-   - Naming conventions observed in codebase
-   - Error handling patterns
-
-**Include if relevant:**
-3. **Testing** - If test files exist
-   - Framework used (look for jest.config, vitest.config, etc.)
-   - Test file patterns (*.test.ts, *.spec.js, etc.)
-   - Testing conventions
-
-4. **Architecture** - For complex projects
-   - Main technologies (from package.json dependencies)
-   - Project structure
-   - Key patterns used
-
-5. **Project-Specific Guidelines**
-   - Any unique conventions
-   - Important warnings or gotchas
-   - Special setup requirements
-
-**Be comprehensive**: Include all relevant information that would help an AI assistant work effectively in this codebase.
-
-**Example structure based on analysis:**
-```markdown
-# AGENT.md
-This file provides guidance to AI coding assistants working in this repository.
-
-# NextJS E-commerce Platform
-
-A modern e-commerce platform built with Next.js 14, TypeScript, and Tailwind CSS.
+[Brief description of the project]
 
 ## Build & Commands
 
-- Dev server: `npm run dev` (http://localhost:3000)
-- Build: `npm run build`
-- Test: `npm test`
-- Test single file: `npm test -- path/to/file.test.ts`
-- Lint: `npm run lint`
-- Type check: `npm run type-check`
+[List all important commands, especially:]
+- Build: `command`
+- Test: `command`
+- Test single file: `command path/to/test.ext`
+- Lint: `command`
+- Dev server: `command`
+[Include any other important commands found]
 
 ## Code Style
 
-- TypeScript strict mode enabled
-- Prefer const, avoid let
-- Use single quotes for strings
-- 2 spaces indentation
-- Imports: group by external/internal, sort alphabetically
-- Components: PascalCase, utils: camelCase
-- Always handle errors with try/catch or .catch()
+[Infer from actual code and config files:]
+- Language/framework specifics
+- Import conventions
+- Formatting rules
+- Naming conventions
+- Type usage patterns
+- Error handling patterns
+[Be specific based on what you observe]
 
-## Testing
-
-- Vitest for unit tests, Playwright for E2E
-- Test files: `*.test.ts` alongside source
-- Use describe/it blocks, avoid "should" in test names
+[Include other relevant sections as needed]
 ```
 
-### 3. Create Symlinks
+**Key sections to include based on your findings:**
+
+1. **Build & Commands** (required)
+   - Extract from package.json, Makefile, or other build files
+   - Must include how to run a single test file
+
+2. **Code Style** (required)
+   - Infer from actual code samples
+   - Look at config files (.eslintrc, .prettierrc, tsconfig.json)
+   - Notice patterns in imports, naming, error handling
+
+3. **Testing** (if test files exist)
+   - Testing framework and conventions
+   - How tests are organized
+
+4. **Architecture** (for larger projects)
+   - Key technologies and patterns
+   - Project structure
+
+5. **Additional sections** as appropriate:
+   - Security considerations
+   - Deployment process
+   - Environment setup
+   - Contributing guidelines
+
+**Important:** 
+- Include content from any existing .cursorrules or copilot-instructions.md files
+- Focus on practical information that helps AI assistants write better code
+- Be specific rather than generic (e.g., "Use 2 spaces" not "follow indentation rules")
+
+### 4. Create Symlinks
 After creating AGENT.md, create symlinks for all AI assistants:
 
 ```bash
@@ -155,16 +148,10 @@ mkdir -p .idx
 ln -sf ../AGENT.md .idx/airules.md
 ```
 
-### 4. Show Results
+### 5. Show Results
 Display:
 - Created/updated AGENT.md
 - List of symlinks created
 - Key information included in the file
 - Suggest reviewing and customizing if needed
 
-## Important Guidelines
-- Be comprehensive - include all relevant project information
-- Focus on practical information: commands, conventions, architecture
-- Include specific commands for running single tests (critical for AI tools)
-- Merge any existing AI config files to preserve their wisdom
-- The analysis should be smart - infer conventions from actual code, not just config files
