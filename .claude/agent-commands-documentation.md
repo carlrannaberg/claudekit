@@ -7,14 +7,20 @@ claudekit provides two commands for working with the [AGENT.md standard](https:/
 Use this command when starting a new project or when you want to create a fresh AGENT.md with a comprehensive template.
 
 ### What it does:
-1. Creates a new AGENT.md file with a complete project template
-2. Sets up symlinks for all AI assistants
-3. Provides a starting point you can customize
+1. **Analyzes your codebase** to understand:
+   - Project type and technologies
+   - Build commands and scripts
+   - Test frameworks and patterns
+   - Code style conventions
+   - Existing AI configurations
+2. **Creates a comprehensive AGENT.md** with discovered information
+3. **Merges existing configs** from .cursorrules, copilot-instructions.md, etc.
+4. **Sets up symlinks** for all AI assistants
 
 ### When to use:
-- Starting a new project
-- No existing AI configuration files
-- Want a comprehensive template to customize
+- Any project that needs AGENT.md
+- Want intelligent analysis of your codebase
+- Need to merge multiple AI config files
 - Replacing Claude's `/init` command
 
 ### Example workflow:
@@ -53,9 +59,11 @@ Use this command when you already have AI configuration files (like CLAUDE.md or
 
 | Feature | `/agent-init` | `/agent-migration` |
 |---------|--------------|-------------------|
-| Creates new AGENT.md | ✅ With template | ❌ Uses existing content |
-| Preserves existing config | ❌ Fresh start | ✅ Moves existing file |
-| Best for | New projects | Existing projects |
+| Analyzes codebase | ✅ Smart analysis | ❌ Simple rename |
+| Creates new AGENT.md | ✅ Based on analysis | ❌ Uses existing content |
+| Merges existing configs | ✅ Incorporates all | ❌ Just moves one |
+| Best for | Any project | Simple migration |
+| Intelligence | High - infers from code | Low - just renames |
 | Symlinks created | All AI tools | All AI tools |
 
 ## Supported AI Assistants
