@@ -8,12 +8,17 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 
 ## Features
 
-### Git Checkpoint System
-Create and restore git stash checkpoints without affecting your working directory
-- `/checkpoint` - Save current state
-- `/restore` - Restore previous state  
-- `/checkpoints` - List all checkpoints
-- Auto-checkpoint on Stop event
+### Development Tools
+- `/spec [feature/bugfix description]` - Generate comprehensive specification documents
+  - Creates detailed specs in `specs/` folder
+  - Includes technical design, testing strategy, and implementation phases
+  - Integrates with external library documentation (requires context7 MCP server)
+  - Follows structured template for consistency
+- `/validate-and-fix` - Run quality checks and auto-fix discovered issues
+  - Executes lint, test, and type checking in parallel
+  - Analyzes errors and distributes fixes to concurrent agents
+  - Ensures non-overlapping fixes to avoid conflicts
+  - Verifies all issues are resolved after completion
 
 ### AGENT.md Configuration
 Universal AI assistant configuration with the [AGENT.md standard](https://agent.md):
@@ -27,18 +32,6 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Includes templates for arguments, bash execution, and file references
   - Supports namespacing through subdirectories
 
-### Development Tools
-- `/spec [feature/bugfix description]` - Generate comprehensive specification documents
-  - Creates detailed specs in `specs/` folder
-  - Includes technical design, testing strategy, and implementation phases
-  - Integrates with external library documentation (requires context7 MCP server)
-  - Follows structured template for consistency
-- `/validate-and-fix` - Run quality checks and auto-fix discovered issues
-  - Executes lint, test, and type checking in parallel
-  - Analyzes errors and distributes fixes to concurrent agents
-  - Ensures non-overlapping fixes to avoid conflicts
-  - Verifies all issues are resolved after completion
-
 ### Git & GitHub Integration
 - `/git-commit` - Create commits following project conventions
   - Analyzes project's commit style from git history
@@ -50,6 +43,13 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Creates private repository by default (for security)
   - Sets up README.md and initial commit
   - Configures remote origin and pushes to GitHub
+
+### Git Checkpoint System
+Create and restore git stash checkpoints without affecting your working directory
+- `/checkpoint` - Save current state
+- `/restore` - Restore previous state  
+- `/checkpoints` - List all checkpoints
+- Auto-checkpoint on Stop event
 
 ### Development Hooks
 Enforce code quality and run tests automatically:
