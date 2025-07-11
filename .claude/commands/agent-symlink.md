@@ -8,37 +8,75 @@ allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Read
 This command helps you adopt the AGENT.md standard by converting your existing CLAUDE.md file and creating symlinks for compatibility with various AI assistants.
 
 ## Current Project State
-!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules 2>/dev/null || echo "Checking for AI configuration files..."`
+!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
 
 ## Task
 
 Convert this project to use the AGENT.md standard following these steps:
 
 ### 1. Pre-flight Checks
-- Check if CLAUDE.md exists (if not, check for AGENT.md)
-- Verify no critical files will be overwritten
-- Backup any existing GEMINI.md or .cursorrules files
+Check for existing AI configuration files:
+- CLAUDE.md (Claude Code)
+- .clinerules (Cline)
+- .cursorrules (Cursor)
+- .windsurfrules (Windsurf)
+- .replit.md (Replit)
+- .github/copilot-instructions.md (GitHub Copilot)
+- GEMINI.md (Gemini CLI)
+- AGENT.md (if already exists)
 
 ### 2. Perform Migration
-If CLAUDE.md exists and AGENT.md doesn't:
-1. Move CLAUDE.md to AGENT.md: `mv CLAUDE.md AGENT.md`
-2. Create symlink: `ln -s AGENT.md CLAUDE.md`
-3. Create symlink: `ln -s AGENT.md GEMINI.md`
-4. Create symlink: `ln -s AGENT.md .cursorrules`
+Find the first existing config file and move it to AGENT.md:
+```bash
+# Priority order for migration
+if [ -f "CLAUDE.md" ] && [ ! -f "AGENT.md" ]; then
+    mv CLAUDE.md AGENT.md
+elif [ -f ".clinerules" ] && [ ! -f "AGENT.md" ]; then
+    mv .clinerules AGENT.md
+elif [ -f ".cursorrules" ] && [ ! -f "AGENT.md" ]; then
+    mv .cursorrules AGENT.md
+# ... and so on for other files
+```
 
-If AGENT.md already exists:
-- Verify existing symlinks are correct
-- Create any missing symlinks
+### 3. Create Symlinks
+Create symlinks for all supported AI assistants:
+```bash
+# Claude Code
+ln -s AGENT.md CLAUDE.md
 
-### 3. Verify Results
-- Use `ls -la` to show the symlinks
-- Confirm all AI assistants will now use the same configuration
+# Cline
+ln -s AGENT.md .clinerules
 
-### 4. Git Guidance
+# Cursor
+ln -s AGENT.md .cursorrules
+
+# Windsurf
+ln -s AGENT.md .windsurfrules
+
+# Replit
+ln -s AGENT.md .replit.md
+
+# Gemini CLI, OpenAI Codex, OpenCode
+ln -s AGENT.md GEMINI.md
+
+# GitHub Copilot (special case - needs directory)
+mkdir -p .github
+ln -s ../AGENT.md .github/copilot-instructions.md
+
+# Firebase Studio (special case - needs .idx directory)
+mkdir -p .idx
+ln -s ../AGENT.md .idx/airules.md
+```
+
+### 4. Verify Results
+- Use `ls -la` to show all created symlinks
+- Display which AI assistants are now configured
+
+### 5. Git Guidance
 If in a git repository:
 - Show git status
-- Suggest adding changes: `git add AGENT.md CLAUDE.md GEMINI.md .cursorrules`
-- Remind to update .gitignore if needed (some teams ignore .cursorrules)
+- Suggest adding all changes
+- Remind to update .gitignore if needed (some teams ignore certain config files)
 
 ## Why AGENT.md?
 

@@ -63,11 +63,13 @@ Enforce code quality and run tests automatically:
 
 ### Project Configuration
 
-- **`/agent-symlink`** - Convert CLAUDE.md to AGENT.md with symlinks
+- **`/agent-symlink`** - Convert to AGENT.md with symlinks for all AI assistants
   ```
   /agent-symlink
   ```
   Adopts the [AGENT.md standard](https://agent.md) for universal AI assistant configuration
+  
+  Supports: Claude Code, Cline, Cursor, Windsurf, GitHub Copilot, Replit, Gemini CLI, OpenAI Codex, OpenCode, and Firebase Studio
 
 ### Auto-checkpoint Hook
 
