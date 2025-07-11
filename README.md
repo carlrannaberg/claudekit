@@ -27,6 +27,13 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Includes templates for arguments, bash execution, and file references
   - Supports namespacing through subdirectories
 
+### GitHub Integration
+- `/gh-repo-setup [name]` - Create new GitHub repository with full setup
+  - Creates directory structure and initializes git
+  - Creates private repository by default (for security)
+  - Sets up README.md and initial commit
+  - Configures remote origin and pushes to GitHub
+
 ### Development Hooks
 Enforce code quality and run tests automatically:
 - **typecheck.sh** - TypeScript type checking (blocks `any` types)
@@ -94,6 +101,14 @@ Enforce code quality and run tests automatically:
   /create-command
   ```
   Prompts Claude to help you create new slash commands with proper structure, including support for arguments, bash execution, and file references.
+
+### GitHub Repository Management
+
+- **`/gh-repo-setup [name]`** - Create new GitHub repository
+  ```
+  /gh-repo-setup my-new-project
+  ```
+  Creates a complete GitHub repository setup including directory creation, git initialization, README.md, initial commit, and remote configuration. Repositories are private by default for security.
 
 ### Auto-checkpoint Hook
 
