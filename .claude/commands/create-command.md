@@ -1,3 +1,8 @@
+---
+description: Create a new Claude Code slash command with full feature support
+allowed-tools: Write, Bash(mkdir:*)
+---
+
 First, please specify the command type:
 
 **Command Type:** 
