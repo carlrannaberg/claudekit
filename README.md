@@ -67,7 +67,7 @@ Enforce code quality and run tests automatically:
   ```
   /agent-symlink
   ```
-  Adopts the [AGENT.md standard](https://ampcode.com/AGENT.md) for universal AI assistant configuration
+  Adopts the [AGENT.md standard](https://agent.md) for universal AI assistant configuration
 
 ### Auto-checkpoint Hook
 

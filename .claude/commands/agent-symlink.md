@@ -48,4 +48,4 @@ AGENT.md is becoming the standard for AI assistant configuration because:
 - Consistent experience across Claude Code, Cursor, Windsurf, and other tools
 - Future-proof as new AI tools emerge
 
-Learn more at https://ampcode.com/AGENT.md
+Learn more at https://agent.md
