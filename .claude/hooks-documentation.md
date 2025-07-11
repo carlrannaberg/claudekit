@@ -4,22 +4,37 @@ This document describes the hooks included in claudekit and their functionality.
 
 ## PostToolUse Hooks
 
-### typecheck-lint.sh
+### typecheck.sh
 
-**Purpose:** Enforces TypeScript type checking and ESLint standards after file modifications.
+**Purpose:** Enforces TypeScript type checking and strict typing standards.
 
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript/TSX files only)
 
 **Features:**
 - Blocks usage of `any` types - enforces strict typing
 - Runs TypeScript compiler with incremental builds
-- Runs ESLint with caching for performance
-- Provides detailed instructions for fixing issues
+- Detects TypeScript version for optimal performance (uses --changedFiles for TS 5.4+)
+- Provides detailed instructions for fixing type errors
 - Suggests using concurrent agents for multiple errors
 
 **Requirements:**
 - TypeScript project with tsconfig.json
-- ESLint configuration (optional, will skip if not found)
+- Node.js/npm environment
+
+### eslint.sh
+
+**Purpose:** Enforces code style and quality standards using ESLint.
+
+**Triggers on:** Write, Edit, MultiEdit tools (JS/JSX/TS/TSX files)
+
+**Features:**
+- Runs ESLint with caching for performance
+- Enforces zero warnings policy (--max-warnings 0)
+- Provides detailed instructions for fixing issues
+- Suggests using concurrent agents for multiple issues
+
+**Requirements:**
+- ESLint configuration file (.eslintrc.js, .eslintrc.json, or eslint.config.js)
 - Node.js/npm environment
 
 ### run-related-tests.sh
@@ -92,7 +107,7 @@ To customize these hooks for your project:
 - Run Claude Code with `--debug` flag to see hook execution
 
 ### TypeScript version issues
-- typecheck-lint.sh detects TypeScript version and uses appropriate flags
+- typecheck.sh detects TypeScript version and uses appropriate flags
 - For TS < 5.4, incremental compilation covers all files
 - For TS >= 5.4, uses --changedFiles for better performance
 

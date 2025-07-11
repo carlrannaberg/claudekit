@@ -2,8 +2,11 @@
 set -euo pipefail
 
 ################################################################################
-# 0.  Parse Claude-Code JSON payload                                           #
+# TypeScript Type Checking Hook                                                #
+# Validates TypeScript compilation and enforces strict typing                  #
 ################################################################################
+
+# Parse Claude-Code JSON payload
 INPUT="$(cat)"
 
 if command -v jq &>/dev/null; then
@@ -16,19 +19,20 @@ fi
 [[ ! -f $FILE_PATH ]] && exit 0
 [[ ! $FILE_PATH =~ \.(ts|tsx)$ ]] && exit 0   # only run on TS/TSX
 
-################################################################################
-# 1.  Figure out the project root reliably                                     #
-################################################################################
+# Figure out the project root reliably
 ROOT_DIR=$(git -C "$(dirname "$FILE_PATH")" rev-parse --show-toplevel 2>/dev/null || true)
 [[ -z $ROOT_DIR ]] && ROOT_DIR=$(dirname "$FILE_PATH")
 
 TSCONFIG="$ROOT_DIR/tsconfig.json"
 TSBUILDINFO="$ROOT_DIR/.tsbuildinfo"
-ESLINTCACHE="$ROOT_DIR/.eslintcache"
 
-################################################################################
-# 2.  Decide whether --changedFiles is supported (TS >= 5.4)                   #
-################################################################################
+# Check if TypeScript is configured
+if [[ ! -f "$TSCONFIG" ]]; then
+  echo "⚠️  No tsconfig.json found, skipping TypeScript check" >&2
+  exit 0
+fi
+
+# Decide whether --changedFiles is supported (TS >= 5.4)
 TS_VERSION="$(npx --quiet tsc -v | awk '{print $2}')"
 IFS='.' read -r TS_MAJOR TS_MINOR _ <<<"$TS_VERSION"
 USE_CHANGED=false
@@ -36,9 +40,7 @@ if [[ $TS_MAJOR -gt 5 || ( $TS_MAJOR -eq 5 && $TS_MINOR -ge 4 ) ]]; then
   USE_CHANGED=true
 fi
 
-################################################################################
-# 3.  Check for forbidden "any" types                                          #
-################################################################################
+# Check for forbidden "any" types
 if grep -q ': any\|: any\[\]\|<any>\|as any' "$FILE_PATH"; then
   cat >&2 <<EOF
 BLOCKED: The file contains forbidden "any" types.
@@ -63,9 +65,7 @@ EOF
   exit 2
 fi
 
-################################################################################
-# 4.  Run TypeScript compiler                                                  #
-################################################################################
+# Run TypeScript compiler
 echo "📘 Type-checking $FILE_PATH (tsc $TS_VERSION)" >&2
 TS_LOG=$(mktemp)
 
@@ -94,9 +94,9 @@ REQUIRED ACTIONS:
 2. Review ALL errors shown (not just in this file)
 3. Fix every single TypeScript error
 4. Use AgentTool to spawn concurrent agents if there are many errors:
-    - Analyze errors and group by file or component
-    - Launch multiple agents to fix different groups in parallel
-    - Each agent should verify their fixes compile correctly
+   - Analyze errors and group by file or component
+   - Launch multiple agents to fix different groups in parallel
+   - Each agent should verify their fixes compile correctly
 
 Current errors in this file:
 $(cat "$TS_LOG")
@@ -106,39 +106,4 @@ EOF
   exit 2
 fi
 
-################################################################################
-# 5.  ESLint (single file, safe cache path)                                    #
-################################################################################
-# Check if ESLint is installed/configured
-if [[ -f "$ROOT_DIR/eslint.config.js" || -f "$ROOT_DIR/.eslintrc.js" || -f "$ROOT_DIR/.eslintrc.json" ]]; then
-  echo "🔍 Running ESLint…" >&2
-  ESLINT_LOG=$(mktemp)
-  if ! npx eslint --max-warnings 0 --cache --cache-location "$ESLINTCACHE" "$FILE_PATH" >"$ESLINT_LOG" 2>&1; then
-    cat >&2 <<EOF
-BLOCKED: ESLint check failed.
-
-MANDATORY INSTRUCTIONS:
-You MUST fix ALL lint errors and warnings in the entire project.
-Even if errors seem unrelated to your changes, you are responsible for fixing them.
-
-REQUIRED ACTIONS:
-1. Run: npm run lint
-2. Review ALL errors and warnings (not just in this file)
-3. Fix every single lint issue
-4. Use AgentTool to spawn concurrent agents if there are many issues:
-    - Group lint errors by type or file
-    - Launch multiple agents to fix different groups in parallel
-    - Each agent should verify their fixes pass linting
-
-Current lint errors:
-$(cat "$ESLINT_LOG")
-
-After fixing, run npm run lint again to ensure ALL issues are resolved.
-EOF
-    exit 2
-  fi
-else
-  echo "⚠️  ESLint not configured, skipping lint check" >&2
-fi
-
-echo "✅ All checks passed!" >&2
+echo "✅ TypeScript check passed!" >&2

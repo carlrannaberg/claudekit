@@ -17,7 +17,8 @@ Create and restore git stash checkpoints without affecting your working director
 
 ### Development Hooks
 Enforce code quality and run tests automatically:
-- **typecheck-lint.sh** - TypeScript and ESLint validation (blocks `any` types)
+- **typecheck.sh** - TypeScript type checking (blocks `any` types)
+- **eslint.sh** - ESLint code style and quality validation
 - **run-related-tests.sh** - Auto-run tests for modified files
 - **validate-todo-completion.sh** - Prevent stopping with incomplete todos
 - **auto-checkpoint.sh** - Save work automatically when Claude Code stops

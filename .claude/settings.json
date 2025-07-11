@@ -6,7 +6,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/typecheck-lint.sh"
+            "command": ".claude/hooks/typecheck.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/eslint.sh"
           }
         ]
       },
