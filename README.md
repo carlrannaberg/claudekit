@@ -63,17 +63,32 @@ Enforce code quality and run tests automatically:
 
 ### Project Configuration
 
-- **`/agent-migration`** - Migrate to AGENT.md with symlinks for all AI assistants
+- **`/agent-init`** - Initialize new project with AGENT.md template
+  ```
+  /agent-init
+  ```
+  Creates a comprehensive AGENT.md file with best practices and symlinks for all AI assistants
+
+- **`/agent-migration`** - Migrate existing configs to AGENT.md
   ```
   /agent-migration
   ```
-  Adopts the [AGENT.md standard](https://agent.md) for universal AI assistant configuration
+  Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks
   
-  Supports: Claude Code, Cline, Cursor, Windsurf, GitHub Copilot, Replit, Gemini CLI, OpenAI Codex, OpenCode, and Firebase Studio
+Both commands support: Claude Code, Cline, Cursor, Windsurf, GitHub Copilot, Replit, Gemini CLI, OpenAI Codex, OpenCode, and Firebase Studio
+
+Learn more about the [AGENT.md standard](https://agent.md)
 
 ### Auto-checkpoint Hook
 
 The Stop hook automatically creates a checkpoint when Claude Code finishes responding, ensuring you never lose work between sessions.
+
+## Documentation
+
+- [Checkpoint System](.claude/checkpoint-system.md) - Detailed checkpoint documentation
+- [Hooks Documentation](.claude/hooks-documentation.md) - Information about all hooks
+- [AGENT.md Commands](.claude/agent-commands-documentation.md) - Guide for agent-init and agent-migration
+- [AGENT.md Migration](.claude/agent-migration-documentation.md) - Detailed migration documentation
 
 ## Contributing
 
