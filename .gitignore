@@ -30,3 +30,6 @@ Thumbs.db
 
 # MCP
 .mcp.json
+
+# Claude settings
+.claude/settings.local.json
