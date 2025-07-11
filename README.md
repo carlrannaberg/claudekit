@@ -61,6 +61,14 @@ Enforce code quality and run tests automatically:
   /checkpoints
   ```
 
+### Project Configuration
+
+- **`/agent-symlink`** - Convert CLAUDE.md to AGENT.md with symlinks
+  ```
+  /agent-symlink
+  ```
+  Adopts the [AGENT.md standard](https://ampcode.com/AGENT.md) for universal AI assistant configuration
+
 ### Auto-checkpoint Hook
 
 The Stop hook automatically creates a checkpoint when Claude Code finishes responding, ensuring you never lose work between sessions.
