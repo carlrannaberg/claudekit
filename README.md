@@ -74,7 +74,7 @@ Enforce code quality and run tests automatically:
 
    The script will:
    - Install commands to `~/.claude/commands/`
-   - Install hooks to `.claude/hooks/` (project-specific)
+   - Prompt for project path to install hooks to `<project>/.claude/hooks/` (project-specific)
    - Configure your `~/.claude/settings.json` (with options to backup existing settings)
 
 3. (Optional) Enable Context7 for enhanced `/spec` features:

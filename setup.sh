@@ -12,9 +12,16 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Ask for project path for hooks installation
+echo -e "\n${YELLOW}Hooks Installation:${NC}"
+echo "Hooks are project-specific and should be installed in your project directory."
+read -p "Enter the path to your project (or press Enter to skip hooks): " PROJECT_PATH
+
 # Create directories if they don't exist
 mkdir -p ~/.claude/commands
-mkdir -p .claude/hooks
+if [ -n "$PROJECT_PATH" ] && [ -d "$PROJECT_PATH" ]; then
+    mkdir -p "$PROJECT_PATH/.claude/hooks"
+fi
 
 # Install commands
 echo -e "${YELLOW}Installing commands...${NC}"
@@ -27,15 +34,19 @@ for cmd in .claude/commands/*.md; do
 done
 
 # Install hooks
-echo -e "\n${YELLOW}Installing hooks...${NC}"
-for hook in .claude/hooks/*.sh; do
-    if [ -f "$hook" ]; then
-        filename=$(basename "$hook")
-        cp "$hook" .claude/hooks/
-        chmod +x .claude/hooks/"$filename"
-        echo -e "  ${GREEN}✓${NC} Installed $filename"
-    fi
-done
+if [ -n "$PROJECT_PATH" ] && [ -d "$PROJECT_PATH" ]; then
+    echo -e "\n${YELLOW}Installing hooks to $PROJECT_PATH/.claude/hooks/...${NC}"
+    for hook in .claude/hooks/*.sh; do
+        if [ -f "$hook" ]; then
+            filename=$(basename "$hook")
+            cp "$hook" "$PROJECT_PATH/.claude/hooks/"
+            chmod +x "$PROJECT_PATH/.claude/hooks/$filename"
+            echo -e "  ${GREEN}✓${NC} Installed $filename"
+        fi
+    done
+else
+    echo -e "\n${YELLOW}Skipping hooks installation${NC} (no valid project path provided)"
+fi
 
 # Handle settings.json
 echo -e "\n${YELLOW}Configuring settings...${NC}"
