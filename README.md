@@ -22,10 +22,10 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
 - Supports 10+ AI assistants with automatic symlinks
 
 ### Command Creation
-- `/create-command` - Interactive command builder for creating new slash commands
-  - Supports project-level or personal commands
+- `/create-command` - Guide for creating new slash commands
+  - Prompts Claude to create project-level or personal commands
   - Includes templates for arguments, bash execution, and file references
-  - Automatic namespace support through subdirectories
+  - Supports namespacing through subdirectories
 
 ### Development Hooks
 Enforce code quality and run tests automatically:
@@ -93,7 +93,7 @@ Enforce code quality and run tests automatically:
   ```
   /create-command
   ```
-  Interactive command builder that helps you create project-level or personal slash commands with support for arguments, bash execution, and file references.
+  Prompts Claude to help you create new slash commands with proper structure, including support for arguments, bash execution, and file references.
 
 ### Auto-checkpoint Hook
 

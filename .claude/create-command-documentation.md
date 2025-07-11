@@ -1,10 +1,10 @@
 # Create Command Documentation
 
-The `/create-command` is a meta-command that helps you create new slash commands for Claude Code.
+The `/create-command` is a prompt template that guides Claude Code to create new slash commands for you.
 
 ## Overview
 
-This command provides an interactive way to create new slash commands with full support for Claude Code's advanced features.
+This command provides Claude with structured instructions for creating new slash commands with full support for Claude Code's advanced features.
 
 ## Command Types
 
