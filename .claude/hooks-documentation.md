@@ -4,9 +4,9 @@ This document describes the hooks included in claudekit and their functionality.
 
 ## PostToolUse Hooks
 
-### full-check.sh
+### typecheck-lint.sh
 
-**Purpose:** Enforces TypeScript and ESLint standards after file modifications.
+**Purpose:** Enforces TypeScript type checking and ESLint standards after file modifications.
 
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript/TSX files only)
 
@@ -92,7 +92,7 @@ To customize these hooks for your project:
 - Run Claude Code with `--debug` flag to see hook execution
 
 ### TypeScript version issues
-- full-check.sh detects TypeScript version and uses appropriate flags
+- typecheck-lint.sh detects TypeScript version and uses appropriate flags
 - For TS < 5.4, incremental compilation covers all files
 - For TS >= 5.4, uses --changedFiles for better performance
 

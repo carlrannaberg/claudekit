@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/full-check.sh"
+            "command": ".claude/hooks/typecheck-lint.sh"
           }
         ]
       },
