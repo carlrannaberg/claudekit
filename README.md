@@ -6,13 +6,6 @@ A toolkit of custom commands, hooks, and utilities for Claude Code.
 
 claudekit is a collection of slash commands, hooks, and utilities designed to enhance your Claude Code experience. It provides powerful tools for development workflows, including git checkpointing, custom automations, and more.
 
-### MCP Integration
-
-Some commands support optional MCP server integration for enhanced features:
-- **Context7** - Provides access to up-to-date library documentation
-- Used by the `/spec` command for accurate technical specifications  
-- Install in your projects with: `claude mcp add context7 -- npx -y @context7/mcp-server`
-
 ## Features
 
 ### Git Checkpoint System
@@ -168,6 +161,13 @@ Enforce code quality and run tests automatically:
 ### Auto-checkpoint Hook
 
 The Stop hook automatically creates a checkpoint when Claude Code finishes responding, ensuring you never lose work between sessions.
+
+## MCP Integration
+
+Some commands support optional MCP server integration for enhanced features:
+- **Context7** - Provides access to up-to-date library documentation
+- Used by the `/spec` command for accurate technical specifications  
+- Install in your projects with: `claude mcp add context7 -- npx -y @context7/mcp-server`
 
 ## Documentation
 
