@@ -27,6 +27,13 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Includes templates for arguments, bash execution, and file references
   - Supports namespacing through subdirectories
 
+### Development Tools
+- `/spec [feature/bugfix description]` - Generate comprehensive specification documents
+  - Creates detailed specs in `specs/` folder
+  - Includes technical design, testing strategy, and implementation phases
+  - Integrates with external library documentation (requires context7 MCP server)
+  - Follows structured template for consistency
+
 ### Git & GitHub Integration
 - `/git-commit` - Create commits following project conventions
   - Analyzes project's commit style from git history
@@ -106,6 +113,15 @@ Enforce code quality and run tests automatically:
   /create-command
   ```
   Prompts Claude to help you create new slash commands with proper structure, including support for arguments, bash execution, and file references.
+
+### Development Workflows
+
+- **`/spec [description]`** - Generate specification documents
+  ```
+  /spec add user authentication with OAuth2
+  /spec fix-123 memory leak in data processor
+  ```
+  Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
 
 ### Git & GitHub Management
 

@@ -1,0 +1,80 @@
+---
+allowed-tools: Read, Write, Grep, Glob, TodoWrite, TodoRead, AgentTool, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+description: Generate a spec file for a new feature or bugfix
+---
+
+## Context
+- Existing specs: !`ls -la specs/ 2>/dev/null || echo "No specs directory found"`
+
+## Your task
+
+Create a comprehensive specification document in the `specs/` folder for the following feature/bugfix: $ARGUMENTS
+
+First, analyze the request to understand:
+1. Whether this is a feature or bugfix
+2. The scope and complexity
+3. Related existing code/features
+4. External libraries/frameworks involved
+
+If the feature involves external libraries or frameworks:
+- Use `mcp__context7__resolve-library-id` to find the library
+- Use `mcp__context7__get-library-docs` to get up-to-date documentation
+- Reference official patterns and best practices from the docs
+
+Then create a spec document that includes:
+
+1. **Title**: Clear, descriptive title of the feature/bugfix
+2. **Status**: Draft/Under Review/Approved/Implemented
+3. **Authors**: Your name and date
+4. **Overview**: Brief description and purpose
+5. **Background/Problem Statement**: Why this feature is needed or what problem it solves
+6. **Goals**: What we aim to achieve (bullet points)
+7. **Non-Goals**: What is explicitly out of scope (bullet points)
+8. **Technical Dependencies**:
+    - External libraries/frameworks used
+    - Version requirements
+    - Links to relevant documentation
+9. **Detailed Design**:
+    - Architecture changes
+    - Implementation approach
+    - Code structure and file organization
+    - API changes (if any)
+    - Data model changes (if any)
+    - Integration with external libraries (with examples from docs)
+10. **User Experience**: How users will interact with this feature
+11. **Testing Strategy**:
+    - Unit tests
+    - Integration tests
+    - E2E tests (if needed)
+    - Mocking strategies for external dependencies
+12. **Performance Considerations**: Impact on performance and mitigation strategies
+13. **Security Considerations**: Security implications and safeguards
+14. **Documentation**: What documentation needs to be created/updated
+15. **Implementation Phases**:
+    - Phase 1: MVP/Core functionality
+    - Phase 2: Enhanced features (if applicable)
+    - Phase 3: Polish and optimization (if applicable)
+16. **Open Questions**: Any unresolved questions or decisions
+17. **References**:
+    - Links to related issues, PRs, or documentation
+    - External library documentation links
+    - Relevant design patterns or architectural decisions
+
+Follow these guidelines:
+- Use Markdown format similar to existing specs
+- Be thorough and technical but also accessible
+- Include code examples where helpful (especially from library docs)
+- Consider edge cases and error scenarios
+- Reference existing project patterns and conventions
+- Use diagrams if they would clarify complex flows (using ASCII art or mermaid)
+- When referencing external libraries, include version-specific information
+
+Name the spec file descriptively based on the feature:
+- Features: `feat-{kebab-case-name}.md`
+- Bugfixes: `fix-{issue-number}-{brief-description}.md`
+
+Before writing, use AgentTool to search for:
+- Related existing features or code
+- Similar patterns in the codebase
+- Potential conflicts or dependencies
+- Current library versions in package.json or equivalent
