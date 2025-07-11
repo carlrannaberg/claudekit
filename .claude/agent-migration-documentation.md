@@ -1,6 +1,6 @@
-# AGENT.md Symlink Command Documentation
+# AGENT.md Migration Command Documentation
 
-The `/agent-symlink` command helps you adopt the [AGENT.md standard](https://agent.md) - a universal configuration format for AI coding assistants.
+The `/agent-migration` command helps you migrate to the [AGENT.md standard](https://agent.md) - a universal configuration format for AI coding assistants.
 
 ## Supported AI Assistants
 
@@ -42,7 +42,7 @@ The command creates symlinks for the following AI tools:
 If you're starting fresh with CLAUDE.md:
 ```bash
 # Before: CLAUDE.md exists
-/agent-symlink
+/agent-migration
 # After: AGENT.md exists with symlinks from all AI config files
 ```
 
@@ -50,14 +50,14 @@ If you're starting fresh with CLAUDE.md:
 If AGENT.md already exists:
 ```bash
 # Creates any missing symlinks without modifying AGENT.md
-/agent-symlink
+/agent-migration
 ```
 
 ### Migration from Other Tools
 If you have .cursorrules but no CLAUDE.md:
 ```bash
 # Moves .cursorrules to AGENT.md and creates all symlinks
-/agent-symlink
+/agent-migration
 ```
 
 ## Benefits
@@ -92,7 +92,7 @@ The command will skip existing symlinks and only create missing ones.
 ### Wrong Symlink Target
 If a symlink points to the wrong file:
 1. Remove the incorrect symlink: `rm symlink-name`
-2. Run `/agent-symlink` again
+2. Run `/agent-migration` again
 
 ## Learn More
 

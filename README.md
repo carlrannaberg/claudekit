@@ -63,9 +63,9 @@ Enforce code quality and run tests automatically:
 
 ### Project Configuration
 
-- **`/agent-symlink`** - Convert to AGENT.md with symlinks for all AI assistants
+- **`/agent-migration`** - Migrate to AGENT.md with symlinks for all AI assistants
   ```
-  /agent-symlink
+  /agent-migration
   ```
   Adopts the [AGENT.md standard](https://agent.md) for universal AI assistant configuration
   

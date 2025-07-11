@@ -1,5 +1,5 @@
 ---
-description: Convert CLAUDE.md to AGENT.md and create symlinks for AI assistant compatibility
+description: Migrate AI assistant configuration to AGENT.md standard with universal compatibility
 allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Read
 ---
 
