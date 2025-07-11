@@ -15,6 +15,12 @@ Create and restore git stash checkpoints without affecting your working director
 - `/checkpoints` - List all checkpoints
 - Auto-checkpoint on Stop event
 
+### AGENT.md Configuration
+Universal AI assistant configuration with the [AGENT.md standard](https://agent.md):
+- `/agent-init` - Analyze codebase and create comprehensive AGENT.md
+- `/agent-migration` - Convert existing configs (CLAUDE.md, .cursorrules, etc.) to AGENT.md
+- Supports 10+ AI assistants with automatic symlinks
+
 ### Development Hooks
 Enforce code quality and run tests automatically:
 - **typecheck.sh** - TypeScript type checking (blocks `any` types)
@@ -61,23 +67,19 @@ Enforce code quality and run tests automatically:
   /checkpoints
   ```
 
-### Project Configuration
+### AGENT.md Commands
 
-- **`/agent-init`** - Initialize new project with AGENT.md template
+- **`/agent-init`** - Initialize new project with AGENT.md
   ```
   /agent-init
   ```
-  Creates a comprehensive AGENT.md file with best practices and symlinks for all AI assistants
+  Analyzes your codebase and creates a comprehensive AGENT.md file based on discovered patterns, commands, and conventions.
 
 - **`/agent-migration`** - Migrate existing configs to AGENT.md
   ```
   /agent-migration
   ```
-  Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks
-  
-Both commands support: Claude Code, Cline, Cursor, Windsurf, GitHub Copilot, Replit, Gemini CLI, OpenAI Codex, OpenCode, and Firebase Studio
-
-Learn more about the [AGENT.md standard](https://agent.md)
+  Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks for all AI assistants.
 
 ### Auto-checkpoint Hook
 
