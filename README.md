@@ -89,23 +89,20 @@ Enforce code quality and run tests automatically:
 
 ## Usage
 
-### Git Checkpoint Commands
+### Development Workflows
 
-- **`/checkpoint [description]`** - Create a checkpoint of your current work
+- **`/spec [description]`** - Generate specification documents
   ```
-  /checkpoint before refactoring auth module
+  /spec add user authentication with OAuth2
+  /spec fix-123 memory leak in data processor
   ```
+  Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
 
-- **`/restore [number|latest]`** - Restore to a previous checkpoint
+- **`/validate-and-fix`** - Run quality checks and auto-fix issues
   ```
-  /restore        # Restore to latest checkpoint
-  /restore 3      # Restore to checkpoint at stash@{3}
+  /validate-and-fix
   ```
-
-- **`/checkpoints`** - List all available checkpoints
-  ```
-  /checkpoints
-  ```
+  Runs all quality checks (lint, test, typecheck) in parallel, then launches concurrent agents to fix different categories of issues efficiently without conflicts.
 
 ### AGENT.md Commands
 
@@ -129,21 +126,6 @@ Enforce code quality and run tests automatically:
   ```
   Prompts Claude to help you create new slash commands with proper structure, including support for arguments, bash execution, and file references.
 
-### Development Workflows
-
-- **`/spec [description]`** - Generate specification documents
-  ```
-  /spec add user authentication with OAuth2
-  /spec fix-123 memory leak in data processor
-  ```
-  Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
-
-- **`/validate-and-fix`** - Run quality checks and auto-fix issues
-  ```
-  /validate-and-fix
-  ```
-  Runs all quality checks (lint, test, typecheck) in parallel, then launches concurrent agents to fix different categories of issues efficiently without conflicts.
-
 ### Git & GitHub Management
 
 - **`/git-commit`** - Create git commits following project conventions
@@ -157,6 +139,24 @@ Enforce code quality and run tests automatically:
   /gh-repo-setup my-new-project
   ```
   Creates a complete GitHub repository setup including directory creation, git initialization, README.md, initial commit, and remote configuration. Repositories are private by default for security.
+
+### Git Checkpoint Commands
+
+- **`/checkpoint [description]`** - Create a checkpoint of your current work
+  ```
+  /checkpoint before refactoring auth module
+  ```
+
+- **`/restore [number|latest]`** - Restore to a previous checkpoint
+  ```
+  /restore        # Restore to latest checkpoint
+  /restore 3      # Restore to checkpoint at stash@{3}
+  ```
+
+- **`/checkpoints`** - List all available checkpoints
+  ```
+  /checkpoints
+  ```
 
 ### Auto-checkpoint Hook
 
