@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Create directories if they don't exist
 mkdir -p ~/.claude/commands
-mkdir -p ~/.claude/hooks
+mkdir -p .claude/hooks
 
 # Install commands
 echo -e "${YELLOW}Installing commands...${NC}"
@@ -31,8 +31,8 @@ echo -e "\n${YELLOW}Installing hooks...${NC}"
 for hook in .claude/hooks/*.sh; do
     if [ -f "$hook" ]; then
         filename=$(basename "$hook")
-        cp "$hook" ~/.claude/hooks/
-        chmod +x ~/.claude/hooks/"$filename"
+        cp "$hook" .claude/hooks/
+        chmod +x .claude/hooks/"$filename"
         echo -e "  ${GREEN}✓${NC} Installed $filename"
     fi
 done
