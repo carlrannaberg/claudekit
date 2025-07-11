@@ -6,6 +6,13 @@ A toolkit of custom commands, hooks, and utilities for Claude Code.
 
 claudekit is a collection of slash commands, hooks, and utilities designed to enhance your Claude Code experience. It provides powerful tools for development workflows, including git checkpointing, custom automations, and more.
 
+### MCP Integration
+
+This project includes a Model Context Protocol (MCP) configuration that enables enhanced features:
+- **Context7 Server** - Provides access to up-to-date library documentation
+- Used by the `/spec` command for accurate technical specifications
+- Automatically configured via `.mcp.json` (requires one-time approval)
+
 ## Features
 
 ### Git Checkpoint System
@@ -71,6 +78,10 @@ Enforce code quality and run tests automatically:
    - Install commands to `~/.claude/commands/`
    - Install hooks to `~/.claude/hooks/`
    - Configure your `~/.claude/settings.json` (with options to backup existing settings)
+
+3. (Optional) Approve MCP servers:
+   - When using commands that leverage MCP (like `/spec`), you'll be prompted to approve the Context7 server
+   - This is a one-time approval for enhanced library documentation features
 
 ## Usage
 
@@ -148,6 +159,8 @@ The Stop hook automatically creates a checkpoint when Claude Code finishes respo
 - [AGENT.md Commands](docs/agent-commands-documentation.md) - Guide for agent-init and agent-migration
 - [AGENT.md Migration](docs/agent-migration-documentation.md) - Detailed migration documentation
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
+- [Spec Command](docs/spec-documentation.md) - Generate specification documents
+- [MCP Setup](docs/mcp-setup.md) - Model Context Protocol configuration
 
 ## Contributing
 
