@@ -8,10 +8,19 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 
 ## Features
 
-- **Git Checkpoint System**: Create and restore git stash checkpoints without affecting your working directory
-- **Custom Slash Commands**: Extend Claude Code with your own commands
-- **Hooks**: Automate tasks with pre/post execution hooks
-- **Utilities**: Various helper scripts and tools
+### Git Checkpoint System
+Create and restore git stash checkpoints without affecting your working directory
+- `/checkpoint` - Save current state
+- `/restore` - Restore previous state  
+- `/checkpoints` - List all checkpoints
+- Auto-checkpoint on Stop event
+
+### Development Hooks
+Enforce code quality and run tests automatically:
+- **full-check.sh** - TypeScript and ESLint validation (blocks `any` types)
+- **run-related-tests.sh** - Auto-run tests for modified files
+- **validate-todo-completion.sh** - Prevent stopping with incomplete todos
+- **auto-checkpoint.sh** - Save work automatically when Claude Code stops
 
 ## Installation
 
