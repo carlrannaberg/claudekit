@@ -21,6 +21,12 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
 - `/agent-migration` - Convert existing configs (CLAUDE.md, .cursorrules, etc.) to AGENT.md
 - Supports 10+ AI assistants with automatic symlinks
 
+### Command Creation
+- `/create-command` - Interactive command builder for creating new slash commands
+  - Supports project-level or personal commands
+  - Includes templates for arguments, bash execution, and file references
+  - Automatic namespace support through subdirectories
+
 ### Development Hooks
 Enforce code quality and run tests automatically:
 - **typecheck.sh** - TypeScript type checking (blocks `any` types)
@@ -81,6 +87,14 @@ Enforce code quality and run tests automatically:
   ```
   Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks for all AI assistants.
 
+### Creating Custom Commands
+
+- **`/create-command`** - Create new slash commands
+  ```
+  /create-command
+  ```
+  Interactive command builder that helps you create project-level or personal slash commands with support for arguments, bash execution, and file references.
+
 ### Auto-checkpoint Hook
 
 The Stop hook automatically creates a checkpoint when Claude Code finishes responding, ensuring you never lose work between sessions.
@@ -91,6 +105,7 @@ The Stop hook automatically creates a checkpoint when Claude Code finishes respo
 - [Hooks Documentation](.claude/hooks-documentation.md) - Information about all hooks
 - [AGENT.md Commands](.claude/agent-commands-documentation.md) - Guide for agent-init and agent-migration
 - [AGENT.md Migration](.claude/agent-migration-documentation.md) - Detailed migration documentation
+- [Create Command](.claude/create-command-documentation.md) - How to create custom slash commands
 
 ## Contributing
 
