@@ -53,7 +53,7 @@ Also examine:
 - If other AI configs exist (.clinerules, .windsurfrules), merge them
 
 ### 3. Create AGENT.md
-Based on your analysis, create AGENT.md with this exact format:
+Based on your analysis, create AGENT.md following the recommended structure from agent.md:
 
 ```markdown
 # AGENT.md
@@ -61,61 +61,78 @@ This file provides guidance to AI coding assistants working in this repository.
 
 # [Project Name]
 
-[Brief description of the project]
+[Project Overview: Brief description of the project's purpose and architecture]
 
 ## Build & Commands
 
-[List all important commands, especially:]
+[Development, testing, and deployment commands - especially:]
 - Build: `command`
 - Test: `command`
 - Test single file: `command path/to/test.ext`
 - Lint: `command`
 - Dev server: `command`
-[Include any other important commands found]
+- Deploy: `command`
+[Include all important commands found in package.json, Makefile, etc.]
 
 ## Code Style
 
-[Infer from actual code and config files:]
+[Formatting rules, naming conventions, and best practices:]
 - Language/framework specifics
 - Import conventions
 - Formatting rules
 - Naming conventions
 - Type usage patterns
 - Error handling patterns
-[Be specific based on what you observe]
+[Be specific based on actual code analysis]
 
-[Include other relevant sections as needed]
+## Testing
+
+[Testing frameworks, conventions, and execution guidelines:]
+- Framework: [Jest/Vitest/Pytest/etc]
+- Test file patterns: [*.test.ts, *.spec.js, etc]
+- Testing conventions
+- Coverage requirements
+- How to run specific test suites
+
+## Security
+
+[Security considerations and data protection guidelines:]
+- Authentication/authorization patterns
+- Data validation requirements
+- Secret management
+- Security best practices specific to this project
+
+## Configuration
+
+[Environment setup and configuration management:]
+- Required environment variables
+- Configuration files and their purposes
+- Development environment setup
+- Dependencies and version requirements
 ```
 
-**Key sections to include based on your findings:**
+**Structure based on agent.md recommendations:**
 
-1. **Build & Commands** (required)
-   - Extract from package.json, Makefile, or other build files
-   - Must include how to run a single test file
+Think about what you'd tell a new team member on their first day:
 
-2. **Code Style** (required)
-   - Infer from actual code samples
-   - Look at config files (.eslintrc, .prettierrc, tsconfig.json)
-   - Notice patterns in imports, naming, error handling
+1. **Project Overview** - Brief description of purpose and architecture
+2. **Build & Commands** - All development, testing, and deployment commands
+3. **Code Style** - Formatting rules, naming conventions, best practices
+4. **Testing** - Testing frameworks, conventions, execution guidelines
+5. **Security** - Security considerations and data protection
+6. **Configuration** - Environment setup and configuration management
 
-3. **Testing** (if test files exist)
-   - Testing framework and conventions
-   - How tests are organized
-
-4. **Architecture** (for larger projects)
-   - Key technologies and patterns
-   - Project structure
-
-5. **Additional sections** as appropriate:
-   - Security considerations
-   - Deployment process
-   - Environment setup
-   - Contributing guidelines
+**Additional sections based on project needs:**
+- Architecture details for complex projects
+- API documentation
+- Database schemas
+- Deployment procedures
+- Contributing guidelines
 
 **Important:** 
 - Include content from any existing .cursorrules or copilot-instructions.md files
 - Focus on practical information that helps AI assistants write better code
-- Be specific rather than generic (e.g., "Use 2 spaces" not "follow indentation rules")
+- Be specific and concrete based on actual code analysis
 
 ### 4. Create Symlinks
 After creating AGENT.md, create symlinks for all AI assistants:
