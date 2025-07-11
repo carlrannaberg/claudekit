@@ -53,7 +53,7 @@ Also examine:
 - If other AI configs exist (.clinerules, .windsurfrules), merge them
 
 ### 3. Create AGENT.md
-Based on your analysis, create AGENT.md following the recommended structure from agent.md:
+Based on your analysis, create AGENT.md with this structure:
 
 ```markdown
 # AGENT.md
@@ -111,9 +111,7 @@ This file provides guidance to AI coding assistants working in this repository.
 - Dependencies and version requirements
 ```
 
-**Structure based on agent.md recommendations:**
-
-Think about what you'd tell a new team member on their first day:
+Think about what you'd tell a new team member on their first day. Include these key sections:
 
 1. **Project Overview** - Brief description of purpose and architecture
 2. **Build & Commands** - All development, testing, and deployment commands
@@ -122,7 +120,7 @@ Think about what you'd tell a new team member on their first day:
 5. **Security** - Security considerations and data protection
 6. **Configuration** - Environment setup and configuration management
 
-**Additional sections based on project needs:**
+Additional sections based on project needs:
 - Architecture details for complex projects
 - API documentation
 - Database schemas
