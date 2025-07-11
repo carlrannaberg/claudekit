@@ -4,7 +4,7 @@ This document explains the Model Context Protocol (MCP) integration used by clau
 
 ## Overview
 
-claudekit includes a project-level MCP configuration (`.mcp.json`) that enables enhanced features for certain commands. The configuration is shared with all team members through version control.
+claudekit commands can leverage MCP servers for enhanced features. While the commands work without MCP, adding specific servers enables additional capabilities.
 
 ## Context7 MCP Server
 
@@ -21,19 +21,17 @@ The Context7 MCP server provides access to up-to-date library documentation from
 
 ### Installation
 
-The server is configured in `.mcp.json` and uses npx to run without requiring global installation:
+To enable Context7 in your project, run one of these commands:
 
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@context7/mcp-server"],
-      "env": {}
-    }
-  }
-}
+```bash
+# Local server (runs via npx)
+claude mcp add context7 -- npx -y @context7/mcp-server
+
+# Remote server (SSE transport)
+claude mcp add --transport sse context7 https://mcp.context7.com/sse
+
+# Remote server (HTTP transport)
+claude mcp add --transport http context7 https://mcp.context7.com/mcp
 ```
 
 ### First Time Setup

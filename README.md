@@ -8,10 +8,10 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 
 ### MCP Integration
 
-This project includes a Model Context Protocol (MCP) configuration that enables enhanced features:
-- **Context7 Server** - Provides access to up-to-date library documentation
-- Used by the `/spec` command for accurate technical specifications
-- Automatically configured via `.mcp.json` (requires one-time approval)
+Some commands support optional MCP server integration for enhanced features:
+- **Context7** - Provides access to up-to-date library documentation
+- Used by the `/spec` command for accurate technical specifications  
+- Install in your projects with: `claude mcp add context7 -- npx -y @context7/mcp-server`
 
 ## Features
 
@@ -79,9 +79,15 @@ Enforce code quality and run tests automatically:
    - Install hooks to `~/.claude/hooks/`
    - Configure your `~/.claude/settings.json` (with options to backup existing settings)
 
-3. (Optional) Approve MCP servers:
-   - When using commands that leverage MCP (like `/spec`), you'll be prompted to approve the Context7 server
-   - This is a one-time approval for enhanced library documentation features
+3. (Optional) Enable Context7 for enhanced `/spec` features:
+   ```bash
+   # Add Context7 to current project (local server)
+   claude mcp add context7 -- npx -y @context7/mcp-server
+   
+   # Or use the remote server
+   claude mcp add --transport sse context7 https://mcp.context7.com/sse
+   ```
+   This enables the `/spec` command to fetch up-to-date library documentation
 
 ## Usage
 

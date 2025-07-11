@@ -29,4 +29,4 @@ Thumbs.db
 .cache/
 
 # MCP
-# Note: .mcp.json is intentionally NOT ignored - it's meant to be shared
+.mcp.json
