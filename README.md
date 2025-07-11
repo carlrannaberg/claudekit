@@ -27,7 +27,12 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Includes templates for arguments, bash execution, and file references
   - Supports namespacing through subdirectories
 
-### GitHub Integration
+### Git & GitHub Integration
+- `/git-commit` - Create commits following project conventions
+  - Analyzes project's commit style from git history
+  - Checks for sensitive data and debug code
+  - Updates documentation when needed
+  - Documents commit conventions in CLAUDE.md
 - `/gh-repo-setup [name]` - Create new GitHub repository with full setup
   - Creates directory structure and initializes git
   - Creates private repository by default (for security)
@@ -102,7 +107,13 @@ Enforce code quality and run tests automatically:
   ```
   Prompts Claude to help you create new slash commands with proper structure, including support for arguments, bash execution, and file references.
 
-### GitHub Repository Management
+### Git & GitHub Management
+
+- **`/git-commit`** - Create git commits following project conventions
+  ```
+  /git-commit
+  ```
+  Analyzes project commit history to follow established conventions, checks for sensitive data, updates documentation as needed, and documents conventions in CLAUDE.md.
 
 - **`/gh-repo-setup [name]`** - Create new GitHub repository
   ```
