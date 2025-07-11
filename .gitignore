@@ -28,6 +28,10 @@ Thumbs.db
 *.temp
 .cache/
 
+# Build artifacts
+tsconfig.tsbuildinfo
+.eslintcache
+
 # MCP
 .mcp.json
 
