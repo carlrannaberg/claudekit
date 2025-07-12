@@ -9,7 +9,7 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 ## Features
 
 ### Development Tools
-- `/spec [feature/bugfix description]` - Generate comprehensive specification documents
+- `/spec:create [feature/bugfix description]` - Generate comprehensive specification documents
   - Creates detailed specs in `specs/` folder
   - Includes technical design, testing strategy, and implementation phases
   - Integrates with external library documentation (requires context7 MCP server)
@@ -91,12 +91,18 @@ Enforce code quality and run tests automatically:
 
 ### Development Workflows
 
-- **`/spec [description]`** - Generate specification documents
+- **`/spec:create [description]`** - Generate specification documents
   ```
-  /spec add user authentication with OAuth2
-  /spec fix-123 memory leak in data processor
+  /spec:create add user authentication with OAuth2
+  /spec:create fix-123 memory leak in data processor
   ```
   Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
+
+- **`/spec:check [file]`** - Analyze specification completeness
+  ```
+  /spec:check specs/hooks-system-implementation.md
+  ```
+  Analyzes specifications to determine if they contain sufficient detail for autonomous implementation. Evaluates intent, scope, requirements, and implementation details.
 
 - **`/validate-and-fix`** - Run quality checks and auto-fix issues
   ```
@@ -166,7 +172,7 @@ The Stop hook automatically creates a checkpoint when Claude Code finishes respo
 
 Some commands support optional MCP server integration for enhanced features:
 - **Context7** - Provides access to up-to-date library documentation
-- Used by the `/spec` command for accurate technical specifications  
+- Used by the `/spec:create` command for accurate technical specifications  
 - Install in your projects with: `claude mcp add context7 -- npx -y @context7/mcp-server`
 
 ## Documentation

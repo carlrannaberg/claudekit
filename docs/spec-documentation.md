@@ -1,6 +1,6 @@
 # Spec Command Documentation
 
-The `/spec` command helps you create comprehensive specification documents for new features or bugfixes.
+The `/spec:create` and `/spec:check` commands help you create and validate comprehensive specification documents for new features or bugfixes.
 
 ## Overview
 
@@ -20,13 +20,43 @@ Without context7, the command still works but won't automatically fetch external
 
 ```bash
 # For a new feature
-/spec add user authentication with OAuth2
+/spec:create add user authentication with OAuth2
 
 # For a bugfix (include issue number)
-/spec fix-123 memory leak in data processor
+/spec:create fix-123 memory leak in data processor
+
+# Check specification completeness
+/spec:check specs/feat-user-authentication.md
 ```
 
-## What It Creates
+## The spec:check Command
+
+The `/spec:check` command analyzes existing specifications to determine if they contain sufficient detail for autonomous implementation.
+
+### What It Checks
+
+1. **WHY - Intent and Purpose**
+   - Background/Problem Statement clarity
+   - Goals and Non-Goals definition
+   - Success criteria
+
+2. **WHAT - Scope and Requirements**
+   - Features and functionality definition
+   - API contracts and interfaces
+   - Performance and security requirements
+
+3. **HOW - Implementation Details**
+   - Architecture and design patterns
+   - Error handling and edge cases
+   - Testing strategy
+
+### Output
+- Summary: Overall readiness assessment
+- Critical Gaps: Must-fix issues
+- Risk Areas: Potential challenges
+- Recommendations: Next steps
+
+## What spec:create Creates
 
 The command creates a markdown file in the `specs/` folder with:
 
@@ -111,7 +141,7 @@ Implement OAuth2-based authentication to allow users to sign in with Google and 
 
 ## When to Use
 
-Use `/spec` when:
+Use `/spec:create` when:
 - Starting a new feature
 - Planning a complex bugfix
 - Need stakeholder review before implementation
@@ -120,7 +150,8 @@ Use `/spec` when:
 
 ## Integration with Workflow
 
-1. Create spec first: `/spec feature description`
+1. Create spec first: `/spec:create feature description`
+2. Check completeness: `/spec:check specs/your-spec.md`
 2. Review and refine the spec
 3. Get approval from stakeholders
 4. Implement based on the spec

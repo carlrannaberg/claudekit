@@ -20,7 +20,8 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - `/checkpoint:create [description]` - Create a git stash checkpoint
 - `/checkpoint:restore [n]` - Restore to a previous checkpoint
 - `/checkpoint:list` - List all claude checkpoints
-- `/spec [feature]` - Generate comprehensive specification
+- `/spec:create [feature]` - Generate comprehensive specification
+- `/spec:check [file]` - Analyze specification completeness
 - `/validate-and-fix` - Run quality checks and auto-fix
 - `/git:commit` - Smart commit following conventions
 - `/gh:repo-init [name]` - Create GitHub repository
