@@ -83,11 +83,11 @@ The analysis will provide:
 ### Usage Examples:
 
 ```bash
-# Check a spec file
-/spec:check docs/feature-spec.md
+# Validate a spec file
+/spec:validate docs/feature-spec.md
 
-# Check a specific spec
-/spec:check specs/hooks-system-implementation.md
+# Validate a specific spec
+/spec:validate specs/hooks-system-implementation.md
 ```
 
 This comprehensive analysis helps ensure specifications are implementation-ready before starting development, reducing ambiguity and rework.

@@ -98,11 +98,17 @@ Enforce code quality and run tests automatically:
   ```
   Creates comprehensive technical specifications in the `specs/` folder with sections for design, testing, security, and implementation phases. Integrates with external library documentation for accurate technical details.
 
-- **`/spec:check [file]`** - Analyze specification completeness
+- **`/spec:validate [file]`** - Analyze specification completeness
   ```
-  /spec:check specs/hooks-system-implementation.md
+  /spec:validate specs/hooks-system-implementation.md
   ```
   Analyzes specifications to determine if they contain sufficient detail for autonomous implementation. Evaluates intent, scope, requirements, and implementation details.
+
+- **`/spec:execute [file]`** - Execute specification with concurrent agents
+  ```
+  /spec:execute specs/feat-user-authentication.md
+  ```
+  Takes a validated specification and orchestrates the implementation by breaking it into tasks and distributing them to concurrent AI agents. Uses TodoWrite for progress tracking and ensures conflict-free parallel development.
 
 - **`/validate-and-fix`** - Run quality checks and auto-fix issues
   ```

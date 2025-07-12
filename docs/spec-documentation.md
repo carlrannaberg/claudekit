@@ -1,6 +1,6 @@
 # Spec Command Documentation
 
-The `/spec:create` and `/spec:check` commands help you create and validate comprehensive specification documents for new features or bugfixes.
+The spec command suite (`/spec:create`, `/spec:validate`, `/spec:execute`) provides a complete specification-driven development workflow for features and bugfixes.
 
 ## Overview
 
@@ -25,13 +25,13 @@ Without context7, the command still works but won't automatically fetch external
 # For a bugfix (include issue number)
 /spec:create fix-123 memory leak in data processor
 
-# Check specification completeness
-/spec:check specs/feat-user-authentication.md
+# Validate specification completeness
+/spec:validate specs/feat-user-authentication.md
 ```
 
-## The spec:check Command
+## The spec:validate Command
 
-The `/spec:check` command analyzes existing specifications to determine if they contain sufficient detail for autonomous implementation.
+The `/spec:validate` command analyzes existing specifications to determine if they contain sufficient detail for autonomous implementation.
 
 ### What It Checks
 
@@ -55,6 +55,33 @@ The `/spec:check` command analyzes existing specifications to determine if they 
 - Critical Gaps: Must-fix issues
 - Risk Areas: Potential challenges
 - Recommendations: Next steps
+
+## The spec:execute Command
+
+The `/spec:execute` command takes a validated specification and orchestrates its implementation using concurrent AI agents.
+
+### How It Works
+
+1. **Parses the specification** to extract implementation tasks
+2. **Creates a todo list** with all implementation tasks
+3. **Launches concurrent agents** to work on non-conflicting components
+4. **Tracks progress** through the todo system
+5. **Validates** the implementation against the original spec
+
+### Agent Orchestration
+
+The command typically launches agents for:
+- **Database Layer** - Models, migrations, data access
+- **API Layer** - Endpoints, validation, business logic  
+- **Frontend** - UI components, forms, client logic
+- **Testing** - Unit, integration, and E2E tests
+- **Documentation** - API docs, guides, examples
+
+### Success Criteria
+- All todos completed
+- All tests passing
+- Code meets project standards
+- Implementation matches specification
 
 ## What spec:create Creates
 
@@ -151,7 +178,8 @@ Use `/spec:create` when:
 ## Integration with Workflow
 
 1. Create spec first: `/spec:create feature description`
-2. Check completeness: `/spec:check specs/your-spec.md`
+2. Validate completeness: `/spec:validate specs/your-spec.md`
+3. Execute with agents: `/spec:execute specs/your-spec.md`
 2. Review and refine the spec
 3. Get approval from stakeholders
 4. Implement based on the spec
