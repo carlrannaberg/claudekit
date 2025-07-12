@@ -26,7 +26,7 @@ Check for existing AI configuration files:
 - AGENT.md (if already exists)
 
 ### 2. Perform Migration
-Find the first existing config file and move it to AGENT.md:
+Find the first existing config file and move it to AGENT.md. After moving, add a note at the top of AGENT.md documenting the symlink structure:
 ```bash
 # Priority order for migration
 if [ -f "CLAUDE.md" ] && [ ! -f "AGENT.md" ]; then
@@ -38,8 +38,13 @@ elif [ -f ".cursorrules" ] && [ ! -f "AGENT.md" ]; then
 # ... and so on for other files
 ```
 
-### 3. Create Symlinks
-Create symlinks for all supported AI assistants:
+### 3. Update AGENT.md and Create Symlinks
+First, add a note at the top of AGENT.md documenting which files will be symlinks:
+```markdown
+**Note:** CLAUDE.md, .clinerules, .cursorrules, and other AI config files are symlinks to AGENT.md in this project.
+```
+
+Then create symlinks for all supported AI assistants:
 ```bash
 # Claude Code
 ln -s AGENT.md CLAUDE.md
@@ -71,6 +76,7 @@ ln -s ../AGENT.md .idx/airules.md
 ### 4. Verify Results
 - Use `ls -la` to show all created symlinks
 - Display which AI assistants are now configured
+- Confirm that AGENT.md includes the symlink documentation note
 
 ### 5. Git Guidance
 If in a git repository:

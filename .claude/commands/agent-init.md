@@ -59,6 +59,8 @@ Based on your analysis, create AGENT.md with this structure:
 # AGENT.md
 This file provides guidance to AI coding assistants working in this repository.
 
+**Note:** [Document if CLAUDE.md or other AI config files are symlinks to AGENT.md]
+
 # [Project Name]
 
 [Project Overview: Brief description of the project's purpose and architecture]
@@ -133,7 +135,7 @@ Additional sections based on project needs:
 - Be specific and concrete based on actual code analysis
 
 ### 4. Create Symlinks
-After creating AGENT.md, create symlinks for all AI assistants:
+After creating AGENT.md, create symlinks for all AI assistants and document this in AGENT.md:
 
 ```bash
 # Claude Code
@@ -169,4 +171,9 @@ Display:
 - List of symlinks created
 - Key information included in the file
 - Suggest reviewing and customizing if needed
+
+**Important:** Make sure to add a note at the top of AGENT.md documenting which files are symlinks to AGENT.md. For example:
+```markdown
+**Note:** CLAUDE.md, .clinerules, .cursorrules, and other AI config files are symlinks to AGENT.md in this project.
+```
 

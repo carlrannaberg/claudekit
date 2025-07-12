@@ -1,6 +1,8 @@
 # AGENT.md
 This file provides guidance to AI coding assistants working in this repository.
 
+**Note:** CLAUDE.md is a symlink to AGENT.md in this project.
+
 # claudekit
 
 A toolkit of custom commands, hooks, and utilities for Claude Code. This project provides powerful development workflow tools including git checkpointing, automated code quality checks, specification generation, and AI assistant configuration management. The toolkit is designed to be project-agnostic and enhances Claude Code functionality through shell scripts, commands, and hooks.
@@ -120,6 +122,21 @@ See `docs/hooks-documentation.md` for detailed testing examples.
 - Create backups before destructive changes
 - Never expose or commit sensitive information
 
+## Git Commit Conventions
+Based on analysis of this project's git history:
+- Format: Conventional commits with type prefix (feat:, fix:, test:, docs:, refactor:, chore:)
+- Tense: Imperative mood (e.g., "add", "fix", "update", not "added", "fixed", "updated")
+- Length: Subject line typically under 72 characters
+- Structure: `type: brief description` or `type(scope): brief description`
+- Common types used:
+  - `feat:` - New features
+  - `fix:` - Bug fixes
+  - `test:` - Test-related changes
+  - `docs:` - Documentation updates
+  - `refactor:` - Code refactoring
+  - `chore:` - Maintenance tasks
+- No ticket/task codes observed in recent history
+
 ### Path Security
 - Validate file paths exist before operations
 - Handle path traversal safely
@@ -130,7 +147,7 @@ See `docs/hooks-documentation.md` for detailed testing examples.
 ### Environment Requirements
 - **OS**: macOS/Linux with bash 4.0+
 - **Required**: Git
-- **Optional**: 
+- **Optional**:
   - Node.js/npm (for TypeScript/ESLint hooks)
   - GitHub CLI (for gh-repo-setup)
   - jq (for JSON parsing, with fallbacks)
