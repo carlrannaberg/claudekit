@@ -1,0 +1,173 @@
+# AGENT.md
+This file provides guidance to AI coding assistants working in this repository.
+
+# claudekit
+
+A toolkit of custom commands, hooks, and utilities for Claude Code. This project provides powerful development workflow tools including git checkpointing, automated code quality checks, specification generation, and AI assistant configuration management. The toolkit is designed to be project-agnostic and enhances Claude Code functionality through shell scripts, commands, and hooks.
+
+## Build & Commands
+
+This is a bash-based toolkit with no traditional build process. Key commands:
+
+- **Install**: `./setup.sh` - Installs claudekit to user and project directories
+- **Test hooks**: Manually trigger by editing files or using Claude Code
+- **Check shell syntax**: `bash -n script.sh`
+- **Validate JSON**: `jq . settings.json`
+
+### Slash Commands (in Claude Code)
+- `/checkpoint [description]` - Create a git stash checkpoint
+- `/restore [n]` - Restore to a previous checkpoint
+- `/checkpoints` - List all claude checkpoints
+- `/spec [feature]` - Generate comprehensive specification
+- `/validate-and-fix` - Run quality checks and auto-fix
+- `/git-commit` - Smart commit following conventions
+- `/gh-repo-setup [name]` - Create GitHub repository
+- `/agent-init` - Initialize AGENT.md file
+- `/agent-migration` - Migrate from other AI configs
+- `/create-command` - Guide for new commands
+
+## Code Style
+
+### Shell Scripts
+- **Shebang**: Always use `#!/usr/bin/env bash`
+- **Error handling**: Start with `set -euo pipefail`
+- **Headers**: Include descriptive comment blocks
+```bash
+################################################################################
+# Script Name                                                                  #
+# Brief description of what the script does                                   #
+################################################################################
+```
+
+### JSON Parsing
+- Support both `jq` and fallback methods:
+```bash
+# Try jq first
+if command -v jq &> /dev/null; then
+    FILE_PATH=$(echo "$CLAUDE_PAYLOAD" | jq -r '.file_path // empty')
+else
+    # Fallback to sed/grep
+    FILE_PATH=$(echo "$CLAUDE_PAYLOAD" | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+fi
+```
+
+### Path Handling
+- Always expand `~` to home directory
+- Use absolute paths when possible
+- Handle spaces in file paths
+
+### Error Messages
+- Use structured block format:
+```bash
+echo "████ Error: Clear Title ████"
+echo ""
+echo "Detailed explanation of the issue"
+echo ""
+echo "How to fix:"
+echo "1. Specific step"
+echo "2. Another step"
+```
+
+### Exit Codes
+- `0` = Success/allow operation
+- `2` = Block with error message
+- Other = Unexpected errors
+
+### Command Structure
+- Markdown files with YAML frontmatter
+- Specify `allowed-tools` for security
+- Use `$ARGUMENTS` for user input
+- Provide clear numbered steps
+- Include examples for outputs
+
+## Testing
+
+### Manual Testing
+- Test hooks by triggering their events in Claude Code
+- Test commands using `/command-name` in Claude Code
+- Verify shell scripts with `bash -n`
+- Check JSON validity with `jq`
+
+### Hook Testing
+- **PostToolUse**: Edit a file to trigger
+- **Stop**: Use Ctrl+C or Stop button
+- Check logs in `~/.claude/hooks.log`
+
+## Security
+
+### Tool Restrictions
+- Commands must specify `allowed-tools` in frontmatter
+- Example: `allowed-tools: Bash(git stash:*), Read`
+- Never allow unrestricted bash access
+
+### Git Operations
+- Always use non-destructive operations
+- Prefer `git stash apply` over `git stash pop`
+- Create backups before destructive changes
+- Never expose or commit sensitive information
+
+### Path Security
+- Validate file paths exist before operations
+- Handle path traversal safely
+- Expand `~` properly to avoid issues
+
+## Configuration
+
+### Environment Requirements
+- **OS**: macOS/Linux with bash 4.0+
+- **Required**: Git
+- **Optional**: 
+  - Node.js/npm (for TypeScript/ESLint hooks)
+  - GitHub CLI (for gh-repo-setup)
+  - jq (for JSON parsing, with fallbacks)
+
+### Installation Structure
+```
+~/.claude/                    # User-level installation
+├── commands/                 # Global commands
+└── hooks/                    # Global hooks
+
+<project>/.claude/            # Project-level
+├── settings.json            # Hook configuration
+├── commands/                # Project commands
+└── hooks/                   # Project hooks
+```
+
+### Hook Configuration
+Edit `.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "PostToolUse": ["typecheck.sh", "eslint.sh"],
+    "Stop": ["auto-checkpoint.sh"]
+  }
+}
+```
+
+### Development Guidelines
+1. Always provide fallback methods for tools
+2. Log to `~/.claude/` for debugging
+3. Use clear, actionable error messages
+4. Support incremental/cached operations
+5. Follow existing patterns in the codebase
+6. Test thoroughly in Claude Code environment
+
+## Architecture
+
+### Project Structure
+- `setup.sh` - Installation script
+- `.claude/commands/` - Slash command definitions
+- `.claude/hooks/` - Event-triggered scripts
+- `docs/` - Detailed documentation
+
+### Hook System
+- **PostToolUse**: Triggered after file edits
+- **Stop**: Triggered when Claude Code stops
+- Hooks receive JSON payload via stdin
+- Must output JSON response or exit with code
+
+### Command System
+- Markdown files define commands
+- Frontmatter specifies permissions
+- Shell expansions for dynamic content
+- Support for arguments via `$ARGUMENTS`
