@@ -37,3 +37,6 @@ tsconfig.tsbuildinfo
 
 # Claude settings
 .claude/settings.local.json
+
+# Specifications folder
+/specs/
