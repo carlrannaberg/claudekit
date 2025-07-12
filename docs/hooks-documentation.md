@@ -81,7 +81,7 @@ This document describes the hooks included in claudekit and their functionality.
 - Checks for incomplete todos (status != "completed")
 - Blocks stop with detailed message listing incomplete items
 - Prevents infinite loops with stop_hook_active check
-- Logs activity to ~/.claude/stop-hook.log
+- Debug logging to ~/.claude/stop-hook.log (enable with: `touch ~/.claude/hooks-debug`)
 
 **Requirements:**
 - Claude Code with TodoWrite tool
@@ -118,4 +118,93 @@ To customize these hooks for your project:
 
 ### Stop hook infinite loop
 - validate-todo-completion.sh checks stop_hook_active to prevent loops
-- Check ~/.claude/stop-hook.log for debugging information
+- Enable debug logging: `touch ~/.claude/hooks-debug`
+- Check ~/.claude/stop-hook.log for debugging information (when debug is enabled)
+
+## Manual Command Line Testing
+
+You can test hooks directly from the command line without Claude Code. All hooks expect JSON input via stdin.
+
+### Testing PostToolUse Hooks
+
+#### 1. TypeScript Hook
+```bash
+# Basic test
+echo '{"tool_input": {"file_path": "/absolute/path/to/file.ts"}}' | ~/.claude/hooks/typecheck.sh
+
+# Test with a file containing 'any' type
+echo 'const data: any = {}; export default data;' > test.ts
+echo '{"tool_input": {"file_path": "'$(pwd)'/test.ts"}}' | ~/.claude/hooks/typecheck.sh
+```
+
+#### 2. ESLint Hook
+```bash
+# Basic test
+echo '{"tool_input": {"file_path": "/absolute/path/to/file.js"}}' | ~/.claude/hooks/eslint.sh
+
+# Test with a file containing ESLint issues
+echo 'var x = 1;;' > test.js
+echo '{"tool_input": {"file_path": "'$(pwd)'/test.js"}}' | ~/.claude/hooks/eslint.sh
+```
+
+#### 3. Run Related Tests Hook
+```bash
+# Test with a file that has associated tests
+echo '{"tool_input": {"file_path": "/absolute/path/to/component.tsx"}}' | ~/.claude/hooks/run-related-tests.sh
+
+# Create a test scenario
+echo 'export const add = (a, b) => a + b;' > math.js
+echo 'test("add", () => expect(add(1, 2)).toBe(4));' > math.test.js
+echo '{"tool_input": {"file_path": "'$(pwd)'/math.js"}}' | ~/.claude/hooks/run-related-tests.sh
+```
+
+### Testing Stop Hooks
+
+#### 1. Auto-checkpoint Hook
+```bash
+# This hook doesn't read input, just run it directly
+~/.claude/hooks/auto-checkpoint.sh
+
+# It will only create a checkpoint if there are uncommitted changes
+```
+
+#### 2. Todo Validation Hook
+```bash
+# Test with default payload
+echo '{"transcript_path": "~/.claude/transcripts/current.jsonl", "stop_hook_active": false}' | \
+  ~/.claude/hooks/validate-todo-completion.sh
+
+# The hook will check the transcript file for incomplete todos
+```
+
+### JSON Payload Format
+
+PostToolUse hooks expect:
+```json
+{
+  "tool_input": {
+    "file_path": "/absolute/path/to/file"
+  }
+}
+```
+
+Stop hooks expect:
+```json
+{
+  "transcript_path": "~/.claude/transcripts/conversation-id.jsonl",
+  "stop_hook_active": false
+}
+```
+
+### Testing Tips
+
+1. **Use absolute paths** - Hooks expect absolute file paths
+2. **Check permissions** - Ensure hooks are executable: `chmod +x ~/.claude/hooks/*.sh`
+3. **Exit codes**:
+   - `0` = Success/allow operation
+   - `2` = Block with error message
+   - Other = Unexpected errors
+4. **Debug output** - Enable hook debug logging: `touch ~/.claude/hooks-debug`
+   - Check logs in `~/.claude/stop-hook.log` (when debug is enabled)
+   - Run Claude Code with `--debug` flag to see hook execution
+5. **Create test files** - Make files with known issues to verify hook behavior

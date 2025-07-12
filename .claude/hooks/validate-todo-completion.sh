@@ -7,9 +7,32 @@ set -euo pipefail
 # Reads from JSONL transcript to get actual TodoWrite state                    #
 ################################################################################
 
-# Logging function
+# Logging function - only logs if debug is enabled
+# Enable debug by creating: touch ~/.claude/hooks-debug
+DEBUG_ENABLED=false
+if [ -f "$HOME/.claude/hooks-debug" ]; then
+  DEBUG_ENABLED=true
+fi
+
 log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] STOP_HOOK: $*" >> ~/.claude/stop-hook.log
+  if [ "$DEBUG_ENABLED" = "true" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] STOP_HOOK: $*" >> ~/.claude/stop-hook.log
+  fi
+}
+
+# Helper function to safely parse JSON field
+parse_json_field() {
+  local json="$1"
+  local field="$2"
+  local default="${3:-}"
+  
+  if command -v jq &>/dev/null; then
+    echo "$json" | jq -r ".$field // \"$default\"" 2>/dev/null || echo "$default"
+  else
+    # Fallback: extract field using sed
+    local value=$(echo "$json" | sed -n "s/.*\"$field\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -1)
+    echo "${value:-$default}"
+  fi
 }
 
 # Read JSON input from stdin
@@ -19,17 +42,14 @@ INPUT="$(cat)"
 log "=== STOP HOOK TRIGGERED ==="
 log "Input received: $(echo "$INPUT" | head -c 200)..."
 
-# Check if this is already a stop hook continuation to prevent infinite loops
-if command -v jq &>/dev/null; then
-  STOP_HOOK_ACTIVE=$(echo "$INPUT" | jq -r '.stop_hook_active // false')
-else
-  # Fallback: check for stop_hook_active in input
-  if echo "$INPUT" | grep -q '"stop_hook_active":true'; then
-    STOP_HOOK_ACTIVE="true"
-  else
-    STOP_HOOK_ACTIVE="false"
-  fi
+# Validate input is valid JSON (basic check)
+if [ -z "$INPUT" ]; then
+  log "ERROR: No input received"
+  exit 0  # Allow stop on error
 fi
+
+# Check if this is already a stop hook continuation to prevent infinite loops
+STOP_HOOK_ACTIVE=$(parse_json_field "$INPUT" "stop_hook_active" "false")
 
 # If stop hook is already active, allow the stop to prevent infinite loop
 if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
@@ -38,12 +58,7 @@ if [ "$STOP_HOOK_ACTIVE" = "true" ]; then
 fi
 
 # Read the transcript to analyze todo status
-if command -v jq &>/dev/null; then
-  TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // empty')
-else
-  # Fallback: extract transcript_path using sed
-  TRANSCRIPT_PATH=$(echo "$INPUT" | sed -n 's/.*"transcript_path":"\([^"]*\)".*/\1/p' | head -1)
-fi
+TRANSCRIPT_PATH=$(parse_json_field "$INPUT" "transcript_path" "")
 
 # Expand ~ to home directory if present
 TRANSCRIPT_PATH="${TRANSCRIPT_PATH/#\~/$HOME}"
@@ -75,20 +90,41 @@ else
   READER="tail -r"
 fi
 
-while IFS= read -r line; do
-  # Check if this line contains a TodoWrite tool result
-  if echo "$line" | grep -q '"toolUseResult"' && echo "$line" | grep -q '"newTodos"'; then
-    # Extract the newTodos array from the toolUseResult
-    if command -v jq &>/dev/null; then
-      TODOS=$(echo "$line" | jq -r '.toolUseResult.newTodos // empty' 2>/dev/null || true)
-      if [ -n "$TODOS" ] && [ "$TODOS" != "null" ] && [ "$TODOS" != "[]" ]; then
-        LAST_TODO_STATE="$TODOS"
-        TODO_FOUND=true
-        break
+# Process transcript safely
+if command -v "$READER" &>/dev/null; then
+  while IFS= read -r line; do
+    # Skip empty lines
+    [ -z "$line" ] && continue
+    
+    # Check if this line contains a TodoWrite tool result
+    if echo "$line" | grep -q '"toolUseResult"' && echo "$line" | grep -q '"newTodos"'; then
+      # Extract the newTodos array from the toolUseResult
+      if command -v jq &>/dev/null; then
+        TODOS=$(echo "$line" | jq -r '.toolUseResult.newTodos // empty' 2>/dev/null || true)
+        if [ -n "$TODOS" ] && [ "$TODOS" != "null" ] && [ "$TODOS" != "[]" ]; then
+          LAST_TODO_STATE="$TODOS"
+          TODO_FOUND=true
+          break
+        fi
       fi
     fi
-  fi
-done < <($READER "$TRANSCRIPT_PATH" 2>/dev/null || cat "$TRANSCRIPT_PATH")
+  done < <($READER "$TRANSCRIPT_PATH" 2>/dev/null || cat "$TRANSCRIPT_PATH" 2>/dev/null)
+else
+  # Fallback: read file normally if reverse reader not available
+  log "WARNING: Reverse reader not available, reading file normally"
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    if echo "$line" | grep -q '"toolUseResult"' && echo "$line" | grep -q '"newTodos"'; then
+      if command -v jq &>/dev/null; then
+        TODOS=$(echo "$line" | jq -r '.toolUseResult.newTodos // empty' 2>/dev/null || true)
+        if [ -n "$TODOS" ] && [ "$TODOS" != "null" ] && [ "$TODOS" != "[]" ]; then
+          LAST_TODO_STATE="$TODOS"
+          TODO_FOUND=true
+        fi
+      fi
+    fi
+  done < "$TRANSCRIPT_PATH"
+fi
 
 # If no todos found, allow stop
 if [ "$TODO_FOUND" = "false" ]; then
@@ -115,7 +151,8 @@ if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
   log "BLOCKING STOP: Found $INCOMPLETE_COUNT incomplete todos"
   log "Incomplete todos: $INCOMPLETE_TODOS"
   
-  # Return JSON to block stopping with reason for Claude
+  # Return JSON response to block stopping
+  # Claude Code expects: {"decision": "block", "reason": "explanation"}
   cat <<EOF
 {
   "decision": "block",
@@ -127,4 +164,5 @@ fi
 
 # All todos are complete or no todos exist - allow stop
 log "All todos complete, allowing stop (incomplete_count: $INCOMPLETE_COUNT)"
+# Exit 0 with no output allows the stop to proceed
 exit 0

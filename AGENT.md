@@ -93,6 +93,20 @@ echo "2. Another step"
 - **Stop**: Use Ctrl+C or Stop button
 - Check logs in `~/.claude/hooks.log`
 
+### Command Line Hook Testing
+Test hooks directly without Claude Code:
+```bash
+# Test TypeScript hook
+echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | ~/.claude/hooks/typecheck.sh
+
+# Test ESLint hook
+echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | ~/.claude/hooks/eslint.sh
+
+# Test auto-checkpoint (no input needed)
+~/.claude/hooks/auto-checkpoint.sh
+```
+See `docs/hooks-documentation.md` for detailed testing examples.
+
 ## Security
 
 ### Tool Restrictions
