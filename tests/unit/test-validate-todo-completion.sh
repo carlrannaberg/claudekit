@@ -17,11 +17,11 @@ source "$SCRIPT_DIR/../test-framework.sh"
 ################################################################################
 
 test_todo_blocks_incomplete_items() {
-    # Create a transcript with incomplete todos
+    # Create a transcript with incomplete todos in the correct format
     create_test_file "transcript.jsonl" '
 {"type":"other","data":"some other entry"}
 {"type":"toolUse","toolName":"TodoWrite","toolInput":{"todos":[{"id":"1","content":"Write tests","status":"pending","priority":"high"},{"id":"2","content":"Update docs","status":"completed","priority":"medium"}]}}
-{"type":"toolUseResult","toolName":"TodoWrite","toolUseId":"123","newTodos":[{"id":"1","content":"Write tests","status":"pending","priority":"high"},{"id":"2","content":"Update docs","status":"completed","priority":"medium"}]}
+{"toolUseResult":{"newTodos":[{"id":"1","content":"Write tests","status":"pending","priority":"high"},{"id":"2","content":"Update docs","status":"completed","priority":"medium"}]}}
 '
     
     # Execute hook
@@ -112,11 +112,11 @@ this is not json
 }
 
 test_todo_reads_most_recent_todo_state() {
-    # Create transcript with multiple todo updates
+    # Create transcript with multiple todo updates in correct format
     create_test_file "transcript.jsonl" '
-{"type":"toolUseResult","newTodos":[{"id":"1","content":"Task 1","status":"pending","priority":"high"}]}
-{"type":"toolUseResult","newTodos":[{"id":"1","content":"Task 1","status":"completed","priority":"high"}]}
-{"type":"toolUseResult","newTodos":[{"id":"1","content":"Task 1","status":"completed","priority":"high"},{"id":"2","content":"Task 2","status":"pending","priority":"medium"}]}
+{"toolUseResult":{"newTodos":[{"id":"1","content":"Task 1","status":"pending","priority":"high"}]}}
+{"toolUseResult":{"newTodos":[{"id":"1","content":"Task 1","status":"completed","priority":"high"}]}}
+{"toolUseResult":{"newTodos":[{"id":"1","content":"Task 1","status":"completed","priority":"high"},{"id":"2","content":"Task 2","status":"pending","priority":"medium"}]}}
 '
     
     # Execute hook - should use the most recent state

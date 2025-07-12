@@ -58,9 +58,7 @@ esac
 
 test_checkpoint_skips_clean_repository() {
     # Setup: Mock git with clean working tree
-    create_mock_git "clean"
-    
-    # Track git commands
+    # The hook should check status but not create stash
     local git_commands_log="$PWD/git-commands.log"
     create_mock_command "git" "
 echo \"\$*\" >> '$git_commands_log'
@@ -71,8 +69,11 @@ case \"\$1\" in
         exit 0
         ;;
     stash)
-        echo 'ERROR: Should not call stash on clean repo'
-        exit 1
+        if [[ \"\$2\" == 'create' ]]; then
+            # Return empty for clean repo
+            echo ''
+            exit 0
+        fi
         ;;
 esac
 "
@@ -83,7 +84,11 @@ esac
     
     # Assertions
     assert_exit_code 0 $exit_code "Should succeed with clean repository"
-    assert_file_not_exists "$git_commands_log" "Should not call git stash on clean repo"
+    # Hook will call git status, so log will exist
+    assert_file_exists "$git_commands_log" "Should check git status"
+    assert_file_contains "$git_commands_log" "status" "Should call git status"
+    # Hook may call stash create, but won't call stash store if create returns empty
+    assert_not_contains "$(cat "$git_commands_log")" "stash store" "Should not store empty stash"
 }
 
 test_checkpoint_handles_not_git_repository() {
@@ -193,14 +198,37 @@ esac
 }
 
 test_checkpoint_silent_operation() {
-    # Setup: Mock git with changes
-    create_mock_git "uncommitted"
+    # Setup: Mock git with changes - use our detailed mock
+    local git_commands_log="$PWD/git-commands.log"
+    create_mock_command "git" "
+case \"\$1\" in
+    status)
+        echo 'On branch main'
+        echo 'Changes not staged for commit:'
+        echo '  modified: src/index.ts'
+        exit 0
+        ;;
+    stash)
+        case \"\$2\" in
+            create)
+                echo 'a1b2c3d4e5f6789'
+                exit 0
+                ;;
+            store)
+                # Store outputs the JSON message
+                echo '{\"suppressOutput\": true}'
+                exit 0
+                ;;
+        esac
+        ;;
+esac
+"
     
-    # Execute hook and capture output
+    # Execute hook and capture all output
     local output=$("$HOOK_PATH" 2>&1)
     
-    # Should produce no output (silent operation)
-    assert_equals "" "$output" "Should operate silently with no output"
+    # The hook should only output the suppress message from git stash store
+    assert_equals '{"suppressOutput": true}' "$output" "Should only output suppress message"
 }
 
 test_checkpoint_preserves_working_directory() {

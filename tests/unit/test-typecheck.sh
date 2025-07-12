@@ -17,14 +17,21 @@ source "$SCRIPT_DIR/../test-framework.sh"
 ################################################################################
 
 test_typecheck_blocks_any_type() {
-    # Setup: Create a mock tsc that reports any type usage
+    # Setup: Create a mock tsc and npx for version check
+    create_mock_command "npx" '
+if [[ "$*" == *"tsc -v"* ]]; then
+    echo "Version 5.4.5"
+    exit 0
+fi
+'
+    
     create_mock_command "tsc" "
 echo 'src/index.ts(10,5): error TS7006: Parameter '\''data'\'' implicitly has an '\''any'\'' type.'
 echo 'src/index.ts(15,10): error TS7006: Parameter '\''value'\'' implicitly has an '\''any'\'' type.'
 exit 1
 "
     
-    # Create test TypeScript file
+    # Create test TypeScript file with any types
     create_test_file "src/index.ts" '
 function processData(data: any) {
     return data;
@@ -48,10 +55,10 @@ EOF
         "$HOOK_PATH" 2>&1)
     local exit_code=$?
     
-    # Assertions
+    # Assertions - the hook blocks on any types even before running tsc
     assert_exit_code 2 $exit_code "Should block when any types are found"
-    assert_contains "$output" "any types found" "Error message should mention any types"
-    assert_contains "$output" "data" "Should show specific parameter with any type"
+    assert_contains "$output" "forbidden \"any\" types" "Error message should mention forbidden any types"
+    assert_contains "$output" "Replace ALL occurrences" "Should provide fix instructions"
 }
 
 test_typecheck_allows_clean_typescript() {

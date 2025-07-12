@@ -284,12 +284,17 @@ case \"\$1\" in
                 ;;
             store)
                 echo 'Saved working directory and index state'
+                echo '{\"suppressOutput\": true}'
                 exit 0
                 ;;
         esac
         ;;
+    add|commit|push|pull|clone|init)
+        # Common git commands - just succeed
+        exit 0
+        ;;
     *)
-        echo \"git: unknown command: \$1\"
+        echo \"git: '\$1' is not a git command. See 'git --help'.\" >&2
         exit 1
         ;;
 esac

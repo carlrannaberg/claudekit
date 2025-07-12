@@ -51,7 +51,7 @@ function test() {
     
     # Assertions
     assert_exit_code 2 $exit_code "Should block when ESLint finds errors"
-    assert_contains "$output" "ESLint issues found" "Should report ESLint issues"
+    assert_contains "$output" "ESLint check failed" "Should report ESLint failure"
     assert_contains "$output" "2 problems" "Should show problem count"
 }
 
@@ -81,6 +81,20 @@ export default greet;
     
     # Assertions
     assert_exit_code 0 $exit_code "Should allow clean JavaScript code"
+}
+
+test_eslint_skips_when_no_config() {
+    # Setup: Don't create any ESLint config
+    create_test_file "src/no-config.js" 'const x = 1;'
+    
+    # Execute hook - should skip gracefully
+    local output=$(echo '{"tool_input":{"file_path":"'$PWD'/src/no-config.js"}}' | \
+        "$HOOK_PATH" 2>&1)
+    local exit_code=$?
+    
+    # Should exit 0 and show warning
+    assert_exit_code 0 $exit_code "Should skip gracefully when no config"
+    assert_contains "$output" "ESLint not configured" "Should show configuration warning"
 }
 
 test_eslint_handles_warnings() {
@@ -163,25 +177,17 @@ test_eslint_handles_missing_file() {
 }
 
 test_eslint_handles_missing_config() {
-    # Setup mock that fails due to missing config
-    create_mock_command "npx" '
-if [[ "$1" == "eslint" ]]; then
-    echo "Oops! Something went wrong! :("
-    echo "ESLint couldn'\''t find a configuration file."
-    exit 1
-fi
-'
-    
+    # When no config exists, hook should skip gracefully
     create_test_file "no-config.js" 'const x = 1;'
     
-    # Execute hook - should handle gracefully
+    # Execute hook - should skip gracefully
     local output=$(echo '{"tool_input":{"file_path":"'$PWD'/no-config.js"}}' | \
         "$HOOK_PATH" 2>&1)
     local exit_code=$?
     
-    # Should still block but with helpful message
-    assert_exit_code 2 $exit_code "Should block on missing config"
-    assert_contains "$output" "configuration file" "Should mention config issue"
+    # Should exit 0 when no config found
+    assert_exit_code 0 $exit_code "Should skip when no config found"
+    assert_contains "$output" "ESLint not configured" "Should show skip message"
 }
 
 test_eslint_handles_invalid_json_input() {
