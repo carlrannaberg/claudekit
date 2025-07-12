@@ -17,16 +17,17 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - **Validate JSON**: `jq . settings.json`
 
 ### Slash Commands (in Claude Code)
-- `/checkpoint [description]` - Create a git stash checkpoint
-- `/restore [n]` - Restore to a previous checkpoint
-- `/checkpoints` - List all claude checkpoints
+- `/checkpoint:create [description]` - Create a git stash checkpoint
+- `/checkpoint:restore [n]` - Restore to a previous checkpoint
+- `/checkpoint:list` - List all claude checkpoints
 - `/spec [feature]` - Generate comprehensive specification
 - `/validate-and-fix` - Run quality checks and auto-fix
-- `/git-commit` - Smart commit following conventions
-- `/gh-repo-setup [name]` - Create GitHub repository
-- `/agent-init` - Initialize AGENT.md file
-- `/agent-migration` - Migrate from other AI configs
+- `/git:commit` - Smart commit following conventions
+- `/gh:repo-init [name]` - Create GitHub repository
+- `/agent:init` - Initialize AGENT.md file
+- `/agent:migration` - Migrate from other AI configs
 - `/create-command` - Guide for new commands
+- `/agent:cli [tool]` - Capture CLI tool help and add to AGENT.md
 
 ## Code Style
 

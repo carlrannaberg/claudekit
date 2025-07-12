@@ -22,8 +22,8 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 
 ### AGENT.md Configuration
 Universal AI assistant configuration with the [AGENT.md standard](https://agent.md):
-- `/agent-init` - Analyze codebase and create comprehensive AGENT.md
-- `/agent-migration` - Convert existing configs (CLAUDE.md, .cursorrules, etc.) to AGENT.md
+- `/agent:init` - Analyze codebase and create comprehensive AGENT.md
+- `/agent:migration` - Convert existing configs (CLAUDE.md, .cursorrules, etc.) to AGENT.md
 - Supports 10+ AI assistants with automatic symlinks
 
 ### Command Creation
@@ -33,12 +33,12 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
   - Supports namespacing through subdirectories
 
 ### Git & GitHub Integration
-- `/git-commit` - Create commits following project conventions
+- `/git:commit` - Create commits following project conventions
   - Analyzes project's commit style from git history
   - Checks for sensitive data and debug code
   - Updates documentation when needed
   - Documents commit conventions in CLAUDE.md
-- `/gh-repo-setup [name]` - Create new GitHub repository with full setup
+- `/gh:repo-init [name]` - Create new GitHub repository with full setup
   - Creates directory structure and initializes git
   - Creates private repository by default (for security)
   - Sets up README.md and initial commit
@@ -46,9 +46,9 @@ Universal AI assistant configuration with the [AGENT.md standard](https://agent.
 
 ### Git Checkpoint System
 Create and restore git stash checkpoints without affecting your working directory
-- `/checkpoint` - Save current state
-- `/restore` - Restore previous state  
-- `/checkpoints` - List all checkpoints
+- `/checkpoint:create` - Save current state
+- `/checkpoint:restore` - Restore previous state  
+- `/checkpoint:list` - List all checkpoints
 - Auto-checkpoint on Stop event
 
 ### Development Hooks
@@ -106,15 +106,15 @@ Enforce code quality and run tests automatically:
 
 ### AGENT.md Commands
 
-- **`/agent-init`** - Initialize new project with AGENT.md
+- **`/agent:init`** - Initialize new project with AGENT.md
   ```
-  /agent-init
+  /agent:init
   ```
   Analyzes your codebase and creates a comprehensive AGENT.md file based on discovered patterns, commands, and conventions.
 
-- **`/agent-migration`** - Migrate existing configs to AGENT.md
+- **`/agent:migration`** - Migrate existing configs to AGENT.md
   ```
-  /agent-migration
+  /agent:migration
   ```
   Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks for all AI assistants.
 
@@ -128,34 +128,34 @@ Enforce code quality and run tests automatically:
 
 ### Git & GitHub Management
 
-- **`/git-commit`** - Create git commits following project conventions
+- **`/git:commit`** - Create git commits following project conventions
   ```
-  /git-commit
+  /git:commit
   ```
   Analyzes project commit history to follow established conventions, checks for sensitive data, updates documentation as needed, and documents conventions in CLAUDE.md.
 
-- **`/gh-repo-setup [name]`** - Create new GitHub repository
+- **`/gh:repo-init [name]`** - Create new GitHub repository
   ```
-  /gh-repo-setup my-new-project
+  /gh:repo-init my-new-project
   ```
   Creates a complete GitHub repository setup including directory creation, git initialization, README.md, initial commit, and remote configuration. Repositories are private by default for security.
 
 ### Git Checkpoint Commands
 
-- **`/checkpoint [description]`** - Create a checkpoint of your current work
+- **`/checkpoint:create [description]`** - Create a checkpoint of your current work
   ```
-  /checkpoint before refactoring auth module
-  ```
-
-- **`/restore [number|latest]`** - Restore to a previous checkpoint
-  ```
-  /restore        # Restore to latest checkpoint
-  /restore 3      # Restore to checkpoint at stash@{3}
+  /checkpoint:create before refactoring auth module
   ```
 
-- **`/checkpoints`** - List all available checkpoints
+- **`/checkpoint:restore [number|latest]`** - Restore to a previous checkpoint
   ```
-  /checkpoints
+  /checkpoint:restore        # Restore to latest checkpoint
+  /checkpoint:restore 3      # Restore to checkpoint at stash@{3}
+  ```
+
+- **`/checkpoint:list`** - List all available checkpoints
+  ```
+  /checkpoint:list
   ```
 
 ### Auto-checkpoint Hook
@@ -173,7 +173,7 @@ Some commands support optional MCP server integration for enhanced features:
 
 - [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
 - [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
-- [AGENT.md Commands](docs/agent-commands-documentation.md) - Guide for agent-init and agent-migration
+- [AGENT.md Commands](docs/agent-commands-documentation.md) - Guide for agent:init and agent:migration
 - [AGENT.md Migration](docs/agent-migration-documentation.md) - Detailed migration documentation
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 - [Spec Command](docs/spec-documentation.md) - Generate specification documents
