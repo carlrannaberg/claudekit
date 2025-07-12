@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate JSON files
+      run: |
+        # Check all JSON files are valid
+        find . -name "*.json" -type f -exec jq . {} \; > /dev/null
+        echo "✅ All JSON files are valid"
+    
+    - name: Check file permissions
+      run: |
+        # Ensure all shell scripts are executable
+        find . -name "*.sh" -type f ! -perm -111 -exec echo "❌ Not executable: {}" \; -exec false {} +
+        echo "✅ All shell scripts are executable"
+    
+    - name: Check for sensitive data
+      run: |
+        # Basic check for common sensitive patterns
+        if grep -r -E "(api_key|password|secret|token).*=.*['\"][^'\"]+['\"]" --include="*.sh" --include="*.md" .; then
+          echo "❌ Potential sensitive data found"
+          exit 1
+        fi
+        echo "✅ No obvious sensitive data found"
+
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation consistency
+      run: |
+        # Ensure all hooks have documentation
+        for hook in .claude/hooks/*.sh; do
+          hook_name=$(basename "$hook" .sh)
+          if ! grep -q "$hook_name" docs/hooks-documentation.md; then
+            echo "❌ Missing documentation for $hook_name"
+            exit 1
+          fi
+        done
+        echo "✅ All hooks are documented"
+    
+    - name: Check command documentation
+      run: |
+        # Ensure all commands have documentation
+        for cmd in .claude/commands/*.md; do
+          if [[ -f "$cmd" ]]; then
+            cmd_name=$(basename "$cmd" .md)
+            # Check if command has proper frontmatter
+            if ! grep -q "^description:" "$cmd"; then
+              echo "❌ Missing description in $cmd_name"
+              exit 1
+            fi
+          fi
+        done
+        echo "✅ All commands have descriptions"

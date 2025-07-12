@@ -1,0 +1,108 @@
+name: Test Hooks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+        
+    - name: Setup test environment
+      run: |
+        chmod +x tests/run-tests.sh
+        chmod +x tests/unit/*.sh
+        chmod +x tests/integration/*.sh || true
+        chmod +x .claude/hooks/*.sh
+    
+    - name: Run unit tests
+      run: |
+        cd tests
+        ./run-tests.sh --no-integration
+      continue-on-error: true
+    
+    - name: Run all tests with verbose output
+      run: |
+        cd tests
+        ./run-tests.sh --verbose
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          tests/*.log
+          ~/.claude/*.log
+        if-no-files-found: ignore
+
+  test-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        # jq is usually pre-installed on macOS runners
+        which jq || brew install jq
+        
+    - name: Setup test environment
+      run: |
+        chmod +x tests/run-tests.sh
+        chmod +x tests/unit/*.sh
+        chmod +x tests/integration/*.sh || true
+        chmod +x .claude/hooks/*.sh
+    
+    - name: Run unit tests
+      run: |
+        cd tests
+        ./run-tests.sh --no-integration
+      continue-on-error: true
+    
+    - name: Run all tests
+      run: |
+        cd tests
+        ./run-tests.sh
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-macos
+        path: |
+          tests/*.log
+          ~/.claude/*.log
+        if-no-files-found: ignore
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run ShellCheck
+      run: |
+        # Install shellcheck
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+        
+        # Check all shell scripts
+        find . -name "*.sh" -type f -print0 | xargs -0 shellcheck -e SC2086,SC2181 || true
+        
+        # Strict check on hooks
+        shellcheck .claude/hooks/*.sh

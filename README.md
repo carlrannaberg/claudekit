@@ -179,9 +179,22 @@ Some commands support optional MCP server integration for enhanced features:
 - [Spec Command](docs/spec-documentation.md) - Generate specification documents
 - [MCP Setup](docs/mcp-setup.md) - Model Context Protocol configuration
 
+## Testing
+
+Run the test suite to ensure hooks are working correctly:
+
+```bash
+cd tests
+./run-tests.sh              # Run all tests
+./run-tests.sh --no-integration  # Run unit tests only
+./run-tests.sh --test typecheck  # Run specific test suite
+```
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. Make sure to run tests before submitting.
 
 ## License
 
