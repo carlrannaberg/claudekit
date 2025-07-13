@@ -25,7 +25,7 @@ Parse output to check:
    - If behind remote: Stop and suggest `git pull --rebase`
 
 3. Show only the final result:
-   - If successful: Show the push output
+   - If successful: Show the push output with ✅ emoji and success message
    - If failed: Show error and suggest fix
    - If unsafe: Show what needs to be done first
 

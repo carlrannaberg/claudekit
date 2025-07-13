@@ -27,7 +27,7 @@ All git commands are combined into a single bash call for maximum speed.
 6. Run tests and lint commands to ensure code quality (unless just ran before this command)
 7. Stage all relevant files (including any updated documentation)
 8. Create commit with appropriate message matching the project's conventions
-9. Verify commit succeeded
+9. Verify commit succeeded - Report with ✅ success indicator
 10. Check if any post-commit hooks need to be considered (e.g., pushing to remote, creating PR)
 
 ## Documentation Updates:
