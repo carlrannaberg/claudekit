@@ -16,7 +16,8 @@ First, verify the specification is implementation-ready:
 
 ## Execution Mode Detection
 
-Check if TaskMaster is available to determine the execution approach:
+Check if TaskMaster is available: !`command -v task-master && test -f .taskmaster/config.json && echo "TASKMASTER_MODE" || echo "SESSION_MODE"`
+
 - **TaskMaster Mode**: Use existing decomposed tasks from `/spec:decompose`
 - **Session Mode**: Create temporary TodoWrite tasks for this session
 
@@ -24,12 +25,15 @@ Check if TaskMaster is available to determine the execution approach:
 
 ### 1. Check TaskMaster Availability
 
-```bash
-command -v task-master && test -f .taskmaster/config.json
-```
+Based on the execution mode detected above:
 
-If TaskMaster is available and initialized, proceed with **TaskMaster Mode**.
-Otherwise, use **Session Mode** with TodoWrite.
+If "TASKMASTER_MODE", proceed with **TaskMaster Mode**.
+
+If TaskMaster is installed but not initialized:
+- Offer to initialize TaskMaster with Claude Code provider configuration
+- Use the same safe initialization as in `/spec:decompose` command
+
+If "SESSION_MODE", use **Session Mode** with TodoWrite.
 
 ### 2A. TaskMaster Mode Implementation
 

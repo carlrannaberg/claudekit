@@ -13,33 +13,24 @@ This command requires TaskMaster AI for persistent task storage. Guide the user 
 
 ### Step 1: Check TaskMaster AI Installation
 
-First, check if TaskMaster AI is installed:
-
-```bash
-command -v task-master
-```
+First, check if TaskMaster AI is installed: !`command -v task-master || echo "NOT_FOUND"`
 
 If TaskMaster is not found, offer to install it for the user with the correct package: `npm install -g task-master-ai`
 
 ### Step 2: Check Project Initialization
 
-If TaskMaster AI is installed, check if it's initialized in this project:
+If TaskMaster AI is installed, check if it's initialized: !`test -f .taskmaster/config.json && echo "INITIALIZED" || echo "NOT_INITIALIZED"`
 
-```bash
-test -f .taskmaster/config.json
-```
-
-If not initialized, offer to run our safe initialization script: `./scripts/task-master-init.sh`
+If not initialized, offer to perform safe initialization inline (see Safe Initialization section below)
 
 ## Instructions for Claude:
 
 1. **Prerequisites Check with Guided Installation**:
-   - Use Bash to run: `command -v task-master`
-   - If not found, inform the user and offer to install it
+   - Check the prerequisites output above
+   - If TaskMaster shows "NOT_FOUND", inform the user and offer to install it
    - If user agrees, run: `npm install -g task-master-ai`
    
-   - Use Bash to check if `.taskmaster/config.json` exists
-   - If not found, inform the user and offer to initialize
+   - If initialization shows "NOT_INITIALIZED", inform the user and offer to initialize
    - If user agrees, perform safe initialization inline (see Safe Initialization section)
 
 2. **Spec Validation**:
@@ -116,6 +107,7 @@ Then run /spec:decompose again.
 Installation command ready to execute.
 ```
 
+
 **If TaskMaster is not initialized:**
 ```
 ████ TaskMaster Project Setup Required ████
@@ -124,7 +116,7 @@ TaskMaster needs to be initialized in this project.
 
 Would you like me to initialize TaskMaster for this project?
 This will create:
-  - .taskmaster/config.json (configured for Claude CLI)
+  - .taskmaster/config.json (configured for Claude Code provider)
   - .taskmaster/state.json (task state management)
   - .taskmaster/templates/ (PRD templates)
 
@@ -183,28 +175,33 @@ cat > .taskmaster/state.json << 'EOF'
 }
 EOF
 
-# Create config.json
+# Create config.json with Claude Code provider
 cat > .taskmaster/config.json << 'EOF'
 {
   "models": {
     "main": {
-      "provider": "anthropic",
-      "modelId": "claude-3-7-sonnet-20250219",
-      "maxTokens": 120000,
+      "provider": "claude-code",
+      "modelId": "sonnet",
+      "maxTokens": 64000,
       "temperature": 0.2
     },
     "research": {
-      "provider": "perplexity",
-      "modelId": "sonar-pro",
-      "maxTokens": 8700,
+      "provider": "claude-code",
+      "modelId": "opus",
+      "maxTokens": 32000,
       "temperature": 0.1
     },
     "fallback": {
-      "provider": "anthropic",
-      "modelId": "claude-3-7-sonnet-20250219",
-      "maxTokens": 120000,
+      "provider": "claude-code",
+      "modelId": "sonnet",
+      "maxTokens": 64000,
       "temperature": 0.2
     }
+  },
+  "claudeCode": {
+    "maxTurns": 5,
+    "appendSystemPrompt": "Focus on maintainable, well-tested code following project conventions",
+    "permissionMode": "default"
   },
   "global": {
     "logLevel": "info",
