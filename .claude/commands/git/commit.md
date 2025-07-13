@@ -1,7 +1,14 @@
 Create a git commit following the project's established style
 
+## Efficiency Note:
+This command intelligently reuses recent git:status results when available to avoid redundant operations. If you just ran /git:status, the commit process will be faster.
+
 ## Steps:
-1. Run git status to see all changes
+1. Check if the previous message contains git:status results:
+   - Look for patterns like "Git Status Analysis", "Modified Files:", "Uncommitted Changes:"
+   - If found and recent (within last 2-3 messages): Reuse those results
+   - If not found or stale: Run `git status --porcelain=v1` for quick check
+   - Note: Only skip git status if you're confident the working directory hasn't changed
 2. Run git diff to review changes and verify:
    - No sensitive information (passwords, API keys, tokens) in the changes
    - No debugging code or console.log statements left in production code
