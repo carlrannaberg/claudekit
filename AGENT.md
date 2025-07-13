@@ -25,6 +25,7 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - `/spec:execute [file]` - Execute specification with concurrent agents
 - `/validate-and-fix` - Run quality checks and auto-fix
 - `/git:commit` - Smart commit following conventions
+- `/git:status` - Intelligent git status analysis with insights
 - `/gh:repo-init [name]` - Create GitHub repository
 - `/agent:init` - Initialize AGENT.md file
 - `/agent:migration` - Migrate from other AI configs
@@ -79,11 +80,38 @@ echo "2. Another step"
 - Other = Unexpected errors
 
 ### Command Structure
-- Markdown files with YAML frontmatter
-- Specify `allowed-tools` for security
+- **Important**: Slash commands are prompts/instructions for Claude, not shell scripts
+- Markdown files with YAML frontmatter serve as "reusable prompts" (per Claude Code docs)
+- Specify `allowed-tools` for security in frontmatter
 - Use `$ARGUMENTS` for user input
-- Provide clear numbered steps
-- Include examples for outputs
+- Support dynamic content:
+  - `!command` - Execute bash commands and include output
+  - `@file` - Include file contents
+  - `$ARGUMENTS` - User-provided arguments
+- Provide clear numbered steps for Claude to follow
+- Include examples for expected outputs
+
+### How Slash Commands Work
+According to Claude Code documentation, slash commands are instructions that Claude interprets:
+1. User types `/command-name [arguments]`
+2. Claude reads the corresponding `.md` file from `.claude/commands/`
+3. Claude interprets the markdown as a prompt with instructions to follow
+4. Claude executes the instructions using available tools (Bash, Read, etc.)
+5. Claude can interact with the user during execution for clarifications
+
+Example command structure:
+```yaml
+---
+description: Brief description of what the command does
+allowed-tools: Read, Task, Bash(task-master:*)
+---
+
+## Instructions for Claude:
+
+1. First, check prerequisites...
+2. Then, perform the main task...
+3. Finally, report results...
+```
 
 ## Testing
 
