@@ -161,22 +161,24 @@ When user agrees to initialize TaskMaster, execute these commands:
 mkdir -p .taskmaster/{tasks,docs,templates,reports}
 
 # Create state.json
-cat > .taskmaster/state.json << 'EOF'
+CURRENT_DATE=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+cat > .taskmaster/state.json << EOF
 {
   "currentTag": "master",
-  "lastSwitched": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "lastSwitched": "$CURRENT_DATE",
   "tags": {
     "master": {
       "name": "master",
       "description": "Default tag for project tasks",
-      "created": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+      "created": "$CURRENT_DATE"
     }
   }
 }
 EOF
 
 # Create config.json with Claude Code provider
-cat > .taskmaster/config.json << 'EOF'
+PROJECT_NAME=$(basename "$PWD")
+cat > .taskmaster/config.json << EOF
 {
   "models": {
     "main": {
@@ -208,7 +210,7 @@ cat > .taskmaster/config.json << 'EOF'
     "debug": false,
     "defaultSubtasks": 5,
     "defaultPriority": "medium",
-    "projectName": "$(basename "$PWD")",
+    "projectName": "$PROJECT_NAME",
     "defaultTag": "master",
     "responseLanguage": "English"
   }
