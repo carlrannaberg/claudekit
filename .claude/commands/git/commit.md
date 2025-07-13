@@ -3,6 +3,8 @@ Create a git commit following the project's established style
 ## Efficiency Note:
 This command intelligently reuses recent git:status results when available to avoid redundant operations. If you just ran /git:status, the commit process will be faster.
 
+When git conventions are already documented in CLAUDE.md/AGENT.md, use them directly without verbose explanation.
+
 ## Steps:
 1. Check if the previous message contains git:status results:
    - Look for patterns like "Git Status Analysis", "Modified Files:", "Uncommitted Changes:"
@@ -15,7 +17,8 @@ This command intelligently reuses recent git:status results when available to av
    - No temporary debugging scripts (test-*.js, debug-*.py, etc.) created by Claude Code
    - No temporary files or outputs in inappropriate locations (move to project's temp directory or delete)
    - All TODO/FIXME comments are addressed or intentionally left
-3. Check CLAUDE.md for documented git commit conventions; if not documented or unclear, analyze recent commit messages to understand the project's commit style and update CLAUDE.md accordingly (see "Commit Convention Documentation" section below)
+3. Use documented git commit conventions from CLAUDE.md/AGENT.md
+   - If conventions are not documented, analyze recent commits and document them
 4. If the project uses ticket/task codes, ask the user for the relevant code if not clear from context
 5. Check if README.md or other documentation needs updating to reflect the changes (see "Documentation Updates" section below)
 6. Run tests and lint commands to ensure code quality (unless just ran before this command)
@@ -33,7 +36,7 @@ Consider updating relevant documentation when committing changes:
 - Configuration docs: New settings, changed defaults
 
 ## Commit Convention Documentation:
-After analyzing the commit history in a new project, document the observed commit conventions in CLAUDE.md under a "Git Commit Conventions" section. This allows future commits to follow the established style automatically without needing to analyze the history each time.
+Only when conventions are NOT already documented: Analyze the commit history and document the observed conventions in CLAUDE.md under a "Git Commit Conventions" section. Once documented, use them without verbose explanation.
 
 The documentation should capture whatever style the project uses, for example:
 - Simple descriptive messages: "Fix navigation bug"
