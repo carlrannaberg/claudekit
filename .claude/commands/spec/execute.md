@@ -1,6 +1,6 @@
 ---
 description: Implement a validated specification by orchestrating concurrent agents
-allowed-tools: Task, Read, TodoWrite, Grep, Glob
+allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(task-master:*)
 ---
 
 # Implement Specification
@@ -14,28 +14,62 @@ First, verify the specification is implementation-ready:
 - Ensure it has been validated (run /spec:validate if needed)
 - Confirm it contains implementation phases or can be broken down
 
+## Execution Mode Detection
+
+Check if TaskMaster is available to determine the execution approach:
+- **TaskMaster Mode**: Use existing decomposed tasks from `/spec:decompose`
+- **Session Mode**: Create temporary TodoWrite tasks for this session
+
 ## Implementation Process
 
-### 1. Analyze Specification
+### 1. Check TaskMaster Availability
 
-Read the specification to extract:
-- Implementation phases/sections
-- Technical components to build
-- Dependencies between components
-- Testing requirements
-- Success criteria
+```bash
+command -v task-master && test -f .taskmaster/config.json
+```
 
-### 2. Create Implementation Plan
+If TaskMaster is available and initialized, proceed with **TaskMaster Mode**.
+Otherwise, use **Session Mode** with TodoWrite.
 
-Use TodoWrite to create a comprehensive task list based on the specification:
-- Break down each phase into concrete, actionable tasks
-- Identify which tasks can run in parallel
-- Mark dependencies and prerequisites
-- Set appropriate priorities (high for core functionality, medium for enhancements, low for nice-to-haves)
+### 2A. TaskMaster Mode Implementation
+
+When TaskMaster is available:
+
+1. **List Available Tasks**:
+   ```bash
+   task-master list
+   ```
+
+2. **Filter Tasks Related to Specification**:
+   - Look for tasks that reference the spec file in their details
+   - Identify tasks that are ready to execute (dependencies met)
+   - Show task dependency structure
+
+3. **Execute Tasks in Dependency Order**:
+   - Start with foundation tasks (no dependencies)
+   - Launch agents for parallel tasks
+   - Update task status in TaskMaster after completion
+   - Respect task dependencies when launching follow-up work
+
+### 2B. Session Mode Implementation (Fallback)
+
+When TaskMaster is not available:
+
+1. **Analyze Specification**:
+   - Read the specification to extract implementation phases
+   - Technical components to build
+   - Dependencies between components
+   - Testing requirements and success criteria
+
+2. **Create TodoWrite Implementation Plan**:
+   - Break down each phase into concrete, actionable tasks
+   - Identify which tasks can run in parallel
+   - Mark dependencies and prerequisites
+   - Set appropriate priorities (high for core functionality, medium for enhancements, low for nice-to-haves)
 
 ### 3. Orchestrate Implementation
 
-Launch concurrent Task agents for parallel work:
+Launch concurrent Task agents for parallel work (both modes):
 
 **Agent Distribution Strategy:**
 - Group related tasks that can be done simultaneously
@@ -80,8 +114,19 @@ Agent 5: Documentation & Polish
 ### 4. Coordinate Progress
 
 Monitor and coordinate the implementation:
-- Track task completion via todo list
+
+**TaskMaster Mode**:
+- Track task completion via `task-master list`
+- Update task status with `task-master update-task`
 - Launch follow-up agents as dependencies are met
+- Mark tasks complete with `task-master complete --id=<task_id>`
+
+**Session Mode**:
+- Track task completion via TodoWrite list
+- Launch follow-up agents as dependencies are met
+- Update todo status as work progresses
+
+**Both Modes**:
 - Ensure all tests pass after each component
 - Validate implementation against specification
 - Handle any blockers or issues that arise
@@ -95,13 +140,30 @@ Once all tasks are complete:
 - Ensure documentation is complete
 - Confirm ready for review/merge
 
+## Execution Mode Information
+
+When this command runs, first inform the user which mode will be used:
+
+**TaskMaster Mode Available:**
+```
+✅ TaskMaster detected - using persistent tasks
+Found 8 tasks related to this specification
+3 foundation tasks ready to execute
+```
+
+**Session Mode (Fallback):**
+```
+ℹ️  TaskMaster not found - using session-based TodoWrite for task management
+To enable persistent tasks, install TaskMaster: npm install -g task-master
+```
+
 ## Usage Examples
 
 ```bash
-# Implement a feature specification
+# Implement a feature specification (TaskMaster mode if available)
 /spec:execute specs/feat-user-authentication.md
 
-# Implement a bugfix specification
+# Implement a bugfix specification (Session mode fallback)
 /spec:execute specs/fix-123-memory-leak.md
 ```
 

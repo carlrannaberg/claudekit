@@ -22,6 +22,7 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - `/checkpoint:list` - List all claude checkpoints
 - `/spec:create [feature]` - Generate comprehensive specification
 - `/spec:validate [file]` - Analyze specification completeness
+- `/spec:decompose [file]` - Decompose spec into TaskMaster tasks
 - `/spec:execute [file]` - Execute specification with concurrent agents
 - `/validate-and-fix` - Run quality checks and auto-fix
 - `/git:commit` - Smart commit following conventions
