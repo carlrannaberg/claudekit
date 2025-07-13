@@ -38,47 +38,102 @@ If not initialized, offer to perform safe initialization inline (see Safe Initia
    - Verify it's a valid specification (has expected sections)
    - Extract implementation phases and technical details
 
-3. **AI-Assisted Decomposition**:
+3. **Decompose the Specification**:
    
-   Use the Task tool to analyze the specification and generate TaskMaster commands.
+   Use the Task tool to analyze the specification and create TaskMaster commands that capture all implementation details.
    
-   **CRITICAL DECOMPOSITION RULES:**
+   Key principles:
+   - Include only what's explicitly stated in the spec
+   - Copy implementation details verbatim into each task
+   - Include tests as part of acceptance criteria
+   - Create foundation tasks first, then build features on top
+   - Each task should be self-contained with all necessary details
    
-   1. **NO FEATURE CREEP**: Only include what's explicitly in the spec
-   2. **PRESERVE ALL SPEC DETAIL**: Copy implementation details verbatim into tasks
-   3. **TEST INTEGRATION**: Include tests in acceptance criteria, not as separate tasks
-   4. **SMART DEPENDENCIES**: Create horizontal foundation tasks first, then vertical features
+   Task structure:
+   - Foundation tasks: Core infrastructure (database, frameworks, testing setup)
+   - Feature tasks: Complete vertical slices including all layers
    
-   **TASK STRUCTURE:**
-   - **Horizontal Tasks**: Database setup, Backend framework, Frontend setup, Testing infrastructure
-   - **Vertical Tasks**: Complete features with DB + API + Frontend + Tests
-   
-   **OUTPUT FORMAT:**
-   Generate exact task-master CLI commands that can be executed directly.
-   Each task should include ALL details from the spec, not references to it.
+   Generate executable task-master commands using manual task creation syntax.
 
-4. **Task Generation Pattern**:
+4. **Task Creation Syntax**:
 
-   For each task, use this pattern:
+   Use task-master's manual task creation flags:
    
    ```bash
-   # Foundation task example (TaskMaster auto-assigns IDs)
-   task-master add-task "Setup: [Component] Infrastructure" \
+   task-master add-task \
+     --title="Brief task title" \
+     --description="One-line summary of what needs to be done" \
      --details="SOURCE: [spec-file]
      
-     [Copy exact implementation details from spec]
+     [Full implementation details from spec]
      
-     ACCEPTANCE CRITERIA:
+     Technical Requirements:
+     - [All technical details from spec]
+     - [Specific library versions]
+     - [Code examples from spec]
+     
+     Implementation Steps:
+     1. [Detailed step from spec]
+     2. [Another step with specifics]
+     3. [Continue with all steps]
+     
+     Acceptance Criteria:
      - [ ] [Specific criteria from spec]
      - [ ] Tests written and passing
      - [ ] [Additional criteria]" \
-     --priority=high
+     --priority=high \
+     --dependencies="1,2,3"
    ```
    
-   **Important Notes:**
-   - Let TaskMaster handle ID assignment automatically
-   - Store returned task IDs for dependency references
-   - Dependencies reference the auto-generated IDs: `--dependencies="1,2,3"`
+   Example task creation:
+   ```bash
+   task-master add-task \
+     --title="Implement file system operations with backup support" \
+     --description="Build filesystem.ts module with Unix-focused operations and backup support" \
+     --details="SOURCE: specs/feat-modernize-setup-installer.md
+     
+     Implement the filesystem.ts module with Unix-focused operations and backup support.
+     
+     Key implementation requirements:
+     - Path validation: Basic checks for reasonable paths
+     - Permission checks: Verify write permissions before operations
+     - Backup creation: Simple backup before overwriting files
+     - Error handling: Graceful failure with helpful messages
+     - Unix path handling: Use path.join, os.homedir(), standard Unix permissions
+     
+     Functions to implement:
+     - validateProjectPath(input: string): boolean - Basic path validation
+     - ensureDirectoryExists(path: string): Promise<void>
+     - copyFileWithBackup(source: string, target: string, backup: boolean): Promise<void>
+     - setExecutablePermission(filePath: string): Promise<void> - chmod 755
+     - needsUpdate(source: string, target: string): Promise<boolean> - SHA-256 comparison
+     - getFileHash(filePath: string): Promise<string> - SHA-256 hash generation
+     
+     Idempotency implementation from spec:
+     async function needsUpdate(source: string, target: string): Promise<boolean> {
+       if (!await fs.pathExists(target)) return true;
+       
+       const sourceHash = await getFileHash(source);
+       const targetHash = await getFileHash(target);
+       
+       return sourceHash !== targetHash;
+     }
+     
+     Acceptance Criteria:
+     - [ ] All file operations handle Unix paths correctly
+     - [ ] SHA-256 based idempotency checking implemented
+     - [ ] Backup functionality creates timestamped backups
+     - [ ] Executable permissions set correctly for hooks (755)
+     - [ ] Path validation prevents directory traversal
+     - [ ] Tests: All operations work on macOS/Linux with proper error handling" \
+     --priority=high \
+     --dependencies="3"
+   ```
+   
+   Notes:
+   - TaskMaster automatically assigns task IDs
+   - Dependencies reference these auto-generated IDs
+   - Include all implementation details from the spec in the --details field
 
 5. **Execute Task Creation**:
    - Run each generated task-master command
@@ -159,6 +214,9 @@ When user agrees to initialize TaskMaster, execute these commands:
 ```bash
 # Create directory structure
 mkdir -p .taskmaster/{tasks,docs,templates,reports}
+
+# Create empty complexity report to avoid TaskMaster errors
+echo '{}' > .taskmaster/reports/task-complexity-report.json
 
 # Create state.json
 CURRENT_DATE=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
