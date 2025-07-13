@@ -13,7 +13,15 @@ For enhanced library documentation integration, install the context7 MCP server:
 - Provides `mcp__context7__resolve-library-id` and `mcp__context7__get-library-docs` tools
 - Enables automatic retrieval of up-to-date library documentation
 - Includes official code examples and best practices
-- Install with: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`
+
+Installation:
+```bash
+# Step 1: Install globally
+npm install -g @upstash/context7-mcp
+
+# Step 2: Add to Claude Code
+claude mcp add context7 context7-mcp
+```
 
 Without context7, the command still works but won't automatically fetch external library documentation.
 

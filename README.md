@@ -79,11 +79,11 @@ Enforce code quality and run tests automatically:
 
 3. (Optional) Enable Context7 for enhanced `/spec` features:
    ```bash
-   # Add Context7 to current project (local server)
-   claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+   # Step 1: Install the Context7 MCP server globally
+   npm install -g @upstash/context7-mcp
    
-   # Or use the remote server
-   claude mcp add --transport sse context7 https://mcp.context7.com/sse
+   # Step 2: Add it to Claude Code
+   claude mcp add context7 context7-mcp
    ```
    This enables the `/spec` command to fetch up-to-date library documentation
 
@@ -185,7 +185,11 @@ The Stop hook automatically creates a checkpoint when Claude Code finishes respo
 Some commands support optional MCP server integration for enhanced features:
 - **Context7** - Provides access to up-to-date library documentation
 - Used by the `/spec:create` command for accurate technical specifications  
-- Install in your projects with: `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest`
+- Installation:
+  ```bash
+  npm install -g @upstash/context7-mcp
+  claude mcp add context7 context7-mcp
+  ```
 
 ## Documentation
 

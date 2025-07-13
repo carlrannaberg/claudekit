@@ -21,27 +21,26 @@ The Context7 MCP server provides access to up-to-date library documentation from
 
 ### Installation
 
-To enable Context7 in your project, run one of these commands:
+To enable Context7 in your project:
 
 ```bash
-# Local server (runs via npx)
-claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+# Step 1: Install the Context7 MCP server globally
+npm install -g @upstash/context7-mcp
 
-# Remote server (SSE transport)
-claude mcp add --transport sse context7 https://mcp.context7.com/sse
-
-# Remote server (HTTP transport)
-claude mcp add --transport http context7 https://mcp.context7.com/mcp
+# Step 2: Add it to Claude Code
+claude mcp add context7 context7-mcp
 ```
+
+**Note**: Due to PATH issues with npx in Claude Code, we recommend installing the package globally first.
 
 ### First Time Setup
 
-When you first use a command that requires Context7 (like `/spec` with external libraries):
+After installation:
 
-1. Claude Code will detect the `.mcp.json` file
-2. You'll be prompted to approve using project-scoped MCP servers
-3. The Context7 server will be automatically downloaded via npx
-4. Future uses will be faster as npx caches the package
+1. Restart Claude Code to pick up the new MCP server
+2. Check the connection status with `/mcp`
+3. The Context7 server will be available for all commands that use it
+4. You can now use `/spec` with external library documentation
 
 ### Security Note
 
