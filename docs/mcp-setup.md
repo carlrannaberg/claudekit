@@ -25,7 +25,7 @@ To enable Context7 in your project, run one of these commands:
 
 ```bash
 # Local server (runs via npx)
-claude mcp add context7 -- npx -y @context7/mcp-server
+claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
 
 # Remote server (SSE transport)
 claude mcp add --transport sse context7 https://mcp.context7.com/sse
@@ -105,4 +105,4 @@ claude mcp add -s project server-name /path/to/server
 
 - [MCP Documentation](https://modelcontextprotocol.io)
 - [Claude Code MCP Guide](https://docs.anthropic.com/en/docs/claude-code/mcp)
-- [Context7 MCP Server](https://www.npmjs.com/package/@context7/mcp-server)
+- [Context7 MCP Server](https://www.npmjs.com/package/@upstash/context7-mcp)
