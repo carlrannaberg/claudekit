@@ -6,6 +6,34 @@ description: Generate a spec file for a new feature or bugfix
 ## Context
 - Existing specs: !`ls -la specs/ 2>/dev/null || echo "No specs directory found"`
 
+## Optional: Enhanced Library Documentation Support
+
+Context7 MCP server provides up-to-date library documentation for better spec creation.
+
+Check if Context7 is available: !`command -v context7-mcp || echo "NOT_INSTALLED"`
+
+If NOT_INSTALLED and the feature involves external libraries, offer to enable Context7:
+```
+████ Optional: Enable Context7 for Enhanced Documentation ████
+
+Context7 provides up-to-date library documentation to improve spec quality.
+This is optional but recommended when working with external libraries.
+
+Would you like me to install Context7 for you? I can:
+  1. Install globally: npm install -g @upstash/context7-mcp
+  2. Add to Claude Code: claude mcp add context7 context7-mcp
+
+Or you can install it manually later if you prefer.
+```
+
+If user agrees to installation:
+- Run: `npm install -g @upstash/context7-mcp`
+- Then run: `claude mcp add context7 context7-mcp`
+- Verify installation and proceed with enhanced documentation support
+
+If user declines or wants to continue without it:
+- Proceed with spec creation using existing knowledge
+
 ## Your task
 
 Create a comprehensive specification document in the `specs/` folder for the following feature/bugfix: $ARGUMENTS
@@ -16,7 +44,7 @@ First, analyze the request to understand:
 3. Related existing code/features
 4. External libraries/frameworks involved
 
-If the feature involves external libraries or frameworks:
+If the feature involves external libraries or frameworks AND Context7 is available:
 - Use `mcp__context7__resolve-library-id` to find the library
 - Use `mcp__context7__get-library-docs` to get up-to-date documentation
 - Reference official patterns and best practices from the docs
