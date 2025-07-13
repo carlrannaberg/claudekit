@@ -1,23 +1,21 @@
 ---
 description: Intelligently analyze git status and provide insights about current project state
-allowed-tools: Bash(git:*), Task
+allowed-tools: Bash(git:*)
 ---
 
 Analyze the current git status and provide an intelligent summary of what's happening in the project.
 
+## Efficiency Note:
+Be concise. Skip verbose explanations of what commands you're running. Focus on the actual status results.
+
 ## Instructions for Claude:
 
-1. First, quickly check the basic status:
-!git status --porcelain=v1
+1. Run all git commands in a single bash call for speed:
+!git status --porcelain=v1 && echo "---" && git diff --stat 2>/dev/null && echo "---" && git branch -vv | grep "^\*" && echo "---" && git log --oneline -1 && echo "---" && git diff --cached --stat 2>/dev/null
 
-2. If there are changes, use the Task tool to gather details in parallel:
-- Get change statistics: `git diff --stat` and `git diff --cached --stat` (if staged changes exist)
-- Check branch tracking: `git branch -vv | grep "^\*"`
-- Get last commit for context: `git log --oneline -1`
+Note: The output will be separated by "---" markers. Parse each section accordingly.
 
-Note: Only run the parallel Task if there are actual changes to analyze. For a clean working directory, just report that status.
-
-2. Analyze the combined results and provide:
+3. Provide results directly without explaining the process:
    - **Summary**: Brief overview of the current state
    - **Modified Files**: Group by type (docs, code, tests, config)
    - **Uncommitted Changes**: What's been changed and why it might matter
@@ -32,3 +30,9 @@ Provide insights about:
 - If there are stashed changes that might be forgotten
 
 Make the output concise but informative, focusing on what matters most to the developer.
+
+Example of concise output:
+- Skip: "I'll analyze the current git status for you."
+- Skip: "Let me gather the details efficiently:"
+- Skip: "I see there are changes. Let me gather the details:"
+- Just show the results directly

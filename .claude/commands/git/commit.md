@@ -5,13 +5,16 @@ This command intelligently reuses recent git:status results when available to av
 
 When git conventions are already documented in CLAUDE.md/AGENT.md, use them directly without verbose explanation.
 
+All git commands are combined into a single bash call for maximum speed.
+
 ## Steps:
 1. Check if the previous message contains git:status results:
    - Look for patterns like "Git Status Analysis", "Modified Files:", "Uncommitted Changes:"
    - If found and recent (within last 2-3 messages): Reuse those results
-   - If not found or stale: Run `git status --porcelain=v1` for quick check
+   - If not found or stale: Run a single combined git command:
+   !git status --porcelain=v1 && echo "---DIFF---" && git diff && echo "---LOG---" && git log --oneline -5
    - Note: Only skip git status if you're confident the working directory hasn't changed
-2. Run git diff to review changes and verify:
+2. Review the diff output to verify:
    - No sensitive information (passwords, API keys, tokens) in the changes
    - No debugging code or console.log statements left in production code
    - No temporary debugging scripts (test-*.js, debug-*.py, etc.) created by Claude Code
