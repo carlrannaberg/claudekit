@@ -26,6 +26,7 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - `/validate-and-fix` - Run quality checks and auto-fix
 - `/git:commit` - Smart commit following conventions
 - `/git:status` - Intelligent git status analysis with insights
+- `/git:push` - Safe push with pre-flight checks
 - `/gh:repo-init [name]` - Create GitHub repository
 - `/agent:init` - Initialize AGENT.md file
 - `/agent:migration` - Migrate from other AI configs
