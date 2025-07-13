@@ -1,6 +1,6 @@
 ---
 description: Decompose validated specification into persistent TaskMaster tasks
-allowed-tools: Read, Task, Bash(task-master:*, npm install)
+allowed-tools: Read, Task, Bash(task-master:*, npm install -g task-master-ai, mkdir -p, cat >, grep, echo, basename, date)
 ---
 
 # Decompose Specification into TaskMaster Tasks
@@ -9,38 +9,38 @@ Decompose the specification at: $ARGUMENTS
 
 ## Prerequisites Check
 
-This command requires TaskMaster CLI for persistent task storage. Guide the user through installation if needed.
+This command requires TaskMaster AI for persistent task storage. Guide the user through installation if needed.
 
-### Step 1: Check TaskMaster Installation
+### Step 1: Check TaskMaster AI Installation
 
-First, check if TaskMaster is installed:
+First, check if TaskMaster AI is installed:
 
 ```bash
 command -v task-master
 ```
 
-If TaskMaster is not found, offer to install it for the user.
+If TaskMaster is not found, offer to install it for the user with the correct package: `npm install -g task-master-ai`
 
 ### Step 2: Check Project Initialization
 
-If TaskMaster is installed, check if it's initialized in this project:
+If TaskMaster AI is installed, check if it's initialized in this project:
 
 ```bash
 test -f .taskmaster/config.json
 ```
 
-If not initialized, offer to run `task-master init` for the user.
+If not initialized, offer to run our safe initialization script: `./scripts/task-master-init.sh`
 
 ## Instructions for Claude:
 
 1. **Prerequisites Check with Guided Installation**:
    - Use Bash to run: `command -v task-master`
    - If not found, inform the user and offer to install it
-   - If user agrees, run: `npm install -g task-master`
+   - If user agrees, run: `npm install -g task-master-ai`
    
    - Use Bash to check if `.taskmaster/config.json` exists
    - If not found, inform the user and offer to initialize
-   - If user agrees, run: `task-master init`
+   - If user agrees, perform safe initialization inline (see Safe Initialization section)
 
 2. **Spec Validation**:
    - Read the specified spec file
@@ -102,14 +102,14 @@ If not initialized, offer to run `task-master init` for the user.
 
 ## Error Handling
 
-**If TaskMaster CLI is not found:**
+**If TaskMaster AI is not found:**
 ```
-████ TaskMaster CLI Not Found ████
+████ TaskMaster AI Not Found ████
 
-The /spec:decompose command requires TaskMaster for persistent task storage.
+The /spec:decompose command requires TaskMaster AI for persistent task storage.
 
-To install TaskMaster, run:
-  npm install -g task-master
+To install TaskMaster AI, run:
+  npm install -g task-master-ai
 
 Then run /spec:decompose again.
 
@@ -122,14 +122,13 @@ Installation command ready to execute.
 
 TaskMaster needs to be initialized in this project.
 
-To initialize, run:
-  task-master init
-
+Would you like me to initialize TaskMaster for this project?
 This will create:
-  - .taskmaster/config.json
-  - .taskmaster/tasks/tasks.json
+  - .taskmaster/config.json (configured for Claude CLI)
+  - .taskmaster/state.json (task state management)
+  - .taskmaster/templates/ (PRD templates)
 
-Initialization command ready to execute.
+I'll use a safe initialization that won't overwrite existing files.
 ```
 
 ## Usage Examples
@@ -145,7 +144,7 @@ Initialization command ready to execute.
 ## Success Criteria
 
 The decomposition is complete when:
-- ✅ TaskMaster is installed and initialized
+- ✅ TaskMaster AI is installed and safely initialized
 - ✅ All tasks are created in TaskMaster with proper dependencies
 - ✅ Tasks preserve all implementation details from the spec
 - ✅ Horizontal foundation tasks are created first
@@ -160,3 +159,72 @@ The decomposition is complete when:
 - Only validated specs should be decomposed (run `/spec:validate` first)
 - TaskMaster handles ID assignment - don't specify manual IDs
 - Dependencies are created based on logical task relationships
+
+## Safe Initialization
+
+When user agrees to initialize TaskMaster, execute these commands:
+
+```bash
+# Create directory structure
+mkdir -p .taskmaster/{tasks,docs,templates,reports}
+
+# Create state.json
+cat > .taskmaster/state.json << 'EOF'
+{
+  "currentTag": "master",
+  "lastSwitched": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "tags": {
+    "master": {
+      "name": "master",
+      "description": "Default tag for project tasks",
+      "created": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+    }
+  }
+}
+EOF
+
+# Create config.json
+cat > .taskmaster/config.json << 'EOF'
+{
+  "models": {
+    "main": {
+      "provider": "anthropic",
+      "modelId": "claude-3-7-sonnet-20250219",
+      "maxTokens": 120000,
+      "temperature": 0.2
+    },
+    "research": {
+      "provider": "perplexity",
+      "modelId": "sonar-pro",
+      "maxTokens": 8700,
+      "temperature": 0.1
+    },
+    "fallback": {
+      "provider": "anthropic",
+      "modelId": "claude-3-7-sonnet-20250219",
+      "maxTokens": 120000,
+      "temperature": 0.2
+    }
+  },
+  "global": {
+    "logLevel": "info",
+    "debug": false,
+    "defaultSubtasks": 5,
+    "defaultPriority": "medium",
+    "projectName": "$(basename "$PWD")",
+    "defaultTag": "master",
+    "responseLanguage": "English"
+  }
+}
+EOF
+
+# Update .gitignore if needed
+if ! grep -q "# TaskMaster" .gitignore 2>/dev/null; then
+    echo "" >> .gitignore
+    echo "# TaskMaster" >> .gitignore
+    echo ".taskmaster/tasks/" >> .gitignore
+    echo ".taskmaster/reports/" >> .gitignore
+    echo ".taskmaster/docs/" >> .gitignore
+    echo ".taskmaster/state.json" >> .gitignore
+fi
+```

@@ -104,11 +104,17 @@ Enforce code quality and run tests automatically:
   ```
   Analyzes specifications to determine if they contain sufficient detail for autonomous implementation. Evaluates intent, scope, requirements, and implementation details.
 
+- **`/spec:decompose [file]`** - Decompose spec into TaskMaster tasks
+  ```
+  /spec:decompose specs/feat-user-authentication.md
+  ```
+  Breaks down validated specifications into persistent TaskMaster AI tasks with proper dependencies. Requires `npm install -g task-master-ai`. Safe initialization is handled automatically.
+
 - **`/spec:execute [file]`** - Execute specification with concurrent agents
   ```
   /spec:execute specs/feat-user-authentication.md
   ```
-  Takes a validated specification and orchestrates the implementation by breaking it into tasks and distributing them to concurrent AI agents. Uses TodoWrite for progress tracking and ensures conflict-free parallel development.
+  Takes a validated specification and orchestrates the implementation by breaking it into tasks and distributing them to concurrent AI agents. Uses TaskMaster AI tasks when available, falls back to TodoWrite for session-based tracking.
 
 - **`/validate-and-fix`** - Run quality checks and auto-fix issues
   ```

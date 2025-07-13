@@ -153,8 +153,8 @@ Found 8 tasks related to this specification
 
 **Session Mode (Fallback):**
 ```
-ℹ️  TaskMaster not found - using session-based TodoWrite for task management
-To enable persistent tasks, install TaskMaster: npm install -g task-master
+ℹ️  TaskMaster AI not found - using session-based TodoWrite for task management
+To enable persistent tasks, install TaskMaster AI: npm install -g task-master-ai
 ```
 
 ## Usage Examples
