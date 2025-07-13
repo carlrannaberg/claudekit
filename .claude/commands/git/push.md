@@ -6,7 +6,7 @@ allowed-tools: Bash(git:*)
 Push commits to remote repository with appropriate safety checks and branch management.
 
 ## Efficiency Note:
-Be concise. Use single bash calls where possible. Skip verbose explanations. Focus on results and safety.
+Be concise. Use single bash calls where possible. Skip verbose explanations and intermediate status messages. Execute the push directly if safe, show only the result.
 
 ## Instructions for Claude:
 
@@ -19,22 +19,15 @@ Parse output to check:
 - Remote repository URL
 - Commits to be pushed
 
-2. If safe to push (no uncommitted changes):
-   - For simple push to tracked branch: Execute `git push`
-   - For first push of new branch: Execute `git push -u origin [branch-name]`
-   - If behind remote: Warn about potential conflicts, suggest `git pull --rebase` first
-   - Actually run the appropriate push command!
+2. If safe to push (no uncommitted changes), execute push immediately:
+   - For tracked branch: `git push`
+   - For new branch: `git push -u origin [branch-name]`
+   - If behind remote: Stop and suggest `git pull --rebase`
 
-3. Show results after push:
-   - Success confirmation
-   - Any errors or warnings
-   - Updated branch status
-
-4. Provide concise output format:
-   - **Status**: Ready to push / Issues found / Push complete
-   - **Commits**: Number and summary of commits
-   - **Remote**: Target repository
-   - **Result**: Success message or error details
+3. Show only the final result:
+   - If successful: Show the push output
+   - If failed: Show error and suggest fix
+   - If unsafe: Show what needs to be done first
 
 4. Special cases to handle:
    - Diverged branches: Suggest rebase or merge strategy
@@ -45,4 +38,6 @@ Parse output to check:
 Example concise output:
 - Skip: "Let me check if it's safe to push"
 - Skip: "I'll analyze your branch status"
-- Just show: "Ready to push 4 commits to origin/main"
+- Skip: "Ready to push X commits"
+- Skip: "Executing push..."
+- Just show the push result directly
