@@ -56,7 +56,11 @@ The analysis evaluates three fundamental aspects, each with specific criteria:
   - Performance constraints defined?
   - Resource limits specified?
   - Cleanup procedures documented?
-- Testing strategy
+- Testing strategy:
+  - Test purpose documentation (each test explains why it exists)
+  - Meaningful tests that can fail to reveal real issues
+  - Edge case coverage and failure scenarios
+  - Follows project testing philosophy: "When tests fail, fix the code, not the test"
 - Deployment considerations
 
 ### Additional Quality Checks:

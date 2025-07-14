@@ -45,7 +45,10 @@ If not initialized, offer to perform safe initialization inline (see Safe Initia
    Key principles:
    - Include only what's explicitly stated in the spec
    - Copy implementation details verbatim into each task
-   - Include tests as part of acceptance criteria
+   - Include tests as part of acceptance criteria following testing philosophy:
+     * Document test purpose (why each test exists and what it validates)
+     * Write meaningful tests that can fail to reveal real issues
+     * Follow project principle: "When tests fail, fix the code, not the test"
    - Create foundation tasks first, then build features on top
    - Each task should be self-contained with all necessary details
    
