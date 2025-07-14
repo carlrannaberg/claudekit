@@ -19,6 +19,11 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
   - Analyzes errors and distributes fixes to concurrent agents
   - Ensures non-overlapping fixes to avoid conflicts
   - Verifies all issues are resolved after completion
+- `/dev:cleanup` - Clean up debug files and development artifacts
+  - Identifies temporary files created during development sessions
+  - Proposes deletion of debug scripts, test artifacts, and status reports
+  - Requires user approval before any deletion
+  - Suggests .gitignore patterns to prevent future accumulation
 
 ### AGENT.md Configuration
 Universal AI assistant configuration with the [AGENT.md standard](https://agent.md):

@@ -33,6 +33,7 @@ This is a bash-based toolkit with no traditional build process. Key commands:
 - `/agent:migration` - Migrate from other AI configs
 - `/create-command` - Guide for new commands
 - `/agent:cli [tool]` - Capture CLI tool help and add to AGENT.md
+- `/dev:cleanup` - Clean up debug files and development artifacts
 
 ## Code Style
 
