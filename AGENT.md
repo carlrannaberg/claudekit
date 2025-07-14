@@ -216,6 +216,50 @@ Edit `.claude/settings.json`:
 5. Follow existing patterns in the codebase
 6. Test thoroughly in Claude Code environment
 
+### Testing Philosophy
+**When tests fail, fix the code, not the test.**
+
+Example from this project:
+- A test revealed that the TypeScript 'any' detection pattern `': any\|: any\[\]\|<any>\|as any'` didn't catch `type Foo = any`
+- Wrong approach: Comment out or remove the failing test case
+- Right approach: Update the pattern to `': any\|: any\[\]\|<any>\|as any\|= any'` to catch all cases
+
+Key principles:
+1. **Tests should be meaningful** - Avoid tests that always pass regardless of behavior
+2. **Test actual functionality** - Call the functions being tested, don't just check side effects
+3. **Failing tests are valuable** - They reveal bugs or missing features
+4. **Fix the root cause** - When a test fails, fix the underlying issue, don't hide the test
+5. **Test edge cases** - Tests that reveal limitations help improve the code
+6. **Document test purpose** - Each test should include a comment explaining why it exists and what it validates
+
+Bad test example (always passes):
+```bash
+# This "test" passes no matter what happens
+if has_eslint; then
+  test_pass  # ESLint found
+else
+  test_pass  # No ESLint found
+fi
+```
+
+Good test example (actually tests behavior):
+```bash
+# Purpose: Verify has_eslint returns false when no config files exist.
+# This ensures ESLint validation is skipped for projects without ESLint setup.
+test_start "has_eslint without config"
+rm -f .eslintrc.json
+if ! has_eslint; then
+  test_pass
+else
+  test_fail "Should return false without config"
+fi
+```
+
+When environment changes, the purpose comment helps determine:
+- **Keep the test** if the purpose is still valid (e.g., "ensure graceful fallback")
+- **Update the test** if the behavior should change (e.g., "now should return true")
+- **Delete the test** if the functionality no longer exists (e.g., "remove deprecated feature")
+
 ## Architecture
 
 ### Project Structure

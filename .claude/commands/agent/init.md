@@ -96,6 +96,17 @@ This file provides guidance to AI coding assistants working in this repository.
 - Coverage requirements
 - How to run specific test suites
 
+### Testing Philosophy
+**When tests fail, fix the code, not the test.**
+
+Key principles:
+- **Tests should be meaningful** - Avoid tests that always pass regardless of behavior
+- **Test actual functionality** - Call the functions being tested, don't just check side effects
+- **Failing tests are valuable** - They reveal bugs or missing features
+- **Fix the root cause** - When a test fails, fix the underlying issue, don't hide the test
+- **Test edge cases** - Tests that reveal limitations help improve the code
+- **Document test purpose** - Each test should include a comment explaining why it exists and what it validates
+
 ## Security
 
 [Security considerations and data protection guidelines:]

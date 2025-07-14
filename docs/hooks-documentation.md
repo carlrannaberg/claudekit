@@ -2,6 +2,25 @@
 
 This document describes the hooks included in claudekit and their functionality.
 
+## Shared Validation Library
+
+**Location:** `.claude/validation-lib.sh`
+
+The validation library provides common functions used by multiple hooks:
+
+**Functions:**
+- `find_project_root()` - Locates the project root directory
+- `has_typescript()` - Checks if TypeScript is configured
+- `has_eslint()` - Checks if ESLint is configured
+- `has_tests()` - Checks if tests are configured
+- `validate_typescript_file()` - Runs TypeScript validation on a specific file
+- `validate_typescript_project()` - Runs TypeScript validation on entire project
+- `validate_eslint_file()` - Runs ESLint validation on a specific file
+- `validate_eslint_project()` - Runs ESLint validation on entire project
+- `validate_tests()` - Runs the project test suite
+- `format_validation_output()` - Formats validation results consistently
+- `parse_json_field()` - Safely parses JSON fields with fallback support
+
 ## PostToolUse Hooks
 
 ### typecheck.sh
@@ -86,6 +105,24 @@ This document describes the hooks included in claudekit and their functionality.
 **Requirements:**
 - Claude Code with TodoWrite tool
 - jq command (optional, has fallbacks)
+
+### project-validation.sh
+
+**Purpose:** Runs complete project validation when an agent completes work.
+
+**Triggers on:** Stop and SubagentStop events
+
+**Features:**
+- Runs TypeScript validation on entire project
+- Runs ESLint validation on all files
+- Runs test suite if configured
+- Uses shared validation library for consistency
+- Prevents infinite loops with stop_hook_active check
+- Provides consolidated feedback for all validation failures
+
+**Requirements:**
+- Same as individual validation hooks (TypeScript, ESLint, tests)
+- Works for both main agent and subagent contexts
 
 ## Configuration
 

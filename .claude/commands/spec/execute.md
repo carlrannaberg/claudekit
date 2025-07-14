@@ -71,48 +71,73 @@ When TaskMaster is not available:
    - Mark dependencies and prerequisites
    - Set appropriate priorities (high for core functionality, medium for enhancements, low for nice-to-haves)
 
-### 3. Orchestrate Implementation
+### 3. Orchestrate Implementation (Main Context Window Preservation)
 
-Launch concurrent Task agents for parallel work (both modes):
+**IMPORTANT: Act as an orchestrator to preserve main context window**
+- The main agent should ONLY coordinate and monitor progress
+- ALL implementation work must be done by subagents using the Task tool
+- Launch multiple subagents concurrently for maximum efficiency
+- Use a single subagent for final validation
 
-**Agent Distribution Strategy:**
+**Orchestration Strategy:**
 - Group related tasks that can be done simultaneously
-- Assign each agent specific files/components to work on
-- Ensure agents work on non-conflicting areas
-- Include clear success criteria and context for each agent
+- Launch subagents for each group of tasks
+- Each subagent handles specific files/components
+- Ensure subagents work on non-conflicting areas
+- Monitor progress without implementing directly
 
-**Example Agent Assignments:**
+**Example Subagent Launches:**
 
 ```
-Agent 1: Database/Model Layer
-- "Create database models for [feature]"
-- "Add migrations for new tables"
-- "Implement data access methods"
-- "Add model validation"
+# Launch multiple subagents concurrently for parallel implementation
+Task("Database Implementation", prompt="
+  Implement the database layer for [feature]:
+  - Create database models
+  - Add migrations for new tables
+  - Implement data access methods
+  - Add model validation
+  - Write unit tests for all models
+  Context: [provide spec section]
+")
 
-Agent 2: API/Backend Logic
-- "Create API endpoints for [feature]"
-- "Implement business logic"
-- "Add request validation"
-- "Handle error cases"
+Task("API Implementation", prompt="
+  Implement the API layer for [feature]:
+  - Create API endpoints
+  - Implement business logic
+  - Add request validation
+  - Handle error cases
+  - Write API tests
+  Context: [provide spec section]
+")
 
-Agent 3: Frontend/UI Components
-- "Create UI components for [feature]"
-- "Implement forms and user interactions"
-- "Add client-side validation"
-- "Connect to API endpoints"
+Task("Frontend Implementation", prompt="
+  Implement the UI components for [feature]:
+  - Create React/Vue/etc components
+  - Implement forms and interactions
+  - Add client-side validation
+  - Connect to API endpoints
+  - Write component tests
+  Context: [provide spec section]
+")
 
-Agent 4: Testing Suite
-- "Write unit tests for models"
-- "Create API endpoint tests"
-- "Add integration tests"
-- "Implement E2E test scenarios"
+# Use separate subagents for searching and analysis
+Task("Find existing patterns", prompt="
+  Search the codebase for:
+  - Similar features we can learn from
+  - Existing utilities to reuse
+  - Current coding patterns to follow
+  Report findings for other agents to use
+")
 
-Agent 5: Documentation & Polish
-- "Update API documentation"
-- "Add inline code documentation"
-- "Update user guides"
-- "Add examples and tutorials"
+# Single subagent for final validation
+Task("Validate implementation", prompt="
+  Verify the complete implementation:
+  - Run all tests
+  - Check code quality (lint, typecheck)
+  - Validate against specification
+  - Ensure all requirements are met
+  Report any issues found
+")
 ```
 
 ### 4. Coordinate Progress
@@ -173,21 +198,41 @@ To enable persistent tasks, install TaskMaster AI: npm install -g task-master-ai
 
 ## Implementation Guidelines
 
-### For Each Agent:
+### Orchestrator Role (Main Agent):
+1. **DO NOT implement any code directly**
+2. Launch subagents for ALL implementation work
+3. Monitor progress and coordinate between subagents
+4. Handle dependencies and sequencing
+5. Report status updates to the user
+
+### For Each Subagent:
 1. Provide the relevant section of the specification
 2. List specific files to create/modify
 3. Include coding standards and patterns to follow
 4. Define clear success criteria
 5. Specify what tests to write
 
+### Testing Guidelines for Subagents:
+- **Document test purpose** - Each test should include a comment explaining why it exists
+- **Write meaningful tests** - Avoid tests that always pass regardless of behavior
+- **Test actual functionality** - Call the functions being tested, don't just check side effects
+- **Include edge cases** - Write tests that can fail to reveal real issues
+- **Follow project testing patterns** - Use existing test frameworks and conventions
+
+### Subagent Usage Patterns:
+- **Search Subagents**: Use freely for finding files, patterns, and existing code
+- **Implementation Subagents**: Launch concurrently for non-conflicting work
+- **Validation Subagent**: Use a single subagent at the end for final checks
+- **Fix Subagents**: Launch as needed when validation finds issues
+
 ### Handling Complex Features:
-- Break into multiple rounds of agents if needed
+- Break into multiple rounds of subagents if needed
 - Use the todo list to track multi-phase implementations
 - Ensure earlier phases are complete before starting dependent phases
 
 ### Conflict Avoidance:
-- Assign agents to different directories/layers
-- Have agents work on separate feature branches if needed
+- Assign subagents to different directories/layers
+- Have subagents work on separate feature branches if needed
 - Use clear file ownership to prevent conflicts
 - Coordinate shared interfaces through the specification
 

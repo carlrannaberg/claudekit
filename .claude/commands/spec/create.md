@@ -75,6 +75,9 @@ Then create a spec document that includes:
     - Integration tests
     - E2E tests (if needed)
     - Mocking strategies for external dependencies
+    - **Test documentation**: Each test should include a purpose comment explaining why it exists and what it validates
+    - **Meaningful tests**: Avoid tests that always pass regardless of behavior
+    - **Edge case testing**: Include tests that can fail to reveal real issues
 12. **Performance Considerations**: Impact on performance and mitigation strategies
 13. **Security Considerations**: Security implications and safeguards
 14. **Documentation**: What documentation needs to be created/updated

@@ -47,6 +47,26 @@
             "command": ".claude/hooks/validate-todo-completion.sh"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/project-validation.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/project-validation.sh"
+          }
+        ]
       }
     ]
   }
