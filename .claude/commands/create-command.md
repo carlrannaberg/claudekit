@@ -38,6 +38,8 @@ When creating the command, support these Claude Code features if requested:
 
 **Bash Execution:** If the user wants command output, use `!` prefix
 - Example: `!git status` to include git status in the command
+- **Performance tip**: Combine related commands with `&&` for faster execution
+- Example: `!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
 
 **File References:** If the user wants file contents, use `@` prefix
 - Example: `@package.json` to include package.json contents
@@ -72,3 +74,91 @@ Common tool patterns:
    - Show how to invoke it with `/{{COMMAND_NAME}}`
    - Explain any argument usage if `$ARGUMENTS` is included
    - Provide a brief example of using the command
+
+## Command Content Guidelines
+
+When creating command content, write instructions TO the AI agent, not as the AI agent:
+
+❌ **Avoid first-person language**:
+- "I'll launch subagents to search for..."
+- "I'll clean up debug files..."
+- "What I'll do next..."
+- "My approach will be..."
+
+✅ **Use instructional language**:
+- "Launch subagents to search for..."
+- "Clean up debug files by..."
+- "Next steps:"
+- "Approach:"
+
+**Example Structure:**
+```markdown
+---
+description: Clean up debug files and test artifacts
+allowed-tools: Task, Bash, Read, LS
+---
+
+# Clean Up Development Artifacts
+
+Remove debug files, test artifacts, and status reports created during development.
+
+## Tasks
+
+1. **Search for Debug Files**
+   - Use Task tool to find temporary files
+   - Identify debug scripts and logs
+   - Locate test artifacts
+
+2. **Clean Up Process**
+   - Remove debug files safely
+   - Archive important logs
+   - Report cleanup summary
+
+## Files to Clean
+- Debug scripts (debug-*.js, test-*.py)
+- Log files (*.log, debug.txt)
+- Temporary outputs
+```
+
+This creates clear instructions for the AI agent to follow rather than the agent describing what it will do.
+
+## Bash Command Execution in Commands
+
+### Using the ! Prefix
+Execute bash commands immediately when the slash command runs using the `!` prefix. The output is included in the command context.
+
+**Single Command Example:**
+```markdown
+- Current git status: !`git status --porcelain`
+- Current working directory: !`pwd`
+- Files in current directory: !`ls -la`
+```
+
+**Performance Optimization - Combined Commands:**
+```markdown
+- Git status and directory: !`git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
+```
+
+### Complete Example
+```markdown
+---
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
+description: Create a git commit
+---
+
+## Context
+
+- Current git status: !`git status --porcelain`
+- Current git diff: !`git diff HEAD`
+- Current branch and recent commits: !`git branch --show-current && echo "--- Recent commits ---" && git log --oneline -10`
+
+## Your task
+
+Based on the above changes, create a single git commit.
+```
+
+### Performance Guidelines
+- **Combine related commands** with `&&` to reduce execution time
+- **Use one-liners** instead of multiple separate bash commands
+- **Group context gathering** into single commands where logical
+- **Separate different contexts** with echo separators for clarity
