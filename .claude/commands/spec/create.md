@@ -34,6 +34,28 @@ If user agrees to installation:
 If user declines or wants to continue without it:
 - Proceed with spec creation using existing knowledge
 
+## MANDATORY PRE-CREATION VERIFICATION
+
+Before creating ANY specification, you MUST complete these checks:
+
+### 1. Context Discovery Phase
+- Search existing codebase for similar features/specs using AgentTool
+- Identify potential conflicts or duplicates
+- Verify feature request is technically feasible
+- Document any missing prerequisites
+
+### 2. Request Validation
+- Confirm request is well-defined and actionable
+- If vague or incomplete, STOP and ask clarifying questions
+- Validate scope is appropriate (not too broad/narrow)
+
+### 3. Quality Gate
+- Only proceed if you have 80%+ confidence in implementation approach
+- If uncertain, request additional context before continuing
+- Document any assumptions being made
+
+**CRITICAL: If any validation fails, STOP immediately and request clarification.**
+
 ## Your task
 
 Create a comprehensive specification document in the `specs/` folder for the following feature/bugfix: $ARGUMENTS
@@ -103,6 +125,25 @@ Follow these guidelines:
 Name the spec file descriptively based on the feature:
 - Features: `feat-{kebab-case-name}.md`
 - Bugfixes: `fix-{issue-number}-{brief-description}.md`
+
+## PROGRESSIVE VALIDATION CHECKPOINTS
+
+After completing each major section:
+
+- **Problem Statement**: Verify it's specific and measurable
+- **Technical Requirements**: Confirm all dependencies are available
+- **Implementation Plan**: Validate approach is technically sound
+- **Testing Strategy**: Ensure testability of all requirements
+
+At each checkpoint, if quality is insufficient, revise before proceeding.
+
+## FINAL SPECIFICATION VALIDATION
+
+Before marking complete:
+1. **Completeness Check**: All 17 sections meaningfully filled
+2. **Consistency Check**: No contradictions between sections  
+3. **Implementability Check**: Someone could build this from the spec
+4. **Quality Score**: Rate spec 1-10, only accept 8+
 
 Before writing, use AgentTool to search for:
 - Related existing features or code

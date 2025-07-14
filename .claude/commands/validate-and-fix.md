@@ -9,7 +9,9 @@ Run quality checks and automatically fix discovered issues using parallel execut
 
 ## Process
 
-### 1. Discovery Phase
+### 1. SYSTEMATIC PRIORITY-BASED ANALYSIS
+
+#### Discovery with Immediate Categorization
 Run all available quality checks in parallel using Bash. Capture full output including file paths, line numbers, and error messages:
 - Linting (ESLint, Prettier, Ruff, etc.)
 - Type checking (TypeScript, mypy, etc.)
@@ -17,14 +19,51 @@ Run all available quality checks in parallel using Bash. Capture full output inc
 - Build verification
 - Custom project checks
 
-### 2. Analysis Phase
-Analyze the errors to identify:
-- Error categories (syntax, type errors, lint violations, test failures)
-- Affected files and their dependencies
-- Which fixes can be done independently vs. those requiring coordination
-- Patterns for bulk fixes
+Immediately categorize findings by:
+- **CRITICAL**: Security issues, breaking changes, data loss risk
+- **HIGH**: Functionality bugs, test failures, build breaks
+- **MEDIUM**: Code quality, style violations, documentation gaps
+- **LOW**: Formatting, minor optimizations
 
-### 3. Task Distribution
+#### Risk Assessment Before Action
+- Identify "quick wins" vs. complex fixes
+- Map dependencies between issues (fix A before B)
+- Flag issues that require manual intervention
+
+### 2. STRATEGIC FIX EXECUTION
+
+#### Phase 1 - Safe Quick Wins
+- Start with LOW and MEDIUM priority fixes that can't break anything
+- Verify each fix immediately before proceeding
+
+#### Phase 2 - Functionality Fixes
+- Address HIGH priority issues one at a time
+- Run tests after each fix to ensure no regressions
+
+#### Phase 3 - Critical Issues
+- Handle CRITICAL issues with explicit user confirmation
+- Provide detailed plan before executing
+
+#### Phase 4 - Verification
+- Re-run ALL checks to confirm fixes were successful
+- Provide summary of what was fixed vs. what remains
+
+### 3. COMPREHENSIVE ERROR HANDLING
+
+#### Rollback Capability
+- Create git stash checkpoint before ANY changes
+- Provide instant rollback procedure if fixes cause issues
+
+#### Partial Success Handling
+- Continue execution even if some fixes fail
+- Clearly separate successful fixes from failures
+- Provide manual fix instructions for unfixable issues
+
+#### Quality Validation
+- Accept 100% success in each phase before proceeding
+- If phase fails, diagnose and provide specific next steps
+
+#### Task Distribution
 Create detailed task plans where each agent gets:
 - A specific, focused objective (e.g., "Fix all TypeScript errors in src/components/")
 - Exact file paths and line numbers to modify
@@ -37,11 +76,14 @@ Launch multiple agents concurrently using Task tool, ensuring:
 - Agents working on related files understand the shared interfaces
 - Each agent verifies their fixes work before completing
 - Track progress with TodoWrite
+- Execute phases sequentially: complete Phase 1 before Phase 2, etc.
+- Create checkpoint after each successful phase
 
-### 5. Verification
+### 5. Final Verification
 After all agents complete:
-- Re-run all checks
-- Confirm issues are resolved
-- Report any remaining manual fixes needed
+- Re-run all checks to confirm 100% of fixable issues are resolved
+- Confirm no new issues were introduced by fixes
+- Report any remaining manual fixes needed with specific instructions
+- Provide summary: "Fixed X/Y issues, Z require manual intervention"
 
 This approach maximizes efficiency through parallel discovery and fixing while ensuring coordinated, conflict-free changes.

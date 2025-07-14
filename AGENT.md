@@ -279,3 +279,61 @@ When environment changes, the purpose comment helps determine:
 - Frontmatter specifies permissions
 - Shell expansions for dynamic content
 - Support for arguments via `$ARGUMENTS`
+
+## Naming Conventions
+
+### Avoid "Enhanced" Prefixes
+When modifying or creating features, do not prefix names with "Enhanced", "Improved", "Better", etc.:
+- ❌ "Enhanced Orchestration Strategy"
+- ❌ "Improved Error Handling"  
+- ❌ "Better Validation Process"
+- ✅ "Orchestration Strategy"
+- ✅ "Error Handling"
+- ✅ "Validation Process"
+
+Use descriptive, direct names that focus on what the feature does, not that it's an improvement over something else.
+
+## Status Reporting Guidelines
+
+### Avoid Verbose Status Updates
+Do not provide unnecessary status reporting or progress commentary:
+
+❌ **Avoid**:
+- "I'll analyze the current git status for you."
+- "Let me gather the details efficiently:"
+- "I see there are changes. Let me gather the details:"
+- "Now I'm going to run the build..."
+- "Processing your request..."
+- "Working on it..."
+
+✅ **Do**:
+- Show results directly
+- Focus on the actual output and findings
+- Get straight to the point
+- Let actions speak for themselves
+
+### Command Execution
+- Skip explanatory preambles about what you're going to do
+- Don't announce each step unless specifically requested
+- Provide concise, actionable information
+- Focus on results, not process descriptions
+
+### Preventing AGENT.md Pollution
+Never add status updates, progress reports, changelog entries, or implementation logs to AGENT.md:
+
+❌ **Never add to AGENT.md**:
+- Changelog-style entries about what was changed
+- "Added feature X to command Y"
+- "Updated Z with new functionality"
+- "Fixed issue in A"
+- "Updated commands with new validation"
+- Implementation summaries or progress reports
+- Lists of completed tasks or modifications
+
+✅ **Keep AGENT.md clean**:
+- Focus on guidelines and instructions for AI assistants
+- Document patterns and conventions only
+- Provide examples and templates
+- Maintain reference information only
+
+AGENT.md should remain focused on guidance for AI assistants, not become a log of what was implemented or changed.

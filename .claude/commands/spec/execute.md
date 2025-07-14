@@ -7,12 +7,26 @@ allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(task-master:*)
 
 Implement the specification at: $ARGUMENTS
 
-## Prerequisites
+## MANDATORY PRE-EXECUTION VALIDATION
 
-First, verify the specification is implementation-ready:
-- Check if the spec exists and is readable
-- Ensure it has been validated (run /spec:validate if needed)
-- Confirm it contains implementation phases or can be broken down
+Before launching ANY subagents:
+
+### 1. Specification Readiness
+- Verify spec file exists and is complete
+- Check all dependencies and prerequisites are available
+- STOP if spec quality is insufficient
+
+### 2. Environment Preparation
+- Verify all required tools are available
+- Check for conflicting processes or locks
+- Validate project state is clean (no uncommitted changes that could interfere)
+
+### 3. Execution Plan Validation
+- Break down spec into non-overlapping subagent tasks
+- Identify critical path and dependencies between tasks
+- Validate task assignments won't conflict
+
+**CRITICAL: If any validation fails, STOP immediately and request clarification.**
 
 ## Execution Mode Detection
 
@@ -71,7 +85,7 @@ When TaskMaster is not available:
    - Mark dependencies and prerequisites
    - Set appropriate priorities (high for core functionality, medium for enhancements, low for nice-to-haves)
 
-### 3. Orchestrate Implementation (Main Context Window Preservation)
+### 3. RIGOROUS SUBAGENT ORCHESTRATION
 
 **IMPORTANT: Act as an orchestrator to preserve main context window**
 - The main agent should ONLY coordinate and monitor progress
@@ -80,6 +94,19 @@ When TaskMaster is not available:
 - Use a single subagent for final validation
 
 **Orchestration Strategy:**
+
+#### 3A. Launch with Explicit Boundaries
+- Each subagent gets clear, non-overlapping responsibility
+- Provide explicit success/failure criteria for each task
+- Include rollback instructions for each subagent
+
+#### 3B. Result Processing
+- When subagents complete, immediately verify their work quality
+- Check for integration issues between completed components
+- If any subagent reports failure, analyze impact before proceeding
+- Create recovery plan for failed components
+
+**Implementation Guidelines:**
 - Group related tasks that can be done simultaneously
 - Launch subagents for each group of tasks
 - Each subagent handles specific files/components
