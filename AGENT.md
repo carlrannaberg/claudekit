@@ -221,9 +221,9 @@ Edit `.claude/settings.json`:
 **When tests fail, fix the code, not the test.**
 
 Example from this project:
-- A test revealed that the TypeScript 'any' detection pattern `': any\|: any\[\]\|<any>\|as any'` didn't catch `type Foo = any`
-- Wrong approach: Comment out or remove the failing test case
-- Right approach: Update the pattern to `': any\|: any\[\]\|<any>\|as any\|= any'` to catch all cases
+- Tests revealed that the TypeScript 'any' detection pattern had false positives with comments and `expect.any()`
+- Wrong approach: Comment out or remove the failing test cases
+- Right approach: Improve the pattern to exclude comments and valid test utilities while still catching forbidden 'any' types
 
 Key principles:
 1. **Tests should be meaningful** - Avoid tests that always pass regardless of behavior

@@ -36,8 +36,10 @@ validate_typescript_file() {
   local root_dir="$2"
   local output=""
 
-  # Check for forbidden "any" types
-  if grep -q ': any\|: any\[\]\|<any>\|as any\|= any' "$file_path"; then
+  # Check for forbidden "any" types (excluding comments and expect.any())
+  # First filter out comment lines and expect.any() usage
+  local filtered_content=$(grep -v '^\s*//' "$file_path" | grep -v '^\s*\*' | grep -v 'expect\.any(' | grep -v '\.any(')
+  if echo "$filtered_content" | grep -qE ':\s*any\b|:\s*any\[\]|<any>|as\s+any\b|=\s*any\b'; then
     output="❌ File contains forbidden 'any' types. Use specific types instead."
     echo "$output"
     return 1

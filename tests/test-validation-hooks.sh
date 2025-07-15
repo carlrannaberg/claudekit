@@ -214,7 +214,9 @@ test_patterns=(
 all_found=true
 for pattern in "${test_patterns[@]}"; do
   echo "$pattern" > test-pattern.ts
-  if ! grep -q ': any\|: any\[\]\|<any>\|as any\|= any' test-pattern.ts; then
+  # Use the same logic as the validation library
+  filtered_content=$(grep -v '^\s*//' test-pattern.ts | grep -v '^\s*\*' | grep -v 'expect\.any(' | grep -v '\.any(')
+  if ! echo "$filtered_content" | grep -qE ':\s*any\b|:\s*any\[\]|<any>|as\s+any\b|=\s*any\b'; then
     echo "Failed to match: $pattern"
     all_found=false
   fi
@@ -223,6 +225,33 @@ if [[ "$all_found" == "true" ]]; then
   test_pass
 else
   test_fail "Some 'any' patterns were not detected"
+fi
+
+# Test 7b: Test patterns that should NOT trigger 'any' detection
+# Purpose: Verify the regex pattern correctly excludes valid uses of 'any' such as
+# comments and expect.any() in tests. This prevents false positives that would
+# block legitimate code that happens to contain the word 'any'.
+test_start "Validation - 'any' type detection exclusions"
+cd "$mock_dir"
+# Test patterns that should NOT be caught
+exclude_patterns=(
+  "// This variable has type: any"
+  "expect.any(String)"
+)
+all_excluded=true
+for pattern in "${exclude_patterns[@]}"; do
+  echo "$pattern" > test-exclude.ts
+  # Use the same logic as the validation library
+  filtered_content=$(grep -v '^\s*//' test-exclude.ts | grep -v '^\s*\*' | grep -v 'expect\.any(' | grep -v '\.any(')
+  if echo "$filtered_content" | grep -qE ':\s*any\b|:\s*any\[\]|<any>|as\s+any\b|=\s*any\b'; then
+    echo "Incorrectly matched (should be excluded): $pattern"
+    all_excluded=false
+  fi
+done
+if [[ "$all_excluded" == "true" ]]; then
+  test_pass
+else
+  test_fail "Some valid 'any' patterns were incorrectly flagged"
 fi
 
 # Test 8: ESLint hook - skips when no ESLint
