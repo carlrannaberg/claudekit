@@ -66,3 +66,68 @@ jobs:
           fi
         done
         echo "✅ All commands have descriptions"
+
+  symlinks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate symlinks
+      run: |
+        # Check that all symlinks are valid
+        echo "🔍 Validating symlinks..."
+        invalid_links=0
+        
+        # Find all symlinks and check if they point to existing files
+        find . -type l | while read -r link; do
+          if [ -L "$link" ]; then
+            target=$(readlink "$link")
+            # Convert relative path to absolute for checking
+            if [ "${target#/}" = "$target" ]; then
+              # Relative path - resolve it relative to the symlink's directory
+              link_dir=$(dirname "$link")
+              target="$link_dir/$target"
+            fi
+            
+            if [ ! -e "$target" ]; then
+              echo "❌ Broken symlink: $link -> $target"
+              invalid_links=$((invalid_links + 1))
+            else
+              echo "✅ Valid symlink: $link -> $target"
+            fi
+          fi
+        done
+        
+        # Check for broken symlinks with find
+        if find . -type l ! -exec test -e {} \; -print | head -1 | grep -q .; then
+          echo "❌ Found broken symlinks"
+          find . -type l ! -exec test -e {} \; -print
+          exit 1
+        fi
+        
+        echo "✅ All symlinks are valid"
+    
+    - name: Validate command structure
+      run: |
+        # Ensure all commands in .claude/commands/ can be accessed
+        echo "🔍 Validating command file access..."
+        
+        for cmd_file in .claude/commands/**/*.md; do
+          if [[ -f "$cmd_file" ]] || [[ -L "$cmd_file" ]]; then
+            if [[ ! -r "$cmd_file" ]]; then
+              echo "❌ Cannot read command file: $cmd_file"
+              exit 1
+            fi
+            
+            # Check that the file has content
+            if [[ ! -s "$cmd_file" ]]; then
+              echo "❌ Empty command file: $cmd_file"
+              exit 1
+            fi
+            
+            echo "✅ Command file accessible: $cmd_file"
+          fi
+        done
+        
+        echo "✅ All command files are accessible"

@@ -25,13 +25,9 @@ fi
 
 # Install commands
 echo -e "${YELLOW}Installing commands...${NC}"
-for cmd in .claude/commands/*.md; do
-    if [ -f "$cmd" ]; then
-        filename=$(basename "$cmd")
-        cp "$cmd" ~/.claude/commands/
-        echo -e "  ${GREEN}✓${NC} Installed $filename"
-    fi
-done
+# Copy the entire commands directory structure, following symlinks to copy actual files
+cp -RL .claude/commands/* ~/.claude/commands/
+echo -e "  ${GREEN}✓${NC} Installed all commands"
 
 # Install hooks
 if [ -n "$PROJECT_PATH" ] && [ -d "$PROJECT_PATH" ]; then
