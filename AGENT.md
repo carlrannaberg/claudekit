@@ -199,15 +199,50 @@ Based on analysis of this project's git history:
 ```
 
 ### Hook Configuration
-Edit `.claude/settings.json`:
+Edit `.claude/settings.json` using the new matcher format:
 ```json
 {
   "hooks": {
-    "PostToolUse": ["typecheck.sh", "eslint.sh"],
-    "Stop": ["auto-checkpoint.sh"]
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+      },
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [{"type": "command", "command": ".claude/hooks/run-related-tests.sh"}]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
+          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+        ]
+      }
+    ]
   }
 }
 ```
+
+#### Matcher Patterns
+The new hook matcher format supports:
+- **Exact Match**: `"Write"` (matches only Write tool)
+- **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
+- **Regex Patterns**: `"Notebook.*"` (matches Notebook tools)
+- **Conditional Logic**: `"tools:Write AND file_paths:**/*.ts"` (specific files)
+- **Universal Match**: `"*"` (matches all tools/events)
+
+#### Common Patterns
+- `"tools:Write AND file_paths:**/*.ts"` - TypeScript files only
+- `"tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"` - JavaScript/TypeScript files
+- `"Write,Edit,MultiEdit"` - File modification tools
+- `"*"` - All tools (for cleanup/validation hooks)
 
 ### Development Guidelines
 1. Always provide fallback methods for tools
