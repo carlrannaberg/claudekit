@@ -661,23 +661,34 @@ interface Component {
   category: string;
 }
 
+interface ProjectInfo {
+  hasTypeScript: boolean;
+  hasESLint: boolean;
+  packageManager: 'npm' | 'yarn' | 'pnpm' | null;
+  projectPath: string;
+}
+
 interface Installation {
   components: Component[];
   target: InstallTarget;
   backup: boolean;
   dryRun: boolean;
+  projectInfo?: ProjectInfo;
 }
 ```
 
 #### 2. Installation Flow
 ```typescript
-// Interactive mode
-const components = await selectComponents();
+// Interactive mode with smart detection
+const projectInfo = await detectProjectContext(process.cwd());
+const recommendedComponents = recommendComponents(projectInfo);
+const components = await selectComponents(recommendedComponents);
 const target = await selectTarget();
 const options = await configureOptions();
 
 // Non-interactive mode
-const components = parseComponentsFlag(flags.components);
+const projectInfo = await detectProjectContext(flags.project || process.cwd());
+const components = parseComponentsFlag(flags.components) || recommendComponents(projectInfo);
 const target = resolveTarget(flags.project || process.cwd());
 ```
 
@@ -686,6 +697,8 @@ const target = resolveTarget(flags.project || process.cwd());
 - **Backup**: Automatic backup of existing files
 - **Atomic**: All-or-nothing installation with rollback
 - **Unix-focused**: Use `path.join`, `os.homedir()`, standard Unix permissions
+- **Path Resolution**: Convert relative paths to absolute paths in settings.json
+- **Dependency Management**: Auto-include required dependencies (validation-lib.sh)
 
 ### User Experience
 
@@ -768,6 +781,160 @@ npx claudekit update
 ```
 
 ### Implementation Details
+
+#### Project Type Detection
+```typescript
+async function detectProjectContext(projectPath: string): Promise<ProjectInfo> {
+  const resolvedPath = resolveProjectPath(projectPath);
+  
+  return {
+    hasTypeScript: await fs.pathExists(path.join(resolvedPath, 'tsconfig.json')),
+    hasESLint: await hasEslintConfig(resolvedPath),
+    packageManager: await detectPackageManager(resolvedPath),
+    projectPath: resolvedPath
+  };
+}
+
+function recommendComponents(projectInfo: ProjectInfo): Component[] {
+  const recommended = [];
+  
+  if (projectInfo.hasTypeScript) {
+    recommended.push('typecheck.sh');
+    recommended.push('validation-lib.sh'); // Auto-include dependency
+  }
+  
+  if (projectInfo.hasESLint) {
+    recommended.push('eslint.sh');
+    recommended.push('validation-lib.sh'); // Auto-include dependency
+  }
+  
+  return recommended;
+}
+
+async function hasEslintConfig(projectPath: string): Promise<boolean> {
+  const configFiles = ['.eslintrc.json', '.eslintrc.js', '.eslintrc.yaml', 'eslint.config.js'];
+  for (const file of configFiles) {
+    if (await fs.pathExists(path.join(projectPath, file))) {
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+#### Path Resolution Enhancement
+```typescript
+function resolveProjectPath(inputPath: string): string {
+  // Handle ~/ expansion
+  const expanded = inputPath.startsWith('~/')
+    ? path.join(os.homedir(), inputPath.slice(2))
+    : inputPath;
+  
+  // Resolve symlinks and convert to absolute path
+  return fs.realpathSync(path.resolve(expanded));
+}
+
+function generateSettings(components: Component[], projectPath: string): ClaudeSettings {
+  const hookConfigs = components
+    .filter(c => c.type === 'hook')
+    .map(component => ({
+      matcher: getFilePattern(component.name),
+      script: path.resolve(projectPath, '.claude', 'hooks', component.filename)
+    }));
+
+  return {
+    hooks: {
+      PostToolUse: hookConfigs
+    }
+  };
+}
+
+function getFilePattern(hookName: string): string {
+  switch (hookName) {
+    case 'typecheck.sh': return '\\.(ts|tsx)$';
+    case 'eslint.sh': return '\\.(js|jsx|ts|tsx)$';
+    default: return '.*';
+  }
+}
+```
+
+#### Dependency Resolution
+```typescript
+const DEPENDENCIES = {
+  'typecheck.sh': ['validation-lib.sh'],
+  'eslint.sh': ['validation-lib.sh']
+};
+
+function resolveDependencies(selectedComponents: Component[]): Component[] {
+  const resolved = new Set(selectedComponents.map(c => c.name));
+  
+  selectedComponents.forEach(component => {
+    const deps = DEPENDENCIES[component.name];
+    if (deps) {
+      deps.forEach(dep => resolved.add(dep));
+    }
+  });
+  
+  return Array.from(resolved).map(name => findComponent(name));
+}
+```
+
+#### Prerequisite Validation
+```typescript
+async function validatePrerequisites(components: Component[], projectInfo: ProjectInfo): Promise<ValidationResult[]> {
+  const results = [];
+  
+  for (const component of components) {
+    switch (component.name) {
+      case 'typecheck.sh':
+        results.push(await validateTypeScript(projectInfo));
+        break;
+      case 'eslint.sh':
+        results.push(await validateESLint(projectInfo));
+        break;
+    }
+  }
+  
+  return results;
+}
+
+async function validateTypeScript(projectInfo: ProjectInfo): Promise<ValidationResult> {
+  if (!projectInfo.hasTypeScript) {
+    return {
+      component: 'typecheck.sh',
+      valid: false,
+      message: 'TypeScript hook selected but no tsconfig.json found',
+      suggestion: 'Initialize TypeScript with: npx tsc --init'
+    };
+  }
+  
+  // Check if tsc is available
+  const hasTsc = await checkCommand('tsc');
+  return {
+    component: 'typecheck.sh',
+    valid: hasTsc,
+    message: hasTsc ? 'TypeScript configured correctly' : 'TypeScript compiler not found',
+    suggestion: hasTsc ? null : 'Install TypeScript: npm install -g typescript'
+  };
+}
+
+async function validateESLint(projectInfo: ProjectInfo): Promise<ValidationResult> {
+  if (!projectInfo.hasESLint) {
+    return {
+      component: 'eslint.sh',
+      valid: false,
+      message: 'ESLint hook selected but no ESLint config found',
+      suggestion: 'Initialize ESLint with: npx eslint --init'
+    };
+  }
+  
+  return {
+    component: 'eslint.sh',
+    valid: true,
+    message: 'ESLint configured correctly'
+  };
+}
+```
 
 #### Unix Platform Implementation
 ```typescript
@@ -976,11 +1143,20 @@ export async function listComponents(filter: ComponentFilter): Promise<Component
 - ✅ Unix path handling (macOS/Linux)
 - ✅ Non-interactive mode with basic flags
 - ✅ Unit tests for core functionality
+- ✅ Project type detection (TypeScript, ESLint)
+- ✅ Smart component recommendations
+- ✅ Dependency resolution (validation-lib.sh)
+- ✅ Path resolution (absolute paths, symlinks, ~/)
+- ✅ Prerequisite validation with helpful error messages
 
 **Deliverables**:
 - Working `npx claudekit setup` command
 - Feature parity with existing setup.sh
 - macOS/Linux compatibility
+- Auto-detection of project types with smart defaults
+- Dependency management with validation-lib.sh
+- Absolute path generation in settings.json
+- Prerequisite validation to prevent setup errors
 
 ### Phase 2: Enhanced UX & Component System
 **Goal**: Rich user experience and selective installation
