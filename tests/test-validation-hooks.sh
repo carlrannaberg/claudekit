@@ -86,14 +86,26 @@ EOF
   echo "$mock_dir"
 }
 
-# Source the validation library once at the beginning
-source "$PROJECT_ROOT/.claude/validation-lib.sh"
+# Test the self-contained hooks (no validation-lib.sh dependency)
+# Each hook now includes all necessary functions inline
 
-# Test 1: Validation library functions
+# Test helper to extract a function from a hook file for testing
+extract_function_from_hook() {
+  local hook_file="$1"
+  local function_name="$2"
+  
+  # Extract the function definition between "function_name()" and the next function or "# ===" marker
+  sed -n "/${function_name}()/,/^[a-zA-Z_][a-zA-Z0-9_]*()\\|^# ===/p" "$hook_file" | head -n -1
+}
+
+# Source the find_project_root function from typecheck.sh for testing
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/typecheck.sh" "find_project_root")"
+
+# Test 1: find_project_root function from self-contained hooks
 # Purpose: Verify find_project_root correctly identifies git repository root
 # from a subdirectory. This ensures hooks can find project root regardless
 # of where they're executed from.
-test_start "Validation library - find_project_root"
+test_start "Hook function - find_project_root"
 found_root=$(find_project_root "$PROJECT_ROOT/tests")
 if [[ "$found_root" == "$PROJECT_ROOT" ]]; then
   test_pass
@@ -101,11 +113,18 @@ else
   test_fail "Expected $PROJECT_ROOT, got $found_root"
 fi
 
+# Source additional functions from hooks for testing
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/typecheck.sh" "has_typescript")"
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/typecheck.sh" "parse_json_field")"
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/eslint.sh" "has_eslint")"
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/project-validation.sh" "has_tests")"
+eval "$(extract_function_from_hook "$PROJECT_ROOT/.claude/hooks/project-validation.sh" "format_validation_output")"
+
 # Test 2: TypeScript detection
 # Purpose: Verify has_typescript requires BOTH tsconfig.json AND tsc binary.
 # This prevents hooks from attempting to run TypeScript validation when only
 # config exists but TypeScript isn't installed.
-test_start "Validation library - has_typescript"
+test_start "Hook function - has_typescript"
 mock_dir=$(setup_mock_project)
 # Test that has_typescript returns false when tsc isn't available
 # This is the expected behavior - it should require both config AND binary
@@ -119,7 +138,7 @@ fi
 # Purpose: Verify has_eslint behavior when config exists. Tests that function
 # correctly handles cases where config exists but binary might not be available.
 # This ensures we don't try to run ESLint when it's not properly installed.
-test_start "Validation library - has_eslint behavior"
+test_start "Hook function - has_eslint behavior"
 cd "$mock_dir"
 # Test the actual function, not just file existence
 # Since ESLint binary might not be available, we expect false
@@ -137,7 +156,7 @@ fi
 # Test 3b: ESLint detection without config
 # Purpose: Verify has_eslint returns false when no config files exist.
 # This ensures ESLint validation is skipped for projects without ESLint setup.
-test_start "Validation library - has_eslint without config"
+test_start "Hook function - has_eslint without config"
 rm -f .eslintrc.json .eslintrc.js .eslintrc.yml
 # Should return false when no config exists
 if ! has_eslint "$mock_dir"; then
@@ -149,7 +168,7 @@ fi
 # Test 4: Test detection
 # Purpose: Verify has_tests correctly detects when npm test script is configured.
 # This ensures test validation hooks only run for projects with actual tests.
-test_start "Validation library - has_tests"
+test_start "Hook function - has_tests"
 if has_tests "$mock_dir"; then
   test_pass
 else
@@ -160,7 +179,7 @@ fi
 # Purpose: Verify parse_json_field correctly extracts values from JSON strings.
 # This is critical for hooks that need to parse Claude Code's JSON payloads.
 # Must work with both jq and fallback sed parsing.
-test_start "Validation library - parse_json_field"
+test_start "Hook function - parse_json_field"
 test_json='{"field1": "value1", "field2": "value2"}'
 parsed_value=$(parse_json_field "$test_json" "field1" "default")
 if [[ "$parsed_value" == "value1" ]]; then
@@ -172,7 +191,7 @@ fi
 # Test 5b: Test format_validation_output function
 # Purpose: Verify format_validation_output produces consistent output formatting
 # for both pass/fail states. This ensures all validation messages look uniform.
-test_start "Validation library - format_validation_output"
+test_start "Hook function - format_validation_output"
 pass_output=$(format_validation_output "Test Check" "pass" "")
 fail_output=$(format_validation_output "Test Check" "fail" "Error details")
 if [[ "$pass_output" == *"✅ Test Check passed"* ]] && [[ "$fail_output" == *"❌ Test Check failed"* ]]; then
@@ -201,7 +220,7 @@ fi
 # Purpose: Verify the regex pattern used to detect forbidden 'any' types catches
 # all common TypeScript patterns where 'any' appears. This ensures comprehensive
 # type safety enforcement across different 'any' usage patterns.
-test_start "Validation - 'any' type detection patterns"
+test_start "Hook validation - 'any' type detection patterns"
 cd "$mock_dir"
 # Test various 'any' patterns that should be caught
 test_patterns=(
@@ -231,7 +250,7 @@ fi
 # Purpose: Verify the regex pattern correctly excludes valid uses of 'any' such as
 # comments and expect.any() in tests. This prevents false positives that would
 # block legitimate code that happens to contain the word 'any'.
-test_start "Validation - 'any' type detection exclusions"
+test_start "Hook validation - 'any' type detection exclusions"
 cd "$mock_dir"
 # Test patterns that should NOT be caught
 exclude_patterns=(
@@ -304,7 +323,7 @@ fi
 # Purpose: Verify parse_json_field returns default values for missing fields.
 # This ensures hooks don't crash when Claude Code's JSON payload is missing
 # expected fields, providing graceful fallback behavior.
-test_start "Validation library - parse_json_field with default"
+test_start "Hook function - parse_json_field with default"
 test_json='{"field1": "value1"}'
 parsed_value=$(parse_json_field "$test_json" "missing_field" "default_value")
 if [[ "$parsed_value" == "default_value" ]]; then

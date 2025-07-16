@@ -1,4 +1,5 @@
- #!/bin/bash
+ #!/usr/bin/env bash
+set -euo pipefail
 # Run tests related to changed files
 
 # Read JSON input from stdin

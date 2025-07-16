@@ -5,11 +5,112 @@ set -euo pipefail
 # Project Validation Hook                                                      #
 # Runs project-wide validation when an agent completes (Stop/SubagentStop)     #
 # Ensures code quality before allowing agent to finish                         #
+# Self-contained validation hook with all dependencies included                #
 ################################################################################
 
-# Source the shared validation library
-HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$HOOK_DIR/../validation-lib.sh"
+# This hook is self-contained and includes all necessary validation functions.
+# No external dependencies required - just copy this file and it works.
+
+# === Inlined Helper Functions ===
+
+find_project_root() {
+  local start_dir="${1:-$(pwd)}"
+  git -C "$start_dir" rev-parse --show-toplevel 2>/dev/null || pwd
+}
+
+parse_json_field() {
+  local json="$1"
+  local field="$2"
+  local default="${3:-}"
+
+  if command -v jq &>/dev/null; then
+    echo "$json" | jq -r ".$field // \"$default\"" 2>/dev/null || echo "$default"
+  else
+    # Fallback: extract field using sed
+    local value=$(echo "$json" | sed -n "s/.*\"$field\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -1)
+    echo "${value:-$default}"
+  fi
+}
+
+# === Inlined Detection Functions ===
+
+has_typescript() {
+  local root_dir="${1:-$(pwd)}"
+  [[ -f "$root_dir/tsconfig.json" ]] && command -v npx &>/dev/null && npx --quiet tsc --version &>/dev/null
+}
+
+has_eslint() {
+  local root_dir="${1:-$(pwd)}"
+  ([[ -f "$root_dir/.eslintrc.json" ]] || [[ -f "$root_dir/.eslintrc.js" ]] || [[ -f "$root_dir/.eslintrc.yml" ]]) && \
+    command -v npx &>/dev/null && npx --quiet eslint --version &>/dev/null
+}
+
+has_tests() {
+  local root_dir="${1:-$(pwd)}"
+  [[ -f "$root_dir/package.json" ]] && grep -q '"test"' "$root_dir/package.json"
+}
+
+# === Inlined Validation Functions ===
+
+validate_typescript_project() {
+  local root_dir="$1"
+  local output=""
+
+  cd "$root_dir"
+  output=$(npx tsc --noEmit 2>&1 || true)
+
+  if [[ -n "$output" ]]; then
+    echo "$output"
+    return 1
+  fi
+
+  return 0
+}
+
+validate_eslint_project() {
+  local root_dir="$1"
+  local output=""
+
+  cd "$root_dir"
+  output=$(npx eslint . --ext .js,.jsx,.ts,.tsx 2>&1 || true)
+
+  if echo "$output" | grep -q "error"; then
+    echo "$output"
+    return 1
+  fi
+
+  return 0
+}
+
+validate_tests() {
+  local root_dir="$1"
+  local output=""
+
+  cd "$root_dir"
+  output=$(npm test 2>&1 || true)
+
+  if echo "$output" | grep -qE "(FAIL|failed|Error:|failing)"; then
+    echo "$output"
+    return 1
+  fi
+
+  return 0
+}
+
+format_validation_output() {
+  local check_name="$1"
+  local status="$2"  # "pass" or "fail"
+  local output="$3"
+
+  if [[ "$status" == "pass" ]]; then
+    echo "✅ $check_name passed"
+  else
+    echo "❌ $check_name failed:"
+    echo "$output" | sed 's/^/  /'
+  fi
+}
+
+# === Main Hook Logic ===
 
 # Parse Claude-Code JSON payload
 INPUT="$(cat)"

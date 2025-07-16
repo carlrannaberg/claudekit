@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Auto-checkpoint hook for Claude Code
 # Creates a checkpoint when Claude Code stops

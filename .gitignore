@@ -38,9 +38,6 @@ tsconfig.tsbuildinfo
 # Claude settings
 .claude/settings.local.json
 
-# Specifications folder
-/specs/
-
 logs
 dev-debug.log
 # Dependency directories
@@ -57,7 +54,7 @@ dev-debug.log
 
 # Task files
 tasks.json
-tasks/ 
+tasks/
 
 # TaskMaster
 .taskmaster/tasks/

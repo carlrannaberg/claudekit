@@ -274,6 +274,7 @@ When environment changes, the purpose comment helps determine:
 - **Stop**: Triggered when Claude Code stops
 - Hooks receive JSON payload via stdin
 - Must output JSON response or exit with code
+- **Self-contained**: All hooks include necessary functions inline (no external dependencies)
 
 ### Command System
 - Markdown files define commands
