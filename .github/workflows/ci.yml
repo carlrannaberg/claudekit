@@ -131,3 +131,38 @@ jobs:
         done
         
         echo "✅ All command files are accessible"
+
+  tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run test suite
+      run: |
+        echo "🧪 Running claudekit test suite..."
+        ./tests/run-tests.sh
+        
+    - name: Validate test coverage
+      run: |
+        echo "📊 Validating test coverage..."
+        
+        # Count total tests
+        total_tests=$(./tests/run-tests.sh | grep -E "Passed:|Failed:|Total:" | tail -1 | grep -oE "Total:\s+[0-9]+" | grep -oE "[0-9]+")
+        passed_tests=$(./tests/run-tests.sh | grep -E "Passed:|Failed:|Total:" | tail -1 | grep -oE "Passed:\s+[0-9]+" | grep -oE "[0-9]+")
+        
+        echo "Total tests: $total_tests"
+        echo "Passed tests: $passed_tests"
+        
+        # Require at least 90% pass rate
+        if [[ $total_tests -gt 0 ]]; then
+          pass_rate=$((passed_tests * 100 / total_tests))
+          echo "Pass rate: $pass_rate%"
+          
+          if [[ $pass_rate -lt 90 ]]; then
+            echo "❌ Test pass rate below 90%"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ Test coverage validation passed"

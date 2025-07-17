@@ -115,6 +115,76 @@ Key principles:
 - Secret management
 - Security best practices specific to this project
 
+## Directory Structure & File Organization
+
+### Reports Directory
+ALL project reports and documentation should be saved to the `reports/` directory:
+
+```
+your-project/
+├── reports/              # All project reports and documentation
+│   └── *.md             # Various report types
+├── temp/                # Temporary files and debugging
+└── [other directories]
+```
+
+### Report Generation Guidelines
+**Important**: ALL reports should be saved to the `reports/` directory with descriptive names:
+
+**Implementation Reports:**
+- Phase validation: `PHASE_X_VALIDATION_REPORT.md`
+- Implementation summaries: `IMPLEMENTATION_SUMMARY_[FEATURE].md`
+- Feature completion: `FEATURE_[NAME]_REPORT.md`
+
+**Testing & Analysis Reports:**
+- Test results: `TEST_RESULTS_[DATE].md`
+- Coverage reports: `COVERAGE_REPORT_[DATE].md`
+- Performance analysis: `PERFORMANCE_ANALYSIS_[SCENARIO].md`
+- Security scans: `SECURITY_SCAN_[DATE].md`
+
+**Quality & Validation:**
+- Code quality: `CODE_QUALITY_REPORT.md`
+- Dependency analysis: `DEPENDENCY_REPORT.md`
+- API compatibility: `API_COMPATIBILITY_REPORT.md`
+
+**Report Naming Conventions:**
+- Use descriptive names: `[TYPE]_[SCOPE]_[DATE].md`
+- Include dates: `YYYY-MM-DD` format
+- Group with prefixes: `TEST_`, `PERFORMANCE_`, `SECURITY_`
+- Markdown format: All reports end in `.md`
+
+### Temporary Files & Debugging
+All temporary files, debugging scripts, and test artifacts should be organized in a `/temp` folder:
+
+**Temporary File Organization:**
+- **Debug scripts**: `temp/debug-*.js`, `temp/analyze-*.py`
+- **Test artifacts**: `temp/test-results/`, `temp/coverage/`
+- **Generated files**: `temp/generated/`, `temp/build-artifacts/`
+- **Logs**: `temp/logs/debug.log`, `temp/logs/error.log`
+
+**Guidelines:**
+- Never commit files from `/temp` directory
+- Use `/temp` for all debugging and analysis scripts created during development
+- Clean up `/temp` directory regularly or use automated cleanup
+- Include `/temp/` in `.gitignore` to prevent accidental commits
+
+### Example `.gitignore` patterns
+```
+# Temporary files and debugging
+/temp/
+temp/
+**/temp/
+debug-*.js
+test-*.py
+analyze-*.sh
+*-debug.*
+*.debug
+
+# Don't ignore reports directory
+!reports/
+!reports/**
+```
+
 ## Configuration
 
 [Environment setup and configuration management:]
@@ -145,8 +215,61 @@ Additional sections based on project needs:
 - Focus on practical information that helps AI assistants write better code
 - Be specific and concrete based on actual code analysis
 
-### 4. Create Symlinks
-After creating AGENT.md, create symlinks for all AI assistants and document this in AGENT.md:
+### 4. Create Directory Structure
+Create the reports directory and documentation structure:
+
+```bash
+# Create reports directory
+mkdir -p reports
+
+# Create reports README template
+cat > reports/README.md << 'EOF'
+# Reports Directory
+
+This directory contains ALL project reports including validation, testing, analysis, performance benchmarks, and any other documentation generated during development.
+
+## Report Categories
+
+### Implementation Reports
+- Phase/milestone completion reports
+- Feature implementation summaries
+- Technical implementation details
+
+### Testing & Analysis Reports
+- Test execution results
+- Code coverage analysis
+- Performance test results
+- Security analysis reports
+
+### Quality & Validation
+- Code quality metrics
+- Dependency analysis
+- API compatibility reports
+- Build and deployment validation
+
+## Purpose
+
+These reports serve as:
+1. **Progress tracking** - Document completion of development phases
+2. **Quality assurance** - Validate implementations meet requirements
+3. **Knowledge preservation** - Capture decisions and findings
+4. **Audit trail** - Historical record of project evolution
+
+## Naming Conventions
+
+- Use descriptive names: `[TYPE]_[SCOPE]_[DATE].md`
+- Include dates: `YYYY-MM-DD` format
+- Group with prefixes: `TEST_`, `PERFORMANCE_`, `SECURITY_`
+- Markdown format: All reports end in `.md`
+
+## Version Control
+
+All reports are tracked in git to maintain historical records.
+EOF
+```
+
+### 5. Create Symlinks
+After creating AGENT.md and directory structure, create symlinks for all AI assistants and document this in AGENT.md:
 
 ```bash
 # Claude Code
@@ -176,9 +299,10 @@ mkdir -p .idx
 ln -sf ../AGENT.md .idx/airules.md
 ```
 
-### 5. Show Results
+### 6. Show Results
 Display:
 - Created/updated AGENT.md
+- Created reports directory structure
 - List of symlinks created
 - Key information included in the file
 - Suggest reviewing and customizing if needed

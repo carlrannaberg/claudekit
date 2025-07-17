@@ -27,8 +27,11 @@ fi
     
     # Create mock npx that reports ESLint errors
     create_mock_command "npx" '
-if [[ "$1" == "eslint" ]]; then
-    # Return non-zero to indicate errors
+if [[ "$1" == "eslint" ]] && [[ "$2" == "--version" ]]; then
+    echo "v8.0.0"
+    exit 0
+elif [[ "$1" == "eslint" ]]; then
+    echo "1:25  error  Missing semicolon  semi"
     exit 1
 fi
 '
@@ -100,8 +103,11 @@ fi
     
     # When ESLint exits non-zero (even for warnings with --max-warnings 0), hook should block
     create_mock_command "npx" '
-if [[ "$1" == "eslint" ]]; then
-    # ESLint returns non-zero for warnings when --max-warnings 0
+if [[ "$1" == "eslint" ]] && [[ "$2" == "--version" ]]; then
+    echo "v8.0.0"
+    exit 0
+elif [[ "$1" == "eslint" ]]; then
+    echo "1:1  warning  Unexpected console statement  no-console"
     exit 1
 fi
 '
@@ -143,8 +149,11 @@ fi
     
     # Test that ESLint processes .ts and .tsx files when configured
     create_mock_command "npx" '
-if [[ "$1" == "eslint" ]]; then
-    # Return error for any TypeScript file
+if [[ "$1" == "eslint" ]] && [[ "$2" == "--version" ]]; then
+    echo "v8.0.0"
+    exit 0
+elif [[ "$1" == "eslint" ]]; then
+    echo "1:1  error  Missing return type  @typescript-eslint/explicit-function-return-type"
     exit 1
 fi
 '

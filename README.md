@@ -27,8 +27,8 @@ claudekit is a collection of slash commands, hooks, and utilities designed to en
 
 ### AGENT.md Configuration
 Universal AI assistant configuration with the [AGENT.md standard](https://agent.md):
-- `/agent:init` - Analyze codebase and create comprehensive AGENT.md
-- `/agent:migration` - Convert existing configs (CLAUDE.md, .cursorrules, etc.) to AGENT.md
+- `/agent:init` - Create or improve AGENT.md with intelligent codebase analysis
+- `/agent:migration` - Convert other AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md
 - Supports 10+ AI assistants with automatic symlinks
 
 ### Command Creation
@@ -129,17 +129,17 @@ Enforce code quality and run tests automatically:
 
 ### AGENT.md Commands
 
-- **`/agent:init`** - Initialize new project with AGENT.md
+- **`/agent:init`** - Create or improve AGENT.md with intelligent analysis
   ```
   /agent:init
   ```
-  Analyzes your codebase and creates a comprehensive AGENT.md file based on discovered patterns, commands, and conventions.
+  Analyzes your codebase and creates or improves AGENT.md with discovered patterns, commands, and conventions. Safe to run on existing AGENT.md files.
 
-- **`/agent:migration`** - Migrate existing configs to AGENT.md
+- **`/agent:migration`** - Convert other AI config files to AGENT.md
   ```
   /agent:migration
   ```
-  Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks for all AI assistants.
+  Converts existing AI config files (CLAUDE.md, .cursorrules, etc.) to AGENT.md with symlinks for all AI assistants. Use only when you have non-AGENT.md files.
 
 ### Creating Custom Commands
 

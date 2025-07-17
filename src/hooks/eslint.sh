@@ -47,7 +47,7 @@ validate_eslint_file() {
   cd "$root_dir"
   output=$(npx eslint "$file_path" 2>&1 || true)
 
-  if echo "$output" | grep -q "error"; then
+  if echo "$output" | grep -qE "(error|warning)"; then
     echo "$output"
     return 1
   fi

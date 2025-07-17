@@ -7,7 +7,9 @@ JSON_INPUT=$(cat)
 
 # Extract file path from JSON using jq (or fallback to grep/sed if jq not available)
 if command -v jq &> /dev/null; then
-  FILE_PATH=$(echo "$JSON_INPUT" | jq -r '.tool_input.file_path // empty')
+  # Clean control characters from JSON input before parsing
+  CLEAN_JSON=$(echo "$JSON_INPUT" | tr -d '\000-\031')
+  FILE_PATH=$(echo "$CLEAN_JSON" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
 else
   # Fallback: extract file_path using sed
   FILE_PATH=$(echo "$JSON_INPUT" | sed -n 's/.*"file_path":"\([^"]*\)".*/\1/p' | head -1)

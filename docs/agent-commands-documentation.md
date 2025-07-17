@@ -2,9 +2,9 @@
 
 claudekit provides two commands for working with the [AGENT.md standard](https://agent.md):
 
-## `/agent-init` - For New Projects
+## `/agent:init` - Create or Improve AGENT.md
 
-Use this command when starting a new project or when you want to create a fresh AGENT.md with a comprehensive template.
+Use this command to create a new AGENT.md or enhance an existing one with intelligent codebase analysis.
 
 ### What it does:
 1. **Analyzes your codebase** to understand:
@@ -13,39 +13,73 @@ Use this command when starting a new project or when you want to create a fresh 
    - Test frameworks and patterns
    - Code style conventions
    - Existing AI configurations
-2. **Creates a comprehensive AGENT.md** with discovered information
-3. **Merges existing configs** from .cursorrules, copilot-instructions.md, etc.
-4. **Sets up symlinks** for all AI assistants
+2. **Creates or improves AGENT.md** with discovered information
+3. **Adds directory structure** (reports/, temp/) and file organization guidelines
+4. **Merges existing configs** from .cursorrules, copilot-instructions.md, etc.
+5. **Sets up symlinks** for all AI assistants
 
 ### When to use:
-- Any project that needs AGENT.md
+- **New projects** that need AGENT.md
+- **Existing projects** to improve/update existing AGENT.md
 - Want intelligent analysis of your codebase
-- Need to merge multiple AI config files
+- Need to add new features (directory structure, latest best practices)
 - Replacing Claude's `/init` command
 
-### Example workflow:
+### Safety:
+✅ **Safe to run on existing AGENT.md files** - it improves rather than overwrites
+✅ **Can be run multiple times** to keep AGENT.md updated
+✅ **Preserves existing content** while adding enhancements
+
+### Example workflows:
 ```bash
-# In a new project
-/agent-init
+# New project
+/agent:init
+# Creates comprehensive AGENT.md from scratch
+
+# Existing project with AGENT.md
+/agent:init
+# Enhances existing AGENT.md with latest analysis and features
+
 # Edit AGENT.md to match your project
 # Commit the changes
 git add AGENT.md CLAUDE.md .cursorrules ...
-git commit -m "Initialize project with AGENT.md"
+git commit -m "Initialize/improve project with AGENT.md"
 ```
 
-## `/agent-migration` - For Existing Projects
+## `/agent:migration` - Convert Other AI Config Files to AGENT.md
 
-Use this command when you already have AI configuration files (like CLAUDE.md or .cursorrules) that you want to convert to AGENT.md.
+Use this command when you have **non-AGENT.md** configuration files that you want to convert to the AGENT.md standard.
 
 ### What it does:
-1. Finds your existing config file (CLAUDE.md, .cursorrules, etc.)
-2. Renames it to AGENT.md
-3. Creates symlinks so all AI tools use the same file
+1. **Analyzes all existing config files** (CLAUDE.md, .cursorrules, .windsurfrules, etc.)
+2. **Detects content differences** and chooses appropriate migration strategy:
+   - **Single file**: Simple move to AGENT.md
+   - **Identical files**: Move primary, symlink others
+   - **Different content**: Smart merging or user-guided resolution
+3. **Creates symlinks** so all AI tools use the same file
+4. **Handles conflicts intelligently** with user guidance when needed
+
+### Migration Strategies:
+- **🔄 Auto-merge**: Combines unique content from all files
+- **📋 Backup approach**: Keeps primary file, backs up others (.bak extension)
+- **🎯 Selective**: Interactive selection of content blocks
+- **🛠️ Manual**: Step-by-step merge assistance
 
 ### When to use:
-- You have an existing CLAUDE.md or .cursorrules
-- Want to preserve your current configuration
-- Migrating from tool-specific configs to universal standard
+- You have existing **CLAUDE.md** or **.cursorrules** files
+- Want to migrate from tool-specific configs to universal AGENT.md standard
+- **Multiple AI config files** with different content that need merging
+- **DO NOT use** if you already have AGENT.md (use `/agent:init` instead)
+
+### Conflict Resolution:
+✅ **Seamless**: Identical files are automatically handled
+✅ **Smart merging**: Different sections are combined when possible
+✅ **User guidance**: Conflicts are clearly presented with merge options
+✅ **Backup safety**: Original files can be preserved as .bak files
+
+### Not for:
+❌ Projects that already have AGENT.md (use `/agent:init` instead)
+❌ Creating AGENT.md from scratch (use `/agent:init` instead)
 
 ### Example workflow:
 ```bash
