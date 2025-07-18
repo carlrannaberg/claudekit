@@ -106,7 +106,7 @@ Example command structure:
 ```yaml
 ---
 description: Brief description of what the command does
-allowed-tools: Read, Task, Bash(task-master:*)
+allowed-tools: Read, Task
 ---
 
 ## Instructions for Claude:
@@ -252,6 +252,51 @@ examples/
 - `.claude/` contains only configuration and symlinks
 - User settings should contain environment variables only
 - Hook configurations belong in project settings, not user settings
+
+### File Organization & Best Practices
+
+claudekit promotes standardized file organization that keeps projects clean and maintainable:
+
+#### Reports Directory
+All project reports and persistent documentation should be saved to `reports/`:
+
+```
+reports/                     # All project reports (tracked in git)
+├── README.md               # Explains reports directory purpose
+├── implementation/         # Feature implementation reports
+├── testing/               # Test results and coverage
+├── performance/           # Performance analysis
+└── validation/            # Quality and validation reports
+```
+
+**Report Naming Conventions:**
+- Use descriptive prefixes: `TEST_`, `PERFORMANCE_`, `SECURITY_`
+- Include dates in YYYY-MM-DD format
+- Example: `reports/testing/TEST_RESULTS_2024-07-18.md`
+
+#### Temporary Files
+All temporary debugging scripts and artifacts should go in `temp/`:
+
+```
+temp/                       # Temporary files (gitignored)
+├── debug-*.js             # Debug scripts
+├── analyze-*.ts           # Analysis scripts
+├── test-results/          # Temporary test outputs
+└── logs/                  # Debug logs
+```
+
+**Common Patterns Cleaned by `/dev:cleanup`:**
+- Debug scripts: `debug-*.js`, `analyze-*.ts`
+- Test files: `test-*.js`, `quick-test.ts`
+- Research files: `research-*.js`
+- Temporary directories: `temp-*/`, `test-*/`
+- Reports outside reports/: `*_SUMMARY.md`, `*_REPORT.md`
+
+#### Integration with Commands
+- **`/agent:init`** - Creates reports/ structure and documents these conventions
+- **`/dev:cleanup`** - Identifies and cleans files not following these patterns
+
+See [File Organization Guide](docs/file-organization.md) for detailed patterns and examples.
 
 ### Hook Configuration
 Edit `.claude/settings.json` using the new matcher format:

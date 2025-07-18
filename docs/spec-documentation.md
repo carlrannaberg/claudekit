@@ -25,15 +25,12 @@ claude mcp add context7 context7-mcp
 
 Without context7, the command still works but won't automatically fetch external library documentation.
 
-### Optional: TaskMaster AI for Persistent Task Management
-For enhanced task management with persistence across sessions, install TaskMaster AI:
-- Provides persistent task storage and dependency management
-- Enables the `/spec:decompose` command for breaking specs into tasks
-- Enhances `/spec:execute` with organized task tracking
-- Install with: `npm install -g task-master-ai`
-- Safe initialization is handled automatically by `/spec:decompose`
-
-Without TaskMaster AI, `/spec:execute` falls back to session-based TodoWrite tasks.
+### Task Management
+The spec commands use TodoWrite for task tracking and management:
+- `/spec:decompose` breaks specifications into actionable tasks
+- `/spec:execute` tracks implementation progress with TodoWrite
+- Tasks are organized by phase and priority
+- Dependencies between tasks are clearly documented
 
 ## Usage
 
@@ -47,7 +44,7 @@ Without TaskMaster AI, `/spec:execute` falls back to session-based TodoWrite tas
 # Validate specification completeness
 /spec:validate specs/feat-user-authentication.md
 
-# Decompose spec into persistent tasks (requires TaskMaster AI)
+# Decompose spec into actionable tasks
 /spec:decompose specs/feat-user-authentication.md
 
 # Execute specification with task management
@@ -83,19 +80,16 @@ The `/spec:validate` command analyzes existing specifications to determine if th
 
 ## The spec:decompose Command
 
-The `/spec:decompose` command breaks down validated specifications into persistent TaskMaster AI tasks with proper dependencies.
-
-### Prerequisites
-- TaskMaster AI installed globally: `npm install -g task-master-ai`
-- The command will safely initialize TaskMaster if needed
+The `/spec:decompose` command breaks down validated specifications into actionable tasks with clear dependencies and implementation guidance.
 
 ### What It Does
 
 1. **Analyzes the specification** to extract implementation phases
-2. **Creates persistent tasks** in TaskMaster AI with proper dependencies
+2. **Creates a detailed task breakdown** with dependencies and priorities
 3. **Preserves all specification details** in task descriptions
 4. **Establishes task dependencies** for logical implementation order
-5. **Enables persistent tracking** across Claude Code sessions
+5. **Saves task breakdown** to the specs directory for reference
+6. **Creates TodoWrite tasks** for immediate tracking
 
 ### Task Structure
 
@@ -105,11 +99,11 @@ The `/spec:decompose` command breaks down validated specifications into persiste
 
 ### Benefits
 
-- **Persistence**: Tasks survive Claude Code restarts
-- **Dependencies**: Logical implementation order
-- **Detail Preservation**: All spec details copied into tasks
-- **Progress Tracking**: Visual progress with task status
-- **Team Coordination**: Shared task visibility
+- **Clear Organization**: Tasks grouped by phase and priority
+- **Dependencies**: Logical implementation order documented
+- **Detail Preservation**: All spec details included in tasks
+- **Progress Tracking**: TodoWrite integration for status updates
+- **Parallel Execution**: Identifies tasks that can run concurrently
 
 ## The spec:execute Command
 
@@ -117,17 +111,12 @@ The `/spec:execute` command takes a validated specification and orchestrates its
 
 ### How It Works
 
-**TaskMaster Mode** (when TaskMaster AI is available):
-1. **Uses existing decomposed tasks** from `/spec:decompose`
-2. **Executes tasks in dependency order**
-3. **Updates TaskMaster task status** as work progresses
-4. **Launches concurrent agents** for parallel tasks
-
-**Session Mode** (fallback):
-1. **Parses the specification** to extract implementation tasks
-2. **Creates TodoWrite task list** for this session
+1. **Reads the task breakdown** from `/spec:decompose` (if available)
+2. **Creates TodoWrite task list** for tracking progress
 3. **Launches concurrent agents** to work on non-conflicting components
-4. **Tracks progress** through the todo system
+4. **Tracks progress** through the TodoWrite system
+5. **Validates implementation** against specification requirements
+6. **Updates documentation** as components are completed
 
 ### Agent Orchestration
 
@@ -238,23 +227,17 @@ Use `/spec:create` when:
 
 ## Integration with Workflow
 
-### Standard Workflow
+### Planning Phase
 1. **Create spec**: `/spec:create feature description`
 2. **Validate completeness**: `/spec:validate specs/your-spec.md`
 3. **Review and refine** the spec
-4. **Get approval** from stakeholders
+4. **Get approval** from stakeholders (if needed)
 
-### Enhanced Workflow (with TaskMaster AI)
-1. **Create spec**: `/spec:create feature description`
-2. **Validate completeness**: `/spec:validate specs/your-spec.md`
-3. **Decompose into tasks**: `/spec:decompose specs/your-spec.md`
-4. **Execute with persistent tracking**: `/spec:execute specs/your-spec.md`
+### Implementation Phase
+1. **Decompose into tasks**: `/spec:decompose specs/your-spec.md`
+2. **Execute implementation**: `/spec:execute specs/your-spec.md`
+3. **Track progress** with TodoWrite
+4. **Run quality checks**: `/validate-and-fix`
 5. **Update spec status** to "Implemented"
-
-### Session-Based Workflow (without TaskMaster AI)
-1. **Create spec**: `/spec:create feature description`
-2. **Validate completeness**: `/spec:validate specs/your-spec.md`
-3. **Execute with session tasks**: `/spec:execute specs/your-spec.md`
-4. **Update spec status** to "Implemented"
 
 This ensures thoughtful development and maintains documentation throughout the project lifecycle.

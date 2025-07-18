@@ -1,6 +1,6 @@
 ---
 description: Implement a validated specification by orchestrating concurrent agents
-allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(task-master:*)
+allowed-tools: Task, Read, TodoWrite, Grep, Glob
 argument-hint: "<path-to-spec-file>"
 ---
 
@@ -29,256 +29,108 @@ Before launching ANY subagents:
 
 **CRITICAL: If any validation fails, STOP immediately and request clarification.**
 
-## Execution Mode Detection
-
-Check if TaskMaster is available: !`command -v task-master && test -f .taskmaster/config.json && echo "TASKMASTER_MODE" || echo "SESSION_MODE"`
-
-- **TaskMaster Mode**: Use existing decomposed tasks from `/spec:decompose`
-- **Session Mode**: Create temporary TodoWrite tasks for this session
-
 ## Implementation Process
 
-### 1. Check TaskMaster Availability
+### 1. Analyze Specification
 
-Based on the execution mode detected above:
+Read the specification to extract:
+- Implementation phases
+- Technical components to build
+- Dependencies between components
+- Testing requirements
+- Success criteria
 
-If "TASKMASTER_MODE", proceed with **TaskMaster Mode**.
+### 2. Create Task List
 
-If TaskMaster is installed but not initialized:
-- Offer to initialize TaskMaster with Claude Code provider configuration
-- Use the same safe initialization as in `/spec:decompose` command
+Using TodoWrite, create a comprehensive task list that includes:
+- Foundation tasks (no dependencies)
+- Core implementation tasks
+- Integration tasks
+- Testing and validation tasks
+- Documentation updates
 
-If "SESSION_MODE", use **Session Mode** with TodoWrite.
+Organize tasks by:
+- **Priority**: Critical path vs. parallel work
+- **Dependencies**: What must complete before this task
+- **Assignability**: Can multiple agents work on it
 
-### 2A. TaskMaster Mode Implementation
+### 3. Launch Concurrent Agents
 
-When TaskMaster is available:
+For each independent task group:
 
-1. **List Available Tasks**:
-   ```bash
-   task-master list
+1. **Prepare Task Brief**:
+   - Clear scope and boundaries
+   - Expected deliverables
+   - Files to modify/create
+   - Testing requirements
+
+2. **Launch Subagent**:
+   ```
+   Task: "Implement [component name]"
+   Prompt: Detailed implementation instructions including:
+   - Specification reference
+   - Technical requirements
+   - Code style guidelines
+   - Testing requirements
    ```
 
-2. **Filter Tasks Related to Specification**:
-   - Look for tasks that reference the spec file in their details
-   - Identify tasks that are ready to execute (dependencies met)
-   - Show task dependency structure
+3. **Monitor Progress**:
+   - Track task completion via TodoWrite
+   - Identify blocked tasks
+   - Coordinate dependencies
 
-3. **Execute Tasks in Dependency Order**:
-   - Start with foundation tasks (no dependencies)
-   - Launch agents for parallel tasks
-   - Update task status in TaskMaster after completion
-   - Respect task dependencies when launching follow-up work
+### 4. Validation Points
 
-### 2B. Session Mode Implementation (Fallback)
+After each major component:
+- Run tests to verify functionality
+- Check integration with other components
+- Update documentation
+- Mark tasks as complete in TodoWrite
 
-When TaskMaster is not available:
+### 5. Final Integration
 
-1. **Analyze Specification**:
-   - Read the specification to extract implementation phases
-   - Technical components to build
-   - Dependencies between components
-   - Testing requirements and success criteria
+Once all tasks complete:
+1. Run full test suite
+2. Validate against original specification
+3. Generate implementation report
+4. Update project documentation
 
-2. **Create TodoWrite Implementation Plan**:
-   - Break down each phase into concrete, actionable tasks
-   - Identify which tasks can run in parallel
-   - Mark dependencies and prerequisites
-   - Set appropriate priorities (high for core functionality, medium for enhancements, low for nice-to-haves)
+## Error Handling
 
-### 3. RIGOROUS SUBAGENT ORCHESTRATION
+If any agent encounters issues:
+1. Mark task as blocked in TodoWrite
+2. Identify the specific problem
+3. Either:
+   - Launch a specialized agent to resolve
+   - Request user intervention
+   - Adjust implementation approach
 
-**IMPORTANT: Act as an orchestrator to preserve main context window**
-- The main agent should ONLY coordinate and monitor progress
-- ALL implementation work must be done by subagents using the Task tool
-- Launch multiple subagents concurrently for maximum efficiency
-- Use a single subagent for final validation
+## Progress Tracking
 
-**Orchestration Strategy:**
-
-#### 3A. Launch with Explicit Boundaries
-- Each subagent gets clear, non-overlapping responsibility
-- Provide explicit success/failure criteria for each task
-- Include rollback instructions for each subagent
-
-#### 3B. Result Processing
-- When subagents complete, immediately verify their work quality
-- Check for integration issues between completed components
-- If any subagent reports failure, analyze impact before proceeding
-- Create recovery plan for failed components
-
-**Implementation Guidelines:**
-- Group related tasks that can be done simultaneously
-- Launch subagents for each group of tasks
-- Each subagent handles specific files/components
-- Ensure subagents work on non-conflicting areas
-- Monitor progress without implementing directly
-
-**Example Subagent Launches:**
-
-```
-# Launch multiple subagents concurrently for parallel implementation
-Task("Database Implementation", prompt="
-  Implement the database layer for [feature]:
-  - Create database models
-  - Add migrations for new tables
-  - Implement data access methods
-  - Add model validation
-  - Write unit tests for all models
-  Context: [provide spec section]
-")
-
-Task("API Implementation", prompt="
-  Implement the API layer for [feature]:
-  - Create API endpoints
-  - Implement business logic
-  - Add request validation
-  - Handle error cases
-  - Write API tests
-  Context: [provide spec section]
-")
-
-Task("Frontend Implementation", prompt="
-  Implement the UI components for [feature]:
-  - Create React/Vue/etc components
-  - Implement forms and interactions
-  - Add client-side validation
-  - Connect to API endpoints
-  - Write component tests
-  Context: [provide spec section]
-")
-
-# Use separate subagents for searching and analysis
-Task("Find existing patterns", prompt="
-  Search the codebase for:
-  - Similar features we can learn from
-  - Existing utilities to reuse
-  - Current coding patterns to follow
-  Report findings for other agents to use
-")
-
-# Single subagent for final validation
-Task("Validate implementation", prompt="
-  Verify the complete implementation:
-  - Run all tests
-  - Check code quality (lint, typecheck)
-  - Validate against specification
-  - Ensure all requirements are met
-  Report any issues found
-")
-```
-
-### 4. Coordinate Progress
-
-Monitor and coordinate the implementation:
-
-**TaskMaster Mode**:
-- Track task completion via `task-master list`
-- Update task status with `task-master update-task`
-- Launch follow-up agents as dependencies are met
-- Mark tasks complete with `task-master complete --id=<task_id>`
-
-**Session Mode**:
-- Track task completion via TodoWrite list
-- Launch follow-up agents as dependencies are met
-- Update todo status as work progresses
-
-**Both Modes**:
-- Ensure all tests pass after each component
-- Validate implementation against specification
-- Handle any blockers or issues that arise
-
-### 5. Final Validation
-
-Once all tasks are complete:
-- Run full test suite
-- Verify all specification requirements are met
-- Check code quality (lint, type checks)
-- Ensure documentation is complete
-- Confirm ready for review/merge
-
-## Execution Mode Information
-
-When this command runs, first inform the user which mode will be used:
-
-**TaskMaster Mode Available:**
-```
-✅ TaskMaster detected - using persistent tasks
-Found 8 tasks related to this specification
-3 foundation tasks ready to execute
-```
-
-**Session Mode (Fallback):**
-```
-ℹ️  TaskMaster AI not found - using session-based TodoWrite for task management
-To enable persistent tasks, install TaskMaster AI: npm install -g task-master-ai
-```
-
-## Usage Examples
-
-```bash
-# Implement a feature specification (TaskMaster mode if available)
-/spec:execute specs/feat-user-authentication.md
-
-# Implement a bugfix specification (Session mode fallback)
-/spec:execute specs/fix-123-memory-leak.md
-```
-
-## Implementation Guidelines
-
-### Orchestrator Role (Main Agent):
-1. **DO NOT implement any code directly**
-2. Launch subagents for ALL implementation work
-3. Monitor progress and coordinate between subagents
-4. Handle dependencies and sequencing
-5. Report status updates to the user
-
-### For Each Subagent:
-1. Provide the relevant section of the specification
-2. List specific files to create/modify
-3. Include coding standards and patterns to follow
-4. Define clear success criteria
-5. Specify what tests to write
-
-### Testing Guidelines for Subagents:
-- **Document test purpose** - Each test should include a comment explaining why it exists
-- **Write meaningful tests** - Avoid tests that always pass regardless of behavior
-- **Test actual functionality** - Call the functions being tested, don't just check side effects
-- **Include edge cases** - Write tests that can fail to reveal real issues
-- **Follow project testing patterns** - Use existing test frameworks and conventions
-
-### Subagent Usage Patterns:
-- **Search Subagents**: Use freely for finding files, patterns, and existing code
-- **Implementation Subagents**: Launch concurrently for non-conflicting work
-- **Validation Subagent**: Use a single subagent at the end for final checks
-- **Fix Subagents**: Launch as needed when validation finds issues
-
-### Handling Complex Features:
-- Break into multiple rounds of subagents if needed
-- Use the todo list to track multi-phase implementations
-- Ensure earlier phases are complete before starting dependent phases
-
-### Conflict Avoidance:
-- Assign subagents to different directories/layers
-- Have subagents work on separate feature branches if needed
-- Use clear file ownership to prevent conflicts
-- Coordinate shared interfaces through the specification
+Use TodoWrite to maintain real-time progress:
+- ✅ Completed tasks
+- 🔄 In-progress tasks
+- ⏸️ Blocked tasks
+- 📋 Pending tasks
 
 ## Success Criteria
 
-The implementation is complete when:
-- ✅ All todos are marked as completed
-- ✅ All tests are passing
-- ✅ Code follows project conventions
-- ✅ Implementation matches specification
-- ✅ No conflicts between agents' work
-- ✅ Documentation is updated
-- ✅ Code passes quality checks (lint, type check)
+Implementation is complete when:
+1. All tasks in TodoWrite are marked complete
+2. Tests pass for all components
+3. Integration tests verify system works as specified
+4. Documentation is updated
+5. Code follows project conventions
 
-## Notes
+## Example Usage
 
-- This command works best with well-structured specifications from /spec:create
-- Always validate specs with /spec:validate before implementation
-- The todo list provides real-time visibility into progress
-- Agents should be given enough context to work autonomously
-- Complex features may require multiple rounds of agent orchestration
+```
+/spec:execute specs/feat-user-authentication.md
+```
+
+This will:
+1. Read the user authentication specification
+2. Break it into implementable tasks
+3. Launch concurrent agents to build components
+4. Track progress in TodoWrite
+5. Validate the complete implementation

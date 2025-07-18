@@ -23,10 +23,56 @@ Thumbs.db
 .env.local
 .env.*.local
 
-# Temporary files
+# Temporary files and directories
 *.tmp
 *.temp
 .cache/
+/temp/
+temp/
+**/temp/
+tmp/
+**/tmp/
+
+# Debug and analysis scripts (per dev:cleanup patterns)
+debug-*.js
+debug-*.ts
+analyze-*.js
+analyze-*.ts
+research-*.js
+research-*.ts
+*-debug.*
+*.debug
+
+# Temporary test files
+test-*.js
+test-*.ts
+quick-test.*
+*-test.js
+*-test.ts
+test-*/
+!test/           # Don't ignore the main test directory
+!tests/          # Don't ignore the main tests directory
+!src/**/test/    # Don't ignore test directories in src
+
+# Temporary documentation
+*_SUMMARY.md
+*_REPORT.md
+*_CHECKLIST.md
+*_COMPLETE.md
+*_GUIDE.md
+*_ANALYSIS.md
+*-analysis.md
+verify-*.md
+
+# Examples and experiments
+*-examples.js
+*-examples.ts
+experiment-*.*
+prototype-*.*
+
+# IMPORTANT: Don't ignore the reports directory
+!reports/
+!reports/**
 
 # Build artifacts
 tsconfig.tsbuildinfo
@@ -55,9 +101,3 @@ dev-debug.log
 # Task files
 tasks.json
 tasks/
-
-# TaskMaster
-.taskmaster/tasks/
-.taskmaster/reports/
-.taskmaster/docs/
-.taskmaster/state.json

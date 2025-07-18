@@ -6,6 +6,16 @@ A toolkit of custom commands, hooks, and utilities for Claude Code.
 
 claudekit is a collection of slash commands, hooks, and utilities designed to enhance your Claude Code experience. It provides powerful tools for development workflows, including git checkpointing, custom automations, and more.
 
+## Platform & Language Support
+
+**Currently optimized for:**
+- **Platform**: macOS (Linux support available, Windows via WSL)
+- **Language**: TypeScript/JavaScript projects
+- **Package Manager**: npm (with yarn/pnpm compatibility)
+- **Node.js**: Version 20+ recommended
+
+Many claudekit features work across different platforms and languages, though the hooks and validation tools are specifically tuned for TypeScript development on macOS.
+
 ## Features
 
 ### Development Tools
@@ -64,6 +74,54 @@ Enforce code quality and run tests automatically:
 - **validate-todo-completion.sh** - Prevent stopping with incomplete todos
 - **auto-checkpoint.sh** - Save work automatically when Claude Code stops
 
+## File Organization Best Practices
+
+claudekit promotes clean, organized codebases through standardized file organization conventions that work seamlessly with the `/dev:cleanup` command.
+
+### Reports Directory
+All project reports and documentation should be saved to a dedicated `reports/` directory:
+
+```
+your-project/
+├── reports/              # All project reports and documentation
+│   ├── implementation/   # Feature implementation reports
+│   ├── testing/         # Test results and coverage
+│   ├── performance/     # Performance analysis
+│   └── validation/      # Quality and validation reports
+├── src/                 # Source code
+└── tests/              # Test files
+```
+
+**Report Naming Conventions:**
+- Use descriptive prefixes: `TEST_`, `PERFORMANCE_`, `SECURITY_`
+- Include dates in YYYY-MM-DD format
+- Example: `TEST_RESULTS_2024-07-18.md`
+
+### Temporary Files
+All temporary debugging scripts and artifacts should use the `/temp` directory:
+
+```
+your-project/
+├── temp/                # Temporary files (gitignored)
+│   ├── debug-*.js      # Debug scripts
+│   ├── analyze-*.py    # Analysis scripts
+│   ├── test-results/   # Temporary test outputs
+│   └── logs/           # Debug logs
+└── .gitignore          # Should include /temp/
+```
+
+**Common Temporary Patterns:**
+- Debug scripts: `debug-*.js`, `analyze-*.ts`
+- Test files: `test-*.js`, `quick-test.py`
+- Research files: `research-*.js`
+- Temporary directories: `temp-*/`, `test-*/`
+
+### Integration with Commands
+- **`/agent:init`** - Automatically creates the `reports/` directory structure and adds file organization guidelines to your AGENT.md
+- **`/dev:cleanup`** - Identifies and cleans up temporary files that don't follow these conventions, helping maintain a clean workspace
+
+See the [File Organization Guide](docs/file-organization.md) for detailed examples and patterns.
+
 ## Installation
 
 1. Clone this repository:
@@ -109,17 +167,17 @@ Enforce code quality and run tests automatically:
   ```
   Analyzes specifications to determine if they contain sufficient detail for autonomous implementation. Evaluates intent, scope, requirements, and implementation details.
 
-- **`/spec:decompose [file]`** - Decompose spec into TaskMaster tasks
+- **`/spec:decompose [file]`** - Decompose spec into manageable tasks
   ```
   /spec:decompose specs/feat-user-authentication.md
   ```
-  Breaks down validated specifications into persistent TaskMaster AI tasks with proper dependencies. Requires `npm install -g task-master-ai`. Safe initialization is handled automatically.
+  Breaks down validated specifications into actionable tasks with proper dependencies and implementation steps.
 
 - **`/spec:execute [file]`** - Execute specification with concurrent agents
   ```
   /spec:execute specs/feat-user-authentication.md
   ```
-  Takes a validated specification and orchestrates the implementation by breaking it into tasks and distributing them to concurrent AI agents. Uses TaskMaster AI tasks when available, falls back to TodoWrite for session-based tracking.
+  Takes a validated specification and orchestrates the implementation by breaking it into tasks and distributing them to concurrent AI agents for parallel execution.
 
 - **`/validate-and-fix`** - Run quality checks and auto-fix issues
   ```

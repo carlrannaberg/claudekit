@@ -1,53 +1,45 @@
 ---
-description: Decompose validated specification into persistent TaskMaster tasks
-allowed-tools: Read, Task, Bash(task-master:*, npm install -g task-master-ai, mkdir -p, cat >, grep, echo, basename, date)
+description: Break down a validated specification into actionable implementation tasks
+allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir -p, cat >, grep, echo, basename, date)
 argument-hint: "<path-to-spec-file>"
 ---
 
-# Decompose Specification into TaskMaster Tasks
+# Decompose Specification into Tasks
 
 Decompose the specification at: $ARGUMENTS
 
-## Prerequisites Check
+## Process Overview
 
-This command requires TaskMaster AI for persistent task storage. Guide the user through installation if needed.
-
-### Step 1: Check TaskMaster AI Installation
-
-First, check if TaskMaster AI is installed: !`command -v task-master || echo "NOT_FOUND"`
-
-If TaskMaster is not found, offer to install it for the user with the correct package: `npm install -g task-master-ai`
-
-### Step 2: Check Project Initialization
-
-If TaskMaster AI is installed, check if it's initialized: !`test -f .taskmaster/config.json && echo "INITIALIZED" || echo "NOT_INITIALIZED"`
-
-If not initialized, offer to perform safe initialization inline (see Safe Initialization section below)
+This command takes a validated specification and breaks it down into:
+1. Clear, actionable tasks with dependencies
+2. Implementation phases and milestones
+3. Testing and validation requirements
+4. Documentation needs
 
 ## Instructions for Claude:
 
-1. **Prerequisites Check with Guided Installation**:
-   - Check the prerequisites output above
-   - If TaskMaster shows "NOT_FOUND", inform the user and offer to install it
-   - If user agrees, run: `npm install -g task-master-ai`
-   
-   - If initialization shows "NOT_INITIALIZED", inform the user and offer to initialize
-   - If user agrees, perform safe initialization inline (see Safe Initialization section)
-
-2. **Spec Validation**:
+1. **Read and Validate Specification**:
    - Read the specified spec file
    - Verify it's a valid specification (has expected sections)
    - Extract implementation phases and technical details
 
-3. **Decompose the Specification**:
+2. **Analyze Specification Components**:
+   - Identify major features and components
+   - Extract technical requirements
+   - Note dependencies between components
+   - Identify testing requirements
+   - Document success criteria
+
+3. **Create Task Breakdown**:
    
-   Use the Task tool to analyze the specification and create TaskMaster commands that capture all implementation details.
+   Break down the specification into concrete, actionable tasks.
    
    Key principles:
-   - Include only what's explicitly stated in the spec
-   - Copy implementation details verbatim into each task
-   - Include tests as part of acceptance criteria following testing philosophy:
-     * Document test purpose (why each test exists and what it validates)
+   - Each task should have a single, clear objective
+   - Include implementation details from the spec
+   - Define clear acceptance criteria
+   - Include tests as part of each task
+   - Document dependencies between tasks
      * Write meaningful tests that can fail to reveal real issues
      * Follow project principle: "When tests fail, fix the code, not the test"
    - Create foundation tasks first, then build features on top
@@ -56,131 +48,149 @@ If not initialized, offer to perform safe initialization inline (see Safe Initia
    Task structure:
    - Foundation tasks: Core infrastructure (database, frameworks, testing setup)
    - Feature tasks: Complete vertical slices including all layers
-   
-   Generate executable task-master commands using manual task creation syntax.
+   - Testing tasks: Unit, integration, and E2E tests
+   - Documentation tasks: API docs, user guides, code comments
 
-4. **Task Creation Syntax**:
+4. **Generate Task Document**:
 
-   Use task-master's manual task creation flags:
+   Create a comprehensive task breakdown document:
    
-   ```bash
-   task-master add-task \
-     --title="Brief task title" \
-     --description="One-line summary of what needs to be done" \
-     --details="SOURCE: [spec-file]
-     
-     [Full implementation details from spec]
-     
-     Technical Requirements:
-     - [All technical details from spec]
-     - [Specific library versions]
-     - [Code examples from spec]
-     
-     Implementation Steps:
-     1. [Detailed step from spec]
-     2. [Another step with specifics]
-     3. [Continue with all steps]
-     
-     Acceptance Criteria:
-     - [ ] [Specific criteria from spec]
-     - [ ] Tests written and passing
-     - [ ] [Additional criteria]" \
-     --priority=high \
-     --dependencies="1,2,3"
+   ```markdown
+   # Task Breakdown: [Specification Name]
+   Generated: [Date]
+   Source: [spec-file]
+   
+   ## Overview
+   [Brief summary of what's being built]
+   
+   ## Phase 1: Foundation
+   
+   ### Task 1.1: [Task Title]
+   **Description**: One-line summary of what needs to be done
+   **Size**: Small/Medium/Large
+   **Priority**: High/Medium/Low
+   **Dependencies**: None
+   **Can run parallel with**: Task 1.2, 1.3
+   
+   **Technical Requirements**:
+   - [All technical details from spec]
+   - [Specific library versions]
+   - [Code examples from spec]
+   
+   **Implementation Steps**:
+   1. [Detailed step from spec]
+   2. [Another step with specifics]
+   3. [Continue with all steps]
+   
+   **Acceptance Criteria**:
+   - [ ] [Specific criteria from spec]
+   - [ ] Tests written and passing
+   - [ ] [Additional criteria]
+   
+   ## Phase 2: Core Features
+   [Continue pattern...]
    ```
    
-   Example task creation:
-   ```bash
-   task-master add-task \
-     --title="Implement file system operations with backup support" \
-     --description="Build filesystem.ts module with Unix-focused operations and backup support" \
-     --details="SOURCE: specs/feat-modernize-setup-installer.md
+   Example task breakdown:
+   ```markdown
+   ### Task 2.3: Implement file system operations with backup support
+   **Description**: Build filesystem.ts module with Unix-focused operations and backup support
+   **Size**: Large
+   **Priority**: High
+   **Dependencies**: Task 1.1 (TypeScript setup), Task 1.2 (Project structure)
+   **Can run parallel with**: Task 2.4 (Config module)
+   
+   **Source**: specs/feat-modernize-setup-installer.md
+   
+   **Technical Requirements**:
+   - Path validation: Basic checks for reasonable paths
+   - Permission checks: Verify write permissions before operations
+   - Backup creation: Simple backup before overwriting files
+   - Error handling: Graceful failure with helpful messages
+   - Unix path handling: Use path.join, os.homedir(), standard Unix permissions
+   
+   **Functions to implement**:
+   - validateProjectPath(input: string): boolean - Basic path validation
+   - ensureDirectoryExists(path: string): Promise<void>
+   - copyFileWithBackup(source: string, target: string, backup: boolean): Promise<void>
+   - setExecutablePermission(filePath: string): Promise<void> - chmod 755
+   - needsUpdate(source: string, target: string): Promise<boolean> - SHA-256 comparison
+   - getFileHash(filePath: string): Promise<string> - SHA-256 hash generation
+   
+   **Implementation example from spec**:
+   ```typescript
+   async function needsUpdate(source: string, target: string): Promise<boolean> {
+     if (!await fs.pathExists(target)) return true;
      
-     Implement the filesystem.ts module with Unix-focused operations and backup support.
+     const sourceHash = await getFileHash(source);
+     const targetHash = await getFileHash(target);
      
-     Key implementation requirements:
-     - Path validation: Basic checks for reasonable paths
-     - Permission checks: Verify write permissions before operations
-     - Backup creation: Simple backup before overwriting files
-     - Error handling: Graceful failure with helpful messages
-     - Unix path handling: Use path.join, os.homedir(), standard Unix permissions
-     
-     Functions to implement:
-     - validateProjectPath(input: string): boolean - Basic path validation
-     - ensureDirectoryExists(path: string): Promise<void>
-     - copyFileWithBackup(source: string, target: string, backup: boolean): Promise<void>
-     - setExecutablePermission(filePath: string): Promise<void> - chmod 755
-     - needsUpdate(source: string, target: string): Promise<boolean> - SHA-256 comparison
-     - getFileHash(filePath: string): Promise<string> - SHA-256 hash generation
-     
-     Idempotency implementation from spec:
-     async function needsUpdate(source: string, target: string): Promise<boolean> {
-       if (!await fs.pathExists(target)) return true;
-       
-       const sourceHash = await getFileHash(source);
-       const targetHash = await getFileHash(target);
-       
-       return sourceHash !== targetHash;
-     }
-     
-     Acceptance Criteria:
-     - [ ] All file operations handle Unix paths correctly
-     - [ ] SHA-256 based idempotency checking implemented
-     - [ ] Backup functionality creates timestamped backups
-     - [ ] Executable permissions set correctly for hooks (755)
-     - [ ] Path validation prevents directory traversal
-     - [ ] Tests: All operations work on macOS/Linux with proper error handling" \
-     --priority=high \
-     --dependencies="3"
+     return sourceHash !== targetHash;
+   }
    ```
    
-   Notes:
-   - TaskMaster automatically assigns task IDs
-   - Dependencies reference these auto-generated IDs
-   - Include all implementation details from the spec in the --details field
+   **Acceptance Criteria**:
+   - [ ] All file operations handle Unix paths correctly
+   - [ ] SHA-256 based idempotency checking implemented
+   - [ ] Backup functionality creates timestamped backups
+   - [ ] Executable permissions set correctly for hooks (755)
+   - [ ] Path validation prevents directory traversal
+   - [ ] Tests: All operations work on macOS/Linux with proper error handling
+   ```
+   
+5. **Create TodoWrite Tasks**:
+   
+   Convert the task breakdown into TodoWrite tasks for session tracking:
+   ```javascript
+   [
+     {
+       id: "1",
+       content: "Phase 1: Set up TypeScript project structure",
+       status: "pending",
+       priority: "high"
+     },
+     {
+       id: "2",
+       content: "Phase 1: Configure build system with esbuild",
+       status: "pending",
+       priority: "high"
+     },
+     // ... additional tasks
+   ]
+   ```
 
-5. **Execute Task Creation**:
-   - Run each generated task-master command
-   - Capture the returned task IDs
-   - Create dependency chains for vertical tasks
-   - Verify tasks are created in `.taskmaster/tasks/tasks.json`
+6. **Save Task Breakdown**:
+   - Save the detailed task breakdown document to `specs/[spec-name]-tasks.md`
+   - Create TodoWrite tasks for immediate tracking
+   - Generate a summary report showing:
+     - Total number of tasks
+     - Breakdown by phase
+     - Estimated complexity
+     - Parallel execution opportunities
 
-6. **Final Report**:
-   - List all created tasks with their IDs
-   - Show the task dependency structure
-   - Provide next steps for using `/spec:execute`
+## Output Format
 
-## Error Handling
+### Task Breakdown Document
+The generated markdown file includes:
+- Executive summary
+- Phase-by-phase task breakdown
+- Dependency graph
+- Risk assessment
+- Execution strategy
 
-**If TaskMaster AI is not found:**
-```
-████ TaskMaster AI Not Found ████
+### TodoWrite Integration
+All tasks are immediately available in TodoWrite for:
+- Progress tracking
+- Status updates
+- Blocking issue identification
+- Parallel work coordination
 
-The /spec:decompose command requires TaskMaster AI for persistent task storage.
-
-To install TaskMaster AI, run:
-  npm install -g task-master-ai
-
-Then run /spec:decompose again.
-
-Installation command ready to execute.
-```
-
-
-**If TaskMaster is not initialized:**
-```
-████ TaskMaster Project Setup Required ████
-
-TaskMaster needs to be initialized in this project.
-
-Would you like me to initialize TaskMaster for this project?
-This will create:
-  - .taskmaster/config.json (configured for Claude Code provider)
-  - .taskmaster/state.json (task state management)
-  - .taskmaster/templates/ (PRD templates)
-
-I'll use a safe initialization that won't overwrite existing files.
-```
+### Summary Report
+Displays:
+- Total tasks created
+- Tasks per phase
+- Critical path identification
+- Recommended execution order
 
 ## Usage Examples
 
@@ -195,97 +205,25 @@ I'll use a safe initialization that won't overwrite existing files.
 ## Success Criteria
 
 The decomposition is complete when:
-- ✅ TaskMaster AI is installed and safely initialized
-- ✅ All tasks are created in TaskMaster with proper dependencies
+- ✅ Task breakdown document is saved to specs directory
+- ✅ All tasks are created in TodoWrite for tracking
 - ✅ Tasks preserve all implementation details from the spec
-- ✅ Horizontal foundation tasks are created first
-- ✅ Vertical feature tasks depend on appropriate foundation tasks
-- ✅ All tasks include integrated testing requirements
-- ✅ Task creation is verified in `.taskmaster/tasks/tasks.json`
+- ✅ Foundation tasks are identified and prioritized
+- ✅ Dependencies between tasks are clearly documented
+- ✅ All tasks include testing requirements
+- ✅ Parallel execution opportunities are identified
 
-## Notes
+## Integration with Other Commands
 
-- This command creates persistent tasks that survive Claude Code sessions
-- Tasks are designed to work with the enhanced `/spec:execute` command
-- Only validated specs should be decomposed (run `/spec:validate` first)
-- TaskMaster handles ID assignment - don't specify manual IDs
-- Dependencies are created based on logical task relationships
+- **Prerequisites**: Run `/spec:validate` first to ensure spec quality
+- **Next step**: Use `/spec:execute` to implement the decomposed tasks
+- **Progress tracking**: Monitor task completion with TodoWrite
+- **Quality checks**: Run `/validate-and-fix` after implementation
 
-## Safe Initialization
+## Best Practices
 
-When user agrees to initialize TaskMaster, execute these commands:
-
-```bash
-# Create directory structure
-mkdir -p .taskmaster/{tasks,docs,templates,reports}
-
-# Create empty complexity report to avoid TaskMaster errors
-echo '{}' > .taskmaster/reports/task-complexity-report.json
-
-# Create state.json
-CURRENT_DATE=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-cat > .taskmaster/state.json << EOF
-{
-  "currentTag": "master",
-  "lastSwitched": "$CURRENT_DATE",
-  "tags": {
-    "master": {
-      "name": "master",
-      "description": "Default tag for project tasks",
-      "created": "$CURRENT_DATE"
-    }
-  }
-}
-EOF
-
-# Create config.json with Claude Code provider
-PROJECT_NAME=$(basename "$PWD")
-cat > .taskmaster/config.json << EOF
-{
-  "models": {
-    "main": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
-      "temperature": 0.2
-    },
-    "research": {
-      "provider": "claude-code",
-      "modelId": "opus",
-      "maxTokens": 32000,
-      "temperature": 0.1
-    },
-    "fallback": {
-      "provider": "claude-code",
-      "modelId": "sonnet",
-      "maxTokens": 64000,
-      "temperature": 0.2
-    }
-  },
-  "claudeCode": {
-    "maxTurns": 5,
-    "appendSystemPrompt": "Focus on maintainable, well-tested code following project conventions",
-    "permissionMode": "default"
-  },
-  "global": {
-    "logLevel": "info",
-    "debug": false,
-    "defaultSubtasks": 5,
-    "defaultPriority": "medium",
-    "projectName": "$PROJECT_NAME",
-    "defaultTag": "master",
-    "responseLanguage": "English"
-  }
-}
-EOF
-
-# Update .gitignore if needed
-if ! grep -q "# TaskMaster" .gitignore 2>/dev/null; then
-    echo "" >> .gitignore
-    echo "# TaskMaster" >> .gitignore
-    echo ".taskmaster/tasks/" >> .gitignore
-    echo ".taskmaster/reports/" >> .gitignore
-    echo ".taskmaster/docs/" >> .gitignore
-    echo ".taskmaster/state.json" >> .gitignore
-fi
-```
+1. **Task Granularity**: Keep tasks focused on single objectives
+2. **Dependencies**: Clearly identify blocking vs parallel work
+3. **Testing**: Include test tasks for each component
+4. **Documentation**: Add documentation tasks alongside implementation
+5. **Phases**: Group related tasks into logical phases
