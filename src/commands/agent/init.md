@@ -26,6 +26,8 @@ Usage notes:
 Use Task tool with description "Gather repository information" to run these Glob patterns in parallel:
 - `package*.json` - Node.js project files
 - `*.md` - Documentation files
+- `.github/workflows/*.yml` - GitHub Actions workflows
+- `.github/workflows/*.yaml` - GitHub Actions workflows (alternate extension)
 - `.cursor/rules/**` - Cursor rules
 - `.cursorrules` - Cursor rules (alternate location)
 - `.github/copilot-instructions.md` - GitHub Copilot rules
@@ -40,11 +42,20 @@ Use Task tool with description "Gather repository information" to run these Glob
 - `tsconfig.json` - TypeScript config
 - `.env.example` - Environment configuration
 - `**/*.test.*`, `**/*.spec.*` - Test files (limit to a few)
+- `Dockerfile`, `docker-compose*.yml` - Docker configuration
 
 Also examine:
-- README.md for project overview
+- README.md for project overview and command documentation
+- package.json scripts to document all available commands
+- GitHub workflows to identify CI/CD commands
 - A few source files to infer coding conventions
 - Test files to understand testing patterns
+
+**Script Consistency Check**: When documenting npm scripts from package.json, verify they match references in:
+- GitHub Actions workflows (npm run, npm test, etc.)
+- README.md installation and usage sections
+- Docker configuration files
+- Any setup or deployment scripts
 
 ### 2. Check for Existing Configs
 - If AGENT.md exists, improve it based on analysis
@@ -75,6 +86,21 @@ This file provides guidance to AI coding assistants working in this repository.
 - Dev server: `command`
 - Deploy: `command`
 [Include all important commands found in package.json, Makefile, etc.]
+
+### Script Command Consistency
+**Important**: When modifying npm scripts in package.json, ensure all references are updated:
+- GitHub Actions workflows (.github/workflows/*.yml)
+- README.md documentation
+- Contributing guides
+- Dockerfile/docker-compose.yml
+- CI/CD configuration files
+- Setup/installation scripts
+
+Common places that reference npm scripts:
+- `npm run build` → Check: workflows, README, Dockerfile
+- `npm test` → Check: workflows, contributing docs
+- `npm run lint` → Check: pre-commit hooks, workflows
+- `npm start` → Check: README, deployment docs
 
 ## Code Style
 
