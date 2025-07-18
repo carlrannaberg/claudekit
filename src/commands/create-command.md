@@ -36,10 +36,10 @@ When creating the command, support these Claude Code features if requested:
 **Arguments:** If the user wants dynamic input, use `$ARGUMENTS` placeholder
 - Example: `/deploy $ARGUMENTS` where user types `/deploy production`
 
-**Bash Execution:** If the user wants command output, use `!` prefix
-- Example: `!git status` to include git status in the command
+**Bash Execution:** If the user wants command output, use exclamation mark (!) prefix
+- Example: `\!git status` to include git status in the command
 - **Performance tip**: Combine related commands with `&&` for faster execution
-- Example: `!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
+- Example: `\!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
 
 **File References:** If the user wants file contents, use `@` prefix
 - Example: `@package.json` to include package.json contents
@@ -124,23 +124,23 @@ This creates clear instructions for the AI agent to follow rather than the agent
 
 ## Bash Command Execution in Commands
 
-### Using the ! Prefix
-Execute bash commands immediately when the slash command runs using the `!` prefix. The output is included in the command context.
+### Using the Exclamation Mark Prefix
+Execute bash commands immediately when the slash command runs using the exclamation mark (!) prefix. The output is included in the command context.
 
 **Single Command Example:**
-```markdown
-- Current git status: !`git status --porcelain`
-- Current working directory: !`pwd`
-- Files in current directory: !`ls -la`
-```
+````markdown
+- Current git status: \!git status --porcelain
+- Current working directory: \!pwd
+- Files in current directory: \!ls -la
+````
 
 **Performance Optimization - Combined Commands:**
-```markdown
-- Git status and directory: !`git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
-```
+````markdown
+- Git status and directory: \!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la
+````
 
 ### Complete Example
-```markdown
+````markdown
 ---
 allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
 description: Create a git commit
@@ -148,14 +148,14 @@ description: Create a git commit
 
 ## Context
 
-- Current git status: !`git status --porcelain`
-- Current git diff: !`git diff HEAD`
-- Current branch and recent commits: !`git branch --show-current && echo "--- Recent commits ---" && git log --oneline -10`
+- Current git status: \!git status --porcelain
+- Current git diff: \!git diff HEAD
+- Current branch and recent commits: \!git branch --show-current && echo "--- Recent commits ---" && git log --oneline -10
 
 ## Your task
 
 Based on the above changes, create a single git commit.
-```
+````
 
 ### Performance Guidelines
 - **Combine related commands** with `&&` to reduce execution time
