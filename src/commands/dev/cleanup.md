@@ -124,3 +124,77 @@ Once the user approves the proposed deletions:
 This prevents the same types of files from cluttering the workspace in future development sessions.
 
 **Note**: When removing committed files, the agent should use `git rm` to ensure proper removal from git tracking, and remind the user to commit these removals.
+
+## Example Output
+
+Here's what a typical cleanup analysis looks like:
+
+```
+⏺ Based on my analysis, I've identified 17 files that can be cleaned up from your project. Here's what I found:
+
+🗑️ Untracked Files to Remove (8 files)
+
+Research/Debug files:
+rm -f research-frontmatter-libs.js
+rm -f eslint-manual-analysis.md
+rm -f frontmatter-replacement-examples.ts
+rm -f test-content-preservation.ts
+rm -f test-migration.ts
+rm -f verify-migration.md
+
+Dated reports:
+rm -f reports/RELEASE_READINESS_REPORT_2025-07-18.md
+rm -f reports/TEST_FAILURE_ANALYSIS_2025-07-18.md
+
+📁 Committed Files to Move or Remove (9 files)
+
+These report files are in the root but should be in reports/:
+
+# Move to reports/ (recommended):
+git mv FRONTMATTER_ANALYSIS.md reports/
+git mv MIGRATION_CHECKLIST.md reports/
+git mv MIGRATION_COMPLETE.md reports/
+git mv MIGRATION_GUIDE.md reports/
+git mv PERFORMANCE_TEST_FIX_SUMMARY.md reports/
+git mv QUALITY_VALIDATION_REPORT.md reports/
+git mv RELEASE_READINESS_REPORT.md reports/
+git mv TEST_FIXES_SUMMARY.md reports/
+git mv VALIDATION_REPORT.md reports/
+
+📝 Update .gitignore
+
+Add these patterns to prevent future accumulation:
+
+# Research and debug files
+research-*.js
+research-*.ts
+*-manual-analysis.md
+*-examples.ts
+test-*.ts
+!test/              # Exclude the test directory itself
+verify-*.md
+
+# Reports in root directory (should be in reports/)
+/*_ANALYSIS.md
+/*_CHECKLIST.md
+/*_COMPLETE.md
+/*_GUIDE.md
+/*_SUMMARY.md
+/*_REPORT.md
+# Preserve important documentation
+!CHANGELOG.md
+!README.md
+!AGENT.md
+
+# Dated reports
+reports/*_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md
+
+Would you like me to proceed with the cleanup?
+```
+
+The command analyzes your project and categorizes cleanup items:
+- **Untracked files**: Temporary debug/test files that can be deleted
+- **Committed files**: Often reports that should be moved to the reports/ directory
+- **.gitignore updates**: Patterns to prevent future accumulation
+
+The agent will always ask for confirmation before making any changes.
