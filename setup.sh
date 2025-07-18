@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Setup script for claudekit
-# This script installs Claude Code commands and hooks to your user directory
+# This script installs:
+# - Commands to your user directory (~/.claude/commands/)
+# - Hooks to your project directory (PROJECT/.claude/hooks/)
+# - User settings with environment variables only
+# - Project settings with hooks configuration
 
 set -e
 
@@ -44,33 +48,49 @@ else
     echo -e "\n${YELLOW}Skipping hooks installation${NC} (no valid project path provided)"
 fi
 
-# Handle settings.json
-echo -e "\n${YELLOW}Configuring settings...${NC}"
+# Handle user settings (environment variables only)
+echo -e "\n${YELLOW}Configuring user settings...${NC}"
 if [ -f ~/.claude/settings.json ]; then
-    echo -e "  ${YELLOW}!${NC} Found existing settings.json"
-    echo "  Would you like to:"
-    echo "  1) View hook configuration to add manually"
-    echo "  2) Backup existing and install new settings"
-    echo "  3) Skip settings configuration"
-    read -p "  Choice (1/2/3): " choice
-    
-    case $choice in
-        1)
-            echo -e "\n${YELLOW}Add this to your ~/.claude/settings.json:${NC}"
-            cat .claude/settings.json
-            ;;
-        2)
-            cp ~/.claude/settings.json ~/.claude/settings.json.bak
-            cp .claude/settings.json ~/.claude/settings.json
-            echo -e "  ${GREEN}✓${NC} Backed up to settings.json.bak and installed new settings"
-            ;;
-        3)
-            echo "  Skipped settings configuration"
-            ;;
-    esac
+    echo -e "  ${YELLOW}!${NC} Found existing user settings.json"
+    echo "  Keeping your existing configuration"
 else
-    cp .claude/settings.json ~/.claude/settings.json
-    echo -e "  ${GREEN}✓${NC} Installed settings.json"
+    # Install example user settings with just environment variables
+    if [ -f examples/settings.user.example.json ]; then
+        cp examples/settings.user.example.json ~/.claude/settings.json
+        echo -e "  ${GREEN}✓${NC} Installed user settings with bash timeout configuration"
+    fi
+fi
+
+# Handle project settings (hooks configuration)
+if [ -n "$PROJECT_PATH" ] && [ -d "$PROJECT_PATH" ]; then
+    echo -e "\n${YELLOW}Configuring project settings...${NC}"
+    if [ -f "$PROJECT_PATH/.claude/settings.json" ]; then
+        echo -e "  ${YELLOW}!${NC} Found existing project settings.json"
+        echo "  Would you like to:"
+        echo "  1) View hook configuration to add manually"
+        echo "  2) Backup existing and install new settings"
+        echo "  3) Skip settings configuration"
+        read -p "  Choice (1/2/3): " choice
+        
+        case $choice in
+            1)
+                echo -e "\n${YELLOW}Add this to your $PROJECT_PATH/.claude/settings.json:${NC}"
+                cat .claude/settings.json
+                ;;
+            2)
+                cp "$PROJECT_PATH/.claude/settings.json" "$PROJECT_PATH/.claude/settings.json.bak"
+                cp .claude/settings.json "$PROJECT_PATH/.claude/settings.json"
+                echo -e "  ${GREEN}✓${NC} Backed up to settings.json.bak and installed new settings"
+                ;;
+            3)
+                echo "  Skipped project settings configuration"
+                ;;
+        esac
+    else
+        mkdir -p "$PROJECT_PATH/.claude"
+        cp .claude/settings.json "$PROJECT_PATH/.claude/settings.json"
+        echo -e "  ${GREEN}✓${NC} Installed project settings.json with hooks configuration"
+    fi
 fi
 
 echo -e "\n${GREEN}Setup complete!${NC}"

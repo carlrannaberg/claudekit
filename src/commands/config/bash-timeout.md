@@ -8,6 +8,11 @@ argument-hint: "<duration> [scope]"
 
 Configure the bash command timeout values in your Claude Code settings.json file. The default timeout is 2 minutes (120000ms), which is often insufficient for long-running operations like builds, tests, or deployments.
 
+## Current Settings
+
+User settings: !if [ -f ~/.claude/settings.json ]; then if command -v jq &>/dev/null; then cat ~/.claude/settings.json | jq '.env // {}' 2>/dev/null; else cat ~/.claude/settings.json | grep -A 10 '"env"' 2>/dev/null || echo "No env settings found"; fi; else echo "No user settings file"; fi
+Project settings: !if [ -f .claude/settings.json ]; then if command -v jq &>/dev/null; then cat .claude/settings.json | jq '.env // {}' 2>/dev/null; else cat .claude/settings.json | grep -A 10 '"env"' 2>/dev/null || echo "No env settings found"; fi; else echo "No project settings file"; fi
+
 ## Available Timeout Settings
 
 - **BASH_DEFAULT_TIMEOUT_MS**: The default timeout for bash commands (in milliseconds)

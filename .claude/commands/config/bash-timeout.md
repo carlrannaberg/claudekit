@@ -1,0 +1,1 @@
+../../../src/commands/config/bash-timeout.md

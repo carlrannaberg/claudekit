@@ -118,6 +118,30 @@ allowed-tools: Read, Task, Bash(task-master:*)
 
 ## Testing
 
+### Automated Testing Framework
+Claudekit includes a comprehensive testing framework in the `tests/` directory:
+
+```bash
+# Run all tests
+./tests/run-tests.sh
+
+# Run only unit tests (skip integration)
+./tests/run-tests.sh --no-integration
+
+# Run specific test suite
+./tests/run-tests.sh --test typecheck
+
+# Run with verbose output
+./tests/run-tests.sh -v
+```
+
+**Test Structure:**
+- `tests/test-framework.sh` - Core testing utilities and assertions
+- `tests/test-reporter.sh` - Test result reporting and formatting
+- `tests/unit/` - Unit tests for individual hooks
+- `tests/integration/` - Integration tests for workflows
+- `tests/TESTING_PLAN.md` - Comprehensive test coverage documentation
+
 ### Manual Testing
 - Test hooks by triggering their events in Claude Code
 - Test commands using `/command-name` in Claude Code
@@ -186,17 +210,48 @@ Based on analysis of this project's git history:
   - GitHub CLI (for gh-repo-setup)
   - jq (for JSON parsing, with fallbacks)
 
+### Directory Structure
+
+**IMPORTANT**: Keep source code and configuration separate:
+- `src/` - All source code (commands, hooks, etc.) lives here
+- `.claude/` - Project-level configuration only (settings.json, symlinks)
+
+```
+# claudekit repository structure
+src/
+├── commands/                 # Source code for all commands
+│   ├── agent/               # Agent-related commands
+│   ├── checkpoint/          # Checkpoint commands
+│   ├── config/              # Configuration commands
+│   ├── git/                 # Git workflow commands
+│   └── ...                  # Other command namespaces
+└── hooks/                   # Source code for all hooks
+
+.claude/
+├── settings.json            # Project-specific hook configuration
+├── commands/                # Symlinks to src/commands/*
+└── hooks/                   # Symlinks to src/hooks/*
+
+examples/
+└── settings.user.example.json  # Example user-level settings (env vars only)
+```
+
 ### Installation Structure
 ```
 ~/.claude/                    # User-level installation
-├── commands/                 # Global commands
-└── hooks/                    # Global hooks
+├── settings.json            # User settings (env vars only, NO hooks)
+└── commands/                # Copied commands from src/commands/
 
 <project>/.claude/            # Project-level
-├── settings.json            # Hook configuration
-├── commands/                # Project commands
-└── hooks/                   # Project hooks
+├── settings.json            # Hook configuration for this project
+└── hooks/                   # Copied hooks from src/hooks/
 ```
+
+**Key principles:**
+- Source code always goes in `src/`
+- `.claude/` contains only configuration and symlinks
+- User settings should contain environment variables only
+- Hook configurations belong in project settings, not user settings
 
 ### Hook Configuration
 Edit `.claude/settings.json` using the new matcher format:
@@ -310,6 +365,16 @@ When environment changes, the purpose comment helps determine:
 - Hooks receive JSON payload via stdin
 - Must output JSON response or exit with code
 - **Self-contained**: All hooks include necessary functions inline (no external dependencies)
+
+#### Self-Containment Principle
+Each hook script MUST be completely self-contained:
+- Include all required functions directly in the script
+- Do NOT source external libraries or validation files
+- Do NOT depend on other scripts in the hooks directory
+- Copy common functions into each hook that needs them
+- This ensures hooks work reliably regardless of installation method or directory structure
+
+Example: If multiple hooks need JSON parsing, each hook should have its own copy of the parsing function rather than sourcing a shared library.
 
 ### Command System
 - Markdown files define commands
