@@ -122,6 +122,56 @@ your-project/
 
 See the [File Organization Guide](docs/file-organization.md) for detailed examples and patterns.
 
+## Claude Code Configuration
+
+### The .claude Directory
+
+Claude Code uses the `.claude` directory for configuration, with specific version control rules:
+
+#### Version Controlled (commit these):
+- **`.claude/settings.json`** - Shared team settings for hooks, tools, and environment variables
+- **`.claude/commands/*.md`** - Custom slash commands available to all team members  
+- **`.claude/hooks/*.sh`** - Hook scripts for automated validations and actions
+
+#### Local Only (do NOT commit):
+- **`.claude/settings.local.json`** - Personal preferences and local overrides
+- **`*.local.json`** - Any local configuration files
+
+### Settings Management
+
+**Team Settings** (`.claude/settings.json`):
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+      }
+    ]
+  },
+  "env": {
+    "BASH_DEFAULT_TIMEOUT_MS": "600000"
+  }
+}
+```
+
+**Personal Settings** (`.claude/settings.local.json`):
+```json
+{
+  "env": {
+    "MY_LOCAL_API_KEY": "personal-key",
+    "DEBUG_MODE": "true"
+  }
+}
+```
+
+### Best Practices
+- Keep hooks and shared configuration in `settings.json`
+- Use `settings.local.json` for personal preferences and secrets
+- Make hook scripts executable: `chmod +x .claude/hooks/*.sh`
+- Claude Code automatically adds `settings.local.json` to `.gitignore`
+
 ## Installation
 
 1. Clone this repository:
@@ -256,8 +306,10 @@ Some commands support optional MCP server integration for enhanced features:
 
 ## Documentation
 
+- [Claude Code Configuration](docs/claude-code-configuration.md) - Comprehensive configuration guide
 - [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
 - [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
+- [File Organization](docs/file-organization.md) - Project structure best practices
 - [AGENT.md Commands](docs/agent-commands-documentation.md) - Guide for agent:init and agent:migration
 - [AGENT.md Migration](docs/agent-migration-documentation.md) - Detailed migration documentation
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands

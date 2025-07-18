@@ -344,6 +344,26 @@ The new hook matcher format supports:
 - `"Write,Edit,MultiEdit"` - File modification tools
 - `"*"` - All tools (for cleanup/validation hooks)
 
+### Claude Code Settings Management
+
+The `.claude` directory contains configuration with specific version control rules:
+
+#### Version Controlled Files (commit these):
+- `.claude/settings.json` - Shared team settings for hooks, tools, and environment
+- `.claude/commands/*.md` - Custom slash commands available to all team members
+- `.claude/hooks/*.sh` - Hook scripts for automated validations and actions
+
+#### Ignored Files (do NOT commit):
+- `.claude/settings.local.json` - Personal preferences and local overrides
+- Any `*.local.json` files - Personal configuration not meant for sharing
+
+**Important Notes:**
+- Claude Code automatically adds `.claude/settings.local.json` to `.gitignore`
+- The shared `settings.json` should contain team-wide standards (linting, type checking, etc.)
+- Personal preferences or experimental settings belong in `settings.local.json`
+- Hook scripts in `.claude/hooks/` should be executable (`chmod +x`)
+- User-level settings (`~/.claude/settings.json`) should only contain environment variables, not hooks
+
 ### Development Guidelines
 1. Always provide fallback methods for tools
 2. Log to `~/.claude/` for debugging
