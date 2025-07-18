@@ -10,8 +10,9 @@ Clean up temporary files and debug artifacts that Claude Code commonly creates d
 ## Context
 
 - Git status and directory: !`git status --porcelain && git status --ignored --porcelain | grep "^!!" && echo "--- PWD: $(pwd) ---" && ls -la`
+- Check if working directory is clean: !`if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true"; git ls-files | grep -E "(analyze-.*\.js|debug-.*\.js|test-.*\.js|.*-test\.js|temp-.*|SUMMARY.*\.md)$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.js|debug-.*\.js|test-.*\.js|.*-test\.js|temp-.*|SUMMARY.*\.md)$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi`
 
-Launch ONE subagent to analyze the git status (including ignored files) and propose files for deletion.
+Launch ONE subagent to analyze the git status (including ignored files) and propose files for deletion. If the working directory is clean, also check for committed files that match cleanup patterns.
 
 ## Target Files for Cleanup
 
@@ -47,14 +48,18 @@ Launch ONE subagent to analyze the git status (including ignored files) and prop
 Launch ONE subagent to:
 
 1. **Analyze the git status output** provided in the context above
-2. **Identify cleanup candidates** that match the patterns and are untracked (`??`)
-3. **Create a proposal list** of files and directories to delete
-4. **Present the list to the user** for approval before any deletion
-5. **Do NOT delete anything** - only propose what should be deleted
+2. **Check if WORKING_DIR_CLEAN=true**: If so, also analyze committed files that match cleanup patterns
+3. **Identify cleanup candidates**:
+   - For dirty working directory: Focus on untracked (`??`) and ignored (`!!`) files
+   - For clean working directory: Also include committed files matching cleanup patterns
+4. **Create a proposal list** of files and directories to delete
+5. **Present the list to the user** for approval before any deletion
+6. **Do NOT delete anything** - only propose what should be deleted
 
 The agent should provide:
 - Clear list of proposed deletions with reasons
-- Confirmation that all proposed items are untracked (`??`)
+- For untracked files: Confirmation they are marked (`??`) or (`!!`)
+- For committed files: Clear indication they are committed and match debug/temp patterns
 - Ask user for explicit approval before proceeding
 
 **IMPORTANT**: The agent cannot delete files directly. It must present a proposal and wait for user confirmation.
@@ -63,9 +68,13 @@ The agent should provide:
 
 Once the user approves the proposed deletions:
 
-1. **Delete the approved files** using appropriate commands
+1. **Delete the approved files** using appropriate commands:
+   - For untracked/ignored files: `rm -f` or `rm -rf` for directories
+   - For committed files: `git rm` to properly remove from git tracking
 2. **Analyze the target cleanup patterns** and approved files to identify common types
 3. **Propose .gitignore patterns** based on the cleanup patterns to prevent future accumulation
 4. **Add suggested patterns to .gitignore** if user agrees
 
 This prevents the same types of files from cluttering the workspace in future development sessions.
+
+**Note**: When removing committed files, the agent should use `git rm` to ensure proper removal from git tracking, and remind the user to commit these removals.
