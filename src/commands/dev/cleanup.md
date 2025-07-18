@@ -10,25 +10,37 @@ Clean up temporary files and debug artifacts that Claude Code commonly creates d
 ## Context
 
 - Git status and directory: !`git status --porcelain && git status --ignored --porcelain | grep "^!!" && echo "--- PWD: $(pwd) ---" && ls -la`
-- Check if working directory is clean: !`if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true"; git ls-files | grep -E "(analyze-.*\.js|debug-.*\.js|test-.*\.js|.*-test\.js|temp-.*|SUMMARY.*\.md)$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.js|debug-.*\.js|test-.*\.js|.*-test\.js|temp-.*|SUMMARY.*\.md)$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi`
+- Check if working directory is clean: !`if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true"; git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi`
 
 Launch ONE subagent to analyze the git status (including ignored files) and propose files for deletion. If the working directory is clean, also check for committed files that match cleanup patterns.
 
 ## Target Files for Cleanup
 
-**Debug Files:**
-- `analyze-*.js` - Analysis scripts
-- `debug-*.js` - Debug scripts
-- `test-*.js` - Test scripts
-- `*-test.js` - Test scripts
+**Debug & Analysis Files:**
+- `analyze-*.js`, `analyze-*.ts` - Analysis scripts (e.g., `analyze-race-condition.js`)
+- `debug-*.js`, `debug-*.ts` - Debug scripts (e.g., `debug-detailed.js`, `debug-race-condition.js`)
+- `research-*.js`, `research-*.ts` - Research scripts (e.g., `research-frontmatter-libs.js`)
+- `*-analysis.md` - Analysis documents (e.g., `eslint-manual-analysis.md`)
+
+**Test Files (temporary/experimental):**
+- `test-*.js`, `test-*.ts` - Test scripts (e.g., `test-race-condition.js`, `test-basic-add.js`)
+- `*-test.js`, `*-test.ts` - Test scripts with suffix
+- `quick-test.js`, `quick-test.ts` - Quick test files
+- `verify-*.md` - Verification documents (e.g., `verify-migration.md`)
+- `*-examples.js`, `*-examples.ts` - Example files (e.g., `frontmatter-replacement-examples.ts`)
 
 **Temporary Directories:**
-- `temp-*` - Temporary debugging directories
-- `test-*` - Test artifact directories (but NOT legitimate `test/` or `test-integration/`)
+- `temp-*` - Temporary directories (e.g., `temp-debug/`, `temp-test/`, `temp-test-fix/`)
+- `test-*` - Temporary test directories (e.g., `test-integration/`, `test-2-concurrent/`)
+- NOTE: These are different from standard `test/` or `tests/` directories which should be preserved
 
-**Status Reports:**
-- `*SUMMARY*.md` files in root directory (but NOT `CHANGELOG.md`, `README.md`, `AGENT.md`)
-- Examples: `ESLINT_FIXES_SUMMARY.md`, `TEST_SUMMARY.md`, `SHOW_COMMAND_TEST_FIX_SUMMARY.md`
+**Reports & Summaries:**
+- `*_SUMMARY.md` - Summary reports (e.g., `TEST_SUMMARY.md`, `ESLINT_FIXES_SUMMARY.md`)
+- `*_REPORT.md` - Various reports (e.g., `QUALITY_VALIDATION_REPORT.md`, `RELEASE_READINESS_REPORT.md`)
+- `*_CHECKLIST.md` - Checklist documents (e.g., `MIGRATION_CHECKLIST.md`)
+- `*_COMPLETE.md` - Completion markers (e.g., `MIGRATION_COMPLETE.md`)
+- `*_GUIDE.md` - Temporary guides (e.g., `MIGRATION_GUIDE.md`)
+- `*_ANALYSIS.md` - Analysis reports (e.g., `FRONTMATTER_ANALYSIS.md`)
 
 ## Safety Rules
 
@@ -38,9 +50,10 @@ Launch ONE subagent to analyze the git status (including ignored files) and prop
 - Must be clearly temporary/debug files
 
 **Never propose these files:**
-- Any committed files (not marked `??` or `!!`)
-- `CHANGELOG.md`, `README.md`, `AGENT.md` (even if untracked)
-- Core project directories: `src/`, `test/`, `dist/`, `scripts/`, `node_modules/`, etc.
+- Any committed files (not marked `??` or `!!`) unless working directory is clean
+- `CHANGELOG.md`, `README.md`, `AGENT.md`, `CLAUDE.md` (even if untracked)
+- Core project directories: `src/`, `dist/`, `scripts/`, `node_modules/`, etc.
+- Standard test directories: `test/`, `tests/`, `__tests__/` (without hyphens)
 - Any files you're uncertain about
 
 ## Instructions
@@ -72,7 +85,40 @@ Once the user approves the proposed deletions:
    - For untracked/ignored files: `rm -f` or `rm -rf` for directories
    - For committed files: `git rm` to properly remove from git tracking
 2. **Analyze the target cleanup patterns** and approved files to identify common types
-3. **Propose .gitignore patterns** based on the cleanup patterns to prevent future accumulation
+3. **Propose .gitignore patterns** based on the cleanup patterns to prevent future accumulation:
+   ```
+   # Debug and analysis files
+   analyze-*.js
+   analyze-*.ts
+   debug-*.js
+   debug-*.ts
+   research-*.js
+   research-*.ts
+   *-analysis.md
+   
+   # Temporary test files
+   test-*.js
+   test-*.ts
+   *-test.js
+   *-test.ts
+   quick-test.js
+   quick-test.ts
+   verify-*.md
+   *-examples.js
+   *-examples.ts
+   
+   # Temporary directories
+   temp-*/
+   test-*/
+   
+   # Reports and summaries
+   *_SUMMARY.md
+   *_REPORT.md
+   *_CHECKLIST.md
+   *_COMPLETE.md
+   *_GUIDE.md
+   *_ANALYSIS.md
+   ```
 4. **Add suggested patterns to .gitignore** if user agrees
 
 This prevents the same types of files from cluttering the workspace in future development sessions.
