@@ -1,6 +1,7 @@
 ---
 description: Configure bash timeout values in Claude Code settings
 allowed-tools: Read, Edit, Write
+argument-hint: "<duration> [scope]"
 ---
 
 # Configure Bash Timeout Settings

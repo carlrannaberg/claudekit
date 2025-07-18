@@ -1,6 +1,7 @@
 ---
 allowed-tools: Read, Write, Grep, Glob, TodoWrite, TodoRead, AgentTool, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
 description: Generate a spec file for a new feature or bugfix
+argument-hint: "<feature-or-bugfix-description>"
 ---
 
 ## Context

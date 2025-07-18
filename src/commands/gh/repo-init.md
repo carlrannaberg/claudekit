@@ -5,6 +5,7 @@ allowed-tools:
   - TodoRead
   - TodoWrite
 description: Create a new GitHub repository with proper setup including directory creation, git initialization, and remote configuration
+argument-hint: "<repository-name>"
 ---
 
 # GitHub Repository Setup

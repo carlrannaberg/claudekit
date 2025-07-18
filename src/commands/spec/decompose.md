@@ -1,6 +1,7 @@
 ---
 description: Decompose validated specification into persistent TaskMaster tasks
 allowed-tools: Read, Task, Bash(task-master:*, npm install -g task-master-ai, mkdir -p, cat >, grep, echo, basename, date)
+argument-hint: "<path-to-spec-file>"
 ---
 
 # Decompose Specification into TaskMaster Tasks

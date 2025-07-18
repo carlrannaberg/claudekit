@@ -4,6 +4,7 @@ allowed-tools:
   - Read
   - Grep
 description: Analyzes a specification document to determine if it has enough detail for autonomous implementation
+argument-hint: "<path-to-spec-file>"
 ---
 
 # Specification Completeness Check

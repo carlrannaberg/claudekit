@@ -1,6 +1,7 @@
 ---
 description: Implement a validated specification by orchestrating concurrent agents
 allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(task-master:*)
+argument-hint: "<path-to-spec-file>"
 ---
 
 # Implement Specification

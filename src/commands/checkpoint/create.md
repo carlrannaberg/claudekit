@@ -1,6 +1,7 @@
 ---
 description: Create a git stash checkpoint with optional description
 allowed-tools: Bash(git stash:*), Bash(git add:*), Bash(git status:*)
+argument-hint: "[optional description]"
 ---
 
 ## Create a checkpoint
