@@ -2,6 +2,39 @@
 set -euo pipefail
 # Run tests related to changed files
 
+# === Package Manager Detection (inlined for self-containment) ===
+
+detect_package_manager() {
+    if [[ -f "pnpm-lock.yaml" ]]; then
+        echo "pnpm"
+    elif [[ -f "yarn.lock" ]]; then
+        echo "yarn"
+    elif [[ -f "package-lock.json" ]]; then
+        echo "npm"
+    elif [[ -f "package.json" ]]; then
+        if command -v jq &> /dev/null; then
+            local pkg_mgr=$(jq -r '.packageManager // empty' package.json 2>/dev/null)
+            if [[ -n "$pkg_mgr" ]]; then
+                echo "${pkg_mgr%%@*}"
+                return
+            fi
+        fi
+        echo "npm"
+    else
+        echo ""
+    fi
+}
+
+get_package_manager_test() {
+    local pm="${1:-$(detect_package_manager)}"
+    case "$pm" in
+        npm) echo "npm test" ;;
+        yarn) echo "yarn test" ;;
+        pnpm) echo "pnpm test" ;;
+        *) echo "npm test" ;;
+    esac
+}
+
 # Read JSON input from stdin
 JSON_INPUT=$(cat)
 
@@ -73,7 +106,8 @@ if [ ${#EXISTING_TESTS[@]} -gt 0 ]; then
   TEST_LOG=$(mktemp)
 
   # Run tests and capture output
-  if ! npm test -- "${EXISTING_TESTS[@]}" > "$TEST_LOG" 2>&1; then
+  local pkg_test=$(get_package_manager_test)
+  if ! $pkg_test -- "${EXISTING_TESTS[@]}" > "$TEST_LOG" 2>&1; then
     # Tests failed - send detailed instructions to Claude Code
     cat >&2 <<EOF
 BLOCKED: Tests failed for $FILE_PATH
@@ -89,10 +123,10 @@ REQUIRED ACTIONS:
 1. First, examine the failing test output below to understand what's broken
 
 2. Run the failing tests individually for detailed output:
-    npm test -- ${EXISTING_TESTS[*]}
+    $(get_package_manager_test) -- ${EXISTING_TESTS[*]}
 
 3. Then run ALL tests to ensure nothing else is broken:
-    npm test
+    $(get_package_manager_test)
 
 4. Fix ALL failing tests by:
     - Reading each test to understand its purpose

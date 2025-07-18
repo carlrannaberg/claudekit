@@ -31,11 +31,63 @@ parse_json_field() {
   fi
 }
 
+# === Package Manager Detection (inlined for self-containment) ===
+
+detect_package_manager() {
+    if [[ -f "pnpm-lock.yaml" ]]; then
+        echo "pnpm"
+    elif [[ -f "yarn.lock" ]]; then
+        echo "yarn"
+    elif [[ -f "package-lock.json" ]]; then
+        echo "npm"
+    elif [[ -f "package.json" ]]; then
+        if command -v jq &> /dev/null; then
+            local pkg_mgr=$(jq -r '.packageManager // empty' package.json 2>/dev/null)
+            if [[ -n "$pkg_mgr" ]]; then
+                echo "${pkg_mgr%%@*}"
+                return
+            fi
+        fi
+        echo "npm"
+    else
+        echo ""
+    fi
+}
+
+get_package_manager_exec() {
+    local pm="${1:-$(detect_package_manager)}"
+    case "$pm" in
+        npm) echo "npx" ;;
+        yarn) echo "yarn dlx" ;;
+        pnpm) echo "pnpm dlx" ;;
+        *) echo "npx" ;;
+    esac
+}
+
+get_package_manager_run() {
+    local pm="${1:-$(detect_package_manager)}"
+    case "$pm" in
+        npm) echo "npm run" ;;
+        yarn) echo "yarn" ;;
+        pnpm) echo "pnpm run" ;;
+        *) echo "npm run" ;;
+    esac
+}
+
 # === Inlined Validation Functions ===
 
 has_typescript() {
   local root_dir="${1:-$(pwd)}"
-  [[ -f "$root_dir/tsconfig.json" ]] && command -v npx &>/dev/null && npx --quiet tsc --version &>/dev/null
+  [[ -f "$root_dir/tsconfig.json" ]] || return 1
+  
+  # Check if package manager's exec command is available
+  local pkg_exec=$(get_package_manager_exec)
+  if ! command -v "${pkg_exec%% *}" &>/dev/null; then
+    return 1
+  fi
+  
+  # Try to run tsc
+  cd "$root_dir" && $pkg_exec --quiet tsc --version &>/dev/null
 }
 
 validate_typescript_file() {
@@ -53,18 +105,19 @@ validate_typescript_file() {
   fi
 
   # Run TypeScript compiler
-  local ts_version="$(npx --quiet tsc -v | awk '{print $2}')"
+  local pkg_exec=$(get_package_manager_exec)
+  local ts_version="$($pkg_exec --quiet tsc -v | awk '{print $2}')"
   local ts_log=$(mktemp)
   local tsbuildinfo="$root_dir/.tsbuildinfo"
 
   # Check if --changedFiles is supported (TS >= 5.4)
   IFS='.' read -r ts_major ts_minor _ <<<"$ts_version"
   if [[ $ts_major -gt 5 || ( $ts_major -eq 5 && $ts_minor -ge 4 ) ]]; then
-    npx tsc --noEmit --skipLibCheck --incremental \
+    $pkg_exec tsc --noEmit --skipLibCheck --incremental \
       --tsBuildInfoFile "$tsbuildinfo" -p "$root_dir/tsconfig.json" \
       --changedFiles "$file_path" 2>"$ts_log" || true
   else
-    npx tsc --noEmit --skipLibCheck --incremental \
+    $pkg_exec tsc --noEmit --skipLibCheck --incremental \
       --tsBuildInfoFile "$tsbuildinfo" -p "$root_dir/tsconfig.json" \
       2>"$ts_log" || true
     grep -F "$file_path" "$ts_log" >"${ts_log}.f" || true
@@ -113,7 +166,8 @@ $TS_OUTPUT
 MANDATORY INSTRUCTIONS:
 1. Fix ALL TypeScript errors shown above
 2. Replace any 'any' types with proper types
-3. Run npm run typecheck to verify all errors are resolved
+3. Run the project's type check command to verify all errors are resolved
+   (Check AGENT.md/CLAUDE.md or package.json scripts for the exact command)
 4. Use specific interfaces, union types, or generics instead of 'any'
 
 Examples of fixes:

@@ -11,8 +11,20 @@ Run quality checks and automatically fix discovered issues using parallel execut
 
 ### 1. SYSTEMATIC PRIORITY-BASED ANALYSIS
 
+#### Command Discovery
+First, discover what validation commands are available:
+1. Check AGENT.md/CLAUDE.md for documented build/test/lint commands
+2. Examine package.json scripts section for available commands
+3. Look for common patterns in scripts:
+   - Linting: "lint", "eslint", "lint:fix", "check:lint", "lint:js"
+   - Type checking: "typecheck", "type-check", "tsc", "check:types", "types"
+   - Testing: "test", "test:unit", "jest", "check:test", "test:all"
+   - Formatting: "format", "prettier", "fmt", "format:fix"
+   - Build: "build", "compile", "build:prod"
+4. Check README.md for any additional validation instructions
+
 #### Discovery with Immediate Categorization
-Run all available quality checks in parallel using Bash. Capture full output including file paths, line numbers, and error messages:
+Run all discovered quality checks in parallel using Bash. Capture full output including file paths, line numbers, and error messages:
 - Linting (ESLint, Prettier, Ruff, etc.)
 - Type checking (TypeScript, mypy, etc.)
 - Tests (Jest, pytest, go test, etc.)
@@ -67,7 +79,7 @@ Immediately categorize findings by:
 Create detailed task plans where each agent gets:
 - A specific, focused objective (e.g., "Fix all TypeScript errors in src/components/")
 - Exact file paths and line numbers to modify
-- Clear success criteria (e.g., "Ensure npm run typecheck passes for these files")
+- Clear success criteria (e.g., "Ensure the project's type checking command passes for these files")
 - Any relevant context about dependencies or patterns to follow
 
 ### 4. Parallel Execution

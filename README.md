@@ -192,8 +192,10 @@ Claude Code uses the `.claude` directory for configuration, with specific versio
 
 3. (Optional) Enable Context7 for enhanced `/spec` features:
    ```bash
-   # Step 1: Install the Context7 MCP server globally
-   npm install -g @upstash/context7-mcp
+   # Step 1: Install the Context7 MCP server globally using your package manager
+   npm install -g @upstash/context7-mcp    # npm
+   yarn global add @upstash/context7-mcp   # yarn
+   pnpm add -g @upstash/context7-mcp       # pnpm
    
    # Step 2: Add it to Claude Code
    claude mcp add context7 context7-mcp
@@ -300,7 +302,12 @@ Some commands support optional MCP server integration for enhanced features:
 - Used by the `/spec:create` command for accurate technical specifications  
 - Installation:
   ```bash
-  npm install -g @upstash/context7-mcp
+  # Install globally using your package manager
+  npm install -g @upstash/context7-mcp    # npm
+  yarn global add @upstash/context7-mcp   # yarn
+  pnpm add -g @upstash/context7-mcp       # pnpm
+  
+  # Then add to Claude Code
   claude mcp add context7 context7-mcp
   ```
 
@@ -315,6 +322,8 @@ Some commands support optional MCP server integration for enhanced features:
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 - [Spec Command](docs/spec-documentation.md) - Generate specification documents
 - [MCP Setup](docs/mcp-setup.md) - Model Context Protocol configuration
+- [Package Manager Support](docs/package-manager-agnostic.md) - npm, yarn, pnpm compatibility
+- [Flexible Command Names](docs/flexible-command-names.md) - Works with any script naming
 
 ## Testing
 

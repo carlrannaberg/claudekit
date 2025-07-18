@@ -16,8 +16,15 @@ For enhanced library documentation integration, install the context7 MCP server:
 
 Installation:
 ```bash
-# Step 1: Install globally
+# Step 1: Install globally using your package manager
+# npm:
 npm install -g @upstash/context7-mcp
+
+# yarn:
+yarn global add @upstash/context7-mcp
+
+# pnpm:
+pnpm add -g @upstash/context7-mcp
 
 # Step 2: Add to Claude Code
 claude mcp add context7 context7-mcp

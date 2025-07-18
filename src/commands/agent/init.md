@@ -78,14 +78,21 @@ This file provides guidance to AI coding assistants working in this repository.
 
 ## Build & Commands
 
-[Development, testing, and deployment commands - especially:]
-- Build: `command`
-- Test: `command`
-- Test single file: `command path/to/test.ext`
-- Lint: `command`
-- Dev server: `command`
-- Deploy: `command`
-[Include all important commands found in package.json, Makefile, etc.]
+[Development, testing, and deployment commands with EXACT script names:]
+
+**CRITICAL**: Document the EXACT script names from package.json, not generic placeholders.
+For example:
+- Build: `npm run build` (if package.json has "build": "webpack")
+- Test: `npm test` (if package.json has "test": "jest")
+- Type check: `npm run typecheck` (if package.json has "typecheck": "tsc --noEmit")
+- Lint: `npm run lint` (if package.json has "lint": "eslint .")
+
+If the project uses different names, document those:
+- Type check: `npm run tsc` (if that's what's in package.json)
+- Lint: `npm run eslint` (if that's what's in package.json)
+- Format: `npm run prettier` (if that's what's in package.json)
+
+[Include ALL commands from package.json scripts, even if they have non-standard names]
 
 ### Script Command Consistency
 **Important**: When modifying npm scripts in package.json, ensure all references are updated:
@@ -97,10 +104,12 @@ This file provides guidance to AI coding assistants working in this repository.
 - Setup/installation scripts
 
 Common places that reference npm scripts:
-- `npm run build` → Check: workflows, README, Dockerfile
-- `npm test` → Check: workflows, contributing docs
-- `npm run lint` → Check: pre-commit hooks, workflows
-- `npm start` → Check: README, deployment docs
+- Build commands → Check: workflows, README, Dockerfile
+- Test commands → Check: workflows, contributing docs
+- Lint commands → Check: pre-commit hooks, workflows
+- Start commands → Check: README, deployment docs
+
+**Note**: Always use the EXACT script names from package.json, not assumed names
 
 ## Code Style
 

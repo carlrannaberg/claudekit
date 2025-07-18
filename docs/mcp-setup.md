@@ -25,13 +25,21 @@ To enable Context7 in your project:
 
 ```bash
 # Step 1: Install the Context7 MCP server globally
+# Using your preferred package manager:
+# npm:
 npm install -g @upstash/context7-mcp
+
+# yarn:
+yarn global add @upstash/context7-mcp
+
+# pnpm:
+pnpm add -g @upstash/context7-mcp
 
 # Step 2: Add it to Claude Code
 claude mcp add context7 context7-mcp
 ```
 
-**Note**: Due to PATH issues with npx in Claude Code, we recommend installing the package globally first.
+**Note**: Due to PATH issues with package manager executors (npx/yarn dlx/pnpm dlx) in Claude Code, we recommend installing the package globally first.
 
 ### First Time Setup
 
@@ -66,15 +74,29 @@ If the Context7 server isn't working:
    ```
    This shows all configured servers and their connection status.
 
-2. **Verify npm/npx is installed**
+2. **Verify your package manager is installed**
    ```bash
+   # For npm:
    npm --version
    npx --version
+   
+   # For yarn:
+   yarn --version
+   
+   # For pnpm:
+   pnpm --version
    ```
 
-3. **Clear npx cache if needed**
+3. **Clear package manager cache if needed**
    ```bash
+   # For npm/npx:
    npx clear-npx-cache
+   
+   # For yarn:
+   yarn cache clean
+   
+   # For pnpm:
+   pnpm store prune
    ```
 
 4. **Reset project MCP choices**

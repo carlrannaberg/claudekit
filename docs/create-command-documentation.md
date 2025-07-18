@@ -37,8 +37,8 @@ Execute bash commands before the slash command runs using `!` prefix:
 # Get current branch
 Current branch: !`git branch --show-current`
 
-# Run tests
-Test results: !`npm test`
+# Run tests (detects package manager automatically)
+Test results: !`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm test" || command -v yarn >/dev/null 2>&1 && echo "yarn test" || echo "npm test")`
 ```
 
 ### 3. File References
@@ -68,7 +68,7 @@ description: Format all TypeScript files
 ---
 
 Format all TypeScript files in the project:
-!`npm run format`
+!`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm run format" || command -v yarn >/dev/null 2>&1 && echo "yarn format" || echo "npm run format")`
 ```
 
 ### Command with Arguments
@@ -99,7 +99,7 @@ Current dependencies:
 @package.json
 
 Outdated packages:
-!`npm outdated`
+!`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm outdated" || command -v yarn >/dev/null 2>&1 && echo "yarn outdated" || echo "npm outdated")`
 
 Suggest which packages to update based on the above information.
 ```
@@ -112,7 +112,7 @@ Specify which tools the command can use:
 allowed-tools:
   - Write
   - Edit
-  - Bash(npm:*)
+  - Bash(<package-manager>:*)
 ```
 
 ### description
@@ -144,7 +144,7 @@ description: Create a new API endpoint
 ### Conditional Logic
 ```markdown
 Check if tests pass:
-!`npm test && echo "Tests passed" || echo "Tests failed"`
+!`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm test" || command -v yarn >/dev/null 2>&1 && echo "yarn test" || echo "npm test") && echo "Tests passed" || echo "Tests failed"`
 ```
 
 ### Multiple File References
@@ -164,9 +164,9 @@ allowed-tools: Bash(*), Edit
 
 PR Checklist for $ARGUMENTS:
 
-1. Run tests: !`npm test`
-2. Check lint: !`npm run lint`
-3. Check types: !`npm run typecheck`
+1. Run tests: !`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm test" || command -v yarn >/dev/null 2>&1 && echo "yarn test" || echo "npm test")`
+2. Check lint: !`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm run lint" || command -v yarn >/dev/null 2>&1 && echo "yarn lint" || echo "npm run lint")`
+3. Check types: !`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm run typecheck" || command -v yarn >/dev/null 2>&1 && echo "yarn typecheck" || echo "npm run typecheck")`
 4. Review changes: !`git diff main`
 
 Based on the results above, fix any issues found.

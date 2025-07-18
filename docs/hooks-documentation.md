@@ -2,6 +2,15 @@
 
 This document describes the hooks included in claudekit and their functionality.
 
+## Package Manager Detection
+
+All hooks automatically detect and use the appropriate package manager for your project (npm, yarn, or pnpm). The detection logic:
+1. Checks for lock files (pnpm-lock.yaml, yarn.lock, package-lock.json)
+2. Checks the `packageManager` field in package.json
+3. Falls back to npm if no specific manager is detected
+
+This ensures hooks work correctly regardless of which package manager you use.
+
 ## Shared Validation Library
 
 **Location:** `.claude/validation-lib.sh`
@@ -38,7 +47,7 @@ The validation library provides common functions used by multiple hooks:
 
 **Requirements:**
 - TypeScript project with tsconfig.json
-- Node.js/npm environment
+- Node.js environment with a package manager (npm/yarn/pnpm)
 
 ### eslint.sh
 
@@ -54,7 +63,7 @@ The validation library provides common functions used by multiple hooks:
 
 **Requirements:**
 - ESLint configuration file (.eslintrc.js, .eslintrc.json, or eslint.config.js)
-- Node.js/npm environment
+- Node.js environment with a package manager (npm/yarn/pnpm)
 
 ### run-related-tests.sh
 
@@ -72,7 +81,7 @@ The validation library provides common functions used by multiple hooks:
 - Suggests concurrent agents for multiple test failures
 
 **Requirements:**
-- npm test command configured
+- Test command configured in package.json scripts
 - Test files following standard naming conventions
 
 ## Stop Hooks
@@ -151,7 +160,7 @@ To customize these hooks for your project:
 ### Test discovery issues
 - Ensure test files follow standard naming conventions
 - Modify TEST_PATTERNS array in run-related-tests.sh for custom patterns
-- Check that npm test command accepts file arguments
+- Check that your test command accepts file arguments
 
 ### Stop hook infinite loop
 - validate-todo-completion.sh checks stop_hook_active to prevent loops
