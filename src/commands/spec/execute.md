@@ -16,7 +16,7 @@ Before launching ANY subagents:
 
 ### 0. Task Management System
 - Check the STM_STATUS output above
-- If STM is available and initialized (`.stm` directory exists), use it for task retrieval
+- If STM is available and initialized (`.simple-task-master` directory exists), use it for task retrieval
 - Otherwise fall back to TodoWrite
 
 ### 1. Specification Readiness

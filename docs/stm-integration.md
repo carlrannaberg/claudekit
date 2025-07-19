@@ -151,7 +151,7 @@ The commands work seamlessly in both modes, detecting STM availability at runtim
 
 ### Tasks not persisting
 - Ensure you've run `stm init` in the project directory
-- Check for `.stm` directory in project root
+- Check for `.simple-task-master` directory in project root
 - Verify write permissions in project directory
 
 ### Task details truncated

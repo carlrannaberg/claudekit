@@ -22,7 +22,7 @@ This command takes a validated specification and breaks it down into:
 
 0. **Task Management System**:
    - Check the STM_STATUS output above
-   - If STM is available and no .stm directory exists, run: `stm init`
+   - If STM is available and no .simple-task-master directory exists, run: `stm init`
    - Use STM for task management if available, otherwise fall back to TodoWrite
 
 1. **Read and Validate Specification**:
