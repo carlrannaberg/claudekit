@@ -1,6 +1,6 @@
 ---
 description: Break down a validated specification into actionable implementation tasks
-allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir -p, cat >, grep, echo, basename, date)
+allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir -p, cat >, grep, echo, basename, date, command, stm:*)
 argument-hint: "<path-to-spec-file>"
 ---
 
@@ -16,7 +16,14 @@ This command takes a validated specification and breaks it down into:
 3. Testing and validation requirements
 4. Documentation needs
 
+!which stm &> /dev/null && echo "STM_STATUS: Available" || echo "STM_STATUS: Not installed"
+
 ## Instructions for Claude:
+
+0. **Task Management System**:
+   - Check the STM_STATUS output above
+   - If STM is available and no .stm directory exists, run: `stm init`
+   - Use STM for task management if available, otherwise fall back to TodoWrite
 
 1. **Read and Validate Specification**:
    - Read the specified spec file
@@ -138,9 +145,21 @@ This command takes a validated specification and breaks it down into:
    - [ ] Tests: All operations work on macOS/Linux with proper error handling
    ```
    
-5. **Create TodoWrite Tasks**:
+5. **Create Task Management Entries**:
    
-   Convert the task breakdown into TodoWrite tasks for session tracking:
+   If STM is available, create STM tasks:
+   ```bash
+   # For each task in the breakdown:
+   stm add "[Task Title]" \
+     --description "[One-line description]" \
+     --details "[Technical requirements and implementation details from spec]" \
+     --validation "[Acceptance criteria]" \
+     --tags "[phase,priority,component]" \
+     --status pending \
+     --deps "[dependency task IDs if any]"
+   ```
+   
+   If STM is not available, use TodoWrite:
    ```javascript
    [
      {
@@ -161,12 +180,13 @@ This command takes a validated specification and breaks it down into:
 
 6. **Save Task Breakdown**:
    - Save the detailed task breakdown document to `specs/[spec-name]-tasks.md`
-   - Create TodoWrite tasks for immediate tracking
+   - Create tasks in STM or TodoWrite for immediate tracking
    - Generate a summary report showing:
      - Total number of tasks
      - Breakdown by phase
      - Estimated complexity
      - Parallel execution opportunities
+     - Task management system used (STM or TodoWrite)
 
 ## Output Format
 
@@ -178,12 +198,14 @@ The generated markdown file includes:
 - Risk assessment
 - Execution strategy
 
-### TodoWrite Integration
-All tasks are immediately available in TodoWrite for:
+### Task Management Integration
+Tasks are immediately available in STM (if installed) or TodoWrite for:
 - Progress tracking
 - Status updates
 - Blocking issue identification
 - Parallel work coordination
+- Dependency tracking (STM only)
+- Persistent storage across sessions (STM only)
 
 ### Summary Report
 Displays:
@@ -206,18 +228,21 @@ Displays:
 
 The decomposition is complete when:
 - ✅ Task breakdown document is saved to specs directory
-- ✅ All tasks are created in TodoWrite for tracking
+- ✅ All tasks are created in STM (if available) or TodoWrite for tracking
 - ✅ Tasks preserve all implementation details from the spec
 - ✅ Foundation tasks are identified and prioritized
 - ✅ Dependencies between tasks are clearly documented
 - ✅ All tasks include testing requirements
 - ✅ Parallel execution opportunities are identified
+- ✅ STM tasks include full technical details and validation criteria (when using STM)
 
 ## Integration with Other Commands
 
 - **Prerequisites**: Run `/spec:validate` first to ensure spec quality
 - **Next step**: Use `/spec:execute` to implement the decomposed tasks
-- **Progress tracking**: Monitor task completion with TodoWrite
+- **Progress tracking**: 
+  - With STM: `stm list --pretty` or `stm list --status pending`
+  - With TodoWrite: Monitor task completion in session
 - **Quality checks**: Run `/validate-and-fix` after implementation
 
 ## Best Practices

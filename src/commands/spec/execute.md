@@ -1,6 +1,6 @@
 ---
 description: Implement a validated specification by orchestrating concurrent agents
-allowed-tools: Task, Read, TodoWrite, Grep, Glob
+allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(command, stm:*, jq)
 argument-hint: "<path-to-spec-file>"
 ---
 
@@ -8,9 +8,16 @@ argument-hint: "<path-to-spec-file>"
 
 Implement the specification at: $ARGUMENTS
 
+!which stm &> /dev/null && echo "STM_STATUS: Available" || echo "STM_STATUS: Not installed"
+
 ## MANDATORY PRE-EXECUTION VALIDATION
 
 Before launching ANY subagents:
+
+### 0. Task Management System
+- Check the STM_STATUS output above
+- If STM is available and initialized (`.stm` directory exists), use it for task retrieval
+- Otherwise fall back to TodoWrite
 
 ### 1. Specification Readiness
 - Verify spec file exists and is complete
@@ -40,9 +47,21 @@ Read the specification to extract:
 - Testing requirements
 - Success criteria
 
-### 2. Create Task List
+### 2. Create or Load Task List
 
-Using TodoWrite, create a comprehensive task list that includes:
+If STM is available:
+```bash
+# Export pending tasks to JSON for processing
+stm list --status pending -f json > pending-tasks.json
+
+# Get task count
+TASK_COUNT=$(stm list --status pending -f json | jq 'length')
+
+# For each task, extract details:
+stm show <task-id> # Shows full task details including 'details' and 'validation' sections
+```
+
+Otherwise, use TodoWrite to create a comprehensive task list that includes:
 - Foundation tasks (no dependencies)
 - Core implementation tasks
 - Integration tasks
@@ -65,6 +84,27 @@ For each independent task group:
    - Testing requirements
 
 2. **Launch Subagent**:
+   
+   If using STM, include task details:
+   ```
+   Task: "Implement [component name]"
+   Prompt: |
+     Task ID: [STM task ID]
+     Title: [Task title from STM]
+     
+     Technical Details:
+     [Contents of task 'details' section from STM]
+     
+     Validation Criteria:
+     [Contents of task 'validation' section from STM]
+     
+     Additional Instructions:
+     - Follow project code style guidelines
+     - Write comprehensive tests
+     - Update STM status when complete: stm update [task-id] --status done
+   ```
+   
+   If using TodoWrite:
    ```
    Task: "Implement [component name]"
    Prompt: Detailed implementation instructions including:
@@ -75,7 +115,8 @@ For each independent task group:
    ```
 
 3. **Monitor Progress**:
-   - Track task completion via TodoWrite
+   - If using STM: `stm list --status in-progress --pretty`
+   - If using TodoWrite: Track task completion in session
    - Identify blocked tasks
    - Coordinate dependencies
 
@@ -107,7 +148,21 @@ If any agent encounters issues:
 
 ## Progress Tracking
 
-Use TodoWrite to maintain real-time progress:
+If using STM:
+```bash
+# View all tasks by status
+stm list --pretty
+
+# View specific status
+stm list --status pending --pretty
+stm list --status in-progress --pretty
+stm list --status done --pretty
+
+# Search for specific tasks
+stm grep "authentication"
+```
+
+If using TodoWrite:
 - ✅ Completed tasks
 - 🔄 In-progress tasks
 - ⏸️ Blocked tasks
@@ -116,11 +171,12 @@ Use TodoWrite to maintain real-time progress:
 ## Success Criteria
 
 Implementation is complete when:
-1. All tasks in TodoWrite are marked complete
+1. All tasks are marked complete (STM: `stm list --status done` shows all tasks)
 2. Tests pass for all components
 3. Integration tests verify system works as specified
 4. Documentation is updated
 5. Code follows project conventions
+6. All validation criteria from tasks are met (STM only)
 
 ## Example Usage
 
@@ -130,7 +186,8 @@ Implementation is complete when:
 
 This will:
 1. Read the user authentication specification
-2. Break it into implementable tasks
+2. Load tasks from STM (if available) or create them in TodoWrite
 3. Launch concurrent agents to build components
-4. Track progress in TodoWrite
+4. Track progress in STM or TodoWrite
 5. Validate the complete implementation
+6. Update task statuses as work progresses
