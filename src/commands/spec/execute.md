@@ -8,7 +8,7 @@ argument-hint: "<path-to-spec-file>"
 
 Implement the specification at: $ARGUMENTS
 
-!which stm &> /dev/null && echo "STM_STATUS: Available" || echo "STM_STATUS: Not installed"
+!which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")
 
 ## MANDATORY PRE-EXECUTION VALIDATION
 
@@ -16,8 +16,9 @@ Before launching ANY subagents:
 
 ### 0. Task Management System
 - Check the STM_STATUS output above
-- If STM is available and initialized (`.simple-task-master` directory exists), use it for task retrieval
-- Otherwise fall back to TodoWrite
+- If status is "Available but not initialized", STOP and inform user to run `/spec:decompose` first
+- If status is "Available and initialized", use STM for task retrieval
+- If status is "Not installed", fall back to TodoWrite
 
 ### 1. Specification Readiness
 - Verify spec file exists and is complete

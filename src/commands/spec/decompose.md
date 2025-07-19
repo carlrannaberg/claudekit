@@ -16,14 +16,15 @@ This command takes a validated specification and breaks it down into:
 3. Testing and validation requirements
 4. Documentation needs
 
-!which stm &> /dev/null && echo "STM_STATUS: Available" || echo "STM_STATUS: Not installed"
+!which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")
 
 ## Instructions for Claude:
 
 0. **Task Management System**:
    - Check the STM_STATUS output above
-   - If STM is available and no .simple-task-master directory exists, run: `stm init`
-   - Use STM for task management if available, otherwise fall back to TodoWrite
+   - If status is "Available but not initialized", run: `stm init`
+   - If status is "Available and initialized", use STM for task management
+   - If status is "Not installed", fall back to TodoWrite
 
 1. **Read and Validate Specification**:
    - Read the specified spec file
