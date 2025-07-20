@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   detectProjectContext,
   discoverComponents,
@@ -44,6 +45,7 @@ export async function init(options: InitOptions): Promise<void> {
       projectInfo = await detectProjectContext(projectRoot);
 
       spinner.text = 'Discovering available components...';
+      const __dirname = path.dirname(fileURLToPath(import.meta.url));
       const registry = await discoverComponents(path.join(__dirname, '../../..'));
 
       spinner.text = 'Generating recommendations...';
