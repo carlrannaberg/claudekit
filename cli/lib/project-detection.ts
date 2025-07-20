@@ -391,7 +391,7 @@ export async function detectPackageManager(projectPath: string): Promise<Package
       if (typeof packageJson['packageManager'] === 'string') {
         const packageManagerValue = packageJson['packageManager'] as string;
         const pm = packageManagerValue.split('@')[0];
-        if (pm && ['npm', 'yarn', 'pnpm', 'bun'].includes(pm)) {
+        if (pm !== undefined && pm !== '' && ['npm', 'yarn', 'pnpm', 'bun'].includes(pm)) {
           return pm as PackageManager;
         }
       }

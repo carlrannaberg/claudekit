@@ -5,6 +5,7 @@
  * for common file operations with proper validation and error handling.
  */
 
+import path from 'node:path';
 import {
   validateProjectPath,
   ensureDirectoryExists,
@@ -34,7 +35,7 @@ export async function installFileWithValidation(
   }
 
   // 3. Ensure target directory exists
-  const targetDir = require('path').dirname(targetPath);
+  const targetDir = path.dirname(targetPath);
   await ensureDirectoryExists(targetDir);
 
   // 4. Copy file with automatic backup
@@ -58,7 +59,7 @@ export async function verifyFileIntegrity(
   try {
     const actualHash = await getFileHash(filePath);
 
-    if (expectedHash) {
+    if (expectedHash !== undefined && expectedHash !== '') {
       return actualHash === expectedHash;
     }
 

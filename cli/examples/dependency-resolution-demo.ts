@@ -19,7 +19,7 @@ import { Logger } from '../utils/logger.js';
 
 const logger = Logger.create('dependency-demo');
 
-async function demonstrateDependencyResolution() {
+async function demonstrateDependencyResolution(): Promise<void> {
   logger.info('=== Component Dependency Resolution Demo ===\n');
 
   // Discover components in the actual claudekit source

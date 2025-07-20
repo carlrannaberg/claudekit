@@ -67,7 +67,7 @@ export class ProgressReporter {
    * Start a new spinner with a message
    */
   start(message: string): void {
-    if (this.options.quiet || this.options.suppressSpinners) {
+    if (this.options.quiet === true || this.options.suppressSpinners === true) {
       return;
     }
 
@@ -79,7 +79,7 @@ export class ProgressReporter {
    * Update the current spinner message
    */
   update(message: string): void {
-    if (this.options.quiet || this.options.suppressSpinners) {
+    if (this.options.quiet === true || this.options.suppressSpinners === true) {
       return;
     }
 
@@ -96,14 +96,14 @@ export class ProgressReporter {
   updateProgress(state: Partial<ProgressState>): void {
     this.state = { ...this.state, ...state };
 
-    if (this.options.quiet) {
+    if (this.options.quiet === true) {
       return;
     }
 
     const message = this.formatProgressMessage();
     this.update(message);
 
-    if (this.options.verbose && state.currentStep) {
+    if (this.options.verbose === true && state.currentStep !== undefined) {
       console.log(Colors.debug(`  ${state.currentStep.description}`));
     }
   }
@@ -130,11 +130,11 @@ export class ProgressReporter {
    * Complete current operation successfully
    */
   succeed(message?: string): void {
-    if (this.options.quiet) {
+    if (this.options.quiet === true) {
       return;
     }
 
-    const finalMessage = message || this.formatCompletionMessage();
+    const finalMessage = message !== undefined && message !== '' ? message : this.formatCompletionMessage();
 
     if (this.spinner) {
       this.spinner.succeed(Colors.success(finalMessage));
@@ -148,11 +148,11 @@ export class ProgressReporter {
    * Fail current operation with error message
    */
   fail(message?: string): void {
-    if (this.options.quiet) {
+    if (this.options.quiet === true) {
       return;
     }
 
-    const errorMessage = message || 'Operation failed';
+    const errorMessage = message !== undefined && message !== '' ? message : 'Operation failed';
 
     if (this.spinner) {
       this.spinner.fail(Colors.error(errorMessage));
@@ -168,7 +168,7 @@ export class ProgressReporter {
   warn(message: string): void {
     this.state.warnings.push(message);
 
-    if (!this.options.quiet) {
+    if (this.options.quiet !== true) {
       console.log(status.warning(message));
     }
   }
@@ -179,7 +179,7 @@ export class ProgressReporter {
   error(message: string): void {
     this.state.errors.push(message);
 
-    if (!this.options.quiet) {
+    if (this.options.quiet !== true) {
       console.log(status.error(message));
     }
   }
@@ -188,7 +188,7 @@ export class ProgressReporter {
    * Log informational message
    */
   info(message: string): void {
-    if (!this.options.quiet) {
+    if (this.options.quiet !== true) {
       console.log(status.info(message));
     }
   }
@@ -237,16 +237,16 @@ export class ProgressReporter {
       const percentage = Math.round((completedSteps / totalSteps) * 100);
       const progress = `[${completedSteps}/${totalSteps}] ${percentage}%`;
 
-      if (currentStep) {
+      if (currentStep !== undefined) {
         return `${progress} ${currentStep.description}`;
-      } else if (message) {
+      } else if (message !== undefined && message !== '') {
         return `${progress} ${message}`;
       } else {
         return `${progress} ${phase}...`;
       }
     }
 
-    return message || `${phase}...`;
+    return message !== undefined && message !== '' ? message : `${phase}...`;
   }
 
   /**
@@ -306,14 +306,15 @@ export class FileProgressReporter {
     status: 'started' | 'completed' | 'failed',
     details?: string
   ): void {
-    const fileName = filePath.split('/').pop() || filePath;
+    const splitResult = filePath.split('/').pop();
+    const fileName = splitResult !== undefined && splitResult !== '' ? splitResult : filePath;
 
     switch (status) {
       case 'started':
         this.reporter.update(`Copying ${fileName}...`);
         break;
 
-      case 'completed':
+      case 'completed': {
         const completed =
           Array.from(this.files.values()).filter((f) => f.copied !== undefined).length + 1;
         this.files.set(filePath, { ...this.files.get(filePath), copied: 100 });
@@ -323,9 +324,10 @@ export class FileProgressReporter {
           message: `Installed ${fileName}`,
         });
         break;
+      }
 
       case 'failed':
-        this.reporter.error(`Failed to copy ${fileName}: ${details || 'Unknown error'}`);
+        this.reporter.error(`Failed to copy ${fileName}: ${details !== undefined && details !== '' ? details : 'Unknown error'}`);
         break;
     }
   }

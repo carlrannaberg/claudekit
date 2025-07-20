@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { pathExists, getFileStats } from './filesystem.js';
-import type { Component, ComponentType, ComponentCategory, ProjectInfo } from '../types/config.js';
+import type { Component, ComponentType, ComponentCategory, ProjectInfo, Platform } from '../types/config.js';
 
 /**
  * Component Discovery System
@@ -20,7 +20,7 @@ interface ComponentMetadata {
   description: string;
   category: ComponentCategory;
   dependencies: string[];
-  platforms: string[];
+  platforms: Platform[];
   allowedTools?: string[];
   argumentHint?: string;
   version?: string;
@@ -169,7 +169,7 @@ function getOrCreateRegistry(baseDir: string): ComponentRegistry {
  * Invalidate cache for a directory
  */
 export function invalidateCache(baseDir?: string): void {
-  if (baseDir) {
+  if (baseDir !== undefined && baseDir !== '') {
     componentCache.delete(baseDir);
   } else {
     componentCache.clear();
@@ -183,14 +183,14 @@ export function invalidateCache(baseDir?: string): void {
 /**
  * Parse YAML frontmatter from markdown command files
  */
-function parseFrontmatter(content: string): Record<string, any> {
+function parseFrontmatter(content: string): Record<string, unknown> {
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
   if (!frontmatterMatch) {
     return {};
   }
 
   const frontmatter = frontmatterMatch[1];
-  const parsed: Record<string, any> = {};
+  const parsed: Record<string, unknown> = {};
 
   // Simple YAML parser for key-value pairs
   const lines = frontmatter?.split('\n') || [];
@@ -219,9 +219,9 @@ function parseFrontmatter(content: string): Record<string, any> {
 /**
  * Parse shell script header comments for hook metadata
  */
-function parseShellHeader(content: string): Record<string, any> {
+function parseShellHeader(content: string): Record<string, unknown> {
   const lines = content.split('\n').slice(0, 50); // Check first 50 lines
-  const metadata: Record<string, any> = {};
+  const metadata: Record<string, unknown> = {};
 
   let inHeaderBlock = false;
   let description = '';
@@ -273,21 +273,21 @@ function parseShellHeader(content: string): Record<string, any> {
     }
 
     // Accumulate description (exclude padding symbols)
-    if (!metadata['description'] && !lineContent.includes(':') && !lineContent.match(/^#+$/)) {
+    if (metadata['description'] === undefined && !lineContent.includes(':') && !lineContent.match(/^#+$/)) {
       const cleanContent = lineContent.replace(/#+\s*$/, '').trim();
-      if (cleanContent) {
+      if (cleanContent !== '') {
         description += (description ? ' ' : '') + cleanContent;
       }
     }
   }
 
-  if (!metadata['description'] && description) {
+  if (metadata['description'] === undefined && description !== '') {
     metadata['description'] = description.trim();
   }
 
   // Parse shell options from set line
   const setMatch = content.match(/set\s+(.+)/);
-  if (setMatch && setMatch[1]) {
+  if (setMatch !== null && setMatch[1] !== undefined) {
     metadata['shellOptions'] = setMatch[1].split(/\s+/);
   }
 
@@ -311,7 +311,7 @@ function extractDependencies(content: string, type: ComponentType): string[] {
         if (match) {
           const toolName = match[1]?.toLowerCase();
           // Only add non-standard tools as dependencies
-          if (toolName && !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)) {
+          if (toolName !== undefined && toolName !== '' && !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)) {
             dependencies.add(toolName);
           } else if (toolName === 'read' || toolName === 'write') {
             dependencies.add(toolName);
@@ -352,7 +352,7 @@ function extractDependencies(content: string, type: ComponentType): string[] {
     if (hookRefs) {
       hookRefs.forEach((ref) => {
         const hookName = ref.split('/').pop()?.replace('.sh', '');
-        if (hookName) {
+        if (hookName !== undefined && hookName !== '') {
           dependencies.add(hookName);
         }
       });
@@ -368,11 +368,11 @@ function extractDependencies(content: string, type: ComponentType): string[] {
 function inferCategory(
   filePath: string,
   content: string,
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
 ): ComponentCategory {
   // Use explicit category if provided
-  if (metadata['category']) {
-    const normalizedCategory = metadata['category'].toLowerCase().replace(/[-_\s]/g, '-');
+  if (metadata['category'] !== undefined) {
+    const normalizedCategory = String(metadata['category']).toLowerCase().replace(/[-_\s]/g, '-');
     const validCategories: ComponentCategory[] = [
       'git',
       'validation',
@@ -483,26 +483,31 @@ async function parseComponentFile(
     const id = createComponentId(filePath, type);
     const metadata: ComponentMetadata = {
       id,
-      name: rawMetadata['name'] || path.basename(filePath, type === 'command' ? '.md' : '.sh'),
-      description: rawMetadata['description'] || 'No description available',
+      name: rawMetadata['name'] as string || path.basename(filePath, type === 'command' ? '.md' : '.sh'),
+      description: rawMetadata['description'] as string || 'No description available',
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
-      platforms: rawMetadata['platforms']
-        ? rawMetadata['platforms'].split(',').map((p: string) => p.trim())
-        : ['all'],
+      platforms: rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
+        ? (rawMetadata['platforms'] as string).split(',').map((p: string) => p.trim()).filter((p): p is Platform => 
+            ['darwin', 'linux', 'win32', 'all'].includes(p as Platform))
+        : ['all'] as Platform[],
       enabled:
         rawMetadata['enabled'] === undefined
           ? true
           : rawMetadata['enabled'] !== 'false' && rawMetadata['enabled'] !== false,
-      ...(rawMetadata['allowed-tools'] && {
-        allowedTools: rawMetadata['allowed-tools'].split(',').map((t: string) => t.trim()),
+      ...(rawMetadata['allowed-tools'] !== undefined && rawMetadata['allowed-tools'] !== null && {
+        allowedTools: (rawMetadata['allowed-tools'] as string).split(',').map((t: string) => t.trim()),
       }),
-      ...(rawMetadata['argument-hint'] && { argumentHint: rawMetadata['argument-hint'] }),
-      ...(rawMetadata['version'] && { version: rawMetadata['version'] }),
-      ...(rawMetadata['author'] && { author: rawMetadata['author'] }),
-      ...(rawMetadata['shellOptions'] && { shellOptions: rawMetadata['shellOptions'] }),
-      ...(rawMetadata['timeout'] && { timeout: parseInt(rawMetadata['timeout'], 10) }),
-      ...(rawMetadata['retries'] && { retries: parseInt(rawMetadata['retries'], 10) }),
+      ...(rawMetadata['argument-hint'] !== undefined && rawMetadata['argument-hint'] !== null && { argumentHint: rawMetadata['argument-hint'] as string }),
+      ...(rawMetadata['version'] !== undefined && rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
+      ...(rawMetadata['author'] !== undefined && rawMetadata['author'] !== null && { author: rawMetadata['author'] as string }),
+      ...(rawMetadata['shellOptions'] !== undefined && rawMetadata['shellOptions'] !== null && { 
+        shellOptions: typeof rawMetadata['shellOptions'] === 'string' 
+          ? (rawMetadata['shellOptions'] as string).split(',').map((opt: string) => opt.trim())
+          : rawMetadata['shellOptions'] as string[]
+      }),
+      ...(rawMetadata['timeout'] !== undefined && rawMetadata['timeout'] !== null && { timeout: parseInt(rawMetadata['timeout'] as string, 10) }),
+      ...(rawMetadata['retries'] !== undefined && rawMetadata['retries'] !== null && { retries: parseInt(rawMetadata['retries'] as string, 10) }),
     };
 
     // Calculate content hash for change detection
@@ -586,7 +591,10 @@ function buildDependencyGraphs(components: ComponentFile[]): {
   // Build dependency relationships
   for (const component of components) {
     const componentId = component.metadata.id;
-    const componentDeps = dependencies.get(componentId)!;
+    const componentDeps = dependencies.get(componentId);
+    if (!componentDeps) {
+      continue;
+    }
 
     for (const dep of component.metadata.dependencies) {
       // Check if dependency exists in our component set
@@ -599,7 +607,10 @@ function buildDependencyGraphs(components: ComponentFile[]): {
 
       if (depComponent) {
         componentDeps.add(depComponent.metadata.id);
-        dependents.get(depComponent.metadata.id)!.add(componentId);
+        const depComponentDependents = dependents.get(depComponent.metadata.id);
+        if (depComponentDependents) {
+          depComponentDependents.add(componentId);
+        }
       } else {
         // External dependency
         componentDeps.add(dep);
@@ -662,14 +673,18 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
 
       // Add edge (skip self-references)
       if (dep !== id) {
-        edges.get(id)!.add(dep);
-        reverseEdges.get(dep)!.add(id);
+        const idEdges = edges.get(id);
+        const depReverseEdges = reverseEdges.get(dep);
+        if (idEdges && depReverseEdges) {
+          idEdges.add(dep);
+          depReverseEdges.add(id);
+        }
       }
     }
   }
 
   // Detect cycles using DFS
-  const detectCycles = () => {
+  const detectCycles = (): string[][] => {
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
     const path: string[] = [];
@@ -714,17 +729,21 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
         dfs(node);
       }
     }
+    
+    return cycles;
   };
 
-  detectCycles();
+  const cycleResults = detectCycles();
+  cycles.push(...cycleResults);
 
   // Calculate depth for each node
-  const calculateDepths = () => {
+  const calculateDepths = (): Map<string, number> => {
     const depths = new Map<string, number>();
 
     function getDepth(node: string, visiting = new Set<string>()): number {
       if (depths.has(node)) {
-        return depths.get(node)!;
+        const depth = depths.get(node);
+        return depth ?? 0;
       }
       if (visiting.has(node)) {
         return 0;
@@ -753,6 +772,8 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
     for (const node of nodes.keys()) {
       getDepth(node);
     }
+    
+    return depths;
   };
 
   calculateDepths();
@@ -943,7 +964,7 @@ export async function discoverComponents(
   const registry = getOrCreateRegistry(baseDir);
 
   // Return cached if valid and not forcing refresh
-  if (registry.cacheValid && !options.forceRefresh) {
+  if (registry.cacheValid === true && options.forceRefresh !== true) {
     return registry;
   }
 
@@ -971,13 +992,13 @@ export async function discoverComponents(
     filteredComponents = filteredComponents.filter((c) => c.metadata.enabled === true);
   }
 
-  if (options.filterByType?.length) {
-    filteredComponents = filteredComponents.filter((c) => options.filterByType!.includes(c.type));
+  if (options.filterByType !== undefined && options.filterByType.length > 0) {
+    filteredComponents = filteredComponents.filter((c) => options.filterByType?.includes(c.type) ?? false);
   }
 
-  if (options.filterByCategory?.length) {
+  if (options.filterByCategory !== undefined && options.filterByCategory.length > 0) {
     filteredComponents = filteredComponents.filter((c) =>
-      options.filterByCategory!.includes(c.metadata.category)
+      options.filterByCategory?.includes(c.metadata.category) ?? false
     );
   }
 
@@ -1024,8 +1045,8 @@ export function getComponentsByCategory(
 ): ComponentFile[] {
   const componentIds = registry.categories.get(category) || new Set();
   return Array.from(componentIds)
-    .map((id) => registry.components.get(id)!)
-    .filter(Boolean);
+    .map((id) => registry.components.get(id))
+    .filter((comp): comp is ComponentFile => comp !== undefined);
 }
 
 /**
@@ -1044,8 +1065,8 @@ export function getComponentsByType(
 export function getDependents(componentId: string, registry: ComponentRegistry): ComponentFile[] {
   const dependentIds = registry.dependents.get(componentId) || new Set();
   return Array.from(dependentIds)
-    .map((id) => registry.components.get(id)!)
-    .filter(Boolean);
+    .map((id) => registry.components.get(id))
+    .filter((comp): comp is ComponentFile => comp !== undefined);
 }
 
 /**
@@ -1186,10 +1207,10 @@ export function searchComponents(
   for (const component of registry.components.values()) {
     const nameMatch = component.metadata.name.toLowerCase().includes(normalizedQuery);
     const descMatch =
-      options.includeDescription &&
+      options.includeDescription === true &&
       component.metadata.description.toLowerCase().includes(normalizedQuery);
 
-    if (nameMatch || descMatch) {
+    if (nameMatch === true || descMatch === true) {
       results.push(component);
     }
   }
@@ -1221,7 +1242,7 @@ export function registryToComponents(registry: ComponentRegistry): Component[] {
     description: componentFile.metadata.description,
     path: componentFile.path,
     dependencies: componentFile.metadata.dependencies,
-    platforms: componentFile.metadata.platforms as any,
+    platforms: componentFile.metadata.platforms as Platform[],
     category: componentFile.metadata.category,
     version: componentFile.metadata.version,
     author: componentFile.metadata.author,
@@ -1444,7 +1465,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   }
 
   // Prettier checks
-  if (projectInfo.hasPrettier) {
+  if (projectInfo.hasPrettier === true) {
     if (
       component.metadata.id === 'prettier' ||
       component.metadata.name.toLowerCase().includes('prettier')
@@ -1454,7 +1475,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   }
 
   // Testing framework checks
-  if (projectInfo.hasJest || projectInfo.hasVitest) {
+  if (projectInfo.hasJest === true || projectInfo.hasVitest === true) {
     if (
       component.metadata.id === 'run-related-tests' ||
       component.metadata.category === 'testing'
@@ -1464,7 +1485,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   }
 
   // Git repository checks
-  if (projectInfo.isGitRepository) {
+  if (projectInfo.isGitRepository === true) {
     if (component.metadata.category === 'git') {
       score += RECOMMENDATION_WEIGHTS.categoryMatch;
     }
@@ -1475,7 +1496,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   }
 
   // Framework-specific recommendations
-  if (projectInfo.frameworks?.length) {
+  if (projectInfo.frameworks !== undefined && projectInfo.frameworks.length > 0) {
     for (const framework of projectInfo.frameworks) {
       const frameworkLower = framework.toLowerCase();
       const componentNameLower = component.metadata.name.toLowerCase();
@@ -1542,7 +1563,7 @@ function generateRecommendationReasons(
 
   // Prettier reasons
   if (
-    projectInfo.hasPrettier &&
+    projectInfo.hasPrettier === true &&
     (component.metadata.id === 'prettier' ||
       component.metadata.name.toLowerCase().includes('prettier'))
   ) {
@@ -1551,15 +1572,15 @@ function generateRecommendationReasons(
 
   // Testing reasons
   if (
-    (projectInfo.hasJest || projectInfo.hasVitest) &&
+    (projectInfo.hasJest === true || projectInfo.hasVitest === true) &&
     (component.metadata.id === 'run-related-tests' || component.metadata.category === 'testing')
   ) {
-    const framework = projectInfo.hasJest ? 'Jest' : 'Vitest';
+    const framework = projectInfo.hasJest === true ? 'Jest' : 'Vitest';
     reasons.push(`${framework} detected - automated test running recommended`);
   }
 
   // Git reasons
-  if (projectInfo.isGitRepository && component.metadata.category === 'git') {
+  if (projectInfo.isGitRepository === true && component.metadata.category === 'git') {
     if (component.metadata.id === 'auto-checkpoint') {
       reasons.push('Git repository - automatic checkpointing highly recommended');
     } else {
@@ -1568,7 +1589,7 @@ function generateRecommendationReasons(
   }
 
   // Framework-specific reasons
-  if (projectInfo.frameworks?.length) {
+  if (projectInfo.frameworks !== undefined && projectInfo.frameworks.length > 0) {
     for (const framework of projectInfo.frameworks) {
       const frameworkLower = framework.toLowerCase();
       const componentNameLower = component.metadata.name.toLowerCase();

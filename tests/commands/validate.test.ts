@@ -25,8 +25,21 @@ vi.mock('ora', () => ({
 }));
 
 vi.mock('chalk', () => {
-  const createChainableInstance = (): any => {
-    const mock: any = (text: string) => text;
+  interface ChalkInstance {
+    (text: string): string;
+    bold: ChalkInstance;
+    dim: ChalkInstance;
+    italic: ChalkInstance;
+    underline: ChalkInstance;
+    green: ChalkInstance;
+    red: ChalkInstance;
+    yellow: ChalkInstance;
+    blue: ChalkInstance;
+    gray: ChalkInstance;
+  }
+
+  const createChainableInstance = (): ChalkInstance => {
+    const mock: ChalkInstance = ((text: string) => text) as ChalkInstance;
     mock.bold = createChainableInstance();
     mock.dim = createChainableInstance();
     mock.italic = createChainableInstance();

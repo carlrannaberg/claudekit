@@ -29,6 +29,7 @@ import type {
   InstallTarget,
   ProjectInfo,
   TemplateType,
+  Platform,
 } from '../types/config.js';
 
 /**
@@ -53,7 +54,7 @@ export interface InstallStep {
   source?: string;
   target: string;
   component?: Component;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface InstallPlan {
@@ -242,7 +243,7 @@ export async function createInstallPlan(
           description: registryComponent.metadata.description,
           path: registryComponent.path,
           dependencies: registryComponent.metadata.dependencies,
-          platforms: registryComponent.metadata.platforms as any,
+          platforms: registryComponent.metadata.platforms as Platform[],
           category: registryComponent.metadata.category,
           version: registryComponent.metadata.version,
           author: registryComponent.metadata.author,
@@ -279,7 +280,7 @@ export async function createInstallPlan(
   }
 
   // Add custom path if specified
-  if (options.customPath) {
+  if (options.customPath !== undefined) {
     const customPath = normalizePath(options.customPath);
     directories.add(customPath);
     directories.add(path.join(customPath, 'commands'));
@@ -319,7 +320,7 @@ export async function createInstallPlan(
       targets.push(targetPath);
     }
 
-    if (options.customPath) {
+    if (options.customPath !== undefined) {
       const customPath = normalizePath(options.customPath);
       const targetPath = path.join(
         customPath,
@@ -360,7 +361,7 @@ export async function createInstallPlan(
     }
 
     // Plan dependency installation if enabled
-    if (options.installDependencies && component.dependencies.length > 0) {
+    if (options.installDependencies === true && component.dependencies.length > 0) {
       for (const dep of component.dependencies) {
         if (!['git', 'npm', 'yarn', 'pnpm', 'node'].includes(dep)) {
           continue; // Skip system dependencies
@@ -394,13 +395,13 @@ export async function createInstallPlan(
 
   // Check for warnings
   if (
-    installation.projectInfo?.hasTypeScript &&
+    installation.projectInfo?.hasTypeScript === true &&
     !orderedComponents.some((c) => c.id === 'typecheck')
   ) {
     warnings.push('TypeScript detected but typecheck hook not selected');
   }
 
-  if (installation.projectInfo?.hasESLint && !orderedComponents.some((c) => c.id === 'eslint')) {
+  if (installation.projectInfo?.hasESLint === true && !orderedComponents.some((c) => c.id === 'eslint')) {
     warnings.push('ESLint detected but eslint hook not selected');
   }
 
@@ -449,7 +450,7 @@ export async function validateInstallPlan(plan: InstallPlan): Promise<string[]> 
 
   // Validate source files exist
   for (const step of plan.steps) {
-    if (step.type === 'copy-file' && step.source) {
+    if (step.type === 'copy-file' && step.source !== undefined) {
       if (!(await pathExists(step.source))) {
         errors.push(`Source file not found: ${step.source}`);
       }
@@ -686,7 +687,7 @@ export async function executeInstallation(
     logger.error(`Installation failed: ${error}`);
 
     // Rollback transaction
-    if (!options.dryRun) {
+    if (options.dryRun !== true) {
       await transaction.rollback();
     }
 
@@ -722,7 +723,7 @@ async function executeStep(
       break;
 
     case 'copy-file':
-      if (!step.source) {
+      if (step.source === undefined) {
         throw new Error('Source file required for copy operation');
       }
 
@@ -745,12 +746,13 @@ async function executeStep(
       await setExecutablePermission(step.target);
       break;
 
-    case 'install-dependency':
+    case 'install-dependency': {
       // For now, just check if dependency exists
       // Future: implement actual dependency installation
-      const depName = step.metadata?.['dependency'] || step.target;
+      const depName = step.metadata?.['dependency'] as string ?? step.target;
       logger.debug(`Checking dependency: ${depName}`);
       break;
+    }
 
     case 'configure':
       logger.debug(`Creating configuration: ${step.target}`);
@@ -759,8 +761,21 @@ async function executeStep(
       break;
 
     default:
-      throw new Error(`Unknown step type: ${(step as any).type}`);
+      // This should never happen as step.type is a union type
+      throw new Error(`Unknown step type: ${step.type}`);
   }
+}
+
+interface HookConfiguration {
+  matcher: string;
+  hooks: Array<{ type: 'command'; command: string }>;
+}
+
+interface ClaudeConfiguration {
+  hooks: {
+    PostToolUse: HookConfiguration[];
+    Stop: HookConfiguration[];
+  };
 }
 
 /**
@@ -768,13 +783,13 @@ async function executeStep(
  */
 async function createConfiguration(
   targetPath: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   // const template = metadata?.['template'] || 'default'; // Unused for now
   const projectInfo = metadata?.['projectInfo'] as ProjectInfo | undefined;
 
   // Build configuration based on template and project info
-  const config: any = {
+  const config: ClaudeConfiguration = {
     hooks: {
       PostToolUse: [],
       Stop: [],
@@ -782,7 +797,7 @@ async function createConfiguration(
   };
 
   // Add TypeScript hook if project has TypeScript
-  if (projectInfo?.hasTypeScript) {
+  if (projectInfo?.hasTypeScript === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.ts',
       hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
@@ -790,7 +805,7 @@ async function createConfiguration(
   }
 
   // Add ESLint hook if project has ESLint
-  if (projectInfo?.hasESLint) {
+  if (projectInfo?.hasESLint === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
       hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }],
@@ -832,7 +847,7 @@ export class Installer {
   async install(installation: Installation): Promise<InstallResult> {
     try {
       // Set log level based on options
-      if (this.options.interactive === false && !process.env['DEBUG']) {
+      if (this.options.interactive === false && process.env['DEBUG'] === undefined) {
         this.logger.setLevel('warn');
       }
 
@@ -859,7 +874,7 @@ export class Installer {
       });
 
       const validationErrors = await validateInstallPlan(plan);
-      if (validationErrors.length > 0 && !this.options.force) {
+      if (validationErrors.length > 0 && this.options.force !== true) {
         return {
           success: false,
           installedComponents: [],
@@ -873,7 +888,7 @@ export class Installer {
       }
 
       // Phase 3: Execute installation (or dry run)
-      if (this.options.dryRun) {
+      if (this.options.dryRun === true) {
         return await simulateInstallation(plan, this.options);
       } else {
         return await executeInstallation(plan, this.options);
@@ -937,7 +952,7 @@ export class Installer {
     const recommendedCommands = ['checkpoint-create', 'checkpoint-list', 'git-status'];
     for (const cmdId of recommendedCommands) {
       const cmd = allComponents.find((c) => c.id === cmdId && c.type === 'command');
-      if (cmd) {
+      if (cmd !== undefined) {
         selectedComponents.push(cmd);
       }
     }

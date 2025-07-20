@@ -1,14 +1,26 @@
 import { vi } from 'vitest';
 
-const createChalkFunction = () => {
-  const fn = vi.fn((text: string) => text) as any;
+interface ChalkFunction {
+  (text: string): string;
+  bold: ChalkFunction;
+  dim: ChalkFunction;
+  underline: ChalkFunction;
+  strikethrough: ChalkFunction;
+  inverse: ChalkFunction;
+}
+
+const createChalkFunction = (): ChalkFunction => {
+  const fn = vi.fn((text: string) => text);
   // Add nested color functions
-  fn.bold = vi.fn((text: string) => text);
-  fn.dim = vi.fn((text: string) => text);
-  fn.underline = vi.fn((text: string) => text);
-  fn.strikethrough = vi.fn((text: string) => text);
-  fn.inverse = vi.fn((text: string) => text);
-  return fn;
+  const mockChalk = Object.assign(fn, {
+    bold: vi.fn((text: string) => text),
+    dim: vi.fn((text: string) => text),
+    underline: vi.fn((text: string) => text),
+    strikethrough: vi.fn((text: string) => text),
+    inverse: vi.fn((text: string) => text),
+  }) as unknown as ChalkFunction;
+  
+  return mockChalk;
 };
 
 const chalk = {

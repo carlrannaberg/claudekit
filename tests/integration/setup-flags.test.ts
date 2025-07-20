@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 // import path from 'path'; // Removed unused import
+import type { Stats } from 'fs';
 import { setup } from '../../cli/commands/setup.js';
 import type { SetupOptions } from '../../cli/commands/setup.js';
 
@@ -260,7 +261,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
-      } as import('fs').Stats);
+      } as Stats);
       vi.spyOn(fs, 'access').mockResolvedValue(undefined);
 
       const options: SetupOptions = {
@@ -276,7 +277,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
         installComponents as unknown as ReturnType<typeof vi.fn>
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
-      expect(projectCall![2].customPath).toBe(testDir);
+      if (projectCall) {
+        expect(projectCall[2].customPath).toBe(testDir);
+      }
     });
 
     it('should throw error if project directory does not exist', async () => {
@@ -309,7 +312,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
       expect(installComponents).toHaveBeenCalledTimes(1);
       const firstCall = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(firstCall).toBeDefined();
-      expect(firstCall![1]).toBe('user');
+      if (firstCall) {
+        expect(firstCall[1]).toBe('user');
+      }
     });
 
     it('should use default components with --commands-only', async () => {
@@ -340,8 +345,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
       const { installComponents } = await import('../../cli/lib/index.js');
       const firstCall = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(firstCall).toBeDefined();
-      const installOptions = firstCall![2];
-      expect(installOptions.dryRun).toBe(true);
+      if (firstCall) {
+        const installOptions = firstCall[2];
+        expect(installOptions.dryRun).toBe(true);
+      }
     });
   });
 
@@ -353,7 +360,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
-      } as import('fs').Stats);
+      } as Stats);
       vi.spyOn(fs, 'access').mockResolvedValue(undefined);
 
       const options: SetupOptions = {
@@ -371,7 +378,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
         installComponents as unknown as ReturnType<typeof vi.fn>
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
-      expect(projectCall![2].customPath).toBe(testDir);
+      if (projectCall) {
+        expect(projectCall[2].customPath).toBe(testDir);
+      }
     });
 
     it('should work with --commands --hooks combination', async () => {

@@ -5,10 +5,24 @@
 
 import { vi } from 'vitest';
 
+interface PromptOptions {
+  name?: string;
+  message?: string;
+  default?: unknown;
+  choices?: Array<{ value: unknown; name?: string } | unknown>;
+  [key: string]: unknown;
+}
+
+interface PromptHistoryEntry {
+  type: string;
+  message: string;
+  options?: PromptOptions;
+}
+
 // Track mock state for testing
 interface MockState {
-  responses: Map<string, any>;
-  promptHistory: Array<{ type: string; message: string; options?: any }>;
+  responses: Map<string, unknown>;
+  promptHistory: PromptHistoryEntry[];
   shouldThrow: boolean;
   throwError: Error | undefined;
 }
@@ -23,7 +37,7 @@ const mockState: MockState = {
 // Helper functions for test setup
 export const mockInquirer = {
   // State management
-  reset() {
+  reset(): void {
     mockState.responses.clear();
     mockState.promptHistory.length = 0;
     mockState.shouldThrow = false;
@@ -31,53 +45,69 @@ export const mockInquirer = {
   },
 
   // Response setup
-  setResponse(key: string, value: any) {
+  setResponse(key: string, value: unknown): void {
     mockState.responses.set(key, value);
   },
 
-  setResponses(responses: Record<string, any>) {
+  setResponses(responses: Record<string, unknown>): void {
     for (const [key, value] of Object.entries(responses)) {
       this.setResponse(key, value);
     }
   },
 
   // Error simulation
-  setShouldThrow(shouldThrow: boolean, error?: Error) {
+  setShouldThrow(shouldThrow: boolean, error?: Error): void {
     mockState.shouldThrow = shouldThrow;
-    mockState.throwError = error ?? undefined;
+    mockState.throwError = error !== null ? error : undefined;
   },
 
   // History inspection
-  getPromptHistory() {
+  getPromptHistory(): PromptHistoryEntry[] {
     return [...mockState.promptHistory];
   },
 
-  getLastPrompt() {
+  getLastPrompt(): PromptHistoryEntry | undefined {
     return mockState.promptHistory[mockState.promptHistory.length - 1];
   },
 
-  clearHistory() {
+  clearHistory(): void {
     mockState.promptHistory.length = 0;
   },
 };
 
 // Base prompt function
-const createPromptMock = (type: string) => {
-  return vi.fn(async (options: any) => {
+const createPromptMock = (type: string): ReturnType<typeof vi.fn> => {
+  return vi.fn(async (options: PromptOptions) => {
     // Record the prompt
     mockState.promptHistory.push({
       type,
-      message: options.name || options.message || 'unknown',
+      message: ((): string => {
+        if (options.name !== undefined && options.name !== '') {
+          return options.name;
+        }
+        if (options.message !== undefined && options.message !== '') {
+          return options.message;
+        }
+        return 'unknown';
+      })(),
       options,
     });
 
     // Check if we should throw an error
     if (mockState.shouldThrow) {
-      throw mockState.throwError || new Error(`Mock error for ${type} prompt`);
+      throw mockState.throwError !== undefined ? mockState.throwError : new Error(`Mock error for ${type} prompt`);
     }
 
     // Get response from mock state
-    const key = options.name || options.message || type;
+    const key = ((): string => {
+      if (options.name !== undefined && options.name !== '') {
+        return options.name;
+      }
+      if (options.message !== undefined && options.message !== '') {
+        return options.message;
+      }
+      return type;
+    })();
     const response = mockState.responses.get(key);
 
     if (response !== undefined) {
@@ -87,19 +117,33 @@ const createPromptMock = (type: string) => {
     // Default responses based on prompt type
     switch (type) {
       case 'input':
-        return options.default || 'mock-input';
+        return options.default !== undefined ? options.default : 'mock-input';
       case 'password':
         return 'mock-password';
       case 'confirm':
         return options.default !== undefined ? options.default : true;
-      case 'select':
-        return options.choices?.[0]?.value || options.choices?.[0] || 'mock-choice';
-      case 'checkbox':
-        return options.choices?.slice(0, 1).map((c: any) => c.value || c) || ['mock-choice'];
+      case 'select': {
+        const firstChoice = options.choices?.[0];
+        if (firstChoice !== undefined) {
+          const choiceValue = (firstChoice as { value?: unknown })?.value;
+          return choiceValue !== undefined ? choiceValue : firstChoice;
+        }
+        return 'mock-choice';
+      }
+      case 'checkbox': {
+        const choices = options.choices?.slice(0, 1);
+        if (choices !== undefined && choices.length > 0) {
+          return choices.map((c: unknown) => {
+            const value = (c as { value?: unknown }).value;
+            return value !== undefined ? value : c;
+          });
+        }
+        return ['mock-choice'];
+      }
       case 'number':
-        return options.default || 42;
+        return options.default !== undefined ? options.default : 42;
       case 'editor':
-        return options.default || 'mock-editor-content';
+        return options.default !== undefined ? options.default : 'mock-editor-content';
       default:
         return 'mock-response';
     }

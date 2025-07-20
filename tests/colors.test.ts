@@ -1,8 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Colors, symbols, status, colors } from '../cli/utils/colors.js';
 
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      [key: string]: string | undefined;
+    }
+  }
+}
+
 describe('Colors utility', () => {
-  let originalEnv: NodeJS.ProcessEnv;
+  let originalEnv: typeof process.env;
   let originalIsTTY: boolean;
 
   beforeEach(() => {

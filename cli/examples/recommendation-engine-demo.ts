@@ -16,11 +16,11 @@ import {
   formatRecommendationSummary,
 } from '../lib/index.js';
 
-async function main() {
+async function main(): Promise<void> {
   console.log(chalk.bold.blue('\n🚀 ClaudeKit Recommendation Engine Demo\n'));
 
   // Get project path from command line or use current directory
-  const projectPath = process.argv[2] || process.cwd();
+  const projectPath = process.argv[2] ?? process.cwd();
 
   const spinner = ora('Analyzing project...').start();
 
@@ -52,36 +52,36 @@ async function main() {
     // Display project information
     console.log(chalk.bold('\n📁 Project Information:'));
     console.log(`  Path: ${chalk.cyan(projectInfo.projectPath)}`);
-    if (projectInfo.projectName) {
+    if (projectInfo.projectName !== undefined && projectInfo.projectName !== '') {
       console.log(`  Name: ${chalk.cyan(projectInfo.projectName)}`);
     }
-    if (projectInfo.projectVersion) {
+    if (projectInfo.projectVersion !== undefined && projectInfo.projectVersion !== '') {
       console.log(`  Version: ${chalk.cyan(projectInfo.projectVersion)}`);
     }
 
     console.log(chalk.bold('\n🔍 Detected Technologies:'));
-    if (projectInfo.hasTypeScript) {
+    if (projectInfo.hasTypeScript === true) {
       console.log(`  ${chalk.green('✓')} TypeScript`);
     }
-    if (projectInfo.hasESLint) {
+    if (projectInfo.hasESLint === true) {
       console.log(`  ${chalk.green('✓')} ESLint`);
     }
-    if (projectInfo.hasPrettier) {
+    if (projectInfo.hasPrettier === true) {
       console.log(`  ${chalk.green('✓')} Prettier`);
     }
-    if (projectInfo.hasJest) {
+    if (projectInfo.hasJest === true) {
       console.log(`  ${chalk.green('✓')} Jest`);
     }
-    if (projectInfo.hasVitest) {
+    if (projectInfo.hasVitest === true) {
       console.log(`  ${chalk.green('✓')} Vitest`);
     }
-    if (projectInfo.isGitRepository) {
+    if (projectInfo.isGitRepository === true) {
       console.log(`  ${chalk.green('✓')} Git Repository`);
     }
-    if (projectInfo.packageManager) {
+    if (projectInfo.packageManager !== null && projectInfo.packageManager !== undefined) {
       console.log(`  ${chalk.green('✓')} Package Manager: ${projectInfo.packageManager}`);
     }
-    if (projectInfo.frameworks?.length) {
+    if (projectInfo.frameworks !== undefined && projectInfo.frameworks.length > 0) {
       console.log(`  ${chalk.green('✓')} Frameworks: ${projectInfo.frameworks.join(', ')}`);
     }
 

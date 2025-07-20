@@ -16,7 +16,7 @@ export class Logger {
     this.prefix = prefix;
 
     // Check for DEBUG environment variable
-    if (process.env['DEBUG']) {
+    if (process.env['DEBUG'] !== undefined && process.env['DEBUG'] !== '') {
       this.level = 'debug';
     }
   }
@@ -65,7 +65,7 @@ export class Logger {
     }
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
       const argsStr = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
       console.log(Colors.debug(this.formatMessage('DEBUG', message + argsStr)));

@@ -114,7 +114,17 @@ export function validateProjectPathSecure(
   }
 
   // Check for control characters
-  if (/[\x00-\x1f\x7f]/.test(normalizedPath)) {
+  const hasControlChars = ((): boolean => {
+    for (let i = 0; i < normalizedPath.length; i++) {
+      const charCode = normalizedPath.charCodeAt(i);
+      if (charCode <= 31 || charCode === 127) {
+        return true;
+      }
+    }
+    return false;
+  })();
+  
+  if (hasControlChars) {
     errors.push({
       field: 'path',
       message: 'Path contains invalid control characters',
@@ -474,7 +484,7 @@ export function sanitizeComponentList(
   }
 
   // Apply limits
-  const maxComponents = options.maxComponents || 50;
+  const maxComponents = options.maxComponents ?? 50;
   if (sanitized.length > maxComponents) {
     warnings.push({
       field: 'components',
@@ -506,7 +516,7 @@ export async function checkNodePrerequisite(minVersion = '18.0.0'): Promise<Prer
     description: `Node.js runtime (>= ${minVersion})`,
     required: true,
     installHint: 'Install Node.js from https://nodejs.org/',
-    check: async () => {
+    check: async (): Promise<boolean> => {
       try {
         const nodeVersion = process.version;
         const currentVersion = nodeVersion.slice(1); // Remove 'v' prefix
@@ -516,8 +526,8 @@ export async function checkNodePrerequisite(minVersion = '18.0.0'): Promise<Prer
         const requiredParts = minVersion.split('.').map(Number);
 
         for (let i = 0; i < Math.max(currentParts.length, requiredParts.length); i++) {
-          const current = currentParts[i] || 0;
-          const required = requiredParts[i] || 0;
+          const current = currentParts[i] ?? 0;
+          const required = requiredParts[i] ?? 0;
 
           if (current > required) {
             return true;
@@ -544,7 +554,7 @@ export async function checkTypeScriptPrerequisite(): Promise<PrerequisiteCheck> 
     description: 'TypeScript compiler (tsc)',
     required: false,
     installHint: 'npm install -g typescript',
-    check: async () => {
+    check: async (): Promise<boolean> => {
       try {
         // Check for local TypeScript first
         const localTsc = path.join(process.cwd(), 'node_modules', '.bin', 'tsc');
@@ -575,7 +585,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
     description: 'ESLint linter with valid configuration',
     required: false,
     installHint: 'npm install eslint',
-    check: async () => {
+    check: async (): Promise<boolean> => {
       try {
         // Check for ESLint binary
         const localESLint = path.join(process.cwd(), 'node_modules', '.bin', 'eslint');
@@ -614,7 +624,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
         if (await pathExists(packageJsonPath)) {
           try {
             const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-            return !!packageJson.eslintConfig;
+            return packageJson.eslintConfig !== undefined && packageJson.eslintConfig !== null;
           } catch {
             // Ignore JSON parsing errors
           }
@@ -639,7 +649,7 @@ export async function checkGitPrerequisite(requireRepository = false): Promise<P
       : 'Git version control system',
     required: false,
     installHint: 'Install Git from https://git-scm.com/',
-    check: async () => {
+    check: async (): Promise<boolean> => {
       try {
         const { exec } = await import('child_process');
 
@@ -701,7 +711,7 @@ export async function checkAllPrerequisites(
         message: `${check.name}: ${check.description} is not available`,
         severity: check.required ? 'error' : 'warning',
         code: `MISSING_${check.name.toUpperCase().replace(/[^A-Z]/g, '_')}`,
-        ...(check.installHint ? { suggestions: [check.installHint] } : {}),
+        ...(check.installHint !== undefined && check.installHint !== '' ? { suggestions: [check.installHint] } : {}),
       };
 
       if (check.required) {
@@ -794,7 +804,10 @@ export function sanitizeShellInput(input: string): ValidationResult {
 
   // Sanitize the input
   const sanitized = input
-    .replace(/[\x00-\x1f\x7f]/g, '') // Remove control characters
+    .replace(/./g, (char) => {
+      const charCode = char.charCodeAt(0);
+      return (charCode <= 31 || charCode === 127) ? '' : char;
+    }) // Remove control characters
     .trim();
 
   return {
@@ -833,7 +846,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
   }
 
   // Check for functions and other non-serializable values before cloning
-  function hasNonSerializableValues(obj: any, visited = new Set()): boolean {
+  function hasNonSerializableValues(obj: unknown, visited = new Set()): boolean {
     if (visited.has(obj)) {
       return true;
     } // Circular reference
@@ -873,7 +886,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
   }
 
   // Deep clone to avoid mutation
-  let sanitized: any;
+  let sanitized: unknown;
   try {
     sanitized = JSON.parse(JSON.stringify(config));
   } catch {
@@ -888,7 +901,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
   }
 
   // Check for overly nested configuration
-  function getMaxDepth(obj: any, currentDepth = 0): number {
+  function getMaxDepth(obj: unknown, currentDepth = 0): number {
     if (typeof obj !== 'object' || obj === null) {
       return currentDepth;
     }
@@ -972,7 +985,7 @@ export async function validateProject(
   }
 
   // Optional: Check for Node.js project
-  if (options.requireNodeProject) {
+  if (options.requireNodeProject === true) {
     const packageJsonPath = path.join(sanitizedPath, 'package.json');
     if (!(await pathExists(packageJsonPath))) {
       errors.push({
@@ -986,7 +999,7 @@ export async function validateProject(
   }
 
   // Optional: Check for Git repository
-  if (options.requireGitRepository) {
+  if (options.requireGitRepository === true) {
     const gitPath = path.join(sanitizedPath, '.git');
     if (!(await pathExists(gitPath))) {
       errors.push({
@@ -1021,7 +1034,7 @@ export function formatValidationErrors(result: ValidationResult): string {
     messages.push('Validation Errors:');
     result.errors.forEach((error) => {
       let message = `  ✗ ${error.field}: ${error.message}`;
-      if (error.code) {
+      if (error.code !== undefined && error.code !== '') {
         message += ` [${error.code}]`;
       }
       messages.push(message);
@@ -1041,7 +1054,7 @@ export function formatValidationErrors(result: ValidationResult): string {
     messages.push('Validation Warnings:');
     result.warnings.forEach((warning) => {
       let message = `  ⚠ ${warning.field}: ${warning.message}`;
-      if (warning.code) {
+      if (warning.code !== undefined && warning.code !== '') {
         message += ` [${warning.code}]`;
       }
       messages.push(message);
@@ -1067,7 +1080,7 @@ export function createValidationError(
     field,
     message,
     severity: options.severity || 'error',
-    ...(options.code ? { code: options.code } : {}),
+    ...(options.code !== undefined && options.code !== '' ? { code: options.code } : {}),
     ...(options.suggestions ? { suggestions: options.suggestions } : {}),
   };
 }

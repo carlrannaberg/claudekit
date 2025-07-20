@@ -19,12 +19,12 @@ import type { Component, InstallProgress } from '../types/config.js';
 // Example 1: Basic Installation with Progress Tracking
 // ============================================================================
 
-async function basicInstallationExample() {
+async function basicInstallationExample(): Promise<void> {
   console.log('=== Basic Installation Example ===\n');
 
   // Create installer with progress tracking
   const installer = new Installer({
-    onProgress: (progress: InstallProgress) => {
+    onProgress: (progress: InstallProgress): void => {
       console.log(`[${progress.phase}] ${progress.message}`);
       if (progress.completedSteps > 0) {
         const percentage = Math.round((progress.completedSteps / progress.totalSteps) * 100);
@@ -38,9 +38,9 @@ async function basicInstallationExample() {
     const installation = await installer.createDefaultInstallation('project');
 
     console.log(`\nDetected project configuration:`);
-    console.log(`- TypeScript: ${installation.projectInfo?.hasTypeScript ? 'Yes' : 'No'}`);
-    console.log(`- ESLint: ${installation.projectInfo?.hasESLint ? 'Yes' : 'No'}`);
-    console.log(`- Package Manager: ${installation.projectInfo?.packageManager || 'None'}`);
+    console.log(`- TypeScript: ${installation.projectInfo?.hasTypeScript === true ? 'Yes' : 'No'}`);
+    console.log(`- ESLint: ${installation.projectInfo?.hasESLint === true ? 'Yes' : 'No'}`);
+    console.log(`- Package Manager: ${installation.projectInfo?.packageManager ?? 'None'}`);
     console.log(`\nSelected ${installation.components.length} components for installation\n`);
 
     // Run installation
@@ -72,12 +72,12 @@ async function basicInstallationExample() {
 // Example 2: Dry Run Mode
 // ============================================================================
 
-async function dryRunExample() {
+async function dryRunExample(): Promise<void> {
   console.log('\n=== Dry Run Example ===\n');
 
   const installer = new Installer({
     dryRun: true,
-    onProgress: (progress: InstallProgress) => {
+    onProgress: (progress: InstallProgress): void => {
       console.log(`[DRY RUN] ${progress.message}`);
     },
   });
@@ -115,7 +115,7 @@ async function dryRunExample() {
 // Example 3: Custom Installation with Specific Components
 // ============================================================================
 
-async function customInstallationExample() {
+async function customInstallationExample(): Promise<void> {
   console.log('\n=== Custom Installation Example ===\n');
 
   // Create custom components list
@@ -141,7 +141,7 @@ async function customInstallationExample() {
       backup: true,
       force: true, // Force installation even with validation warnings
       installDependencies: false, // Don't auto-install dependencies
-      onProgress: (progress) => {
+      onProgress: (progress): void => {
         const icon = progress.phase === 'complete' ? '✅' : '🔄';
         console.log(`${icon} ${progress.message}`);
       },
@@ -155,13 +155,13 @@ async function customInstallationExample() {
 // Example 4: Interactive Installation Flow
 // ============================================================================
 
-async function interactiveInstallationExample() {
+async function interactiveInstallationExample(): Promise<void> {
   console.log('\n=== Interactive Installation Example ===\n');
 
   // This example shows how to build an interactive installation flow
   const installer = new Installer({
     interactive: true,
-    onProgress: (progress: InstallProgress) => {
+    onProgress: (progress: InstallProgress): void => {
       // In a real interactive flow, you might update a UI here
       switch (progress.phase) {
         case 'planning':
@@ -198,7 +198,7 @@ async function interactiveInstallationExample() {
   console.log('\nInstallation Plan:');
   console.log(`- Target: ${installation.target}`);
   console.log(`- Components: ${installation.components.map((c) => c.name).join(', ')}`);
-  console.log(`- Backup enabled: ${installation.backup}`);
+  console.log(`- Backup enabled: ${installation.backup === true}`);
 
   // Simulate user confirmation
   console.log('\n[Simulating user confirmation...]\n');
@@ -215,11 +215,11 @@ async function interactiveInstallationExample() {
 // Example 5: Error Handling and Rollback
 // ============================================================================
 
-async function errorHandlingExample() {
+async function errorHandlingExample(): Promise<void> {
   console.log('\n=== Error Handling Example ===\n');
 
   const installer = new Installer({
-    onProgress: (progress) => {
+    onProgress: (progress): void => {
       if (progress.errors.length > 0) {
         console.error('Errors detected:', progress.errors);
       }
@@ -253,7 +253,7 @@ async function errorHandlingExample() {
 // Main execution
 // ============================================================================
 
-async function main() {
+async function main(): Promise<void> {
   console.log('ClaudeKit Installer Usage Examples\n');
   console.log('This demonstrates various installation scenarios.\n');
 

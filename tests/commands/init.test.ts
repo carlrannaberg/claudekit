@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import type { Ora } from 'ora';
 import { init } from '@/commands/init.js';
 import {
   TestFileSystem,
@@ -153,50 +154,56 @@ describe('init command', () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, unknown>;
 
       expect(settings).toHaveProperty('hooks');
       expect(settings['hooks']).toHaveProperty('PostToolUse');
       expect(settings['hooks']).toHaveProperty('Stop');
-      expect(Array.isArray(settings['hooks'].PostToolUse)).toBe(true);
-      expect(Array.isArray(settings['hooks'].Stop)).toBe(true);
+      expect(Array.isArray((settings['hooks'] as Record<string, unknown>)['PostToolUse'])).toBe(true);
+      expect(Array.isArray((settings['hooks'] as Record<string, unknown>)['Stop'])).toBe(true);
     });
 
     it('should create settings with TypeScript and ESLint hooks', async () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, unknown>;
 
-      const postToolUseHooks = settings['hooks'].PostToolUse;
+      const postToolUseHooks = (settings['hooks'] as Record<string, unknown>)['PostToolUse'] as unknown[];
 
       // Check for TypeScript hook
-      const tsHook = postToolUseHooks.find((hook: any) => hook.matcher.includes('**/*.ts'));
+      const tsHook = postToolUseHooks.find((hook: unknown) => (hook as { matcher: string }).matcher.includes('**/*.ts'));
       expect(tsHook).toBeDefined();
-      expect(tsHook.hooks[0].command).toBe('.claude/hooks/typecheck.sh');
+      if (tsHook !== undefined) {
+        const typedTsHook = tsHook as { hooks: Array<{ command: string }> };
+        expect(typedTsHook.hooks[0]?.command).toBe('.claude/hooks/typecheck.sh');
+      }
 
       // Check for ESLint hook
-      const eslintHook = postToolUseHooks.find((hook: any) =>
-        hook.matcher.includes('**/*.{js,ts,tsx,jsx}')
+      const eslintHook = postToolUseHooks.find((hook: unknown) =>
+        (hook as { matcher: string }).matcher.includes('**/*.{js,ts,tsx,jsx}')
       );
       expect(eslintHook).toBeDefined();
-      expect(eslintHook.hooks[0].command).toBe('.claude/hooks/eslint.sh');
+      if (eslintHook !== undefined) {
+        const typedEslintHook = eslintHook as { hooks: Array<{ command: string }> };
+        expect(typedEslintHook.hooks[0]?.command).toBe('.claude/hooks/eslint.sh');
+      }
     });
 
     it('should create settings with Stop hooks', async () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, unknown>;
 
-      const stopHooks = settings['hooks'].Stop;
+      const stopHooks = (settings['hooks'] as Record<string, unknown>)['Stop'] as unknown[];
       expect(stopHooks).toHaveLength(1);
 
-      const stopHook = stopHooks[0];
+      const stopHook = stopHooks[0] as { matcher: string; hooks: Array<{ command: string }> };
       expect(stopHook.matcher).toBe('*');
       expect(stopHook.hooks).toHaveLength(2);
 
-      const commands = stopHook.hooks.map((h: any) => h.command);
+      const commands = stopHook.hooks.map((h) => h.command);
       expect(commands).toContain('.claude/hooks/auto-checkpoint.sh');
       expect(commands).toContain('.claude/hooks/validate-todo-completion.sh');
     });
@@ -283,7 +290,7 @@ describe('init command', () => {
         succeed: vi.fn().mockReturnThis(),
         fail: vi.fn().mockReturnThis(),
       };
-      vi.mocked(ora.default).mockReturnValue(mockSpinner as any);
+      vi.mocked(ora.default).mockReturnValue(mockSpinner as unknown as Ora);
 
       await init({});
 
@@ -300,7 +307,7 @@ describe('init command', () => {
         succeed: vi.fn().mockReturnThis(),
         fail: vi.fn().mockReturnThis(),
       };
-      vi.mocked(ora.default).mockReturnValue(mockSpinner as any);
+      vi.mocked(ora.default).mockReturnValue(mockSpinner as unknown as Ora);
 
       // Mock mkdir to throw error
       const mkdirSpy = vi.spyOn(fs, 'mkdir').mockRejectedValueOnce(new Error('Mock error'));

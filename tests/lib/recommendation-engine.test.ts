@@ -5,7 +5,7 @@ import {
   // type ComponentRecommendation, // Removed unused import
   type RecommendationResult,
 } from '../../cli/lib/components.js';
-import type { ProjectInfo } from '../../cli/types/index.js';
+import type { ProjectInfo, Platform } from '../../cli/types/index.js';
 
 describe('Component Recommendation Engine', () => {
   // Mock component registry with test components
@@ -22,7 +22,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Validates TypeScript types',
             category: 'validation' as const,
             dependencies: ['validation-lib'],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash1',
@@ -40,7 +40,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Runs ESLint on JavaScript/TypeScript files',
             category: 'validation' as const,
             dependencies: ['validation-lib'],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash2',
@@ -58,7 +58,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Formats code with Prettier',
             category: 'validation' as const,
             dependencies: ['validation-lib'],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash3',
@@ -76,7 +76,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Automatically creates git checkpoints',
             category: 'git' as const,
             dependencies: [],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash4',
@@ -94,7 +94,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Runs tests related to changed files',
             category: 'testing' as const,
             dependencies: ['validation-lib', 'test-discovery'],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash5',
@@ -112,7 +112,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Common validation utilities',
             category: 'utility' as const,
             dependencies: ['package-manager-detect'],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash6',
@@ -130,7 +130,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Clean up development artifacts',
             category: 'development' as const,
             dependencies: [],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash7',
@@ -148,7 +148,7 @@ describe('Component Recommendation Engine', () => {
             description: 'Initialize AI assistant configuration',
             category: 'ai-assistant' as const,
             dependencies: [],
-            platforms: ['all'],
+            platforms: ['all'] as Platform[],
             enabled: true,
           },
           hash: 'hash8',

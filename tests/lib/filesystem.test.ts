@@ -65,9 +65,20 @@ import {
   normalizePath,
 } from '../../cli/lib/filesystem.js';
 
-const mockFs = fs as any;
+const mockFs = fs as unknown as {
+  stat: ReturnType<typeof vi.fn>;
+  mkdir: ReturnType<typeof vi.fn>;
+  writeFile: ReturnType<typeof vi.fn>;
+  readFile: ReturnType<typeof vi.fn>;
+  copyFile: ReturnType<typeof vi.fn>;
+  chmod: ReturnType<typeof vi.fn>;
+  access: ReturnType<typeof vi.fn>;
+  unlink: ReturnType<typeof vi.fn>;
+};
 // const mockOs = os as any; // Removed unused variable
-const mockCrypto = crypto as any;
+const mockCrypto = crypto as unknown as {
+  createHash: ReturnType<typeof vi.fn>;
+};
 
 describe('filesystem module', () => {
   beforeEach(() => {
@@ -77,9 +88,9 @@ describe('filesystem module', () => {
   describe('validateProjectPath', () => {
     it('should return false for invalid inputs', () => {
       expect(validateProjectPath('')).toBe(false);
-      expect(validateProjectPath(null as any)).toBe(false);
-      expect(validateProjectPath(undefined as any)).toBe(false);
-      expect(validateProjectPath(123 as any)).toBe(false);
+      expect(validateProjectPath(null as unknown as string)).toBe(false);
+      expect(validateProjectPath(undefined as unknown as string)).toBe(false);
+      expect(validateProjectPath(123 as unknown as string)).toBe(false);
     });
 
     it('should return false for system directories', () => {
@@ -374,7 +385,7 @@ describe('filesystem module', () => {
 
       // Mock Date to control timestamp
       const mockDate = new Date('2024-01-01T12:00:00.000Z');
-      vi.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
+      vi.spyOn(global, 'Date').mockImplementation(() => mockDate as unknown as Date);
 
       await copyFileWithBackup(
         '/Users/testuser/projects/source.txt',
@@ -484,7 +495,7 @@ describe('filesystem module', () => {
 
   describe('getFileStats', () => {
     it('should return file stats if file exists', async () => {
-      const mockStats = { size: 1024, isFile: () => true };
+      const mockStats = { size: 1024, isFile: (): boolean => true };
       mockFs.stat.mockResolvedValue(mockStats);
 
       const result = await getFileStats('/existing/file.txt');

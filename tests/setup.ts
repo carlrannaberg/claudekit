@@ -14,7 +14,7 @@ beforeAll(() => {
   process.env['CI'] = 'false';
 
   // Suppress console output during tests (can be overridden in individual tests)
-  if (!process.env['VERBOSE_TESTS']) {
+  if (process.env['VERBOSE_TESTS'] === undefined || process.env['VERBOSE_TESTS'] === '') {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -70,9 +70,9 @@ declare global {
   var testUtils: {
     createTempDir: () => Promise<string>;
     cleanupTempDir: (dir: string) => Promise<void>;
-    createMockConfig: (overrides?: any) => any;
+    createMockConfig: (overrides?: Record<string, unknown>) => Record<string, unknown>;
     createMockFileSystem: (
-      structure: Record<string, string | Record<string, any>>
+      structure: Record<string, string | Record<string, unknown>>
     ) => Promise<string>;
     resetMocks: () => void;
   };
@@ -92,7 +92,7 @@ global.testUtils = {
     }
   },
 
-  createMockConfig(overrides = {}) {
+  createMockConfig(overrides = {}): Record<string, unknown> {
     return {
       hooks: {
         PostToolUse: [
@@ -124,11 +124,11 @@ global.testUtils = {
   },
 
   async createMockFileSystem(
-    structure: Record<string, string | Record<string, any>>
+    structure: Record<string, string | Record<string, unknown>>
   ): Promise<string> {
     const tempDir = await global.testUtils.createTempDir();
 
-    async function createStructure(basePath: string, struct: Record<string, any>) {
+    async function createStructure(basePath: string, struct: Record<string, unknown>): Promise<void> {
       for (const [name, content] of Object.entries(struct)) {
         const fullPath = path.join(basePath, name);
 
@@ -139,7 +139,7 @@ global.testUtils = {
         } else if (typeof content === 'object' && content !== null) {
           // It's a directory
           await fs.mkdir(fullPath, { recursive: true });
-          await createStructure(fullPath, content);
+          await createStructure(fullPath, content as Record<string, unknown>);
         }
       }
     }
@@ -148,7 +148,7 @@ global.testUtils = {
     return tempDir;
   },
 
-  resetMocks() {
+  resetMocks(): void {
     vi.clearAllMocks();
   },
 };

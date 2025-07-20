@@ -4,6 +4,11 @@ import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
 
+interface NodeJSError {
+  code?: string;
+  message: string;
+}
+
 /**
  * Filesystem utilities with Unix focus for ClaudeKit CLI
  *
@@ -64,8 +69,11 @@ export function validateProjectPath(input: string): boolean {
   }
 
   // Should not contain null bytes or other control characters
-  if (/[\x00-\x1f\x7f]/.test(normalizedPath)) {
-    return false;
+  for (let i = 0; i < normalizedPath.length; i++) {
+    const charCode = normalizedPath.charCodeAt(i);
+    if (charCode <= 31 || charCode === 127) {
+      return false;
+    }
   }
 
   return true;
@@ -93,8 +101,9 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
       throw new Error(`Path exists but is not a directory: ${dirPath}`);
     }
     return;
-  } catch (error: any) {
-    if (error.code !== 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code !== 'ENOENT') {
       throw error;
     }
   }
@@ -102,8 +111,9 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
   // Create directory recursively
   try {
     await fs.mkdir(dirPath, { recursive: true, mode: 0o755 });
-  } catch (error: any) {
-    throw new Error(`Failed to create directory ${dirPath}: ${error.message}`);
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    throw new Error(`Failed to create directory ${dirPath}: ${nodeError.message}`);
   }
 }
 
@@ -128,11 +138,12 @@ export async function setExecutablePermission(filePath: string): Promise<void> {
 
     // Set permissions to 755 (rwxr-xr-x)
     await fs.chmod(filePath, 0o755);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
       throw new Error(`File not found: ${filePath}`);
     }
-    throw new Error(`Failed to set executable permission on ${filePath}: ${error.message}`);
+    throw new Error(`Failed to set executable permission on ${filePath}: ${nodeError.message}`);
   }
 }
 
@@ -154,8 +165,9 @@ export async function checkWritePermission(targetPath: string): Promise<boolean>
       await fs.access(targetPath, constants.W_OK);
       return true;
     }
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
       // File doesn't exist, check parent directory
       const parentDir = path.dirname(targetPath);
       try {
@@ -186,8 +198,9 @@ export async function getFileHash(filePath: string): Promise<string> {
     const hash = crypto.createHash('sha256');
     hash.update(content);
     return hash.digest('hex');
-  } catch (error: any) {
-    throw new Error(`Failed to hash file ${filePath}: ${error.message}`);
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    throw new Error(`Failed to hash file ${filePath}: ${nodeError.message}`);
   }
 }
 
@@ -203,8 +216,9 @@ export async function needsUpdate(source: string, target: string): Promise<boole
   try {
     // If target doesn't exist, it needs updating
     await fs.access(target, constants.F_OK);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
       return true;
     }
     throw error;
@@ -266,9 +280,10 @@ export async function copyFileWithBackup(
       const backupPath = `${target}.backup-${timestamp}`;
 
       await fs.copyFile(target, backupPath);
-    } catch (error: any) {
-      if (error.code !== 'ENOENT') {
-        throw new Error(`Failed to create backup: ${error.message}`);
+    } catch (error: unknown) {
+      const nodeError = error as NodeJSError;
+      if (nodeError.code !== undefined && nodeError.code !== 'ENOENT') {
+        throw new Error(`Failed to create backup: ${nodeError.message}`);
       }
       // Target doesn't exist, no backup needed
     }
@@ -281,8 +296,9 @@ export async function copyFileWithBackup(
   // Copy file
   try {
     await fs.copyFile(source, target);
-  } catch (error: any) {
-    throw new Error(`Failed to copy ${source} to ${target}: ${error.message}`);
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    throw new Error(`Failed to copy ${source} to ${target}: ${nodeError.message}`);
   }
 }
 
@@ -314,8 +330,9 @@ export async function pathExists(filePath: string): Promise<boolean> {
 export async function getFileStats(filePath: string): Promise<Stats | null> {
   try {
     return await fs.stat(filePath);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
       return null;
     }
     throw error;
@@ -332,8 +349,9 @@ export async function safeRemove(filePath: string): Promise<boolean> {
   try {
     await fs.unlink(filePath);
     return true;
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    const nodeError = error as NodeJSError;
+    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
       return false;
     }
     throw error;

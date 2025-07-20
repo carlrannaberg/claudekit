@@ -57,11 +57,11 @@ describe('validation module', () => {
       const invalidInputs = [null, undefined, 42, {}, [], true];
 
       for (const invalid of invalidInputs) {
-        const result = validateProjectPathSecure(invalid as any);
+        const result = validateProjectPathSecure(invalid as unknown as string);
         expect(result.isValid).toBe(false);
         expect(result.errors).toHaveLength(1);
-        expect(result.errors?.[0]!.code).toBe('INVALID_INPUT');
-        expect(result.errors?.[0]!.message).toContain('non-empty string');
+        expect(result.errors?.[0]?.code).toBe('INVALID_INPUT');
+        expect(result.errors?.[0]?.message).toContain('non-empty string');
       }
     });
 
@@ -120,14 +120,14 @@ describe('validation module', () => {
       const longPath = `/home/user/${'a'.repeat(1000)}`;
       const result = validateProjectPathSecure(longPath);
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('PATH_TOO_LONG');
+      expect(result.errors?.[0]?.code).toBe('PATH_TOO_LONG');
     });
 
     it('should reject paths with control characters', () => {
       const pathWithControlChars = '/home/user/project\x00/test';
       const result = validateProjectPathSecure(pathWithControlChars);
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('INVALID_CHARACTERS');
+      expect(result.errors?.[0]?.code).toBe('INVALID_CHARACTERS');
     });
 
     it('should warn about hidden directories', () => {
@@ -135,7 +135,7 @@ describe('validation module', () => {
       const result = validateProjectPathSecure(hiddenPath);
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings?.[0]!.code).toBe('HIDDEN_DIRECTORY');
+      expect(result.warnings?.[0]?.code).toBe('HIDDEN_DIRECTORY');
     });
 
     it('should not warn about common hidden dev directories', () => {
@@ -158,7 +158,7 @@ describe('validation module', () => {
       const result = validateProjectPathSecure(deepPath, { maxDepth: 10 });
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings?.[0]!.code).toBe('EXCESSIVE_NESTING');
+      expect(result.warnings?.[0]?.code).toBe('EXCESSIVE_NESTING');
     });
   });
 
@@ -188,7 +188,7 @@ describe('validation module', () => {
       const nonExistentFile = path.join(tempDir, 'missing.txt');
       const result = await validatePathAccessibility(nonExistentFile, 'read');
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('PATH_NOT_FOUND');
+      expect(result.errors?.[0]?.code).toBe('PATH_NOT_FOUND');
     });
 
     it('should detect type mismatches', async () => {
@@ -209,7 +209,7 @@ describe('validation module', () => {
       const result = await validatePathAccessibility(largeConfigFile, 'read');
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings?.[0]!.code).toBe('LARGE_CONFIG_FILE');
+      expect(result.warnings?.[0]?.code).toBe('LARGE_CONFIG_FILE');
     });
 
     it('should handle permission errors gracefully', async () => {
@@ -220,7 +220,7 @@ describe('validation module', () => {
       // Either the path doesn't exist or we don't have permission
       expect(result.isValid).toBe(false);
       expect(['PATH_NOT_FOUND', 'PERMISSION_DENIED', 'ACCESS_ERROR']).toContain(
-        result.errors?.[0]!.code
+        result.errors?.[0]?.code
       );
     });
   });
@@ -260,7 +260,7 @@ describe('validation module', () => {
         const result = validateComponentName(name);
         expect(result.isValid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
-        expect(result.errors?.[0]!.code).toBe('INVALID_COMPONENT_NAME');
+        expect(result.errors?.[0]?.code).toBe('INVALID_COMPONENT_NAME');
       }
     });
 
@@ -270,15 +270,15 @@ describe('validation module', () => {
       for (const name of reservedNames) {
         const result = validateComponentName(name);
         expect(result.isValid).toBe(false);
-        expect(result.errors?.[0]!.code).toBe('RESERVED_NAME');
-        expect(result.errors?.[0]!.suggestions).toBeDefined();
+        expect(result.errors?.[0]?.code).toBe('RESERVED_NAME');
+        expect(result.errors?.[0]?.suggestions).toBeDefined();
       }
     });
 
     it('should warn about underscores', () => {
       const result = validateComponentName('my_component'); // This will first fail validation
       expect(result.isValid).toBe(false); // Because underscores are not allowed by the regex
-      expect(result.errors?.[0]!.code).toBe('INVALID_COMPONENT_NAME');
+      expect(result.errors?.[0]?.code).toBe('INVALID_COMPONENT_NAME');
     });
 
     it('should warn about long names', () => {
@@ -286,7 +286,7 @@ describe('validation module', () => {
       const result = validateComponentName(longName);
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(1);
-      expect(result.warnings?.[0]!.code).toBe('LONG_NAME');
+      expect(result.warnings?.[0]?.code).toBe('LONG_NAME');
     });
   });
 
@@ -337,7 +337,7 @@ describe('validation module', () => {
     it('should reject non-array, non-string input', () => {
       const result = sanitizeComponentList({ not: 'array' });
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('INVALID_TYPE');
+      expect(result.errors?.[0]?.code).toBe('INVALID_TYPE');
     });
   });
 
@@ -480,14 +480,14 @@ describe('validation module', () => {
         const inputWithNull = 'test\0file';
         const result = sanitizeShellInput(inputWithNull);
         expect(result.isValid).toBe(false);
-        expect(result.errors?.[0]!.code).toBe('NULL_BYTES');
+        expect(result.errors?.[0]?.code).toBe('NULL_BYTES');
       });
 
       it('should warn about long input', () => {
         const longInput = 'x'.repeat(1001);
         const result = sanitizeShellInput(longInput);
         expect(result.isValid).toBe(true);
-        expect(result.warnings?.[0]!.code).toBe('LONG_INPUT');
+        expect(result.warnings?.[0]?.code).toBe('LONG_INPUT');
       });
 
       it('should sanitize control characters', () => {
@@ -529,7 +529,7 @@ describe('validation module', () => {
         for (const config of invalidConfigs) {
           const result = sanitizeConfigInput(config);
           expect(result.isValid).toBe(false);
-          expect(result.errors?.[0]!.code).toBe('INVALID_CONFIG_TYPE');
+          expect(result.errors?.[0]?.code).toBe('INVALID_CONFIG_TYPE');
         }
       });
 
@@ -539,14 +539,14 @@ describe('validation module', () => {
         };
         const result = sanitizeConfigInput(deepConfig);
         expect(result.isValid).toBe(true);
-        expect(result.warnings?.[0]!.code).toBe('DEEP_NESTING');
+        expect(result.warnings?.[0]?.code).toBe('DEEP_NESTING');
       });
 
       it('should handle non-serializable values', () => {
-        const configWithFunction = { func: () => {} };
+        const configWithFunction = { func: (): void => {} };
         const result = sanitizeConfigInput(configWithFunction);
         expect(result.isValid).toBe(false);
-        expect(result.errors?.[0]!.code).toBe('NON_SERIALIZABLE');
+        expect(result.errors?.[0]?.code).toBe('NON_SERIALIZABLE');
       });
     });
   });
@@ -711,7 +711,7 @@ describe('validation module', () => {
 
       const result = await validateProject('/nonexistent/path');
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('ACCESS_ERROR');
+      expect(result.errors?.[0]?.code).toBe('ACCESS_ERROR');
 
       // Restore original function
       fs.stat = originalStat;
@@ -726,7 +726,7 @@ describe('validation module', () => {
 
       const result = validateProjectPathSecure('/some/path');
       expect(result.isValid).toBe(false);
-      expect(result.errors?.[0]!.code).toBe('PATH_NORMALIZATION_ERROR');
+      expect(result.errors?.[0]?.code).toBe('PATH_NORMALIZATION_ERROR');
 
       // Restore
       path.resolve = originalResolve;

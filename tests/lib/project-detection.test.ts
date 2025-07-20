@@ -357,7 +357,7 @@ describe('Project Detection System', () => {
       const result = await detectNodeVersion();
 
       // Should return a version string or undefined if Node.js not available
-      if (result) {
+      if (result !== undefined) {
         expect(typeof result).toBe('string');
         expect(result).toMatch(/^\d+\.\d+\.\d+/);
       } else {
@@ -518,7 +518,7 @@ describe('Project Detection System', () => {
         environment: expect.any(String),
       });
 
-      if (result.nodeVersion) {
+      if (result.nodeVersion !== undefined) {
         expect(result.nodeVersion).toMatch(/^\d+\.\d+\.\d+/);
       }
     });

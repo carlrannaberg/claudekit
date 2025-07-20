@@ -1,0 +1,23 @@
+{
+  "name": "ccanalysis",
+  "version": "1.0.0",
+  "description": "Claude Code Performance Analysis Tools",
+  "type": "module",
+  "scripts": {
+    "session": "tsx session-analyzer.ts",
+    "git": "tsx git-analyzer.ts", 
+    "analyze": "tsx cc-analyzer.ts",
+    "example": "tsx cc-analyzer.ts --start '2025-07-19T17:46:57Z' --end '2025-07-20T03:20:28Z'",
+    "test-9h": "tsx session-analyzer.ts --start '2025-07-19T17:46:57Z' --end '2025-07-20T03:20:28Z' --session-file test-data/9hour-session.jsonl",
+    "test-full": "tsx session-analyzer.ts --start '2025-07-19T17:46:57Z' --session-file test-data/9hour-session.jsonl"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2",
+    "@types/node": "^22.10.1"
+  },
+  "bin": {
+    "cc-session": "./session-analyzer.ts",
+    "cc-git": "./git-analyzer.ts",
+    "cc-analyze": "./cc-analyzer.ts"
+  }
+}

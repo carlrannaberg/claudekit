@@ -6,6 +6,8 @@
 // vi import removed - not needed in this file
 // Removed unused fs import
 
+type BufferEncoding = 'ascii' | 'utf8' | 'utf-8' | 'utf16le' | 'ucs2' | 'ucs-2' | 'base64' | 'base64url' | 'latin1' | 'binary' | 'hex';
+
 // Track mock state for testing
 interface MockState {
   files: Map<string, string>;
@@ -24,7 +26,7 @@ const mockState: MockState = {
 // Helper functions for test setup
 export const mockFsExtra = {
   // State management
-  reset() {
+  reset(): void {
     mockState.files.clear();
     mockState.directories.clear();
     mockState.permissions.clear();
@@ -32,11 +34,11 @@ export const mockFsExtra = {
   },
 
   // File operations
-  setFile(path: string, content: string) {
+  setFile(path: string, content: string): void {
     mockState.files.set(path, content);
     // Ensure parent directories exist
     const dirPath = path.substring(0, path.lastIndexOf('/'));
-    if (dirPath) {
+    if (dirPath !== '' && dirPath !== undefined) {
       mockState.directories.add(dirPath);
     }
   },
@@ -45,7 +47,7 @@ export const mockFsExtra = {
     return mockState.files.get(path);
   },
 
-  setDirectory(path: string) {
+  setDirectory(path: string): void {
     mockState.directories.add(path);
   },
 
@@ -53,16 +55,16 @@ export const mockFsExtra = {
     return mockState.directories.has(path);
   },
 
-  setError(path: string, error: Error) {
+  setError(path: string, error: Error): void {
     mockState.errors.set(path, error);
   },
 
-  removeError(path: string) {
+  removeError(path: string): void {
     mockState.errors.delete(path);
   },
 
   // Simulate file system structure
-  createStructure(structure: Record<string, string | Record<string, any>>, basePath = '') {
+  createStructure(structure: Record<string, string | Record<string, unknown>>, basePath = ''): void {
     for (const [name, content] of Object.entries(structure)) {
       const fullPath = basePath ? `${basePath}/${name}` : name;
 
@@ -70,15 +72,46 @@ export const mockFsExtra = {
         this.setFile(fullPath, content);
       } else if (typeof content === 'object' && content !== null) {
         this.setDirectory(fullPath);
-        this.createStructure(content, fullPath);
+        this.createStructure(content as Record<string, string | Record<string, unknown>>, fullPath);
       }
     }
   },
 };
 
+interface MockStats {
+  isFile(): boolean;
+  isDirectory(): boolean;
+  isSymbolicLink(): boolean;
+  size: number;
+  mtime: Date;
+  ctime: Date;
+  atime: Date;
+}
+
+interface MockFsExtra {
+  readFile(path: string, encoding?: BufferEncoding): Promise<string | Buffer>;
+  writeFile(path: string, data: string | Buffer): Promise<void>;
+  appendFile(path: string, data: string | Buffer): Promise<void>;
+  unlink(path: string): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean; mode?: number }): Promise<string | undefined>;
+  rmdir(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
+  readdir(path: string): Promise<string[]>;
+  access(path: string, mode?: number): Promise<void>;
+  stat(path: string): Promise<MockStats>;
+  exists(path: string): Promise<boolean>;
+  copy(src: string, dest: string): Promise<void>;
+  move(src: string, dest: string): Promise<void>;
+  ensureDir(path: string): Promise<void>;
+  ensureFile(path: string): Promise<void>;
+  remove(path: string): Promise<void>;
+  rm(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
+  readJson(path: string): Promise<unknown>;
+  writeJson(path: string, obj: unknown, options?: { spaces?: number }): Promise<void>;
+}
+
 // Mock implementation
-const createMockFsExtra = () => {
-  const checkError = (path: string) => {
+const createMockFsExtra = (): MockFsExtra => {
+  const checkError = (path: string): void => {
     const error = mockState.errors.get(path);
     if (error) {
       throw error;
@@ -92,7 +125,7 @@ const createMockFsExtra = () => {
       const content = mockState.files.get(path);
       if (content === undefined) {
         const error = new Error(`ENOENT: no such file or directory, open '${path}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
       return encoding ? content : Buffer.from(content);
@@ -105,14 +138,14 @@ const createMockFsExtra = () => {
 
       // Ensure parent directory exists
       const dirPath = path.substring(0, path.lastIndexOf('/'));
-      if (dirPath) {
+      if (dirPath !== '' && dirPath !== undefined) {
         mockState.directories.add(dirPath);
       }
     },
 
     async appendFile(path: string, data: string | Buffer): Promise<void> {
       checkError(path);
-      const existing = mockState.files.get(path) || '';
+      const existing = mockState.files.get(path) ?? '';
       const newContent = typeof data === 'string' ? data : data.toString();
       mockState.files.set(path, existing + newContent);
     },
@@ -121,7 +154,7 @@ const createMockFsExtra = () => {
       checkError(path);
       if (!mockState.files.has(path)) {
         const error = new Error(`ENOENT: no such file or directory, unlink '${path}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
       mockState.files.delete(path);
@@ -133,7 +166,7 @@ const createMockFsExtra = () => {
       options?: { recursive?: boolean; mode?: number }
     ): Promise<string | undefined> {
       checkError(path);
-      if (options?.recursive) {
+      if (options?.recursive === true) {
         // Create all parent directories
         const parts = path.split('/').filter(Boolean);
         let currentPath = '';
@@ -144,9 +177,9 @@ const createMockFsExtra = () => {
       } else {
         // Check if parent exists
         const parentPath = path.substring(0, path.lastIndexOf('/'));
-        if (parentPath && !mockState.directories.has(parentPath)) {
+        if (parentPath !== '' && parentPath !== undefined && !mockState.directories.has(parentPath)) {
           const error = new Error(`ENOENT: no such file or directory, mkdir '${path}'`);
-          (error as any).code = 'ENOENT';
+          (error as Error & { code: string }).code = 'ENOENT';
           throw error;
         }
         mockState.directories.add(path);
@@ -156,7 +189,7 @@ const createMockFsExtra = () => {
 
     async rmdir(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void> {
       checkError(path);
-      if (options?.recursive || options?.force) {
+      if (options?.recursive === true || options?.force === true) {
         // Remove directory and all contents
         mockState.directories.delete(path);
         for (const filePath of mockState.files.keys()) {
@@ -172,7 +205,7 @@ const createMockFsExtra = () => {
       } else {
         if (!mockState.directories.has(path)) {
           const error = new Error(`ENOENT: no such file or directory, rmdir '${path}'`);
-          (error as any).code = 'ENOENT';
+          (error as Error & { code: string }).code = 'ENOENT';
           throw error;
         }
         mockState.directories.delete(path);
@@ -183,7 +216,7 @@ const createMockFsExtra = () => {
       checkError(path);
       if (!mockState.directories.has(path)) {
         const error = new Error(`ENOENT: no such file or directory, scandir '${path}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
 
@@ -194,7 +227,7 @@ const createMockFsExtra = () => {
         if (filePath.startsWith(`${path}/`)) {
           const relativePath = filePath.substring(path.length + 1);
           const firstPart = relativePath.split('/')[0];
-          if (firstPart) {
+          if (firstPart !== undefined && firstPart !== '') {
             items.add(firstPart);
           }
         }
@@ -205,7 +238,7 @@ const createMockFsExtra = () => {
         if (dirPath.startsWith(`${path}/`)) {
           const relativePath = dirPath.substring(path.length + 1);
           const firstPart = relativePath.split('/')[0];
-          if (firstPart) {
+          if (firstPart !== undefined && firstPart !== '') {
             items.add(firstPart);
           }
         }
@@ -220,19 +253,19 @@ const createMockFsExtra = () => {
       const exists = mockState.files.has(path) || mockState.directories.has(path);
       if (!exists) {
         const error = new Error(`ENOENT: no such file or directory, access '${path}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
     },
 
-    async stat(path: string): Promise<any> {
+    async stat(path: string): Promise<MockStats> {
       checkError(path);
       const isFile = mockState.files.has(path);
       const isDir = mockState.directories.has(path);
 
       if (!isFile && !isDir) {
         const error = new Error(`ENOENT: no such file or directory, stat '${path}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
 
@@ -240,7 +273,7 @@ const createMockFsExtra = () => {
         isFile: () => isFile,
         isDirectory: () => isDir,
         isSymbolicLink: () => false,
-        size: isFile ? mockState.files.get(path)?.length || 0 : 0,
+        size: isFile ? (mockState.files.get(path)?.length ?? 0) : 0,
         mtime: new Date(),
         ctime: new Date(),
         atime: new Date(),
@@ -259,7 +292,7 @@ const createMockFsExtra = () => {
       const content = mockState.files.get(src);
       if (content === undefined) {
         const error = new Error(`ENOENT: no such file or directory, open '${src}'`);
-        (error as any).code = 'ENOENT';
+        (error as Error & { code: string }).code = 'ENOENT';
         throw error;
       }
 
@@ -302,19 +335,19 @@ const createMockFsExtra = () => {
     },
 
     // JSON operations
-    async readJson(path: string): Promise<any> {
+    async readJson(path: string): Promise<unknown> {
       const content = (await this.readFile(path, 'utf-8')) as string;
       try {
         return JSON.parse(content);
       } catch (error) {
         const parseError = new Error(`Invalid JSON in ${path}`);
-        (parseError as any).cause = error;
+        (parseError as Error & { cause: unknown }).cause = error;
         throw parseError;
       }
     },
 
-    async writeJson(path: string, obj: any, options?: { spaces?: number }): Promise<void> {
-      const content = JSON.stringify(obj, null, options?.spaces || 2);
+    async writeJson(path: string, obj: unknown, options?: { spaces?: number }): Promise<void> {
+      const content = JSON.stringify(obj, null, options?.spaces ?? 2);
       await this.writeFile(path, content);
     },
   };
