@@ -20,7 +20,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PACKAGE_JSON="${PROJECT_ROOT}/package.json"
 CHANGELOG_FILE="${PROJECT_ROOT}/CHANGELOG.md"
 README_FILE="${PROJECT_ROOT}/README.md"
-PACKAGE_NAME="autoagent-cli"
+PACKAGE_NAME="claudekit"
 
 # Default values
 DRY_RUN=false
@@ -60,7 +60,7 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-AI-powered release preparation script for AutoAgent.
+AI-powered release preparation script for Claudekit.
 
 OPTIONS:
     -t, --type TYPE     Release type: patch, minor, major
@@ -564,7 +564,7 @@ main() {
     trap handle_interrupt SIGINT SIGTERM
 
     echo
-    print_info "AutoAgent - AI-Powered Release Preparation"
+    print_info "Claudekit - AI-Powered Release Preparation"
     echo
 
     # Validate release type if provided
