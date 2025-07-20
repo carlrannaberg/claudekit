@@ -217,6 +217,33 @@ vi.mock('fs/promises', () => ({
   rename: vi.fn(),
 }));
 
+// Mock logger to prevent error output during expected test failures
+vi.mock('../../cli/utils/logger.js', () => ({
+  Logger: {
+    create: vi.fn(() => ({
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+      success: vi.fn(),
+    })),
+  },
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    success: vi.fn(),
+  })),
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    success: vi.fn(),
+  },
+}));
+
 describe('Installer', () => {
   let installer: Installer;
   let mockProgress: InstallProgress[] = [];

@@ -221,7 +221,7 @@ describe('CLI workflow integration', () => {
       await init({});
 
       // Remove hooks directory
-      await fs.rmdir(path.join(tempDir, '.claude', 'hooks'), { recursive: true });
+      await fs.rm(path.join(tempDir, '.claude', 'hooks'), { recursive: true });
 
       // Validation should fail
       processExit.exit.mockClear();

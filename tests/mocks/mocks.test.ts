@@ -121,7 +121,7 @@ describe('Mock implementations', () => {
       await mockFs.mkdir('/temp/nested', { recursive: true });
       await mockFs.writeFile('/temp/nested/file.txt', 'content');
 
-      await mockFs.rmdir('/temp', { recursive: true });
+      await mockFs.rm('/temp', { recursive: true });
 
       expect(mockFsExtra.hasDirectory('/temp')).toBe(false);
       expect(mockFsExtra.hasDirectory('/temp/nested')).toBe(false);

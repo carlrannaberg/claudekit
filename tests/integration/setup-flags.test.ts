@@ -20,7 +20,32 @@ vi.mock('ora', () => ({
     text: '',
   }),
 }));
-vi.mock('../../cli/utils/logger.js');
+vi.mock('../../cli/utils/logger.js', () => ({
+  Logger: vi.fn().mockImplementation(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    success: vi.fn(),
+    setLevel: vi.fn(),
+  })),
+  createLogger: vi.fn(() => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    success: vi.fn(),
+    setLevel: vi.fn(),
+  })),
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    success: vi.fn(),
+    setLevel: vi.fn(),
+  },
+}));
 vi.mock('../../cli/lib/filesystem.js', () => ({
   pathExists: vi.fn().mockResolvedValue(true),
   ensureDirectoryExists: vi.fn().mockResolvedValue(undefined),
@@ -156,13 +181,31 @@ vi.mock('../../cli/lib/index.js', () => ({
 
 describe('Setup Command - Non-Interactive Flags', () => {
   const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-  // const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-  // const mockWriteFile = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    
+    // Re-apply logger mock after clearing
+    const logger = await import('../../cli/utils/logger.js');
+    vi.mocked(logger.Logger).mockImplementation(() => ({
+      info: vi.fn(),
+      warn: vi.fn(), 
+      error: vi.fn(),
+      debug: vi.fn(),
+      success: vi.fn(),
+      setLevel: vi.fn(),
+      prefix: '',
+      level: 'info',
+      levels: { debug: 0, info: 1, warn: 2, error: 3 },
+      shouldLog: vi.fn(() => true),
+      formatMessage: vi.fn((msg: string) => msg),
+    }) as any);
+    
+    // Mock console methods to prevent error output during tests
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     
     // Mock fs.writeFile for settings creation
     vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);

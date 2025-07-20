@@ -94,7 +94,7 @@ interface MockFsExtra {
   appendFile(path: string, data: string | Buffer): Promise<void>;
   unlink(path: string): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean; mode?: number }): Promise<string | undefined>;
-  rmdir(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
+  rm(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   access(path: string, mode?: number): Promise<void>;
   stat(path: string): Promise<MockStats>;
@@ -187,7 +187,7 @@ const createMockFsExtra = (): MockFsExtra => {
       return path;
     },
 
-    async rmdir(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void> {
+    async rm(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void> {
       checkError(path);
       if (options?.recursive === true || options?.force === true) {
         // Remove directory and all contents
@@ -319,20 +319,11 @@ const createMockFsExtra = (): MockFsExtra => {
       if (mockState.files.has(path)) {
         mockState.files.delete(path);
       } else if (mockState.directories.has(path)) {
-        await this.rmdir(path, { recursive: true });
+        await this.rm(path, { recursive: true });
       }
     },
 
-    // Alias for compatibility
-    rm: async (path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void> => {
-      if (mockState.files.has(path)) {
-        mockState.files.delete(path);
-      } else {
-        if (mockState.directories.has(path)) {
-          await mockFs.rmdir(path, options);
-        }
-      }
-    },
+    // Alias for compatibility - remove the duplicate rm definition
 
     // JSON operations
     async readJson(path: string): Promise<unknown> {
