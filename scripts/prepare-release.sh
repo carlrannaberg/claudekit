@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Simple Task Master - AI-Powered Release Preparation Script
 # This script automates the release preparation process with AI assistance
 # Optimized with pre-computation and smart diff filtering
 
@@ -21,7 +20,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PACKAGE_JSON="${PROJECT_ROOT}/package.json"
 CHANGELOG_FILE="${PROJECT_ROOT}/CHANGELOG.md"
 README_FILE="${PROJECT_ROOT}/README.md"
-PACKAGE_NAME="simple-task-master"
+PACKAGE_NAME="autoagent-cli"
 
 # Default values
 DRY_RUN=false
@@ -61,7 +60,7 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS]
 
-AI-powered release preparation script for Simple Task Master.
+AI-powered release preparation script for AutoAgent.
 
 OPTIONS:
     -t, --type TYPE     Release type: patch, minor, major
@@ -81,7 +80,7 @@ EOF
 # Function to detect available AI CLI
 detect_ai_cli() {
     print_step "Detecting available AI CLI tools..."
-    
+
     if command -v claude &> /dev/null; then
         AI_CLI="claude"
         AI_MODEL="--model claude-sonnet-4-20250514"
@@ -89,9 +88,9 @@ detect_ai_cli() {
         print_success "Found Claude CLI with Sonnet 4 model"
     elif command -v gemini &> /dev/null; then
         AI_CLI="gemini"
-        AI_MODEL="--model gemini-2.5-flash"
-        AI_FLAGS="--include-all"
-        print_success "Found Gemini CLI with Gemini 2.5 Flash model"
+        AI_MODEL="--model gemini-2.5-flash-exp"
+        AI_FLAGS="--include-all --yolo"
+        print_success "Found Gemini CLI with Flash 2.5 model"
     else
         print_error "No AI CLI found. Install Claude CLI or Gemini CLI to use this script."
         echo "Installation instructions:"
@@ -104,30 +103,30 @@ detect_ai_cli() {
 # Function to validate environment
 validate_environment() {
     print_step "Validating environment..."
-    
+
     # Check if we're in a git repository
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
         print_error "Not a git repository. Please run this script from the project root."
         exit 1
     fi
-    
+
     # Check if package.json exists
     if [[ ! -f "$PACKAGE_JSON" ]]; then
         print_error "package.json not found. Please run this script from the project root."
         exit 1
     fi
-    
+
     # Check for uncommitted changes
     if ! git diff-index --quiet HEAD --; then
         print_error "Uncommitted changes detected. Please commit or stash changes before release."
         git status --short
         exit 1
     fi
-    
-    # Check if we're on main branch
+
+    # Check if we're on master branch
     current_branch=$(git branch --show-current)
-    if [[ "$current_branch" != "main" ]]; then
-        print_warning "Not on main branch (current: $current_branch)"
+    if [[ "$current_branch" != "master" ]]; then
+        print_warning "Not on master branch (current: $current_branch)"
         if [[ "$INTERACTIVE" == "true" ]]; then
             read -p "Continue anyway? [y/N]: " -r
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -135,7 +134,7 @@ validate_environment() {
             fi
         fi
     fi
-    
+
     print_success "Environment validation passed"
 }
 
@@ -148,7 +147,7 @@ get_current_version() {
 calculate_next_version() {
     local current_version="$1"
     local release_type="$2"
-    
+
     case "$release_type" in
         "patch")
             node -p "const v='$current_version'.split('.').map(Number); v[2]++; v.join('.')"
@@ -171,10 +170,10 @@ prompt_release_type() {
     if [[ -n "$RELEASE_TYPE" ]]; then
         return
     fi
-    
+
     local current_version
     current_version=$(get_current_version)
-    
+
     echo
     print_info "Current version: $current_version"
     echo
@@ -183,7 +182,7 @@ prompt_release_type() {
     echo "  2) minor   - $(calculate_next_version "$current_version" "minor") (new features)"
     echo "  3) major   - $(calculate_next_version "$current_version" "major") (breaking changes)"
     echo
-    
+
     while true; do
         read -p "Enter choice [1-3]: " -r choice
         case $choice in
@@ -198,18 +197,24 @@ prompt_release_type() {
 # Function to run tests
 run_tests() {
     print_step "Running test suite to ensure code quality..."
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         print_info "Dry run: Skipping tests"
         return
     fi
-    
-    # Run tests in non-interactive mode
-    if ! CI=true npm test; then
-        print_error "Tests are failing. Please fix the failing tests before preparing a release."
+
+    # Build and run tests in non-interactive mode
+    if ! npm run build; then
+        print_error "Build failed. Please fix the build errors before preparing a release."
         exit 1
     fi
     
+    # Run tests with CI reporter (non-interactive)
+    if ! npm run test:ci; then
+        print_error "Tests are failing. Please fix the failing tests before preparing a release."
+        exit 1
+    fi
+
     print_success "All tests passed. Continuing with release preparation..."
 }
 
@@ -217,14 +222,14 @@ run_tests() {
 pre_compute_release_data() {
     print_step "Pre-computing release data..."
     echo "==========================="
-    
+
     # Fetch latest tags
     git fetch --tags
-    
+
     # Get versions
     CURRENT_VERSION=$(get_current_version)
     echo "Current version in package.json: $CURRENT_VERSION"
-    
+
     # Get published version from NPM
     PUBLISHED_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "")
     if [ -n "$PUBLISHED_VERSION" ]; then
@@ -234,7 +239,7 @@ pre_compute_release_data() {
         echo "No version found on NPM registry"
         LAST_VERSION_TAG=""
     fi
-    
+
     # Get the last git tag
     LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [ -z "$LAST_TAG" ]; then
@@ -255,53 +260,78 @@ pre_compute_release_data() {
             LAST_TAG="v$PUBLISHED_VERSION"
         fi
     fi
-    
+
     # Get commit information
     if [ "$LAST_TAG" != "HEAD" ]; then
         COMMIT_COUNT=$(git rev-list ${LAST_TAG}..HEAD --count)
         echo "Found $COMMIT_COUNT commits since $LAST_TAG"
-        
-        # Get recent commits
-        RECENT_COMMITS=$(git log ${LAST_TAG}..HEAD --oneline | head -20)
-        
+
+        # Get recent commits (limit to avoid long output)
+        RECENT_COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --max-count=20)
+
         # Get file changes with smart filtering
         DIFF_STAT=$(git diff ${LAST_TAG}..HEAD --stat)
         ALL_CHANGED_FILES=$(git diff ${LAST_TAG}..HEAD --name-only)
-        
+
         # Smart filtering: Include code files, exclude documentation/planning
-        CODE_CHANGED_FILES=$(echo "$ALL_CHANGED_FILES" | grep -v -E '^(docs/|issues/|plans/|specs/|\.github/)' | \
-            grep -E '\.(ts|js|json|yml|yaml|sh|py|css|scss|html|vue|jsx|tsx|mjs|cjs|toml|env|gitignore|nvmrc|dockerignore)$|^(package\.json|tsconfig|vitest\.config|eslint|prettier|babel|webpack|rollup|vite\.config|jest\.config|Dockerfile|Makefile|\.eslintrc|\.prettierrc)' || echo "")
+        # First check if we have too many files to process efficiently
+        FILE_COUNT=$(echo "$ALL_CHANGED_FILES" | wc -l)
+        echo "Total files changed: $FILE_COUNT"
         
+        if [ "$FILE_COUNT" -gt 200 ]; then
+            echo "Too many files changed ($FILE_COUNT) - skipping detailed diff analysis"
+            CODE_CHANGED_FILES=""
+        else
+            CODE_CHANGED_FILES=$(echo "$ALL_CHANGED_FILES" | grep -v -E '^(docs/|issues/|plans/|specs/|\.github/)' | \
+                grep -E '\.(ts|js|json|yml|yaml|sh|py|css|scss|html|vue|jsx|tsx|mjs|cjs|toml|env|gitignore|nvmrc|dockerignore)$|^(package\.json|tsconfig|vitest\.config|eslint|prettier|babel|webpack|rollup|vite\.config|jest\.config|Dockerfile|Makefile|\.eslintrc|\.prettierrc)' || echo "")
+        fi
+
         if [ -n "$CODE_CHANGED_FILES" ]; then
-            # Create filtered diff
-            FILTERED_DIFF=""
-            for file in $CODE_CHANGED_FILES; do
-                if [ -f "$file" ]; then
-                    FILTERED_DIFF="$FILTERED_DIFF$(git diff ${LAST_TAG}..HEAD -- "$file" 2>/dev/null || echo "")"
-                fi
-            done
+            # Count files and estimate diff size first
+            CODE_FILE_COUNT=$(echo "$CODE_CHANGED_FILES" | wc -l)
+            echo "Code files to analyze: $CODE_FILE_COUNT"
             
-            if [ -n "$FILTERED_DIFF" ]; then
-                DIFF_LINES=$(echo "$FILTERED_DIFF" | wc -l)
-                DIFF_CHARS=$(echo "$FILTERED_DIFF" | wc -c)
-                echo "Filtered diff (code files only): $DIFF_LINES lines, $DIFF_CHARS characters"
-                
-                # Check if diff is too large
-                if [ "$DIFF_LINES" -gt 3000 ] || [ "$DIFF_CHARS" -gt 80000 ]; then
-                    echo "Even filtered diff is large - providing file list only"
-                    DIFF_FULL="[DIFF TOO LARGE - Code files changed: $(echo "$CODE_CHANGED_FILES" | tr '\n' ' ')]"
-                    INCLUDE_DIFF_INSTRUCTION="Use 'git diff ${LAST_TAG}..HEAD -- [filename]' to check individual files: $(echo "$CODE_CHANGED_FILES" | head -10 | tr '\n' ' ')"
+            # If too many files, skip diff generation entirely
+            if [ "$CODE_FILE_COUNT" -gt 50 ]; then
+                echo "Too many code files changed ($CODE_FILE_COUNT) - providing file list only"
+                DIFF_FULL="[DIFF TOO LARGE - $CODE_FILE_COUNT code files changed: $(echo "$CODE_CHANGED_FILES" | head -20 | tr '\n' ' ')...]"
+                INCLUDE_DIFF_INSTRUCTION="Use 'git diff ${LAST_TAG}..HEAD -- [filename]' to check individual files: $(echo "$CODE_CHANGED_FILES" | head -10 | tr '\n' ' ')"
+            else
+                # Create filtered diff for smaller changesets
+                FILTERED_DIFF=""
+                for file in $CODE_CHANGED_FILES; do
+                    if [ -f "$file" ]; then
+                        FILTERED_DIFF="$FILTERED_DIFF$(git diff ${LAST_TAG}..HEAD -- "$file" 2>/dev/null || echo "")"
+                    fi
+                done
+
+                if [ -n "$FILTERED_DIFF" ]; then
+                    DIFF_LINES=$(echo "$FILTERED_DIFF" | wc -l)
+                    DIFF_CHARS=$(echo "$FILTERED_DIFF" | wc -c)
+                    echo "Filtered diff (code files only): $DIFF_LINES lines, $DIFF_CHARS characters"
+
+                    # Check if diff is too large
+                    if [ "$DIFF_LINES" -gt 3000 ] || [ "$DIFF_CHARS" -gt 80000 ]; then
+                        echo "Even filtered diff is large - providing file list only"
+                        DIFF_FULL="[DIFF TOO LARGE - Code files changed: $(echo "$CODE_CHANGED_FILES" | tr '\n' ' ')]"
+                        INCLUDE_DIFF_INSTRUCTION="Use 'git diff ${LAST_TAG}..HEAD -- [filename]' to check individual files: $(echo "$CODE_CHANGED_FILES" | head -10 | tr '\n' ' ')"
+                    else
+                        DIFF_FULL="$FILTERED_DIFF"
+                        INCLUDE_DIFF_INSTRUCTION=""
+                    fi
                 else
-                    DIFF_FULL="$FILTERED_DIFF"
-                    INCLUDE_DIFF_INSTRUCTION=""
+                    DIFF_FULL="[NO CODE CHANGES - Only documentation/planning files changed]"
+                    INCLUDE_DIFF_INSTRUCTION="No source code changes found. This release contains only documentation updates."
                 fi
+            fi
+        else
+            if [ "$FILE_COUNT" -gt 200 ]; then
+                DIFF_FULL="[DIFF TOO LARGE - $FILE_COUNT total files changed - analysis skipped for performance]"
+                INCLUDE_DIFF_INSTRUCTION="Use 'git diff ${LAST_TAG}..HEAD --stat' to see file changes and 'git log ${LAST_TAG}..HEAD --oneline' for commit history"
             else
                 DIFF_FULL="[NO CODE CHANGES - Only documentation/planning files changed]"
                 INCLUDE_DIFF_INSTRUCTION="No source code changes found. This release contains only documentation updates."
             fi
-        else
-            DIFF_FULL="[NO CODE CHANGES - Only documentation/planning files changed]"
-            INCLUDE_DIFF_INSTRUCTION="No source code changes found. This release contains only documentation updates."
         fi
     else
         COMMIT_COUNT=0
@@ -311,13 +341,13 @@ pre_compute_release_data() {
         CODE_CHANGED_FILES=""
         INCLUDE_DIFF_INSTRUCTION=""
     fi
-    
+
     # Get current CHANGELOG content
     CHANGELOG_CONTENT=$(head -100 "$CHANGELOG_FILE" 2>/dev/null || echo "# Changelog\n\nAll notable changes to this project will be documented in this file.")
-    
+
     # Calculate new version
     NEW_VERSION=$(calculate_next_version "$CURRENT_VERSION" "$RELEASE_TYPE")
-    
+
     echo "New version will be: $NEW_VERSION"
     echo "Changes to analyze: $COMMIT_COUNT commits"
     echo
@@ -326,8 +356,12 @@ pre_compute_release_data() {
 # Function to generate AI changelog and update README
 generate_ai_updates() {
     print_ai "Analyzing changes and updating CHANGELOG.md and README.md..."
-    echo "This should be much faster now with pre-computed data and combined updates..."
     
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_info "Dry run: Skipping AI-powered CHANGELOG and README updates"
+        return
+    fi
+
     # Check if timeout command is available
     if command -v gtimeout >/dev/null 2>&1; then
         TIMEOUT_CMD="gtimeout 180"
@@ -337,10 +371,10 @@ generate_ai_updates() {
         print_warning "No timeout command available. Install coreutils on macOS: brew install coreutils"
         TIMEOUT_CMD=""
     fi
-    
+
     # Temporarily disable exit on error for AI command
     set +e
-    
+
     local prompt="You are preparing a new $RELEASE_TYPE release for the $PACKAGE_NAME npm package.
 
 CURRENT SITUATION:
@@ -394,12 +428,12 @@ IMPORTANT:
 - DO NOT update package.json or create any git commits - those will be handled separately
 - Focus on accuracy - changelog entries should reflect actual code changes, not just commit messages
 - Ensure README.md is comprehensive and up-to-date with all features in the new release"
-    
-    $TIMEOUT_CMD $AI_CLI -p "$prompt" $AI_MODEL $AI_FLAGS
-    
+
+    $TIMEOUT_CMD $AI_CLI $AI_MODEL $AI_FLAGS -p "$prompt"
+
     AI_EXIT_CODE=$?
     set -e  # Re-enable exit on error
-    
+
     if [ $AI_EXIT_CODE -eq 124 ]; then
         print_error "$AI_CLI command timed out after 3 minutes."
         exit 1
@@ -407,7 +441,7 @@ IMPORTANT:
         print_error "$AI_CLI command failed with exit code $AI_EXIT_CODE"
         exit 1
     fi
-    
+
     print_success "CHANGELOG.md and README.md updated successfully!"
 }
 
@@ -415,43 +449,43 @@ IMPORTANT:
 # Function to update version in package.json
 update_package_version() {
     local new_version="$1"
-    
+
     print_step "Updating package.json version to $new_version..."
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         print_info "Dry run: Would update package.json version to $new_version"
         return
     fi
-    
+
     # Use npm version to update
     npm version "$new_version" --no-git-tag-version
-    
+
     print_success "package.json updated to version $new_version"
 }
 
 # Function to create release commit
 create_release_commit() {
     local new_version="$1"
-    
+
     print_step "Creating release commit..."
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         print_info "Dry run: Would create release commit for version $new_version"
         return
     fi
-    
+
     # Add all changes
     git add .
-    
+
     # Create commit with proper message
     local commit_message="chore: prepare release v$new_version
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-    
+
     git commit -m "$commit_message"
-    
+
     print_success "Release commit created"
 }
 
@@ -466,11 +500,11 @@ show_release_summary() {
     echo "  Release type:     $RELEASE_TYPE"
     echo "  Commits included: $COMMIT_COUNT"
     echo
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         echo "🚀 Next steps:"
         echo "  1. Review the changes: git diff HEAD~1"
-        echo "  2. Push to GitHub: git push origin main"
+        echo "  2. Push to GitHub: git push origin master"
         echo "  3. The GitHub Actions will create the tag and publish to npm"
         echo
         echo "🔗 Links:"
@@ -525,14 +559,14 @@ main() {
                 ;;
         esac
     done
-    
+
     # Set up interrupt handler
     trap handle_interrupt SIGINT SIGTERM
-    
+
     echo
-    print_info "Simple Task Master - AI-Powered Release Preparation"
+    print_info "AutoAgent - AI-Powered Release Preparation"
     echo
-    
+
     # Validate release type if provided
     if [[ -n "$RELEASE_TYPE" ]]; then
         case "$RELEASE_TYPE" in
@@ -544,19 +578,19 @@ main() {
                 ;;
         esac
     fi
-    
+
     # Main workflow
     detect_ai_cli
     validate_environment
     prompt_release_type
     run_tests
-    
+
     # Pre-compute all data for AI
     pre_compute_release_data
-    
+
     print_info "Preparing release: $CURRENT_VERSION → $NEW_VERSION"
     echo
-    
+
     if [[ "$INTERACTIVE" == "true" ]]; then
         read -p "Continue with release preparation? [Y/n]: " -r
         if [[ $REPLY =~ ^[Nn]$ ]]; then
@@ -564,20 +598,20 @@ main() {
             exit 0
         fi
     fi
-    
+
     # Run the release preparation with AI
     generate_ai_updates
-    
+
     # Update version and create commit
     update_package_version "$NEW_VERSION"
     create_release_commit "$NEW_VERSION"
-    
+
     # Show summary
     show_release_summary
-    
+
     # Cleanup
     cleanup
-    
+
     print_success "Release preparation script completed successfully!"
 }
 
