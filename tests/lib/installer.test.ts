@@ -13,6 +13,23 @@ import type {
 } from '../../cli/types/config.js';
 // import * as fs from 'fs/promises'; // Removed unused import
 import * as path from 'path';
+import type { ComponentType, ComponentCategory, Platform } from '../../cli/types/config.js';
+
+interface ComponentFile {
+  path: string;
+  type: ComponentType;
+  metadata: {
+    id: string;
+    name: string;
+    description: string;
+    category: ComponentCategory;
+    dependencies: string[];
+    platforms: Platform[];
+    enabled: boolean;
+  };
+  hash: string;
+  lastModified: Date;
+}
 
 // Mock filesystem module
 vi.mock('../../cli/lib/filesystem.js', () => ({
@@ -247,7 +264,7 @@ vi.mock('../../cli/utils/logger.js', () => ({
 describe('Installer', () => {
   let installer: Installer;
   let mockProgress: InstallProgress[] = [];
-  let mockComponentsMap: Map<string, any>;
+  let mockComponentsMap: Map<string, ComponentFile>;
 
   const mockComponent: Component = {
     id: 'test-hook',
@@ -281,21 +298,22 @@ describe('Installer', () => {
 
     // Helper to create component file structure
     const createComponentFile = (
-      type: string,
+      type: ComponentType,
       id: string,
       name: string,
-      category: string,
+      category: ComponentCategory,
       deps: string[] = []
-    ): any => ({
+    ): ComponentFile => ({
       type,
       path: type === 'hook' ? `/source/hooks/${id}.sh` : `/source/commands/${id}.md`,
+      hash: `${id}-hash`,
       lastModified: new Date(),
       metadata: {
         id,
         name,
         description: `${name} description`,
         dependencies: deps,
-        platforms: ['all'],
+        platforms: ['all' as const],
         category,
         enabled: true,
       },

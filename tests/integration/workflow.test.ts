@@ -23,8 +23,8 @@ vi.mock('ora', () => ({
 }));
 
 vi.mock('chalk', () => {
-  const createChainableInstance = (): any => {
-    const chainable: any = (text: string) => text;
+  const createChainableInstance = (): Record<string, unknown> => {
+    const chainable = ((text: string) => text) as unknown as Record<string, unknown>;
     const props = ['bold', 'dim', 'italic', 'underline', 'green', 'red', 'yellow', 'blue', 'gray', 'cyan'];
     
     props.forEach(prop => {
@@ -130,13 +130,13 @@ describe('CLI workflow integration', () => {
       const reloadedConfig = await loadConfig(tempDir);
       expect(reloadedConfig.hooks.PostToolUse).toBeDefined();
       expect(Array.isArray(reloadedConfig.hooks.PostToolUse)).toBe(true);
-      expect(reloadedConfig.hooks.PostToolUse?.length || 0).toBeGreaterThan(0);
+      expect((reloadedConfig.hooks.PostToolUse?.length ?? 0) > 0).toBe(true);
 
       // The python hook should be added if it exists
       const pythonHook = reloadedConfig.hooks.PostToolUse?.find((hook) =>
         hook.matcher.includes('**/*.py')
       );
-      if (pythonHook) {
+      if (pythonHook !== undefined) {
         expect(pythonHook.hooks[0]?.command).toBe('.claude/hooks/python-check.sh');
       }
 

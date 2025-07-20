@@ -153,7 +153,7 @@ describe('filesystem module', () => {
         isSymbolicLink: () => false,
         isFIFO: () => false,
         isSocket: () => false
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
 
       // The function should either throw an error or handle gracefully
       // Since this is an edge case and the mock may not work perfectly,

@@ -133,7 +133,7 @@ vi.mock('../../cli/lib/index.js', () => ({
   }),
   recommendComponents: vi.fn().mockImplementation((_projectInfo, registry) => {
     // Handle case where registry might be undefined in tests
-    if (!registry || !registry.components) {
+    if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
       return {
         essential: [],
         recommended: [],
@@ -149,14 +149,14 @@ vi.mock('../../cli/lib/index.js', () => ({
     return {
       essential: [],
       recommended: [
-        ...(typecheckComponent ? [{
+        ...(typecheckComponent !== undefined ? [{
           component: typecheckComponent,
           score: 85,
           reasons: ['TypeScript detected'],
           dependencies: ['tsc'],
           isRequired: false,
         }] : []),
-        ...(eslintComponent ? [{
+        ...(eslintComponent !== undefined ? [{
           component: eslintComponent,
           score: 80,
           reasons: ['ESLint detected'],
@@ -165,7 +165,7 @@ vi.mock('../../cli/lib/index.js', () => ({
         }] : []),
       ],
       optional: [
-        ...(checkpointCreateComponent ? [{
+        ...(checkpointCreateComponent !== undefined ? [{
           component: checkpointCreateComponent,
           score: 60,
           reasons: ['Git repository'],
@@ -196,12 +196,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
       debug: vi.fn(),
       success: vi.fn(),
       setLevel: vi.fn(),
-      prefix: '',
-      level: 'info',
-      levels: { debug: 0, info: 1, warn: 2, error: 3 },
-      shouldLog: vi.fn(() => true),
-      formatMessage: vi.fn((msg: string) => msg),
-    }) as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any));
     
     // Mock console methods to prevent error output during tests
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -322,7 +318,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
     
     vi.mocked(libIndex.recommendComponents).mockImplementation(async (_projectInfo, registry) => {
       // Handle case where registry might be undefined in tests
-      if (!registry || !registry.components) {
+      if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
         return Promise.resolve({
           essential: [],
           recommended: [],
@@ -490,7 +486,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
         installComponents as unknown as ReturnType<typeof vi.fn>
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
-      if (projectCall) {
+      if (projectCall !== undefined) {
         expect(projectCall[2].customPath).toBe(testDir);
       }
     });
@@ -580,7 +576,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
         installComponents as unknown as ReturnType<typeof vi.fn>
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
-      if (projectCall) {
+      if (projectCall !== undefined) {
         expect(projectCall[2].customPath).toBe(testDir);
       }
     });
