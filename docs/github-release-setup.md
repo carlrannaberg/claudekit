@@ -23,7 +23,7 @@ To enable automated NPM publishing, you need to add the following secret to your
    - Copy the generated token
 
 2. **Add Token to GitHub Repository**:
-   - Go to your GitHub repository: `https://github.com/carlsverre/claudekit`
+   - Go to your GitHub repository: `https://github.com/carlrannaberg/claudekit`
    - Navigate to Settings → Secrets and variables → Actions
    - Click "New repository secret"
    - Name: `NPM_TOKEN`
@@ -91,6 +91,8 @@ You can also use the local release script:
 - **NPM URL**: https://www.npmjs.com/package/claudekit
 - **Installation**: `npm install -g claudekit`
 - **Usage**: `claudekit --help`
+- **GitHub Repository**: https://github.com/carlrannaberg/claudekit
+- **NPM_TOKEN**: ✅ Configured (added 2025-07-20)
 
 ## Security Notes
 
