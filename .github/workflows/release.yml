@@ -1,25 +1,66 @@
-name: Release
+name: Release Package
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+      - master
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release (e.g., 1.0.0)'
+      release-type:
+        description: 'Release type (patch, minor, major)'
         required: true
-        type: string
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  release:
+  check-version:
+    name: Check Version and Prepare Release
     runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.check.outputs.version }}
     
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+    
+    - name: Check if version changed
+      id: check
+      run: |
+        # Get current version from package.json
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Check if tag already exists
+        if git tag | grep -q "^v$CURRENT_VERSION$"; then
+          echo "Tag v$CURRENT_VERSION already exists. Skipping release."
+          echo "should-release=false" >> $GITHUB_OUTPUT
+        else
+          echo "Tag v$CURRENT_VERSION does not exist. Proceeding with release."
+          echo "should-release=true" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        fi
+
+  release:
+    name: Build and Publish
+    needs: check-version
+    if: needs.check-version.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -36,10 +77,46 @@ jobs:
         npm run lint
         npm run typecheck
     
-    - name: Build
+    - name: Build package
       run: npm run build
     
-    - name: Publish to NPM
+    - name: Validate build output
+      run: |
+        # Check that dist directory exists and contains files
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
+          echo "::error::Build output directory 'dist' is empty or missing"
+          exit 1
+        fi
+        
+        # Check that main entry point exists
+        if [ ! -f "dist/index.js" ]; then
+          echo "::error::Main entry point 'dist/index.js' is missing"
+          exit 1
+        fi
+        
+        # Check that type definitions exist
+        if [ ! -f "dist/index.d.ts" ]; then
+          echo "::error::Type definitions 'dist/index.d.ts' are missing"
+          exit 1
+        fi
+        
+        # Check that CLI entry point exists
+        if [ ! -f "bin/claudekit" ]; then
+          echo "::error::CLI entry point 'bin/claudekit' is missing"
+          exit 1
+        fi
+        
+        echo "Build validation passed ✓"
+    
+    - name: Create release tag
+      run: |
+        VERSION=${{ needs.check-version.outputs.version }}
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "v$VERSION" -m "Release v$VERSION"
+        git push origin "v$VERSION"
+    
+    - name: Publish to npm
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -49,7 +126,35 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: v${{ needs.check-version.outputs.version }}
+        release_name: Release v${{ needs.check-version.outputs.version }}
+        body: |
+          ## Claudekit v${{ needs.check-version.outputs.version }}
+          
+          ### Installation
+          ```bash
+          npm install -g claudekit@${{ needs.check-version.outputs.version }}
+          ```
+          
+          ### What's Changed
+          Please see the [changelog](https://github.com/${{ github.repository }}/compare/v${{ needs.check-version.outputs.version }}...HEAD) for details.
+          
+          ### Full Changelog
+          https://github.com/${{ github.repository }}/commits/v${{ needs.check-version.outputs.version }}
         draft: false
         prerelease: false
+
+  post-release:
+    name: Post-Release Actions
+    needs: [check-version, release]
+    if: needs.check-version.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "::error::Release failed! Please check the logs and fix any issues."
