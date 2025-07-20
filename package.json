@@ -1,5 +1,5 @@
 {
-  "name": "@claudekit/cli",
+  "name": "claudekit",
   "version": "0.1.0",
   "description": "CLI tools for ClaudeKit development workflow",
   "type": "module",
@@ -49,7 +49,10 @@
     "format": "prettier --write \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release:patch": "./scripts/prepare-release.sh --type patch",
+    "release:minor": "./scripts/prepare-release.sh --type minor",
+    "release:major": "./scripts/prepare-release.sh --type major"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
