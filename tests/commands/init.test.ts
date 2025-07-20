@@ -55,7 +55,7 @@ vi.mock('chalk', () => ({
 }));
 
 // Mock project detection
-vi.mock('../../src/lib/project-detection.js', () => ({
+vi.mock('../../cli/lib/project-detection.js', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     hasTypeScript: true,
     hasESLint: true,
@@ -70,7 +70,7 @@ vi.mock('../../src/lib/project-detection.js', () => ({
 }));
 
 // Mock components
-vi.mock('../../src/lib/components.js', () => ({
+vi.mock('../../cli/lib/components.js', () => ({
   discoverComponents: vi.fn().mockResolvedValue({
     components: new Map(),
     dependencies: new Map(),

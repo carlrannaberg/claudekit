@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Colors, symbols, status, colors } from '../src/utils/colors.js';
+import { Colors, symbols, status, colors } from '../cli/utils/colors.js';
 
 describe('Colors utility', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -282,7 +282,7 @@ describe('Colors utility', () => {
 
     it('should export Colors as default', async () => {
       // Import the default export for testing
-      const module = await import('../src/utils/colors.js');
+      const module = await import('../cli/utils/colors.js');
       expect(module.default).toBe(Colors);
     });
   });

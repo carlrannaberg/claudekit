@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Installer, createInstallPlan, validateInstallPlan, simulateInstallation } from '../../src/lib/installer.js';
-import type { Installation, Component, InstallOptions, InstallProgress } from '../../src/types/config.js';
+import { Installer, createInstallPlan, validateInstallPlan, simulateInstallation } from '../../cli/lib/installer.js';
+import type { Installation, Component, InstallOptions, InstallProgress } from '../../cli/types/config.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 // Mock filesystem module
-vi.mock('../../src/lib/filesystem.js', () => ({
+vi.mock('../../cli/lib/filesystem.js', () => ({
   copyFileWithBackup: vi.fn(),
   ensureDirectoryExists: vi.fn(),
   setExecutablePermission: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('../../src/lib/filesystem.js', () => ({
 }));
 
 // Mock components module
-vi.mock('../../src/lib/components.js', () => {
+vi.mock('../../cli/lib/components.js', () => {
   // Helper to create component file structure
   const createComponentFile = (type: string, id: string, name: string, category: string, deps: string[] = []) => ({
     type,
@@ -100,7 +100,7 @@ vi.mock('../../src/lib/components.js', () => {
 });
 
 // Mock project detection
-vi.mock('../../src/lib/project-detection.js', () => ({
+vi.mock('../../cli/lib/project-detection.js', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     hasTypeScript: true,
     hasESLint: true,
@@ -223,7 +223,7 @@ describe('Installer', () => {
         components: [mainComponent, depComponent],
       };
 
-      const components = await import('../../src/lib/components.js');
+      const components = await import('../../cli/lib/components.js');
       vi.mocked(components.resolveDependencyOrder).mockReturnValue(['dependency', 'main']);
       vi.mocked(components.getMissingDependencies).mockReturnValue([]);
 
@@ -259,7 +259,7 @@ describe('Installer', () => {
 
   describe('validateInstallPlan', () => {
     it('should validate a valid plan', async () => {
-      const { pathExists } = await import('../../src/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem.js');
       (pathExists as any).mockResolvedValue(true); // Source files exist
 
       const plan = await createInstallPlan(mockInstallation);
@@ -269,7 +269,7 @@ describe('Installer', () => {
     });
 
     it('should detect missing write permissions', async () => {
-      const { checkWritePermission } = await import('../../src/lib/filesystem.js');
+      const { checkWritePermission } = await import('../../cli/lib/filesystem.js');
       (checkWritePermission as any).mockResolvedValue(false);
 
       const plan = await createInstallPlan(mockInstallation);
@@ -280,7 +280,7 @@ describe('Installer', () => {
     });
 
     it('should detect missing source files', async () => {
-      const { pathExists } = await import('../../src/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem.js');
       (pathExists as any).mockImplementation((path: string) => {
         if (path.includes('/source/')) return false;
         return true;
@@ -304,7 +304,7 @@ describe('Installer', () => {
       expect(result.errors).toHaveLength(0);
 
       // Should not call actual file operations
-      const { copyFileWithBackup, ensureDirectoryExists } = await import('../../src/lib/filesystem.js');
+      const { copyFileWithBackup, ensureDirectoryExists } = await import('../../cli/lib/filesystem.js');
       expect(copyFileWithBackup).not.toHaveBeenCalled();
       expect(ensureDirectoryExists).not.toHaveBeenCalled();
     });
@@ -327,7 +327,7 @@ describe('Installer', () => {
 
   describe('Installer.install', () => {
     it('should execute a complete installation', async () => {
-      const { copyFileWithBackup, ensureDirectoryExists, setExecutablePermission, pathExists } = await import('../../src/lib/filesystem.js');
+      const { copyFileWithBackup, ensureDirectoryExists, setExecutablePermission, pathExists } = await import('../../cli/lib/filesystem.js');
       
       // Mock pathExists to return true for source files, false for target files
       (pathExists as any).mockImplementation((path: string) => {
@@ -355,7 +355,7 @@ describe('Installer', () => {
     });
 
     it('should handle dry run mode', async () => {
-      const { copyFileWithBackup, pathExists } = await import('../../src/lib/filesystem.js');
+      const { copyFileWithBackup, pathExists } = await import('../../cli/lib/filesystem.js');
       
       // Mock pathExists to return true for source files
       (pathExists as any).mockImplementation((path: string) => {
@@ -375,7 +375,7 @@ describe('Installer', () => {
     });
 
     it('should rollback on failure', async () => {
-      const { copyFileWithBackup, safeRemove, pathExists, ensureDirectoryExists } = await import('../../src/lib/filesystem.js');
+      const { copyFileWithBackup, safeRemove, pathExists, ensureDirectoryExists } = await import('../../cli/lib/filesystem.js');
       
       // Mock pathExists to return true for source files
       (pathExists as any).mockImplementation((path: string) => {
@@ -404,7 +404,7 @@ describe('Installer', () => {
     });
 
     it('should report progress throughout installation', async () => {
-      const { pathExists } = await import('../../src/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem.js');
       
       // Mock pathExists to return true for source files
       (pathExists as any).mockImplementation((path: string) => {
@@ -433,7 +433,7 @@ describe('Installer', () => {
     it('should create configuration based on project info', async () => {
       const { writeFile } = await import('fs/promises');
       const writeFileMock = vi.mocked(writeFile);
-      const { pathExists } = await import('../../src/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem.js');
       
       // Mock pathExists to return true for source files
       (pathExists as any).mockImplementation((path: string) => {

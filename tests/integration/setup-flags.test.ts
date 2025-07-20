@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { setup } from '../../src/commands/setup.js';
-import type { SetupOptions } from '../../src/commands/setup.js';
+import { setup } from '../../cli/commands/setup.js';
+import type { SetupOptions } from '../../cli/commands/setup.js';
 
 // Mock all the external dependencies
 vi.mock('@inquirer/prompts', () => ({
@@ -19,14 +19,14 @@ vi.mock('ora', () => ({
     text: '',
   }),
 }));
-vi.mock('../../src/utils/logger.js');
-vi.mock('../../src/lib/filesystem.js', () => ({
+vi.mock('../../cli/utils/logger.js');
+vi.mock('../../cli/lib/filesystem.js', () => ({
   pathExists: vi.fn().mockResolvedValue(true),
   ensureDirectoryExists: vi.fn().mockResolvedValue(undefined),
   expandHomePath: vi.fn((path: string) => path.replace('~', '/home/user')),
   normalizePath: vi.fn((path: string) => path),
 }));
-vi.mock('../../src/lib/index.js', () => ({
+vi.mock('../../cli/lib/index.js', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     projectRoot: process.cwd(),
     hasTypeScript: true,
@@ -147,7 +147,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       expect(confirm).not.toHaveBeenCalled();
 
       // Should install components
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalled();
     });
 
@@ -159,7 +159,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(2);
       
       // Check that both user and project installations happened
@@ -178,7 +178,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalled();
       
       const installedComponents = (installComponents as any).mock.calls[0][0];
@@ -208,7 +208,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalled();
       
       const installedComponents = (installComponents as any).mock.calls[0][0];
@@ -227,7 +227,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       const installedComponents = (installComponents as any).mock.calls[0][0];
       const installedIds = installedComponents.map((c: any) => c.id);
       expect(installedIds).toContain('typecheck');
@@ -238,7 +238,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('--project flag', () => {
     it('should use specified project directory', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../src/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
@@ -253,13 +253,13 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       const projectCall = (installComponents as any).mock.calls.find((call: any) => call[1] === 'project');
       expect(projectCall[2].customPath).toBe(testDir);
     });
 
     it('should throw error if project directory does not exist', async () => {
-      const mockPathExists = (await import('../../src/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
       mockPathExists.mockResolvedValue(false);
 
       const options: SetupOptions = {
@@ -281,7 +281,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(1);
       expect((installComponents as any).mock.calls[0][1]).toBe('user');
     });
@@ -294,7 +294,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       const installedComponents = (installComponents as any).mock.calls[0][0];
       expect(installedComponents.length).toBeGreaterThan(0);
     });
@@ -310,7 +310,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       const installOptions = (installComponents as any).mock.calls[0][2];
       expect(installOptions.dryRun).toBe(true);
     });
@@ -319,7 +319,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('Combined flags', () => {
     it('should work with --yes --project combination', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../src/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
@@ -334,7 +334,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(2);
       
       const projectCall = (installComponents as any).mock.calls.find((call: any) => call[1] === 'project');
@@ -350,7 +350,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../src/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index.js');
       const installedComponents = (installComponents as any).mock.calls[0][0];
       const installedIds = installedComponents.map((c: any) => c.id);
       expect(installedIds).toContain('checkpoint-create');

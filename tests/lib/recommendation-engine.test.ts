@@ -4,15 +4,15 @@ import {
   formatRecommendationSummary,
   type ComponentRecommendation,
   type RecommendationResult 
-} from '../../src/lib/components.js';
-import type { ProjectInfo } from '../../src/types/index.js';
+} from '../../cli/lib/components.js';
+import type { ProjectInfo } from '../../cli/types/index.js';
 
 describe('Component Recommendation Engine', () => {
   // Mock component registry with test components
   const mockRegistry = {
     components: new Map([
       ['typecheck', {
-        path: '/src/hooks/typecheck.sh',
+        path:../cli/hooks/typecheck.sh',
         type: 'hook' as const,
         metadata: {
           id: 'typecheck',
@@ -27,7 +27,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['eslint', {
-        path: '/src/hooks/eslint.sh',
+        path:../cli/hooks/eslint.sh',
         type: 'hook' as const,
         metadata: {
           id: 'eslint',
@@ -42,7 +42,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['prettier', {
-        path: '/src/hooks/prettier.sh',
+        path:../cli/hooks/prettier.sh',
         type: 'hook' as const,
         metadata: {
           id: 'prettier',
@@ -57,7 +57,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['auto-checkpoint', {
-        path: '/src/hooks/auto-checkpoint.sh',
+        path:../cli/hooks/auto-checkpoint.sh',
         type: 'hook' as const,
         metadata: {
           id: 'auto-checkpoint',
@@ -72,7 +72,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['run-related-tests', {
-        path: '/src/hooks/run-related-tests.sh',
+        path:../cli/hooks/run-related-tests.sh',
         type: 'hook' as const,
         metadata: {
           id: 'run-related-tests',
@@ -87,7 +87,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['validation-lib', {
-        path: '/src/hooks/validation-lib.sh',
+        path:../cli/hooks/validation-lib.sh',
         type: 'hook' as const,
         metadata: {
           id: 'validation-lib',
@@ -102,7 +102,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['dev-cleanup', {
-        path: '/src/commands/dev/cleanup.md',
+        path:../cli/commands/dev/cleanup.md',
         type: 'command' as const,
         metadata: {
           id: 'dev-cleanup',
@@ -117,7 +117,7 @@ describe('Component Recommendation Engine', () => {
         lastModified: new Date()
       }],
       ['agent-init', {
-        path: '/src/commands/agent/init.md',
+        path:../cli/commands/agent/init.md',
         type: 'command' as const,
         metadata: {
           id: 'agent-init',

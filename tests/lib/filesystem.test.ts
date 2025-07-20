@@ -63,7 +63,7 @@ import {
   safeRemove,
   expandHomePath,
   normalizePath,
-} from '../../src/lib/filesystem.js';
+} from '../../cli/lib/filesystem.js';
 
 const mockFs = fs as any;
 const mockOs = os as any;
