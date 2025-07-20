@@ -1,0 +1,170 @@
+import chalk from 'chalk';
+import ora from 'ora';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { 
+  detectProjectContext, 
+  discoverComponents, 
+  recommendComponents, 
+  formatRecommendationSummary 
+} from '../lib/index.js';
+
+interface InitOptions {
+  force?: boolean;
+  skipRecommendations?: boolean;
+}
+
+export async function init(options: InitOptions): Promise<void> {
+  const spinner = ora('Initializing ClaudeKit...').start();
+
+  try {
+    const projectRoot = process.cwd();
+    const claudeDir = path.join(projectRoot, '.claude');
+
+    // Check if .claude directory already exists
+    try {
+      await fs.access(claudeDir);
+      if (options.force !== true) {
+        spinner.fail('.claude directory already exists. Use --force to overwrite.');
+        return;
+      }
+    } catch {
+      // Directory doesn't exist, which is fine
+    }
+
+    // Create .claude directory
+    await fs.mkdir(claudeDir, { recursive: true });
+
+    // Analyze project and generate recommendations
+    let recommendations;
+    let projectInfo;
+    
+    if (!options.skipRecommendations) {
+      spinner.text = 'Analyzing project...';
+      projectInfo = await detectProjectContext(projectRoot);
+      
+      spinner.text = 'Discovering available components...';
+      const registry = await discoverComponents(path.join(__dirname, '../../..'));
+      
+      spinner.text = 'Generating recommendations...';
+      recommendations = await recommendComponents(projectInfo, registry);
+    }
+
+    // Build settings based on recommendations
+    const defaultSettings: any = {
+      hooks: {
+        PostToolUse: [],
+        Stop: []
+      }
+    };
+
+    if (recommendations) {
+      // Add essential hooks to settings
+      for (const rec of recommendations.essential) {
+        if (rec.component.type === 'hook') {
+          const hookPath = `.claude/hooks/${path.basename(rec.component.path)}`;
+          
+          if (rec.component.metadata.id === 'typecheck') {
+            defaultSettings.hooks.PostToolUse.push({
+              matcher: 'tools:Write AND file_paths:**/*.ts',
+              hooks: [{ type: 'command', command: hookPath }]
+            });
+          } else if (rec.component.metadata.id === 'eslint') {
+            defaultSettings.hooks.PostToolUse.push({
+              matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
+              hooks: [{ type: 'command', command: hookPath }]
+            });
+          } else if (rec.component.metadata.id === 'auto-checkpoint') {
+            defaultSettings.hooks.Stop.push({
+              matcher: '*',
+              hooks: [{ type: 'command', command: hookPath }]
+            });
+          }
+        }
+      }
+      
+      // Add recommended hooks if they're validation-related
+      for (const rec of recommendations.recommended) {
+        if (rec.component.type === 'hook' && rec.component.metadata.category === 'validation') {
+          const hookPath = `.claude/hooks/${path.basename(rec.component.path)}`;
+          
+          if (rec.component.metadata.id === 'validate-todo-completion') {
+            const stopEntry = defaultSettings.hooks.Stop.find((e: any) => e.matcher === '*');
+            if (stopEntry) {
+              stopEntry.hooks.push({ type: 'command', command: hookPath });
+            } else {
+              defaultSettings.hooks.Stop.push({
+                matcher: '*',
+                hooks: [{ type: 'command', command: hookPath }]
+              });
+            }
+          }
+        }
+      }
+    } else {
+      // Fallback to sensible defaults if recommendations were skipped
+      defaultSettings.hooks.PostToolUse = [
+        {
+          matcher: 'tools:Write AND file_paths:**/*.ts',
+          hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
+        },
+        {
+          matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
+          hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }],
+        },
+      ];
+      defaultSettings.hooks.Stop = [
+        {
+          matcher: '*',
+          hooks: [
+            { type: 'command', command: '.claude/hooks/auto-checkpoint.sh' },
+            { type: 'command', command: '.claude/hooks/validate-todo-completion.sh' },
+          ],
+        },
+      ];
+    }
+
+    await fs.writeFile(
+      path.join(claudeDir, 'settings.json'),
+      JSON.stringify(defaultSettings, null, 2)
+    );
+
+    // Create hooks and commands directories
+    await fs.mkdir(path.join(claudeDir, 'hooks'), { recursive: true });
+    await fs.mkdir(path.join(claudeDir, 'commands'), { recursive: true });
+
+    spinner.succeed(chalk.green('ClaudeKit initialized successfully!'));
+
+    // Show recommendations if we generated them
+    if (recommendations && (recommendations.essential.length > 0 || 
+        recommendations.recommended.length > 0 || 
+        recommendations.optional.length > 0)) {
+      console.log('\n' + chalk.bold('Component Recommendations based on your project:'));
+      console.log(formatRecommendationSummary(recommendations));
+    }
+
+    console.log('\nNext steps:');
+    console.log(chalk.blue('1.'), 'Run', chalk.cyan('claudekit install'), 'to install the recommended hooks');
+    console.log(
+      chalk.blue('2.'),
+      'Review and customize your settings in',
+      chalk.cyan('.claude/settings.json')
+    );
+    console.log(chalk.blue('3.'), 'Add custom commands to', chalk.cyan('.claude/commands/'));
+    
+    if (projectInfo && !options.skipRecommendations) {
+      console.log('\n' + chalk.dim('Project detected:'));
+      if (projectInfo.hasTypeScript) console.log(chalk.dim('  • TypeScript'));
+      if (projectInfo.hasESLint) console.log(chalk.dim('  • ESLint'));
+      if (projectInfo.hasPrettier) console.log(chalk.dim('  • Prettier'));
+      if (projectInfo.hasJest) console.log(chalk.dim('  • Jest'));
+      if (projectInfo.hasVitest) console.log(chalk.dim('  • Vitest'));
+      if (projectInfo.frameworks?.length) {
+        console.log(chalk.dim(`  • Frameworks: ${projectInfo.frameworks.join(', ')}`));
+      }
+    }
+  } catch (error) {
+    spinner.fail('Failed to initialize ClaudeKit');
+    throw error;
+  }
+}

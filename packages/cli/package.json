@@ -1,0 +1,84 @@
+{
+  "name": "@claudekit/cli",
+  "version": "0.1.0",
+  "description": "CLI tools for ClaudeKit development workflow",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "bin": {
+    "claudekit": "./bin/claudekit"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:types",
+    "build:esm": "esbuild src/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external && esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --packages=external",
+    "build:types": "tsc --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "dev": "tsx watch src/cli.ts",
+    "test": "vitest",
+    "test:ci": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:open": "vitest run --coverage && open coverage/index.html",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:commands": "vitest run tests/commands",
+    "test:utils": "vitest run tests/utils",
+    "test:mocks": "vitest run tests/mocks",
+    "test:verbose": "VERBOSE_TESTS=true vitest run --reporter=verbose",
+    "test:silent": "vitest run --reporter=basic",
+    "coverage:check": "vitest run --coverage --reporter=verbose",
+    "coverage:threshold": "vitest run --coverage --reporter=json --outputFile.json=./coverage/coverage-summary.json",
+    "lint": "eslint src tests --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.6.0",
+    "commander": "^14.0.0",
+    "ora": "^8.2.0",
+    "picocolors": "^1.1.0",
+    "fs-extra": "^11.3.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "@types/fs-extra": "^11.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "esbuild": "^0.24.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.8"
+  },
+  "keywords": [
+    "cli",
+    "claudekit",
+    "claude",
+    "development",
+    "workflow"
+  ],
+  "author": "",
+  "license": "MIT"
+}
