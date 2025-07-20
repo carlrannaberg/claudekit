@@ -130,7 +130,7 @@ describe('CLI workflow integration', () => {
       const reloadedConfig = await loadConfig(tempDir);
       expect(reloadedConfig.hooks.PostToolUse).toBeDefined();
       expect(Array.isArray(reloadedConfig.hooks.PostToolUse)).toBe(true);
-      expect(reloadedConfig.hooks.PostToolUse.length).toBeGreaterThan(0);
+      expect(reloadedConfig.hooks.PostToolUse?.length || 0).toBeGreaterThan(0);
 
       // The python hook should be added if it exists
       const pythonHook = reloadedConfig.hooks.PostToolUse?.find((hook) =>

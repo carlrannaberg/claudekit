@@ -175,7 +175,6 @@ describe('Setup Command - Non-Interactive Flags', () => {
     // Re-apply mocks after clearing
     const libIndex = await import('../../cli/lib/index.js');
     vi.mocked(libIndex.detectProjectContext).mockResolvedValue({
-      projectRoot: process.cwd(),
       hasTypeScript: true,
       hasESLint: true,
       hasPrettier: false,
@@ -194,6 +193,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
           {
             type: 'hook',
             path: '/path/to/typecheck.sh',
+            hash: 'abc123',
+            lastModified: new Date(),
             metadata: {
               id: 'typecheck',
               name: 'TypeScript Check',
@@ -210,6 +211,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
           {
             type: 'hook',
             path: '/path/to/eslint.sh',
+            hash: 'def456',
+            lastModified: new Date(),
             metadata: {
               id: 'eslint',
               name: 'ESLint',
@@ -226,6 +229,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
           {
             type: 'command',
             path: '/path/to/checkpoint-create.md',
+            hash: 'ghi789',
+            lastModified: new Date(),
             metadata: {
               id: 'checkpoint-create',
               name: 'Create Checkpoint',
@@ -242,6 +247,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
           {
             type: 'command',
             path: '/path/to/git-commit.md',
+            hash: 'jkl012',
+            lastModified: new Date(),
             metadata: {
               id: 'git-commit',
               name: 'Git Commit',
