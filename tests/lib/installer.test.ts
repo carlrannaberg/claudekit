@@ -104,17 +104,18 @@ vi.mock('../../cli/lib/components.js', () => {
       lastScan: new Date(),
       cacheValid: true,
       dependencyGraph: {
-        nodes: [
-          'test-hook',
-          'auto-checkpoint',
-          'validate-todo-completion',
-          'typecheck',
-          'eslint',
-          'checkpoint-create',
-          'checkpoint-list',
-          'git-status',
-        ],
-        edges: [],
+        nodes: new Map([
+          ['test-hook', { id: 'test-hook', external: false, depth: 0, visited: false }],
+          ['auto-checkpoint', { id: 'auto-checkpoint', external: false, depth: 0, visited: false }],
+          ['validate-todo-completion', { id: 'validate-todo-completion', external: false, depth: 0, visited: false }],
+          ['typecheck', { id: 'typecheck', external: false, depth: 0, visited: false }],
+          ['eslint', { id: 'eslint', external: false, depth: 0, visited: false }],
+          ['checkpoint-create', { id: 'checkpoint-create', external: false, depth: 0, visited: false }],
+          ['checkpoint-list', { id: 'checkpoint-list', external: false, depth: 0, visited: false }],
+          ['git-status', { id: 'git-status', external: false, depth: 0, visited: false }],
+        ]),
+        edges: new Map(),
+        reverseEdges: new Map(),
         cycles: [],
       },
     }),
@@ -213,6 +214,7 @@ vi.mock('fs/promises', () => ({
 describe('Installer', () => {
   let installer: Installer;
   let mockProgress: InstallProgress[] = [];
+  let mockComponentsMap: Map<string, any>;
 
   const mockComponent: Component = {
     id: 'test-hook',
@@ -234,7 +236,7 @@ describe('Installer', () => {
     installDependencies: true,
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockProgress = [];
     const progressCallback = (progress: InstallProgress): void => {
       mockProgress.push({ ...progress });
@@ -244,8 +246,71 @@ describe('Installer', () => {
       onProgress: progressCallback,
     });
 
-    // Reset all mocks before each test
+    // Helper to create component file structure
+    const createComponentFile = (
+      type: string,
+      id: string,
+      name: string,
+      category: string,
+      deps: string[] = []
+    ): any => ({
+      type,
+      path: type === 'hook' ? `/source/hooks/${id}.sh` : `/source/commands/${id}.md`,
+      lastModified: new Date(),
+      metadata: {
+        id,
+        name,
+        description: `${name} description`,
+        dependencies: deps,
+        platforms: ['all'],
+        category,
+        enabled: true,
+      },
+    });
+
+    // Create mock components map
+    mockComponentsMap = new Map([
+      ['test-hook', createComponentFile('hook', 'test-hook', 'Test Hook', 'validation')],
+      ['auto-checkpoint', createComponentFile('hook', 'auto-checkpoint', 'Auto Checkpoint', 'git')],
+      ['validate-todo-completion', createComponentFile('hook', 'validate-todo-completion', 'Validate Todo Completion', 'validation')],
+      ['typecheck', createComponentFile('hook', 'typecheck', 'TypeScript Check', 'validation', ['tsc'])],
+      ['eslint', createComponentFile('hook', 'eslint', 'ESLint', 'validation', ['eslint'])],
+      ['checkpoint-create', createComponentFile('command', 'checkpoint-create', 'Create Checkpoint', 'git')],
+      ['checkpoint-list', createComponentFile('command', 'checkpoint-list', 'List Checkpoints', 'git')],
+      ['git-status', createComponentFile('command', 'git-status', 'Git Status', 'git', ['git'])],
+    ]);
+
+    // Reset mock call history but preserve implementations
     vi.clearAllMocks();
+    
+    // Re-apply mock implementations after clearing
+    const { discoverComponents } = await import('../../cli/lib/components.js');
+    vi.mocked(discoverComponents).mockResolvedValue({
+      components: mockComponentsMap,
+      dependencies: new Map(),
+      dependents: new Map(),
+      categories: new Map([
+        ['validation', new Set(['test-hook', 'validate-todo-completion', 'typecheck', 'eslint'])],
+        ['git', new Set(['auto-checkpoint', 'checkpoint-create', 'checkpoint-list', 'git-status'])],
+      ]),
+      lastScan: new Date(),
+      cacheValid: true,
+      dependencyGraph: {
+        nodes: new Map([
+          ['test-hook', { id: 'test-hook', external: false, depth: 0, visited: false }],
+          ['auto-checkpoint', { id: 'auto-checkpoint', external: false, depth: 0, visited: false }],
+          ['validate-todo-completion', { id: 'validate-todo-completion', external: false, depth: 0, visited: false }],
+          ['typecheck', { id: 'typecheck', external: false, depth: 0, visited: false }],
+          ['eslint', { id: 'eslint', external: false, depth: 0, visited: false }],
+          ['checkpoint-create', { id: 'checkpoint-create', external: false, depth: 0, visited: false }],
+          ['checkpoint-list', { id: 'checkpoint-list', external: false, depth: 0, visited: false }],
+          ['git-status', { id: 'git-status', external: false, depth: 0, visited: false }],
+        ]),
+        edges: new Map(),
+        reverseEdges: new Map(),
+        cycles: [],
+      },
+    });
   });
 
   afterEach(() => {

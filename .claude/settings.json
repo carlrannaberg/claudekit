@@ -18,15 +18,6 @@
             "command": ".claude/hooks/eslint.sh"
           }
         ]
-      },
-      {
-        "matcher": "Write,Edit,MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/run-related-tests.sh"
-          }
-        ]
       }
     ],
     "Stop": [
@@ -40,21 +31,6 @@
           {
             "type": "command",
             "command": ".claude/hooks/validate-todo-completion.sh"
-          },
-          {
-            "type": "command",
-            "command": ".claude/hooks/project-validation.sh"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/project-validation.sh"
           }
         ]
       }

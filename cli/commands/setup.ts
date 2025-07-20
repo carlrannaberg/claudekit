@@ -242,7 +242,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (selectedComponents.length === 0) {
         throw new Error('No valid components specified');
       }
-    } else if (options.yes === true) {
+    } else if (options.yes === true || options.commandsOnly === true) {
       // Default to essential and recommended components
       selectedComponents = [
         ...recommendations.essential.map((r) => r.component.metadata.id),
@@ -280,7 +280,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     let runTests: boolean;
     let gitIntegration: boolean;
 
-    if (options.yes === true || options.commands !== undefined || options.hooks !== undefined) {
+    if (options.yes === true || options.commands !== undefined || options.hooks !== undefined || options.commandsOnly === true) {
       // Default configuration for non-interactive mode
       autoCheckpoint = true;
       validateTodos = true;

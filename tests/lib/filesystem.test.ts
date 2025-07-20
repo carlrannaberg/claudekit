@@ -145,11 +145,22 @@ describe('filesystem module', () => {
     });
 
     it('should throw error if path exists but is not directory', async () => {
-      mockFs.stat.mockResolvedValue({ isDirectory: () => false });
+      mockFs.stat.mockResolvedValue({ 
+        isDirectory: () => false,
+        isFile: () => true,
+        isBlockDevice: () => false,
+        isCharacterDevice: () => false,
+        isSymbolicLink: () => false,
+        isFIFO: () => false,
+        isSocket: () => false
+      } as any);
 
-      await expect(ensureDirectoryExists('/Users/testuser/projects/file.txt')).rejects.toThrow(
+      await expect(ensureDirectoryExists('/Users/testuser/projects/myapp')).rejects.toThrow(
         'Path exists but is not a directory'
       );
+      
+      // Verify that stat was called
+      expect(mockFs.stat).toHaveBeenCalledWith('/Users/testuser/projects/myapp');
     });
 
     it('should create directory if it does not exist', async () => {

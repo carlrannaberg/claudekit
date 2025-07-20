@@ -23,31 +23,21 @@ vi.mock('ora', () => ({
 }));
 
 vi.mock('chalk', () => {
-  const createChainableInstance = (): Record<string, unknown> => {
-    const mock = (text: string): string => text;
-    const instance = mock as unknown as Record<string, unknown>;
-    instance['bold'] = createChainableInstance();
-    instance['dim'] = createChainableInstance();
-    instance['italic'] = createChainableInstance();
-    instance['underline'] = createChainableInstance();
-    instance['green'] = createChainableInstance();
-    instance['red'] = createChainableInstance();
-    instance['yellow'] = createChainableInstance();
-    instance['blue'] = createChainableInstance();
-    instance['gray'] = createChainableInstance();
-    return instance;
+  const createChainableInstance = (): any => {
+    const chainable: any = (text: string) => text;
+    const props = ['bold', 'dim', 'italic', 'underline', 'green', 'red', 'yellow', 'blue', 'gray', 'cyan'];
+    
+    props.forEach(prop => {
+      chainable[prop] = chainable;
+    });
+    
+    return chainable;
   };
 
+  const chalkInstance = createChainableInstance();
+  
   return {
-    default: {
-      green: createChainableInstance(),
-      red: createChainableInstance(),
-      yellow: createChainableInstance(),
-      blue: createChainableInstance(),
-      gray: createChainableInstance(),
-      bold: createChainableInstance(),
-      dim: createChainableInstance(),
-    },
+    default: chalkInstance,
   };
 });
 

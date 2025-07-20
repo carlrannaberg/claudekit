@@ -29,7 +29,7 @@
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rm -rf dist",
     "dev": "tsx watch cli/cli.ts",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ci": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",

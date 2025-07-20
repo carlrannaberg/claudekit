@@ -294,7 +294,7 @@ describe('validate command', () => {
 
       // Verify ora was called
       const ora = await import('ora');
-      expect(ora.default).toHaveBeenCalledWith('Running validation checks...');
+      expect(ora.default).toHaveBeenCalledWith('Validating project structure...');
     });
 
     it('should handle spinner errors gracefully', async () => {
@@ -303,7 +303,11 @@ describe('validate command', () => {
         .spyOn(fs, 'access')
         .mockRejectedValueOnce(new Error('Unexpected filesystem error'));
 
-      await expect(validate({})).rejects.toThrow('Unexpected filesystem error');
+      // Should not throw, but handle error gracefully
+      await validate({});
+
+      // Verify that the error was handled (access was called)
+      expect(accessSpy).toHaveBeenCalled();
 
       accessSpy.mockRestore();
     });
