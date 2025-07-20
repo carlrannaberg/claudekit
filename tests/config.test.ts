@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { 
-  loadConfig, 
-  saveConfig, 
-  configExists, 
-  mergeConfigs, 
-  loadMergedConfig, 
+import {
+  loadConfig,
+  saveConfig,
+  configExists,
+  mergeConfigs,
+  loadMergedConfig,
   saveMergedConfig,
-  resolveHookPaths 
+  resolveHookPaths,
 } from '../cli/utils/config.js';
 import type { Config } from '../cli/types/config.js';
 
@@ -49,7 +49,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -84,7 +91,14 @@ describe('Config utilities', () => {
           Stop: [
             {
               matcher: '*',
-              hooks: [{ type: 'command', command: '.claude/hooks/auto-checkpoint.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/auto-checkpoint.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -125,7 +139,14 @@ describe('Config utilities', () => {
         PostToolUse: [
           {
             matcher: 'tools:Write',
-            hooks: [{ type: 'command' as const, command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+            hooks: [
+              {
+                type: 'command' as const,
+                command: '.claude/hooks/typecheck.sh',
+                enabled: true,
+                retries: 0,
+              },
+            ],
             enabled: true,
           },
         ],
@@ -133,7 +154,7 @@ describe('Config utilities', () => {
 
       const resolved = resolveHookPaths(hooksConfig, tempDir);
       const expectedPath = path.resolve(tempDir, '.claude/hooks/typecheck.sh');
-      
+
       expect(resolved.PostToolUse?.[0]?.hooks[0]?.command).toBe(expectedPath);
     });
 
@@ -150,7 +171,7 @@ describe('Config utilities', () => {
       };
 
       const resolved = resolveHookPaths(hooksConfig, tempDir);
-      
+
       expect(resolved.Stop?.[0]?.hooks[0]?.command).toBe(absolutePath);
     });
   });
@@ -162,7 +183,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -174,14 +202,23 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.js',
-              hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '.claude/hooks/eslint.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
           Stop: [
             {
               matcher: '*',
-              hooks: [{ type: 'command', command: '.claude/hooks/auto-checkpoint.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/auto-checkpoint.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -189,7 +226,7 @@ describe('Config utilities', () => {
       };
 
       const merged = await mergeConfigs(newConfig, existingConfig, tempDir);
-      
+
       expect(merged.hooks.PostToolUse).toHaveLength(2);
       expect(merged.hooks.Stop).toHaveLength(1);
     });
@@ -200,7 +237,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -212,7 +256,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -220,7 +271,7 @@ describe('Config utilities', () => {
       };
 
       const merged = await mergeConfigs(duplicateConfig, existingConfig, tempDir);
-      
+
       expect(merged.hooks.PostToolUse).toHaveLength(1);
     });
 
@@ -231,7 +282,12 @@ describe('Config utilities', () => {
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
               hooks: [
-                { type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 },
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
                 { type: 'command', command: '.claude/hooks/format.sh', enabled: true, retries: 1 },
               ],
               description: 'TypeScript validation',
@@ -246,7 +302,9 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.{js,jsx}',
-              hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '.claude/hooks/eslint.sh', enabled: true, retries: 0 },
+              ],
               description: 'JavaScript validation',
               enabled: true,
             },
@@ -255,7 +313,7 @@ describe('Config utilities', () => {
       };
 
       const merged = await mergeConfigs(newConfig, existingConfig, tempDir);
-      
+
       expect(merged.hooks.PostToolUse).toHaveLength(2);
       expect(merged.hooks.PostToolUse?.[0]?.description).toBe('TypeScript validation');
       expect(merged.hooks.PostToolUse?.[1]?.description).toBe('JavaScript validation');
@@ -273,7 +331,9 @@ describe('Config utilities', () => {
           Stop: [
             {
               matcher: '*',
-              hooks: [{ type: 'command', command: '.claude/hooks/cleanup.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '.claude/hooks/cleanup.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
@@ -281,7 +341,7 @@ describe('Config utilities', () => {
       };
 
       const merged = await mergeConfigs(newConfig, existingConfig, tempDir);
-      
+
       expect(merged.environment).toEqual({ NODE_ENV: 'test' });
       expect(merged.version).toBe('1.0.0');
       expect(merged.hooks.Stop).toHaveLength(1);
@@ -296,7 +356,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -313,7 +380,14 @@ describe('Config utilities', () => {
               {
                 matcher: '*',
                 enabled: true,
-                hooks: [{ type: 'command', command: '.claude/hooks/cleanup.sh', enabled: true, retries: 0 }],
+                hooks: [
+                  {
+                    type: 'command',
+                    command: '.claude/hooks/cleanup.sh',
+                    enabled: true,
+                    retries: 0,
+                  },
+                ],
               },
             ],
           },
@@ -323,7 +397,14 @@ describe('Config utilities', () => {
             PostToolUse: [
               {
                 matcher: 'tools:Edit',
-                hooks: [{ type: 'command', command: '.claude/hooks/format.sh', enabled: true, retries: 0 }],
+                hooks: [
+                  {
+                    type: 'command',
+                    command: '.claude/hooks/format.sh',
+                    enabled: true,
+                    retries: 0,
+                  },
+                ],
                 enabled: true,
               },
             ],
@@ -332,7 +413,7 @@ describe('Config utilities', () => {
       ];
 
       const merged = await loadMergedConfig(tempDir, additionalConfigs);
-      
+
       expect(merged.hooks.PostToolUse).toHaveLength(2);
       expect(merged.hooks.Stop).toHaveLength(1);
     });
@@ -345,7 +426,14 @@ describe('Config utilities', () => {
               {
                 matcher: 'tools:Write',
                 enabled: true,
-                hooks: [{ type: 'command', command: '.claude/hooks/validate.sh', enabled: true, retries: 0 }],
+                hooks: [
+                  {
+                    type: 'command',
+                    command: '.claude/hooks/validate.sh',
+                    enabled: true,
+                    retries: 0,
+                  },
+                ],
               },
             ],
           },
@@ -353,7 +441,7 @@ describe('Config utilities', () => {
       ];
 
       const merged = await loadMergedConfig(tempDir, additionalConfigs);
-      
+
       expect(merged.hooks.PostToolUse).toHaveLength(1);
     });
   });
@@ -366,7 +454,14 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+              hooks: [
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
+              ],
               enabled: true,
             },
           ],
@@ -381,7 +476,9 @@ describe('Config utilities', () => {
           Stop: [
             {
               matcher: '*',
-              hooks: [{ type: 'command', command: '.claude/hooks/cleanup.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '.claude/hooks/cleanup.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
@@ -389,11 +486,11 @@ describe('Config utilities', () => {
       };
 
       const result = await saveMergedConfig(tempDir, newConfig);
-      
+
       // Verify the result
       expect(result.hooks.PostToolUse).toHaveLength(1);
       expect(result.hooks.Stop).toHaveLength(1);
-      
+
       // Verify it was saved to file
       const savedConfig = await loadConfig(tempDir);
       expect(savedConfig).toEqual(result);
@@ -405,7 +502,9 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write',
-              hooks: [{ type: 'command', command: '.claude/hooks/test.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '.claude/hooks/test.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
@@ -413,12 +512,12 @@ describe('Config utilities', () => {
       };
 
       await saveMergedConfig(tempDir, config);
-      
+
       const savedContent = await fs.readFile(
         path.join(tempDir, '.claude', 'settings.json'),
         'utf-8'
       );
-      
+
       // Check for 2-space indentation
       expect(savedContent).toContain('  "hooks"');
       expect(savedContent).toContain('    "PostToolUse"');
@@ -427,7 +526,7 @@ describe('Config utilities', () => {
       expect(savedContent.endsWith('\n')).toBe(true);
     });
   });
-  
+
   describe('integration scenarios', () => {
     it('should handle complex real-world configuration merging', async () => {
       // Simulate existing project config
@@ -437,7 +536,12 @@ describe('Config utilities', () => {
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
               hooks: [
-                { type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 },
+                {
+                  type: 'command',
+                  command: '.claude/hooks/typecheck.sh',
+                  enabled: true,
+                  retries: 0,
+                },
               ],
               enabled: true,
             },
@@ -453,7 +557,12 @@ describe('Config utilities', () => {
             {
               matcher: '*',
               hooks: [
-                { type: 'command', command: '.claude/hooks/auto-checkpoint.sh', enabled: true, retries: 0 },
+                {
+                  type: 'command',
+                  command: '.claude/hooks/auto-checkpoint.sh',
+                  enabled: true,
+                  retries: 0,
+                },
               ],
               enabled: true,
             },
@@ -474,7 +583,12 @@ describe('Config utilities', () => {
             {
               matcher: 'Write,Edit,MultiEdit',
               hooks: [
-                { type: 'command', command: '.claude/hooks/run-related-tests.sh', enabled: true, retries: 0 },
+                {
+                  type: 'command',
+                  command: '.claude/hooks/run-related-tests.sh',
+                  enabled: true,
+                  retries: 0,
+                },
               ],
               enabled: true,
             },
@@ -483,7 +597,12 @@ describe('Config utilities', () => {
             {
               matcher: '*',
               hooks: [
-                { type: 'command', command: '.claude/hooks/validate-todo-completion.sh', enabled: true, retries: 0 },
+                {
+                  type: 'command',
+                  command: '.claude/hooks/validate-todo-completion.sh',
+                  enabled: true,
+                  retries: 0,
+                },
               ],
               enabled: true,
             },
@@ -492,26 +611,40 @@ describe('Config utilities', () => {
       };
 
       const merged = await saveMergedConfig(tempDir, newConfig);
-      
+
       // Verify all hooks were preserved and new ones added
       expect(merged.hooks.PostToolUse).toHaveLength(3);
       expect(merged.hooks.Stop).toHaveLength(2);
-      
+
       // Verify environment variables were preserved
       expect(merged.environment).toEqual({
         NODE_ENV: 'development',
         DEBUG: 'true',
       });
-      
+
       // Verify specific hooks exist
       const postToolUseHooks = merged.hooks.PostToolUse || [];
-      expect(postToolUseHooks.some(h => h.hooks.some(hook => hook.command.includes('typecheck.sh')))).toBe(true);
-      expect(postToolUseHooks.some(h => h.hooks.some(hook => hook.command.includes('eslint.sh')))).toBe(true);
-      expect(postToolUseHooks.some(h => h.hooks.some(hook => hook.command.includes('run-related-tests.sh')))).toBe(true);
-      
+      expect(
+        postToolUseHooks.some((h) => h.hooks.some((hook) => hook.command.includes('typecheck.sh')))
+      ).toBe(true);
+      expect(
+        postToolUseHooks.some((h) => h.hooks.some((hook) => hook.command.includes('eslint.sh')))
+      ).toBe(true);
+      expect(
+        postToolUseHooks.some((h) =>
+          h.hooks.some((hook) => hook.command.includes('run-related-tests.sh'))
+        )
+      ).toBe(true);
+
       const stopHooks = merged.hooks.Stop || [];
-      expect(stopHooks.some(h => h.hooks.some(hook => hook.command.includes('auto-checkpoint.sh')))).toBe(true);
-      expect(stopHooks.some(h => h.hooks.some(hook => hook.command.includes('validate-todo-completion.sh')))).toBe(true);
+      expect(
+        stopHooks.some((h) => h.hooks.some((hook) => hook.command.includes('auto-checkpoint.sh')))
+      ).toBe(true);
+      expect(
+        stopHooks.some((h) =>
+          h.hooks.some((hook) => hook.command.includes('validate-todo-completion.sh'))
+        )
+      ).toBe(true);
     });
 
     it('should handle path resolution correctly in merged configs', async () => {
@@ -520,7 +653,9 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write',
-              hooks: [{ type: 'command', command: 'relative/path/hook1.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: 'relative/path/hook1.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
@@ -532,7 +667,9 @@ describe('Config utilities', () => {
           PostToolUse: [
             {
               matcher: 'tools:Edit',
-              hooks: [{ type: 'command', command: '/absolute/path/hook2.sh', enabled: true, retries: 0 }],
+              hooks: [
+                { type: 'command', command: '/absolute/path/hook2.sh', enabled: true, retries: 0 },
+              ],
               enabled: true,
             },
           ],
@@ -540,16 +677,20 @@ describe('Config utilities', () => {
       };
 
       const merged = await mergeConfigs(config2, config1, tempDir);
-      
+
       const hooks = merged.hooks.PostToolUse || [];
       expect(hooks).toHaveLength(2);
-      
+
       // Check that relative path was resolved
-      const relativeHook = hooks.find(h => h.hooks.some(hook => hook.command.includes('hook1.sh')));
+      const relativeHook = hooks.find((h) =>
+        h.hooks.some((hook) => hook.command.includes('hook1.sh'))
+      );
       expect(relativeHook?.hooks[0]?.command).toBe(path.resolve(tempDir, 'relative/path/hook1.sh'));
-      
+
       // Check that absolute path was preserved
-      const absoluteHook = hooks.find(h => h.hooks.some(hook => hook.command.includes('hook2.sh')));
+      const absoluteHook = hooks.find((h) =>
+        h.hooks.some((hook) => hook.command.includes('hook2.sh'))
+      );
       expect(absoluteHook?.hooks[0]?.command).toBe('/absolute/path/hook2.sh');
     });
   });

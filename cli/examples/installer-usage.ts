@@ -2,7 +2,7 @@
 
 /**
  * Example usage of the ClaudeKit Installer module
- * 
+ *
  * Demonstrates various installation scenarios including:
  * - Basic installation
  * - Dry run mode
@@ -56,14 +56,13 @@ async function basicInstallationExample() {
       }
     } else {
       console.error('\n❌ Installation failed!');
-      result.errors.forEach(error => console.error(`  - ${error}`));
+      result.errors.forEach((error) => console.error(`  - ${error}`));
     }
 
     if (result.warnings.length > 0) {
       console.log('\n⚠️  Warnings:');
-      result.warnings.forEach(warning => console.log(`  - ${warning}`));
+      result.warnings.forEach((warning) => console.log(`  - ${warning}`));
     }
-
   } catch (error) {
     console.error('Installation error:', error);
   }
@@ -89,7 +88,7 @@ async function dryRunExample() {
   const allComponents = registryToComponents(registry);
 
   // Select specific components
-  const selectedComponents = allComponents.filter(c => 
+  const selectedComponents = allComponents.filter((c) =>
     ['typecheck', 'eslint', 'auto-checkpoint'].includes(c.id)
   );
 
@@ -195,20 +194,20 @@ async function interactiveInstallationExample() {
 
   // For this example, we'll just use defaults
   const installation = await installer.createDefaultInstallation();
-  
+
   console.log('\nInstallation Plan:');
   console.log(`- Target: ${installation.target}`);
-  console.log(`- Components: ${installation.components.map(c => c.name).join(', ')}`);
+  console.log(`- Components: ${installation.components.map((c) => c.name).join(', ')}`);
   console.log(`- Backup enabled: ${installation.backup}`);
-  
+
   // Simulate user confirmation
   console.log('\n[Simulating user confirmation...]\n');
 
   const result = await installer.install(installation);
-  
+
   if (!result.success) {
     console.error('\nInstallation failed. Errors:');
-    result.errors.forEach(err => console.error(`  - ${err}`));
+    result.errors.forEach((err) => console.error(`  - ${err}`));
   }
 }
 
@@ -242,9 +241,8 @@ async function errorHandlingExample() {
       console.log('\nInstallation failed as expected.');
       console.log('The installer automatically rolled back any partial changes.');
       console.log('\nErrors encountered:');
-      result.errors.forEach(err => console.log(`  - ${err}`));
+      result.errors.forEach((err) => console.log(`  - ${err}`));
     }
-
   } catch (error) {
     console.error('Caught installation error:', error);
     console.log('\nThe installer handles errors gracefully and performs automatic rollback.');

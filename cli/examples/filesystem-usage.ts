@@ -1,6 +1,6 @@
 /**
  * Example usage of the filesystem module
- * 
+ *
  * This file demonstrates how to use the various filesystem utilities
  * for common file operations with proper validation and error handling.
  */
@@ -57,11 +57,11 @@ export async function verifyFileIntegrity(
 ): Promise<boolean> {
   try {
     const actualHash = await getFileHash(filePath);
-    
+
     if (expectedHash) {
       return actualHash === expectedHash;
     }
-    
+
     console.log(`File hash: ${actualHash}`);
     return true;
   } catch (error) {
@@ -81,11 +81,7 @@ export async function installMultipleFiles(
 
   for (const [targetPath, config] of Object.entries(fileMap)) {
     try {
-      await installFileWithValidation(
-        config.source,
-        targetPath,
-        config.executable
-      );
+      await installFileWithValidation(config.source, targetPath, config.executable);
       success.push(targetPath);
     } catch (error) {
       console.error(`Failed to install ${targetPath}:`, error);

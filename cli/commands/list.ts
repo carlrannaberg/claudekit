@@ -17,66 +17,82 @@ interface ListOptions {
  */
 export async function list(type: string = 'all', options: ListOptions = {}): Promise<void> {
   const logger = new Logger();
-  
-  if (options.verbose) {
+
+  if (options.verbose === true) {
     logger.setLevel('debug');
-  } else if (options.quiet) {
+  } else if (options.quiet === true) {
     logger.setLevel('error');
   }
-  
+
   logger.debug(`Listing ${type} with options:`, options);
-  
+
   const validTypes = ['all', 'hooks', 'commands', 'settings', 'config'];
   if (!validTypes.includes(type)) {
     throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')}`);
   }
-  
-  const operations = [];
-  
+
+  type OperationResult = HookInfo[] | CommandInfo[] | Record<string, unknown>;
+  const operations: Array<{ name: string; operation: () => Promise<OperationResult> }> = [];
+
   // Prepare operations based on type
   if (type === 'all' || type === 'hooks') {
     operations.push({
       name: 'Listing hooks',
-      operation: () => listHooks(options)
+      operation: () => listHooks(options) as Promise<OperationResult>,
     });
   }
-  
+
   if (type === 'all' || type === 'commands') {
     operations.push({
       name: 'Listing commands',
-      operation: () => listCommands(options)
+      operation: () => listCommands(options) as Promise<OperationResult>,
     });
   }
-  
+
   if (type === 'all' || type === 'settings' || type === 'config') {
     operations.push({
       name: 'Listing configuration',
-      operation: () => listConfig(options)
+      operation: () => listConfig(options) as Promise<OperationResult>,
     });
   }
-  
+
   // Execute operations with progress
   const operationResults = await progress.withSteps(operations, {
     quiet: options.quiet,
-    verbose: options.verbose
+    verbose: options.verbose,
   });
-  
+
   // Map results back to expected structure
-  const results: any = {};
+  const results: ListResults = {};
   let resultIndex = 0;
-  
+
   if (type === 'all' || type === 'hooks') {
-    results.hooks = operationResults[resultIndex++];
+    const hooksResult = operationResults[resultIndex++];
+    if (
+      Array.isArray(hooksResult) &&
+      hooksResult.every((item): item is HookInfo => 'executable' in item)
+    ) {
+      results.hooks = hooksResult;
+    }
   }
-  
+
   if (type === 'all' || type === 'commands') {
-    results.commands = operationResults[resultIndex++];
+    const commandsResult = operationResults[resultIndex++];
+    if (
+      Array.isArray(commandsResult) &&
+      commandsResult.every((item): item is CommandInfo => 'description' in item)
+    ) {
+      results.commands = commandsResult;
+    }
   }
-  
+
   if (type === 'all' || type === 'settings' || type === 'config') {
-    results.config = operationResults[resultIndex++];
+    const configResult = operationResults[resultIndex++];
+    if (configResult && typeof configResult === 'object' && !Array.isArray(configResult)) {
+      results.config = configResult as Record<string, unknown>;
+    }
   }
-  
+
   // Output results
   if (options.format === 'json') {
     console.log(JSON.stringify(results, null, 2));
@@ -85,25 +101,39 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
   }
 }
 
-async function listHooks(options: ListOptions): Promise<any[]> {
+interface HookInfo {
+  name: string;
+  type: string;
+  path: string;
+  executable: boolean;
+  size: number;
+  modified: Date;
+}
+
+async function listHooks(options: ListOptions): Promise<HookInfo[]> {
   const hooksDir = '.claude/hooks';
-  const hooks: any[] = [];
-  
-  if (!await fs.pathExists(hooksDir)) {
+  const hooks: HookInfo[] = [];
+
+  if (!(await fs.pathExists(hooksDir))) {
     return hooks;
   }
-  
+
   const files = await fs.readdir(hooksDir);
-  const pattern = options.filter ? new RegExp(options.filter, 'i') : null;
-  
+  const pattern =
+    options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
+
   for (const file of files) {
-    if (!file.endsWith('.sh')) continue;
-    if (pattern && !pattern.test(file)) continue;
-    
+    if (!file.endsWith('.sh')) {
+      continue;
+    }
+    if (pattern !== null && !pattern.test(file)) {
+      continue;
+    }
+
     const name = path.basename(file, '.sh');
     const filePath = path.join(hooksDir, file);
     const stats = await fs.stat(filePath);
-    
+
     hooks.push({
       name,
       type: 'hook',
@@ -113,45 +143,59 @@ async function listHooks(options: ListOptions): Promise<any[]> {
       modified: stats.mtime,
     });
   }
-  
+
   return hooks;
 }
 
-async function listCommands(options: ListOptions): Promise<any[]> {
+interface CommandInfo {
+  name: string;
+  type: string;
+  path: string;
+  description: string;
+  size: number;
+  modified: Date;
+}
+
+async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
   const commandsDir = '.claude/commands';
-  const commands: any[] = [];
-  
-  if (!await fs.pathExists(commandsDir)) {
+  const commands: CommandInfo[] = [];
+
+  if (!(await fs.pathExists(commandsDir))) {
     return commands;
   }
-  
+
   const files = await fs.readdir(commandsDir);
-  const pattern = options.filter ? new RegExp(options.filter, 'i') : null;
-  
+  const pattern =
+    options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
+
   for (const file of files) {
-    if (!file.endsWith('.md')) continue;
-    if (pattern && !pattern.test(file)) continue;
-    
+    if (!file.endsWith('.md')) {
+      continue;
+    }
+    if (pattern !== null && !pattern.test(file)) {
+      continue;
+    }
+
     const name = path.basename(file, '.md');
     const filePath = path.join(commandsDir, file);
     const stats = await fs.stat(filePath);
-    
+
     // Try to extract description from frontmatter
     let description = '';
     try {
       const content = await fs.readFile(filePath, 'utf8');
       const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
-      if (match && match[1]) {
+      if (match !== null && match[1] !== undefined && match[1] !== '') {
         const frontmatter = match[1];
         const descMatch = frontmatter.match(/description:\s*(.+)/);
-        if (descMatch && descMatch[1]) {
+        if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
           description = descMatch[1].trim();
         }
       }
     } catch {
       // Ignore errors reading file
     }
-    
+
     commands.push({
       name,
       type: 'command',
@@ -161,18 +205,21 @@ async function listCommands(options: ListOptions): Promise<any[]> {
       modified: stats.mtime,
     });
   }
-  
+
   return commands;
 }
 
-async function listConfig(options: ListOptions): Promise<any> {
+async function listConfig(options: ListOptions): Promise<Record<string, unknown>> {
   try {
     const config = await loadConfig(process.cwd());
-    const pattern = options.filter ? new RegExp(options.filter, 'i') : null;
-    
-    if (pattern) {
+    const pattern =
+      options.filter !== undefined && options.filter !== ''
+        ? new RegExp(options.filter, 'i')
+        : null;
+
+    if (pattern !== null) {
       // Filter config keys
-      const filtered: any = {};
+      const filtered: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(config)) {
         if (pattern.test(key)) {
           filtered[key] = value;
@@ -180,51 +227,73 @@ async function listConfig(options: ListOptions): Promise<any> {
       }
       return filtered;
     }
-    
+
     return config;
-  } catch (error) {
+  } catch {
     return {};
   }
 }
 
-function displayTable(results: any, type: string): void {
-  
+// Interface needs to be defined before usage
+interface ListResults {
+  hooks?: Array<{
+    name: string;
+    type: string;
+    path: string;
+    executable: boolean;
+    size: number;
+    modified: Date;
+  }>;
+  commands?: Array<{
+    name: string;
+    type: string;
+    path: string;
+    description: string;
+    size: number;
+    modified: Date;
+  }>;
+  config?: Record<string, unknown>;
+}
+
+function displayTable(results: ListResults, type: string): void {
   // Display hooks
-  if (results.hooks && results.hooks.length > 0) {
+  if (results.hooks !== undefined && results.hooks.length > 0) {
     console.log(Colors.bold('\nHooks:'));
     console.log(Colors.dim('─'.repeat(60)));
-    
+
     for (const hook of results.hooks) {
-      const exec = hook.executable ? Colors.success('✓') : Colors.error('✗');
+      const exec = hook.executable === true ? Colors.success('✓') : Colors.error('✗');
       const size = formatSize(hook.size);
       const date = formatDate(hook.modified);
-      
-      console.log(`  ${exec} ${Colors.accent(hook.name.padEnd(20))} ${size.padStart(8)} ${Colors.dim(date)}`);
+
+      console.log(
+        `  ${exec} ${Colors.accent(hook.name.padEnd(20))} ${size.padStart(8)} ${Colors.dim(date)}`
+      );
     }
   } else if (type === 'hooks' || type === 'all') {
     console.log(Colors.dim('\nNo hooks found'));
   }
-  
+
   // Display commands
-  if (results.commands && results.commands.length > 0) {
+  if (results.commands !== undefined && results.commands.length > 0) {
     console.log(Colors.bold('\nCommands:'));
     console.log(Colors.dim('─'.repeat(60)));
-    
+
     for (const cmd of results.commands) {
       const size = formatSize(cmd.size);
-      const desc = cmd.description ? Colors.dim(` - ${cmd.description}`) : '';
-      
+      const desc = cmd.description !== '' ? Colors.dim(` - ${cmd.description}`) : '';
+
       console.log(`  ${Colors.accent(cmd.name.padEnd(20))} ${size.padStart(8)}${desc}`);
     }
   } else if (type === 'commands' || type === 'all') {
     console.log(Colors.dim('\nNo commands found'));
   }
-  
+
   // Display config
-  if (results.config && Object.keys(results.config).length > 0) {
+  if (results.config !== undefined && Object.keys(results.config).length > 0) {
     console.log(Colors.bold('\nConfiguration:'));
     console.log(Colors.dim('─'.repeat(60)));
-    
+
     const configStr = JSON.stringify(results.config, null, 2);
     const lines = configStr.split('\n');
     for (const line of lines) {
@@ -236,8 +305,12 @@ function displayTable(results: any, type: string): void {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  if (bytes < 1024) {
+    return `${bytes}B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)}KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
@@ -245,11 +318,21 @@ function formatDate(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days < 7) return `${days} days ago`;
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+
+  if (days === 0) {
+    return 'today';
+  }
+  if (days === 1) {
+    return 'yesterday';
+  }
+  if (days < 7) {
+    return `${days} days ago`;
+  }
+  if (days < 30) {
+    return `${Math.floor(days / 7)} weeks ago`;
+  }
+  if (days < 365) {
+    return `${Math.floor(days / 30)} months ago`;
+  }
   return `${Math.floor(days / 365)} years ago`;
 }

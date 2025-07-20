@@ -43,15 +43,15 @@ export const TemplateTypeSchema = z.enum(['default', 'basic', 'advanced', 'custo
  * Component category schema
  */
 export const ComponentCategorySchema = z.enum([
-  'git', 
-  'validation', 
-  'development', 
-  'testing', 
-  'ai-assistant', 
-  'workflow', 
+  'git',
+  'validation',
+  'development',
+  'testing',
+  'ai-assistant',
+  'workflow',
   'project-management',
   'debugging',
-  'utility'
+  'utility',
 ]);
 
 // ============================================================================
@@ -183,11 +183,13 @@ export const ProjectSettingsSchema = z.object({
   environment: z.record(z.string()).optional(),
   commands: z.record(z.unknown()).optional(),
   components: z.array(ComponentSchema.partial()).optional(),
-  validation: z.object({
-    rules: z.array(z.string()),
-    autoFix: z.boolean().default(false),
-    reportPath: z.string().optional(),
-  }).optional(),
+  validation: z
+    .object({
+      rules: z.array(z.string()),
+      autoFix: z.boolean().default(false),
+      reportPath: z.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -371,13 +373,15 @@ export function validateGlobalOptions(data: unknown): GlobalOptions {
 /**
  * Parses and validates configuration with detailed error reporting
  */
-export function parseConfig(data: unknown): { success: true; data: Config } | { success: false; errors: string[] } {
+export function parseConfig(
+  data: unknown
+): { success: true; data: Config } | { success: false; errors: string[] } {
   try {
     const parsed = ConfigSchema.parse(data);
     return { success: true, data: parsed };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const errors = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
       return { success: false, errors };
     }
     return { success: false, errors: ['Unknown validation error'] };
@@ -389,4 +393,9 @@ export function parseConfig(data: unknown): { success: true; data: Config } | { 
 // ============================================================================
 
 // Re-export installer types to avoid duplication
-export type { InstallStep, InstallProgress, InstallResult, InstallOptions } from '../lib/installer.js';
+export type {
+  InstallStep,
+  InstallProgress,
+  InstallResult,
+  InstallOptions,
+} from '../lib/installer.js';

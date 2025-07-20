@@ -17,23 +17,23 @@ function shouldUseColors(options: ColorOptions = {}): boolean {
   if (options.force) {
     return true;
   }
-  
+
   // Respect NO_COLOR environment variable (https://no-color.org/)
   if (process.env['NO_COLOR'] !== undefined) {
     return false;
   }
-  
+
   // Check if colors are explicitly disabled
   if (process.env['FORCE_COLOR'] === '0') {
     return false;
   }
-  
+
   // Check if stdout is a TTY (terminal)
   // Note: isTTY can be undefined in some environments
   if (process.stdout.isTTY !== true) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -42,80 +42,80 @@ function shouldUseColors(options: ColorOptions = {}): boolean {
  */
 export class Colors {
   private static useColors = shouldUseColors();
-  
+
   /**
    * Force enable or disable colors (useful for testing)
    */
   static setEnabled(enabled: boolean): void {
     Colors.useColors = enabled;
   }
-  
+
   /**
    * Reset colors to environment-based detection
    */
   static reset(): void {
     Colors.useColors = shouldUseColors();
   }
-  
+
   /**
    * Force colors to be enabled regardless of environment (mainly for testing)
    */
   static forceEnable(): void {
     Colors.useColors = shouldUseColors({ force: true });
   }
-  
+
   /**
    * Check if colors are currently enabled
    */
   static get enabled(): boolean {
     return Colors.useColors;
   }
-  
+
   // Success messages (green)
   static success(text: string): string {
     return Colors.useColors ? `\x1b[32m${text}\x1b[0m` : text;
   }
-  
+
   // Error messages (red)
   static error(text: string): string {
     return Colors.useColors ? `\x1b[31m${text}\x1b[0m` : text;
   }
-  
+
   // Warning messages (yellow)
   static warn(text: string): string {
     return Colors.useColors ? `\x1b[33m${text}\x1b[0m` : text;
   }
-  
+
   // Info messages (cyan)
   static info(text: string): string {
     return Colors.useColors ? `\x1b[36m${text}\x1b[0m` : text;
   }
-  
+
   // Debug messages (gray)
   static debug(text: string): string {
     return Colors.useColors ? `\x1b[90m${text}\x1b[0m` : text;
   }
-  
+
   // Accent/highlight text (blue)
   static accent(text: string): string {
     return Colors.useColors ? `\x1b[34m${text}\x1b[0m` : text;
   }
-  
+
   // Bold text
   static bold(text: string): string {
     return Colors.useColors ? `\x1b[1m${text}\x1b[0m` : text;
   }
-  
+
   // Dim/subtle text
   static dim(text: string): string {
     return Colors.useColors ? `\x1b[2m${text}\x1b[0m` : text;
   }
-  
+
   // Underlined text
   static underline(text: string): string {
     return Colors.useColors ? `\x1b[4m${text}\x1b[0m` : text;
   }
-  
+
   // Raw picocolors for complex styling (only when colors enabled)
   static get pc() {
     if (Colors.useColors) {
@@ -146,7 +146,7 @@ export class Colors {
         bgWhite: (text: string) => `\x1b[47m${text}\x1b[0m`,
         bgBlack: (text: string) => `\x1b[40m${text}\x1b[0m`,
         bgGray: (text: string) => `\x1b[100m${text}\x1b[0m`,
-        bgGrey: (text: string) => `\x1b[100m${text}\x1b[0m`
+        bgGrey: (text: string) => `\x1b[100m${text}\x1b[0m`,
       };
     } else {
       // Return no-op functions when colors are disabled
@@ -176,7 +176,7 @@ export class Colors {
         bgWhite: (text: string) => text,
         bgBlack: (text: string) => text,
         bgGray: (text: string) => text,
-        bgGrey: (text: string) => text
+        bgGrey: (text: string) => text,
       };
     }
   }
@@ -194,7 +194,7 @@ export const symbols = {
   info: Colors.info('ℹ'),
   arrow: Colors.dim('→'),
   bullet: Colors.dim('•'),
-  dash: Colors.dim('─')
+  dash: Colors.dim('─'),
 };
 
 // Status indicators
@@ -202,7 +202,7 @@ export const status = {
   success: (text: string) => `${symbols.success} ${Colors.success(text)}`,
   error: (text: string) => `${symbols.error} ${Colors.error(text)}`,
   warning: (text: string) => `${symbols.warning} ${Colors.warn(text)}`,
-  info: (text: string) => `${symbols.info} ${Colors.info(text)}`
+  info: (text: string) => `${symbols.info} ${Colors.info(text)}`,
 };
 
 // Convenience export for the main colors class

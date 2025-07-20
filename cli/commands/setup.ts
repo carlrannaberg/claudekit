@@ -1,9 +1,4 @@
-import {
-  select,
-  checkbox,
-  input,
-  confirm,
-} from '@inquirer/prompts';
+import { select, checkbox, input, confirm } from '@inquirer/prompts';
 import { Colors } from '../utils/colors.js';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -54,38 +49,42 @@ interface SetupConfig {
  */
 export async function setup(options: SetupOptions = {}): Promise<void> {
   const logger = new Logger();
-  
-  if (options.verbose) {
+
+  if (options.verbose === true) {
     logger.setLevel('debug');
-  } else if (options.quiet) {
+  } else if (options.quiet === true) {
     logger.setLevel('error');
   }
 
   try {
-    const isNonInteractive = options.yes || options.commands || options.hooks || options.commandsOnly;
-    
+    const isNonInteractive =
+      options.yes === true ||
+      options.commands !== undefined ||
+      options.hooks !== undefined ||
+      options.commandsOnly === true;
+
     // Show welcome message (unless in non-interactive mode)
-    if (!isNonInteractive || !options.quiet) {
+    if (!isNonInteractive || options.quiet !== true) {
       console.log(Colors.bold(Colors.accent('\nClaudeKit Setup Wizard')));
       console.log(Colors.dim('─'.repeat(40)));
-      
+
       if (!isNonInteractive) {
         console.log(
           '\nWelcome to ClaudeKit! This wizard will help you configure ClaudeKit\n' +
-          'for your development workflow. ClaudeKit provides:\n\n' +
-          '  • Automated code quality checks (TypeScript, ESLint, Prettier)\n' +
-          '  • Git workflow integration (checkpoints, smart commits)\n' +
-          '  • AI assistant configuration management\n' +
-          '  • Custom commands and hooks for Claude Code\n'
+            'for your development workflow. ClaudeKit provides:\n\n' +
+            '  • Automated code quality checks (TypeScript, ESLint, Prettier)\n' +
+            '  • Git workflow integration (checkpoints, smart commits)\n' +
+            '  • AI assistant configuration management\n' +
+            '  • Custom commands and hooks for Claude Code\n'
         );
       }
     }
 
     // Step 1: Installation type
     let installationType: string;
-    if (options.yes || options.commandsOnly) {
+    if (options.yes === true || options.commandsOnly === true) {
       // Default to both for --yes, commands only for --commands-only
-      installationType = options.commandsOnly ? 'user' : 'both';
+      installationType = options.commandsOnly === true ? 'user' : 'both';
     } else {
       installationType = await select({
         message: 'How would you like to install ClaudeKit?',
@@ -109,27 +108,27 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // Step 2: Project path (if project installation)
     let projectPath = process.cwd();
     if (installationType === 'project' || installationType === 'both') {
-      if (options.project) {
+      if (options.project !== undefined && options.project !== '') {
         // Use provided project path
         const expanded = expandHomePath(options.project);
         projectPath = normalizePath(expanded);
-        
+
         // Validate project path
-        if (!await pathExists(projectPath)) {
+        if (!(await pathExists(projectPath))) {
           throw new Error(`Project directory does not exist: ${options.project}`);
         }
-        
+
         const stats = await fs.stat(projectPath);
         if (!stats.isDirectory()) {
           throw new Error(`Path must be a directory: ${options.project}`);
         }
-        
+
         try {
           await fs.access(projectPath, fs.constants.W_OK);
         } catch {
           throw new Error(`No write permission for directory: ${options.project}`);
         }
-      } else if (!options.yes && !options.commandsOnly) {
+      } else if (options.yes !== true && options.commandsOnly !== true) {
         const inputPath = await input({
           message: 'Project directory path:',
           default: process.cwd(),
@@ -137,23 +136,23 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             try {
               const expanded = expandHomePath(value);
               const normalized = normalizePath(expanded);
-              
-              if (!await pathExists(normalized)) {
+
+              if (!(await pathExists(normalized))) {
                 return 'Directory does not exist';
               }
-              
+
               const stats = await fs.stat(normalized);
               if (!stats.isDirectory()) {
                 return 'Path must be a directory';
               }
-              
+
               // Check write permissions
               try {
                 await fs.access(normalized, fs.constants.W_OK);
               } catch {
                 return 'No write permission for this directory';
               }
-              
+
               return true;
             } catch (error) {
               return `Invalid path: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -166,50 +165,71 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     }
 
     // Step 3: Analyze project and discover components
-    const progressReporter = createProgressReporter({ 
+    const progressReporter = createProgressReporter({
       quiet: options.quiet,
-      verbose: options.verbose 
+      verbose: options.verbose,
     });
-    
+
     progressReporter.start('Analyzing project context...');
     const projectInfo = await detectProjectContext(projectPath);
-    
+
     progressReporter.update('Discovering components...');
     const claudekitRoot = path.resolve(new URL('../../../../..', import.meta.url).pathname);
     const registry = await discoverComponents(claudekitRoot);
-    
+
     progressReporter.update('Generating recommendations...');
     const recommendations = await recommendComponents(projectInfo, registry);
-    
+
     progressReporter.succeed('Project analysis complete');
 
     // Display project info (unless quiet mode)
-    if (!options.quiet && (projectInfo.hasTypeScript || projectInfo.hasESLint || projectInfo.frameworks?.length)) {
+    if (
+      options.quiet !== true &&
+      (projectInfo.hasTypeScript === true ||
+        projectInfo.hasESLint === true ||
+        (projectInfo.frameworks?.length ?? 0) > 0)
+    ) {
       const detected = [];
-      if (projectInfo.hasTypeScript) detected.push('TypeScript');
-      if (projectInfo.hasESLint) detected.push('ESLint');
-      if (projectInfo.hasPrettier) detected.push('Prettier');
-      if (projectInfo.hasJest) detected.push('Jest');
-      if (projectInfo.hasVitest) detected.push('Vitest');
-      if (projectInfo.frameworks?.length) {
+      if (projectInfo.hasTypeScript === true) {
+        detected.push('TypeScript');
+      }
+      if (projectInfo.hasESLint === true) {
+        detected.push('ESLint');
+      }
+      if (projectInfo.hasPrettier === true) {
+        detected.push('Prettier');
+      }
+      if (projectInfo.hasJest === true) {
+        detected.push('Jest');
+      }
+      if (projectInfo.hasVitest === true) {
+        detected.push('Vitest');
+      }
+      if (projectInfo.frameworks !== undefined && projectInfo.frameworks.length > 0) {
         detected.push(...projectInfo.frameworks);
       }
-      
-      console.log('\n' + Colors.bold('Project Analysis'));
+
+      console.log(`\n${Colors.bold('Project Analysis')}`);
       console.log(Colors.dim('─'.repeat(40)));
       console.log(`Detected: ${detected.join(', ')}`);
     }
 
     // Step 4: Component selection
     let selectedComponents: string[];
-    
-    if (options.commands || options.hooks) {
+
+    if (options.commands !== undefined || options.hooks !== undefined) {
       // Parse component lists from flags
-      const requestedCommands = options.commands ? options.commands.split(',').map(s => s.trim()) : [];
-      const requestedHooks = options.hooks ? options.hooks.split(',').map(s => s.trim()) : [];
-      
+      const requestedCommands =
+        options.commands !== undefined && options.commands !== ''
+          ? options.commands.split(',').map((s) => s.trim())
+          : [];
+      const requestedHooks =
+        options.hooks !== undefined && options.hooks !== ''
+          ? options.hooks.split(',').map((s) => s.trim())
+          : [];
+
       selectedComponents = [];
-      
+
       // Validate and add requested components
       for (const id of [...requestedCommands, ...requestedHooks]) {
         if (registry.components.has(id)) {
@@ -218,40 +238,40 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           throw new Error(`Component not found: ${id}`);
         }
       }
-      
+
       if (selectedComponents.length === 0) {
         throw new Error('No valid components specified');
       }
-    } else if (options.yes) {
+    } else if (options.yes === true) {
       // Default to essential and recommended components
       selectedComponents = [
-        ...recommendations.essential.map(r => r.component.metadata.id),
-        ...recommendations.recommended.map(r => r.component.metadata.id),
+        ...recommendations.essential.map((r) => r.component.metadata.id),
+        ...recommendations.recommended.map((r) => r.component.metadata.id),
       ];
     } else {
       // Interactive selection
       const allComponents = [
-        ...recommendations.essential.map(r => ({
+        ...recommendations.essential.map((r) => ({
           value: r.component.metadata.id,
           name: `${r.component.metadata.name} (Essential) - ${r.reasons.join(', ')}`,
           checked: true,
         })),
-        ...recommendations.recommended.map(r => ({
+        ...recommendations.recommended.map((r) => ({
           value: r.component.metadata.id,
           name: `${r.component.metadata.name} (Recommended) - ${r.reasons.join(', ')}`,
           checked: true,
         })),
-        ...recommendations.optional.map(r => ({
+        ...recommendations.optional.map((r) => ({
           value: r.component.metadata.id,
           name: `${r.component.metadata.name} - ${r.reasons.join(', ')}`,
           checked: false,
         })),
       ];
 
-      selectedComponents = await checkbox({
+      selectedComponents = (await checkbox({
         message: 'Select components to install:',
         choices: allComponents,
-      }) as string[];
+      })) as string[];
     }
 
     // Step 5: Configuration options
@@ -259,16 +279,16 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     let validateTodos: boolean;
     let runTests: boolean;
     let gitIntegration: boolean;
-    
-    if (options.yes || options.commands || options.hooks) {
+
+    if (options.yes === true || options.commands !== undefined || options.hooks !== undefined) {
       // Default configuration for non-interactive mode
       autoCheckpoint = true;
       validateTodos = true;
-      runTests = projectInfo.hasJest || projectInfo.hasVitest || false;
-      gitIntegration = projectInfo.isGitRepository || true;
+      runTests = projectInfo.hasJest === true || projectInfo.hasVitest === true;
+      gitIntegration = projectInfo.isGitRepository === true || true;
     } else {
       // Interactive configuration
-      console.log('\n' + Colors.bold('Configuration Options'));
+      console.log(`\n${Colors.bold('Configuration Options')}`);
       console.log(Colors.dim('─'.repeat(40)));
 
       autoCheckpoint = await confirm({
@@ -283,12 +303,12 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
       runTests = await confirm({
         message: 'Run related tests after file changes?',
-        default: projectInfo.hasJest || projectInfo.hasVitest || false,
+        default: projectInfo.hasJest === true || projectInfo.hasVitest === true,
       });
 
       gitIntegration = await confirm({
         message: 'Enable git workflow commands?',
-        default: projectInfo.isGitRepository || true,
+        default: projectInfo.isGitRepository === true || true,
       });
     }
 
@@ -296,7 +316,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     const config: SetupConfig = {
       installationType: installationType as 'user' | 'project' | 'both',
       projectPath,
-      selectedComponents: selectedComponents,
+      selectedComponents,
       options: {
         autoCheckpoint,
         validateTodos,
@@ -306,56 +326,66 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     };
 
     // Show summary unless quiet mode
-    if (!options.quiet) {
-      console.log('\n' + Colors.bold('Installation Summary'));
+    if (options.quiet !== true) {
+      console.log(`\n${Colors.bold('Installation Summary')}`);
       console.log(Colors.dim('─'.repeat(40)));
       console.log(`\nInstallation type: ${Colors.accent(config.installationType)}`);
       if (config.installationType !== 'user') {
         console.log(`Project path: ${Colors.accent(config.projectPath)}`);
       }
       console.log(`\nComponents to install (${config.selectedComponents.length}):`);
-      config.selectedComponents.forEach(id => {
+      config.selectedComponents.forEach((id) => {
         const componentFile = registry.components.get(id);
-        if (componentFile) {
+        if (componentFile !== undefined) {
           console.log(`  • ${componentFile.metadata.name}`);
         }
       });
-      
+
       console.log('\nOptions:');
-      console.log(`  • Auto checkpoint: ${config.options.autoCheckpoint ? Colors.success('✓') : Colors.error('✗')}`);
-      console.log(`  • Validate TODOs: ${config.options.validateTodos ? Colors.success('✓') : Colors.error('✗')}`);
-      console.log(`  • Run tests: ${config.options.runTests ? Colors.success('✓') : Colors.error('✗')}`);
-      console.log(`  • Git integration: ${config.options.gitIntegration ? Colors.success('✓') : Colors.error('✗')}`);
+      console.log(
+        `  • Auto checkpoint: ${config.options.autoCheckpoint ? Colors.success('✓') : Colors.error('✗')}`
+      );
+      console.log(
+        `  • Validate TODOs: ${config.options.validateTodos ? Colors.success('✓') : Colors.error('✗')}`
+      );
+      console.log(
+        `  • Run tests: ${config.options.runTests ? Colors.success('✓') : Colors.error('✗')}`
+      );
+      console.log(
+        `  • Git integration: ${config.options.gitIntegration ? Colors.success('✓') : Colors.error('✗')}`
+      );
     }
 
     // Ask for confirmation unless non-interactive mode
-    if (!options.yes && !options.commands && !options.hooks) {
+    if (options.yes !== true && options.commands === undefined && options.hooks === undefined) {
       const proceed = await confirm({
         message: '\nProceed with installation?',
         default: true,
       });
 
       if (!proceed) {
-        console.log('\n' + Colors.warn('Setup cancelled by user'));
+        console.log(`\n${Colors.warn('Setup cancelled by user')}`);
         return;
       }
     }
 
     // Step 7: Execute installation
-    const installProgressReporter = new ComponentProgressReporter({ 
+    const installProgressReporter = new ComponentProgressReporter({
       quiet: options.quiet,
-      verbose: options.verbose 
+      verbose: options.verbose,
     });
 
     try {
       // Prepare components list - convert ComponentFile to Component
       progressReporter.start('Preparing components...');
-      
+
       const componentsToInstall = config.selectedComponents
-        .map(id => {
+        .map((id) => {
           const componentFile = registry.components.get(id);
-          if (!componentFile) return undefined;
-          
+          if (componentFile === undefined) {
+            return undefined;
+          }
+
           // Convert ComponentFile to Component
           return {
             id: componentFile.metadata.id,
@@ -382,24 +412,24 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         .filter((c): c is Component => c !== undefined);
 
       // Filter components based on options
-      const finalComponents = componentsToInstall.filter(component => {
-        if (!config.options.autoCheckpoint && component.id === 'auto-checkpoint') {
+      const finalComponents = componentsToInstall.filter((component) => {
+        if (config.options.autoCheckpoint !== true && component.id === 'auto-checkpoint') {
           return false;
         }
-        if (!config.options.validateTodos && component.id === 'validate-todo-completion') {
+        if (config.options.validateTodos !== true && component.id === 'validate-todo-completion') {
           return false;
         }
-        if (!config.options.runTests && component.id === 'run-related-tests') {
+        if (config.options.runTests !== true && component.id === 'run-related-tests') {
           return false;
         }
-        if (!config.options.gitIntegration && component.category === 'git') {
+        if (config.options.gitIntegration !== true && component.category === 'git') {
           return false;
         }
         return true;
       });
 
       // Initialize progress tracking
-      const componentNames = finalComponents.map(c => c.name);
+      const componentNames = finalComponents.map((c) => c.name);
       installProgressReporter.initialize(componentNames);
 
       // Install based on installation type
@@ -421,26 +451,34 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
                 break;
             }
           }
-        }
+        },
       };
 
       if (config.installationType === 'user' || config.installationType === 'both') {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
-        await installComponents(finalComponents.map(c => ({ ...c, enabled: c.enabled ?? true })), 'user', userInstallOptions);
+        await installComponents(
+          finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
+          'user',
+          userInstallOptions
+        );
       }
 
       if (config.installationType === 'project' || config.installationType === 'both') {
         progressReporter.update('Installing project-level components...');
-        
+
         // Create .claude directory
         const claudeDir = path.join(config.projectPath, '.claude');
         await ensureDirectoryExists(claudeDir);
-        
+
         // Install components
         const projectInstallOptions = { ...installOptions, customPath: config.projectPath };
-        await installComponents(finalComponents.map(c => ({ ...c, enabled: c.enabled ?? true })), 'project', projectInstallOptions);
-        
+        await installComponents(
+          finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
+          'project',
+          projectInstallOptions
+        );
+
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
         await createProjectSettings(claudeDir, finalComponents);
@@ -449,26 +487,26 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       progressReporter.succeed('Installation complete!');
 
       // Show next steps unless quiet mode
-      if (!options.quiet) {
-        console.log('\n' + Colors.bold(Colors.success('ClaudeKit setup complete!')));
+      if (options.quiet !== true) {
+        console.log(`\n${Colors.bold(Colors.success('ClaudeKit setup complete!'))}`);
         console.log(Colors.dim('─'.repeat(40)));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
         console.log(`  2. ${Colors.accent('claudekit list')} - See available commands`);
-        console.log(`  3. ${Colors.accent('.claude/settings.json')} - Customize your configuration`);
+        console.log(
+          `  3. ${Colors.accent('.claude/settings.json')} - Customize your configuration`
+        );
         console.log('\nHappy coding with Claude! 🚀');
       }
-
     } catch (error) {
       progressReporter.fail('Installation failed');
       installProgressReporter.fail('Component installation failed');
       throw error;
     }
-
   } catch (error) {
     if (error instanceof Error && error.message !== 'Setup cancelled') {
       logger.error(`Setup failed: ${error.message}`);
-      console.log('\n' + Colors.error('Setup failed. Please check the error above.'));
+      console.log(`\n${Colors.error('Setup failed. Please check the error above.')}`);
     }
     throw error;
   }
@@ -477,11 +515,15 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 /**
  * Create project settings.json with hook configurations
  */
-async function createProjectSettings(
-  claudeDir: string,
-  components: Component[]
-): Promise<void> {
-  const settings: any = {
+interface HookSettings {
+  hooks: {
+    PostToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+    Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+  };
+}
+
+async function createProjectSettings(claudeDir: string, components: Component[]): Promise<void> {
+  const settings: HookSettings = {
     hooks: {
       PostToolUse: [],
       Stop: [],
@@ -492,7 +534,7 @@ async function createProjectSettings(
   for (const component of components) {
     if (component.type === 'hook') {
       const hookPath = `.claude/hooks/${path.basename(component.path)}`;
-      
+
       switch (component.id) {
         case 'typecheck':
           settings.hooks.PostToolUse.push({
@@ -500,31 +542,31 @@ async function createProjectSettings(
             hooks: [{ type: 'command', command: hookPath }],
           });
           break;
-          
+
         case 'eslint':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
             hooks: [{ type: 'command', command: hookPath }],
           });
           break;
-          
+
         case 'prettier':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
             hooks: [{ type: 'command', command: hookPath }],
           });
           break;
-          
+
         case 'run-related-tests':
           settings.hooks.PostToolUse.push({
             matcher: 'Write,Edit,MultiEdit',
             hooks: [{ type: 'command', command: hookPath }],
           });
           break;
-          
-        case 'auto-checkpoint':
-          const stopEntry = settings.hooks.Stop.find((e: any) => e.matcher === '*');
-          if (stopEntry) {
+
+        case 'auto-checkpoint': {
+          const stopEntry = settings.hooks.Stop.find((e) => e.matcher === '*');
+          if (stopEntry !== undefined) {
             stopEntry.hooks.push({ type: 'command', command: hookPath });
           } else {
             settings.hooks.Stop.push({
@@ -533,10 +575,11 @@ async function createProjectSettings(
             });
           }
           break;
-          
-        case 'validate-todo-completion':
-          const stopEntryTodo = settings.hooks.Stop.find((e: any) => e.matcher === '*');
-          if (stopEntryTodo) {
+        }
+
+        case 'validate-todo-completion': {
+          const stopEntryTodo = settings.hooks.Stop.find((e) => e.matcher === '*');
+          if (stopEntryTodo !== undefined) {
             stopEntryTodo.hooks.push({ type: 'command', command: hookPath });
           } else {
             settings.hooks.Stop.push({
@@ -545,6 +588,7 @@ async function createProjectSettings(
             });
           }
           break;
+        }
       }
     }
   }

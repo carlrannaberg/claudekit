@@ -2,19 +2,19 @@ import { promises as fs } from 'fs';
 import path from 'path';
 // import os from 'os'; // Unused
 import { Logger } from '../utils/logger.js';
-import { 
-  copyFileWithBackup, 
-  ensureDirectoryExists, 
+import {
+  copyFileWithBackup,
+  ensureDirectoryExists,
   setExecutablePermission,
   checkWritePermission,
   pathExists,
   safeRemove,
   normalizePath,
-  expandHomePath
+  expandHomePath,
 } from './filesystem.js';
-import { 
-  discoverComponents, 
-  // getComponent, 
+import {
+  discoverComponents,
+  // getComponent,
   // resolveDependencyOrder,
   resolveAllDependencies,
   getMissingDependencies,
@@ -22,18 +22,18 @@ import {
   // getComponentsByType
 } from './components.js';
 import { detectProjectContext as detectProjectInfo } from './project-detection.js';
-import type { 
-  Installation, 
-  Component, 
+import type {
+  Installation,
+  Component,
   // ComponentType,
   InstallTarget,
   ProjectInfo,
-  TemplateType
+  TemplateType,
 } from '../types/config.js';
 
 /**
  * Installation Orchestrator Module
- * 
+ *
  * Manages the complete installation lifecycle including:
  * - Planning and validation
  * - Transaction-based installation with rollback
@@ -206,30 +206,30 @@ export async function createInstallPlan(
   // Determine base paths
   const userDir = expandHomePath('~/.claude');
   const projectDir = path.join(process.cwd(), '.claude');
-  
+
   // Get components in dependency order with auto-included dependencies
   const sourceDir = path.dirname(path.dirname(import.meta.url.replace('file://', '')));
   const registry = await discoverComponents(sourceDir);
-  const componentIds = installation.components.map(c => c.id);
-  
+  const componentIds = installation.components.map((c) => c.id);
+
   // Resolve all dependencies (including transitive)
   const resolvedIds = resolveAllDependencies(componentIds, registry, {
     includeOptional: false,
-    maxDepth: 10
+    maxDepth: 10,
   });
-  
+
   // Get missing dependencies that were auto-included
   const missingDeps = getMissingDependencies(componentIds, registry);
   if (missingDeps.length > 0) {
     logger.info(`Auto-including dependencies: ${missingDeps.join(', ')}`);
   }
-  
+
   // Map resolved IDs to components
   const orderedComponents: Component[] = [];
   for (const id of resolvedIds) {
     // First check if it's in the original selection
-    let component = installation.components.find(c => c.id === id);
-    
+    let component = installation.components.find((c) => c.id === id);
+
     // If not, try to find it in the registry (auto-included dependency)
     if (!component) {
       const registryComponent = registry.components.get(id);
@@ -259,7 +259,7 @@ export async function createInstallPlan(
         };
       }
     }
-    
+
     if (component) {
       orderedComponents.push(component);
     }
@@ -292,7 +292,7 @@ export async function createInstallPlan(
       id: `create-dir-${dir}`,
       type: 'create-dir',
       description: `Create directory: ${dir}`,
-      target: dir
+      target: dir,
     });
   }
 
@@ -302,25 +302,37 @@ export async function createInstallPlan(
 
     // Determine target paths
     if (installation.target === 'user' || installation.target === 'both') {
-      const targetPath = path.join(userDir, component.type === 'command' ? 'commands' : 'hooks', path.basename(component.path));
+      const targetPath = path.join(
+        userDir,
+        component.type === 'command' ? 'commands' : 'hooks',
+        path.basename(component.path)
+      );
       targets.push(targetPath);
     }
 
     if (installation.target === 'project' || installation.target === 'both') {
-      const targetPath = path.join(projectDir, component.type === 'command' ? 'commands' : 'hooks', path.basename(component.path));
+      const targetPath = path.join(
+        projectDir,
+        component.type === 'command' ? 'commands' : 'hooks',
+        path.basename(component.path)
+      );
       targets.push(targetPath);
     }
 
     if (options.customPath) {
       const customPath = normalizePath(options.customPath);
-      const targetPath = path.join(customPath, component.type === 'command' ? 'commands' : 'hooks', path.basename(component.path));
+      const targetPath = path.join(
+        customPath,
+        component.type === 'command' ? 'commands' : 'hooks',
+        path.basename(component.path)
+      );
       targets.push(targetPath);
     }
 
     // Create copy steps for each target
     for (const target of targets) {
       // Check if file exists for backup planning
-      if (await pathExists(target) && options.backup !== false) {
+      if ((await pathExists(target)) && options.backup !== false) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = `${target}.backup-${timestamp}`;
         backupPaths.push(backupPath);
@@ -331,8 +343,8 @@ export async function createInstallPlan(
         type: 'copy-file',
         description: `Install ${component.name} to ${path.dirname(target)}`,
         source: component.path,
-        target: target,
-        component: component
+        target,
+        component,
       });
 
       // Add permission step for hooks
@@ -341,8 +353,8 @@ export async function createInstallPlan(
           id: `chmod-${component.id}-at-${target}`,
           type: 'set-permission',
           description: `Set executable permission on ${path.basename(target)}`,
-          target: target,
-          component: component
+          target,
+          component,
         });
       }
     }
@@ -359,8 +371,8 @@ export async function createInstallPlan(
           type: 'install-dependency',
           description: `Check/install dependency: ${dep}`,
           target: dep,
-          component: component,
-          metadata: { dependency: dep }
+          component,
+          metadata: { dependency: dep },
         });
       }
     }
@@ -373,22 +385,25 @@ export async function createInstallPlan(
       type: 'configure',
       description: 'Configure project settings',
       target: path.join(projectDir, 'settings.json'),
-      metadata: { 
+      metadata: {
         template: options.template || 'default',
-        projectInfo: installation.projectInfo 
-      }
+        projectInfo: installation.projectInfo,
+      },
     });
   }
 
   // Check for warnings
-  if (installation.projectInfo?.hasTypeScript && !orderedComponents.some(c => c.id === 'typecheck')) {
+  if (
+    installation.projectInfo?.hasTypeScript &&
+    !orderedComponents.some((c) => c.id === 'typecheck')
+  ) {
     warnings.push('TypeScript detected but typecheck hook not selected');
   }
 
-  if (installation.projectInfo?.hasESLint && !orderedComponents.some(c => c.id === 'eslint')) {
+  if (installation.projectInfo?.hasESLint && !orderedComponents.some((c) => c.id === 'eslint')) {
     warnings.push('ESLint detected but eslint hook not selected');
   }
-  
+
   // Warn about circular dependencies if any were detected
   if (registry.dependencyGraph?.cycles && registry.dependencyGraph.cycles.length > 0) {
     for (const cycle of registry.dependencyGraph.cycles) {
@@ -406,7 +421,7 @@ export async function createInstallPlan(
     directories: Array.from(directories),
     backupPaths,
     estimatedDuration,
-    warnings
+    warnings,
   };
 }
 
@@ -425,7 +440,7 @@ export async function validateInstallPlan(plan: InstallPlan): Promise<string[]> 
   for (const dir of plan.directories) {
     const parentDir = path.dirname(dir);
     if (!checkedPaths.has(parentDir)) {
-      if (!await checkWritePermission(parentDir)) {
+      if (!(await checkWritePermission(parentDir))) {
         errors.push(`No write permission for directory: ${parentDir}`);
       }
       checkedPaths.add(parentDir);
@@ -435,7 +450,7 @@ export async function validateInstallPlan(plan: InstallPlan): Promise<string[]> 
   // Validate source files exist
   for (const step of plan.steps) {
     if (step.type === 'copy-file' && step.source) {
-      if (!await pathExists(step.source)) {
+      if (!(await pathExists(step.source))) {
         errors.push(`Source file not found: ${step.source}`);
       }
     }
@@ -474,14 +489,14 @@ export async function simulateInstallation(
       phase: 'planning',
       message: 'Simulating installation plan...',
       warnings: [],
-      errors: []
+      errors: [],
     });
   }
 
   // Simulate each step
   for (let i = 0; i < plan.steps.length; i++) {
     const step = plan.steps[i];
-    
+
     if (options.onProgress && step) {
       options.onProgress({
         totalSteps: plan.steps.length,
@@ -490,7 +505,7 @@ export async function simulateInstallation(
         phase: 'installing',
         message: step.description,
         warnings,
-        errors
+        errors,
       });
     }
 
@@ -520,13 +535,13 @@ export async function simulateInstallation(
           }
           break;
 
-      case 'set-permission':
-        logger.debug(`  Would set executable permission: ${step.target}`);
-        break;
+        case 'set-permission':
+          logger.debug(`  Would set executable permission: ${step.target}`);
+          break;
 
-      case 'install-dependency':
-        logger.debug(`  Would check/install dependency: ${step.target}`);
-        break;
+        case 'install-dependency':
+          logger.debug(`  Would check/install dependency: ${step.target}`);
+          break;
 
         case 'configure':
           logger.debug(`  Would create/update configuration: ${step.target}`);
@@ -543,7 +558,7 @@ export async function simulateInstallation(
       phase: 'complete',
       message: 'Dry run completed successfully',
       warnings,
-      errors
+      errors,
     });
   }
 
@@ -556,18 +571,18 @@ export async function simulateInstallation(
 
   if (warnings.length > 0) {
     logger.warn('\nWarnings:');
-    warnings.forEach(w => logger.warn(`  - ${w}`));
+    warnings.forEach((w) => logger.warn(`  - ${w}`));
   }
 
   return {
     success: true,
     installedComponents: plan.components,
-    modifiedFiles: plan.steps.filter(s => s.type === 'copy-file').map(s => s.target),
+    modifiedFiles: plan.steps.filter((s) => s.type === 'copy-file').map((s) => s.target),
     createdDirectories: plan.directories,
     backupFiles: plan.backupPaths,
     warnings,
     errors,
-    duration
+    duration,
   };
 }
 
@@ -597,7 +612,7 @@ export async function executeInstallation(
       phase: 'installing',
       message: 'Starting installation...',
       warnings: [],
-      errors: []
+      errors: [],
     });
   }
 
@@ -612,7 +627,7 @@ export async function executeInstallation(
           phase: 'installing',
           message: step.description,
           warnings,
-          errors
+          errors,
         });
       }
 
@@ -638,7 +653,7 @@ export async function executeInstallation(
         phase: 'complete',
         message: 'Installation completed successfully',
         warnings,
-        errors
+        errors,
       });
     }
 
@@ -653,9 +668,8 @@ export async function executeInstallation(
       backupFiles: transaction.getBackupFiles(),
       warnings,
       errors,
-      duration
+      duration,
     };
-
   } catch (error) {
     // Report failure
     if (options.onProgress) {
@@ -665,7 +679,7 @@ export async function executeInstallation(
         phase: 'failed',
         message: `Installation failed: ${error}`,
         warnings,
-        errors
+        errors,
       });
     }
 
@@ -685,7 +699,7 @@ export async function executeInstallation(
       backupFiles: [],
       warnings,
       errors,
-      duration
+      duration,
     };
   }
 }
@@ -699,7 +713,7 @@ async function executeStep(
   options: InstallOptions
 ): Promise<void> {
   const logger = Logger.create('installer:step');
-  
+
   switch (step.type) {
     case 'create-dir':
       logger.debug(`Creating directory: ${step.target}`);
@@ -711,11 +725,11 @@ async function executeStep(
       if (!step.source) {
         throw new Error('Source file required for copy operation');
       }
-      
+
       logger.debug(`Copying file: ${step.source} -> ${step.target}`);
-      
+
       // Record backup if created
-      if (options.backup !== false && await pathExists(step.target)) {
+      if (options.backup !== false && (await pathExists(step.target))) {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupPath = `${step.target}.backup-${timestamp}`;
         transaction.recordBackupCreated(backupPath);
@@ -763,15 +777,15 @@ async function createConfiguration(
   const config: any = {
     hooks: {
       PostToolUse: [],
-      Stop: []
-    }
+      Stop: [],
+    },
   };
 
   // Add TypeScript hook if project has TypeScript
   if (projectInfo?.hasTypeScript) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.ts',
-      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }]
+      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
     });
   }
 
@@ -779,7 +793,7 @@ async function createConfiguration(
   if (projectInfo?.hasESLint) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-      hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }]
+      hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }],
     });
   }
 
@@ -788,8 +802,8 @@ async function createConfiguration(
     matcher: '*',
     hooks: [
       { type: 'command', command: '.claude/hooks/auto-checkpoint.sh' },
-      { type: 'command', command: '.claude/hooks/validate-todo-completion.sh' }
-    ]
+      { type: 'command', command: '.claude/hooks/validate-todo-completion.sh' },
+    ],
   });
 
   // Write configuration
@@ -829,7 +843,7 @@ export class Installer {
         phase: 'planning',
         message: 'Creating installation plan...',
         warnings: [],
-        errors: []
+        errors: [],
       });
 
       const plan = await createInstallPlan(installation, this.options);
@@ -841,7 +855,7 @@ export class Installer {
         phase: 'validating',
         message: 'Validating installation plan...',
         warnings: plan.warnings,
-        errors: []
+        errors: [],
       });
 
       const validationErrors = await validateInstallPlan(plan);
@@ -854,7 +868,7 @@ export class Installer {
           backupFiles: [],
           warnings: plan.warnings,
           errors: validationErrors,
-          duration: 0
+          duration: 0,
         };
       }
 
@@ -864,7 +878,6 @@ export class Installer {
       } else {
         return await executeInstallation(plan, this.options);
       }
-
     } catch (error) {
       this.logger.error(`Installation failed: ${error}`);
       return {
@@ -875,7 +888,7 @@ export class Installer {
         backupFiles: [],
         warnings: [],
         errors: [`Installation failed: ${error}`],
-        duration: 0
+        duration: 0,
       };
     }
   }
@@ -898,27 +911,35 @@ export class Installer {
     // Always include base hooks
     const baseHooks = ['auto-checkpoint', 'validate-todo-completion'];
     for (const hookId of baseHooks) {
-      const hook = allComponents.find(c => c.id === hookId && c.type === 'hook');
-      if (hook) selectedComponents.push(hook);
+      const hook = allComponents.find((c) => c.id === hookId && c.type === 'hook');
+      if (hook) {
+        selectedComponents.push(hook);
+      }
     }
 
     // Add TypeScript hook if TypeScript detected
     if (projectInfo?.hasTypeScript) {
-      const tsHook = allComponents.find(c => c.id === 'typecheck' && c.type === 'hook');
-      if (tsHook) selectedComponents.push(tsHook);
+      const tsHook = allComponents.find((c) => c.id === 'typecheck' && c.type === 'hook');
+      if (tsHook) {
+        selectedComponents.push(tsHook);
+      }
     }
 
     // Add ESLint hook if ESLint detected
     if (projectInfo?.hasESLint) {
-      const eslintHook = allComponents.find(c => c.id === 'eslint' && c.type === 'hook');
-      if (eslintHook) selectedComponents.push(eslintHook);
+      const eslintHook = allComponents.find((c) => c.id === 'eslint' && c.type === 'hook');
+      if (eslintHook) {
+        selectedComponents.push(eslintHook);
+      }
     }
 
     // Add some useful commands
     const recommendedCommands = ['checkpoint-create', 'checkpoint-list', 'git-status'];
     for (const cmdId of recommendedCommands) {
-      const cmd = allComponents.find(c => c.id === cmdId && c.type === 'command');
-      if (cmd) selectedComponents.push(cmd);
+      const cmd = allComponents.find((c) => c.id === cmdId && c.type === 'command');
+      if (cmd) {
+        selectedComponents.push(cmd);
+      }
     }
 
     return {
@@ -928,7 +949,7 @@ export class Installer {
       dryRun: false,
       projectInfo,
       template: 'default',
-      installDependencies: true
+      installDependencies: true,
     };
   }
 
@@ -956,7 +977,7 @@ export async function installComponents(
     target,
     backup: options.backup ?? true,
     dryRun: options.dryRun ?? false,
-    installDependencies: options.installDependencies ?? true
+    installDependencies: options.installDependencies ?? true,
   };
 
   return installer.install(installation);

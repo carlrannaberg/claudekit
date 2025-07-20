@@ -14,7 +14,7 @@ export class Logger {
 
   constructor(prefix = '') {
     this.prefix = prefix;
-    
+
     // Check for DEBUG environment variable
     if (process.env['DEBUG']) {
       this.level = 'debug';
@@ -67,7 +67,7 @@ export class Logger {
 
   debug(message: string, ...args: any[]): void {
     if (this.shouldLog('debug')) {
-      const argsStr = args.length > 0 ? ' ' + JSON.stringify(args) : '';
+      const argsStr = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
       console.log(Colors.debug(this.formatMessage('DEBUG', message + argsStr)));
     }
   }

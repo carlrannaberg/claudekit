@@ -50,9 +50,7 @@ export default defineConfig({
     hookTimeout: 10000,
     teardownTimeout: 5000,
     // Enable file watching in development
-    watch: process.env['CI'] ? false : {
-      exclude: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
-    },
+    watch: !process.env['CI'],
     // Parallel testing for faster execution
     pool: 'threads',
     poolOptions: {
@@ -62,7 +60,7 @@ export default defineConfig({
       }
     },
     // Better error reporting
-    reporter: process.env['CI'] ? ['verbose', 'junit'] : ['verbose'],
+    reporters: process.env['CI'] ? ['verbose', 'junit'] : ['verbose'],
     outputFile: {
       junit: './coverage/junit.xml'
     }

@@ -18,25 +18,26 @@ vi.mock('ora', () => ({
     stop: vi.fn().mockReturnThis(),
     succeed: vi.fn().mockReturnThis(),
     fail: vi.fn().mockReturnThis(),
-    text: ''
-  }))
+    text: '',
+  })),
 }));
 
 vi.mock('chalk', () => {
-  const createChainableInstance = (): any => {
-    const mock: any = (text: string) => text;
-    mock.bold = createChainableInstance();
-    mock.dim = createChainableInstance();
-    mock.italic = createChainableInstance();
-    mock.underline = createChainableInstance();
-    mock.green = createChainableInstance();
-    mock.red = createChainableInstance();
-    mock.yellow = createChainableInstance();
-    mock.blue = createChainableInstance();
-    mock.gray = createChainableInstance();
-    return mock;
+  const createChainableInstance = (): Record<string, unknown> => {
+    const mock = (text: string): string => text;
+    const instance = mock as unknown as Record<string, unknown>;
+    instance['bold'] = createChainableInstance();
+    instance['dim'] = createChainableInstance();
+    instance['italic'] = createChainableInstance();
+    instance['underline'] = createChainableInstance();
+    instance['green'] = createChainableInstance();
+    instance['red'] = createChainableInstance();
+    instance['yellow'] = createChainableInstance();
+    instance['blue'] = createChainableInstance();
+    instance['gray'] = createChainableInstance();
+    return instance;
   };
-  
+
   return {
     default: {
       green: createChainableInstance(),
@@ -45,8 +46,8 @@ vi.mock('chalk', () => {
       blue: createChainableInstance(),
       gray: createChainableInstance(),
       bold: createChainableInstance(),
-      dim: createChainableInstance()
-    }
+      dim: createChainableInstance(),
+    },
   };
 });
 
@@ -54,14 +55,14 @@ describe('CLI workflow integration', () => {
   let testFs: TestFileSystem;
   let tempDir: string;
   let restoreCwd: () => void;
-  let console: ReturnType<typeof ConsoleTestHelper.mockConsole>;
+  // let console: ReturnType<typeof ConsoleTestHelper.mockConsole>; // Removed unused variable
   let processExit: ReturnType<typeof CommandTestHelper.mockProcessExit>;
 
   beforeEach(async () => {
     testFs = new TestFileSystem();
     tempDir = await testFs.createTempDir();
     restoreCwd = CommandTestHelper.mockProcessCwd(tempDir);
-    console = ConsoleTestHelper.mockConsole();
+    ConsoleTestHelper.mockConsole();
     processExit = CommandTestHelper.mockProcessExit();
   });
 
@@ -78,7 +79,7 @@ describe('CLI workflow integration', () => {
       // Step 1: Fresh directory should fail validation
       await validate({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       // Reset mocks for next steps
       processExit.exit.mockClear();
 
@@ -114,7 +115,7 @@ describe('CLI workflow integration', () => {
         hooks: {
           ...initialConfig.hooks,
           PostToolUse: [
-            ...initialConfig.hooks.PostToolUse!,
+            ...(initialConfig.hooks.PostToolUse || []),
             {
               matcher: 'tools:Write AND file_paths:**/*.py',
               hooks: [
@@ -122,13 +123,13 @@ describe('CLI workflow integration', () => {
                   type: 'command',
                   command: '.claude/hooks/python-check.sh',
                   enabled: true,
-                  retries: 0
-                }
+                  retries: 0,
+                },
               ],
-              enabled: true
-            }
-          ]
-        }
+              enabled: true,
+            },
+          ],
+        },
       };
 
       // Save modified config
@@ -137,12 +138,12 @@ describe('CLI workflow integration', () => {
       // Reload and verify
       const reloadedConfig = await loadConfig(tempDir);
       expect(reloadedConfig.hooks.PostToolUse).toHaveLength(3);
-      
-      const pythonHook = reloadedConfig.hooks.PostToolUse?.find(hook => 
+
+      const pythonHook = reloadedConfig.hooks.PostToolUse?.find((hook) =>
         hook.matcher.includes('**/*.py')
       );
       expect(pythonHook).toBeDefined();
-      expect(pythonHook?.hooks[0].command).toBe('.claude/hooks/python-check.sh');
+      expect(pythonHook?.hooks[0]?.command).toBe('.claude/hooks/python-check.sh');
 
       // Validation should still pass
       processExit.exit.mockClear();
@@ -158,14 +159,16 @@ describe('CLI workflow integration', () => {
       // Add a custom hook file
       await testFs.createFileStructure(tempDir, {
         '.claude': {
-          'hooks': {
-            'custom.sh': '#!/bin/bash\necho "Custom hook"'
-          }
-        }
+          hooks: {
+            'custom.sh': '#!/bin/bash\necho "Custom hook"',
+          },
+        },
       });
 
       // Verify custom hook exists
-      await expect(fs.access(path.join(tempDir, '.claude', 'hooks', 'custom.sh'))).resolves.not.toThrow();
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'hooks', 'custom.sh'))
+      ).resolves.not.toThrow();
 
       // Force reinitialize
       await init({ force: true });
@@ -175,7 +178,9 @@ describe('CLI workflow integration', () => {
       expect(newConfig).toEqual(originalConfig);
 
       // Custom hook should still exist (init doesn't clean up)
-      await expect(fs.access(path.join(tempDir, '.claude', 'hooks', 'custom.sh'))).resolves.not.toThrow();
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'hooks', 'custom.sh'))
+      ).resolves.not.toThrow();
 
       // Validation should pass
       processExit.exit.mockClear();
@@ -248,9 +253,9 @@ describe('CLI workflow integration', () => {
 
       // Create config with valid JSON but wrong structure
       const invalidStructureConfig = {
-        hooks: "this should be an object"
+        hooks: 'this should be an object',
       };
-      
+
       await fs.writeFile(
         path.join(tempDir, '.claude', 'settings.json'),
         JSON.stringify(invalidStructureConfig, null, 2)
@@ -271,9 +276,9 @@ describe('CLI workflow integration', () => {
 
       // Create config with empty hooks
       const emptyHooksConfig: Config = {
-        hooks: {}
+        hooks: {},
       };
-      
+
       await saveConfig(tempDir, emptyHooksConfig);
 
       // Should be able to load empty config
@@ -291,15 +296,15 @@ describe('CLI workflow integration', () => {
     it('should handle deeply nested directory structures', async () => {
       // Create deep directory structure
       await testFs.createFileStructure(tempDir, {
-        'very': {
-          'deeply': {
-            'nested': {
-              'project': {
-                'structure': {}
-              }
-            }
-          }
-        }
+        very: {
+          deeply: {
+            nested: {
+              project: {
+                structure: {},
+              },
+            },
+          },
+        },
       });
 
       const deepDir = path.join(tempDir, 'very', 'deeply', 'nested', 'project', 'structure');
@@ -310,7 +315,9 @@ describe('CLI workflow integration', () => {
         await init({});
 
         // Verify structure was created
-        await expect(fs.access(path.join(deepDir, '.claude', 'settings.json'))).resolves.not.toThrow();
+        await expect(
+          fs.access(path.join(deepDir, '.claude', 'settings.json'))
+        ).resolves.not.toThrow();
         await expect(fs.access(path.join(deepDir, '.claude', 'hooks'))).resolves.not.toThrow();
 
         // Validation should work

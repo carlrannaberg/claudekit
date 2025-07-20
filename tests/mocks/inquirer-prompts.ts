@@ -10,14 +10,14 @@ interface MockState {
   responses: Map<string, any>;
   promptHistory: Array<{ type: string; message: string; options?: any }>;
   shouldThrow: boolean;
-  throwError?: Error;
+  throwError: Error | undefined;
 }
 
 const mockState: MockState = {
   responses: new Map(),
   promptHistory: [],
   shouldThrow: false,
-  throwError: undefined
+  throwError: undefined,
 };
 
 // Helper functions for test setup
@@ -44,7 +44,7 @@ export const mockInquirer = {
   // Error simulation
   setShouldThrow(shouldThrow: boolean, error?: Error) {
     mockState.shouldThrow = shouldThrow;
-    mockState.throwError = error;
+    mockState.throwError = error ?? undefined;
   },
 
   // History inspection
@@ -58,7 +58,7 @@ export const mockInquirer = {
 
   clearHistory() {
     mockState.promptHistory.length = 0;
-  }
+  },
 };
 
 // Base prompt function
@@ -68,7 +68,7 @@ const createPromptMock = (type: string) => {
     mockState.promptHistory.push({
       type,
       message: options.name || options.message || 'unknown',
-      options
+      options,
     });
 
     // Check if we should throw an error
@@ -79,7 +79,7 @@ const createPromptMock = (type: string) => {
     // Get response from mock state
     const key = options.name || options.message || type;
     const response = mockState.responses.get(key);
-    
+
     if (response !== undefined) {
       return response;
     }
@@ -127,7 +127,7 @@ const mockPrompts = {
   number,
   editor,
   rawlist,
-  expand
+  expand,
 };
 
 export default mockPrompts;

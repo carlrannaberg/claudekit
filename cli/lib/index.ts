@@ -1,6 +1,6 @@
 /**
  * ClaudeKit CLI Library Modules
- * 
+ *
  * Provides core functionality for file operations, validation,
  * and other utilities used throughout the CLI.
  */
@@ -8,21 +8,21 @@
 export {
   // Path validation
   validateProjectPath,
-  
+
   // Directory operations
   ensureDirectoryExists,
-  
+
   // Permission operations
   setExecutablePermission,
   checkWritePermission,
-  
+
   // File hashing and comparison
   getFileHash,
   needsUpdate,
-  
+
   // File operations with backup
   copyFileWithBackup,
-  
+
   // Utility functions
   pathExists,
   getFileStats,
@@ -38,29 +38,29 @@ export {
   type PrerequisiteCheck,
   type ProjectValidationOptions,
   type ComponentValidationOptions,
-  
+
   // Path validation with security
   validateProjectPathSecure,
   validatePathAccessibility,
-  
+
   // Component validation
   validateComponentName,
   sanitizeComponentList,
-  
+
   // Prerequisite checking
   checkNodePrerequisite,
   checkTypeScriptPrerequisite,
   checkESLintPrerequisite,
   checkGitPrerequisite,
   checkAllPrerequisites,
-  
+
   // Input sanitization
   sanitizeShellInput,
   sanitizeConfigInput,
-  
+
   // Project validation
   validateProject,
-  
+
   // Utility functions
   formatValidationErrors,
   createValidationError,
@@ -71,7 +71,7 @@ export {
   // Core project detection
   detectProjectContext,
   resolveProjectPath,
-  
+
   // Individual detection functions
   detectTypeScript,
   detectESLint,
@@ -96,18 +96,18 @@ export {
   getDependencies,
   searchComponents,
   registryToComponents,
-  
+
   // Dependency resolution
   resolveDependencyOrder,
   resolveAllDependencies,
   getMissingDependencies,
   getTransitiveDependencies,
   wouldCreateCircularDependency,
-  
+
   // Cache management
   invalidateCache,
   getDiscoveryStats,
-  
+
   // Component recommendation
   recommendComponents,
   formatRecommendationSummary,
@@ -123,14 +123,14 @@ export {
   type InstallProgress,
   type InstallResult,
   type InstallOptions,
-  
+
   // Installation functions
   createInstallPlan,
   validateInstallPlan,
   simulateInstallation,
   executeInstallation,
   installComponents,
-  
+
   // Installer class
   Installer,
 } from './installer.js';

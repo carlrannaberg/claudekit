@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
-import path from 'path';
+// import path from 'path'; // Removed unused import
 import { setup } from '../../cli/commands/setup.js';
 import type { SetupOptions } from '../../cli/commands/setup.js';
 
@@ -12,7 +12,7 @@ vi.mock('@inquirer/prompts', () => ({
   confirm: vi.fn(),
 }));
 vi.mock('ora', () => ({
-  default: () => ({
+  default: (): Record<string, unknown> => ({
     start: vi.fn().mockReturnThis(),
     succeed: vi.fn().mockReturnThis(),
     fail: vi.fn().mockReturnThis(),
@@ -39,61 +39,73 @@ vi.mock('../../cli/lib/index.js', () => ({
   }),
   discoverComponents: vi.fn().mockResolvedValue({
     components: new Map([
-      ['typecheck', {
-        type: 'hook',
-        path: '/path/to/typecheck.sh',
-        metadata: {
-          id: 'typecheck',
-          name: 'TypeScript Check',
-          description: 'Type checking',
-          category: 'validation',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      [
+        'typecheck',
+        {
+          type: 'hook',
+          path: '/path/to/typecheck.sh',
+          metadata: {
+            id: 'typecheck',
+            name: 'TypeScript Check',
+            description: 'Type checking',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['eslint', {
-        type: 'hook',
-        path: '/path/to/eslint.sh',
-        metadata: {
-          id: 'eslint',
-          name: 'ESLint',
-          description: 'ESLint validation',
-          category: 'validation',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'eslint',
+        {
+          type: 'hook',
+          path: '/path/to/eslint.sh',
+          metadata: {
+            id: 'eslint',
+            name: 'ESLint',
+            description: 'ESLint validation',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['checkpoint-create', {
-        type: 'command',
-        path: '/path/to/checkpoint-create.md',
-        metadata: {
-          id: 'checkpoint-create',
-          name: 'Create Checkpoint',
-          description: 'Create git checkpoint',
-          category: 'git',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'checkpoint-create',
+        {
+          type: 'command',
+          path: '/path/to/checkpoint-create.md',
+          metadata: {
+            id: 'checkpoint-create',
+            name: 'Create Checkpoint',
+            description: 'Create git checkpoint',
+            category: 'git',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['git-commit', {
-        type: 'command',
-        path: '/path/to/git-commit.md',
-        metadata: {
-          id: 'git-commit',
-          name: 'Git Commit',
-          description: 'Smart git commit',
-          category: 'git',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'git-commit',
+        {
+          type: 'command',
+          path: '/path/to/git-commit.md',
+          metadata: {
+            id: 'git-commit',
+            name: 'Git Commit',
+            description: 'Smart git commit',
+            category: 'git',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
+      ],
     ]),
   }),
-  recommendComponents: vi.fn().mockImplementation((projectInfo, registry) => {
+  recommendComponents: vi.fn().mockImplementation((_projectInfo, registry) => {
     return {
       essential: [],
       recommended: [
@@ -119,9 +131,11 @@ vi.mock('../../cli/lib/index.js', () => ({
 
 describe('Setup Command - Non-Interactive Flags', () => {
   const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-  const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-  const mockWriteFile = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-  
+  // const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+  // const mockWriteFile = vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -161,11 +175,11 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(2);
-      
+
       // Check that both user and project installations happened
-      const calls = (installComponents as any).mock.calls;
-      expect(calls[0][1]).toBe('user');
-      expect(calls[1][1]).toBe('project');
+      const calls = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls[0]?.[1]).toBe('user');
+      expect(calls[1]?.[1]).toBe('project');
     });
   });
 
@@ -180,9 +194,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalled();
-      
-      const installedComponents = (installComponents as any).mock.calls[0][0];
-      const installedIds = installedComponents.map((c: any) => c.id);
+
+      const installedComponents = (installComponents as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0];
+      const installedIds = (installedComponents as { id: string }[]).map((c) => c.id);
       expect(installedIds).toContain('checkpoint-create');
       expect(installedIds).toContain('git-commit');
       expect(installedIds).not.toContain('typecheck');
@@ -210,9 +225,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalled();
-      
-      const installedComponents = (installComponents as any).mock.calls[0][0];
-      const installedIds = installedComponents.map((c: any) => c.id);
+
+      const installedComponents = (installComponents as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0];
+      const installedIds = (installedComponents as { id: string }[]).map((c) => c.id);
       expect(installedIds).toContain('typecheck');
       expect(installedIds).toContain('eslint');
       expect(installedIds).not.toContain('checkpoint-create');
@@ -228,8 +244,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index.js');
-      const installedComponents = (installComponents as any).mock.calls[0][0];
-      const installedIds = installedComponents.map((c: any) => c.id);
+      const installedComponents = (installComponents as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0];
+      const installedIds = (installedComponents as { id: string }[]).map((c) => c.id);
       expect(installedIds).toContain('typecheck');
       expect(installedIds).toContain('eslint');
     });
@@ -238,11 +255,12 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('--project flag', () => {
     it('should use specified project directory', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+        .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
-      } as any);
+      } as import('fs').Stats);
       vi.spyOn(fs, 'access').mockResolvedValue(undefined);
 
       const options: SetupOptions = {
@@ -254,12 +272,16 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index.js');
-      const projectCall = (installComponents as any).mock.calls.find((call: any) => call[1] === 'project');
-      expect(projectCall[2].customPath).toBe(testDir);
+      const projectCall = (
+        installComponents as unknown as ReturnType<typeof vi.fn>
+      ).mock.calls.find((call: unknown[]) => call[1] === 'project');
+      expect(projectCall).toBeDefined();
+      expect(projectCall![2].customPath).toBe(testDir);
     });
 
     it('should throw error if project directory does not exist', async () => {
-      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+        .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(false);
 
       const options: SetupOptions = {
@@ -268,7 +290,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
         quiet: true,
       };
 
-      await expect(setup(options)).rejects.toThrow('Project directory does not exist: /nonexistent/directory');
+      await expect(setup(options)).rejects.toThrow(
+        'Project directory does not exist: /nonexistent/directory'
+      );
     });
   });
 
@@ -283,7 +307,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(1);
-      expect((installComponents as any).mock.calls[0][1]).toBe('user');
+      const firstCall = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(firstCall).toBeDefined();
+      expect(firstCall![1]).toBe('user');
     });
 
     it('should use default components with --commands-only', async () => {
@@ -295,7 +321,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index.js');
-      const installedComponents = (installComponents as any).mock.calls[0][0];
+      const installedComponents = (installComponents as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0];
       expect(installedComponents.length).toBeGreaterThan(0);
     });
   });
@@ -311,7 +338,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index.js');
-      const installOptions = (installComponents as any).mock.calls[0][2];
+      const firstCall = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(firstCall).toBeDefined();
+      const installOptions = firstCall![2];
       expect(installOptions.dryRun).toBe(true);
     });
   });
@@ -319,11 +348,12 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('Combined flags', () => {
     it('should work with --yes --project combination', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../cli/lib/filesystem.js')).pathExists as any;
+      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+        .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
-      } as any);
+      } as import('fs').Stats);
       vi.spyOn(fs, 'access').mockResolvedValue(undefined);
 
       const options: SetupOptions = {
@@ -336,9 +366,12 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       const { installComponents } = await import('../../cli/lib/index.js');
       expect(installComponents).toHaveBeenCalledTimes(2);
-      
-      const projectCall = (installComponents as any).mock.calls.find((call: any) => call[1] === 'project');
-      expect(projectCall[2].customPath).toBe(testDir);
+
+      const projectCall = (
+        installComponents as unknown as ReturnType<typeof vi.fn>
+      ).mock.calls.find((call: unknown[]) => call[1] === 'project');
+      expect(projectCall).toBeDefined();
+      expect(projectCall![2].customPath).toBe(testDir);
     });
 
     it('should work with --commands --hooks combination', async () => {
@@ -351,8 +384,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index.js');
-      const installedComponents = (installComponents as any).mock.calls[0][0];
-      const installedIds = installedComponents.map((c: any) => c.id);
+      const installedComponents = (installComponents as unknown as ReturnType<typeof vi.fn>).mock
+        .calls[0]?.[0];
+      const installedIds = (installedComponents as { id: string }[]).map((c) => c.id);
       expect(installedIds).toContain('checkpoint-create');
       expect(installedIds).toContain('typecheck');
     });

@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  recommendComponents, 
+import { describe, it, expect } from 'vitest';
+import {
+  recommendComponents,
   formatRecommendationSummary,
-  type ComponentRecommendation,
-  type RecommendationResult 
+  // type ComponentRecommendation, // Removed unused import
+  type RecommendationResult,
 } from '../../cli/lib/components.js';
 import type { ProjectInfo } from '../../cli/types/index.js';
 
@@ -11,132 +11,156 @@ describe('Component Recommendation Engine', () => {
   // Mock component registry with test components
   const mockRegistry = {
     components: new Map([
-      ['typecheck', {
-        path:../cli/hooks/typecheck.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'typecheck',
-          name: 'TypeScript Type Checker',
-          description: 'Validates TypeScript types',
-          category: 'validation' as const,
-          dependencies: ['validation-lib'],
-          platforms: ['all'],
-          enabled: true
+      [
+        'typecheck',
+        {
+          path: '../cli/hooks/typecheck.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'typecheck',
+            name: 'TypeScript Type Checker',
+            description: 'Validates TypeScript types',
+            category: 'validation' as const,
+            dependencies: ['validation-lib'],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash1',
+          lastModified: new Date(),
         },
-        hash: 'hash1',
-        lastModified: new Date()
-      }],
-      ['eslint', {
-        path:../cli/hooks/eslint.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'eslint',
-          name: 'ESLint Validator',
-          description: 'Runs ESLint on JavaScript/TypeScript files',
-          category: 'validation' as const,
-          dependencies: ['validation-lib'],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'eslint',
+        {
+          path: '../cli/hooks/eslint.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'eslint',
+            name: 'ESLint Validator',
+            description: 'Runs ESLint on JavaScript/TypeScript files',
+            category: 'validation' as const,
+            dependencies: ['validation-lib'],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash2',
+          lastModified: new Date(),
         },
-        hash: 'hash2',
-        lastModified: new Date()
-      }],
-      ['prettier', {
-        path:../cli/hooks/prettier.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'prettier',
-          name: 'Prettier Formatter',
-          description: 'Formats code with Prettier',
-          category: 'validation' as const,
-          dependencies: ['validation-lib'],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'prettier',
+        {
+          path: '../cli/hooks/prettier.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'prettier',
+            name: 'Prettier Formatter',
+            description: 'Formats code with Prettier',
+            category: 'validation' as const,
+            dependencies: ['validation-lib'],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash3',
+          lastModified: new Date(),
         },
-        hash: 'hash3',
-        lastModified: new Date()
-      }],
-      ['auto-checkpoint', {
-        path:../cli/hooks/auto-checkpoint.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'auto-checkpoint',
-          name: 'Auto Checkpoint',
-          description: 'Automatically creates git checkpoints',
-          category: 'git' as const,
-          dependencies: [],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'auto-checkpoint',
+        {
+          path: '../cli/hooks/auto-checkpoint.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'auto-checkpoint',
+            name: 'Auto Checkpoint',
+            description: 'Automatically creates git checkpoints',
+            category: 'git' as const,
+            dependencies: [],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash4',
+          lastModified: new Date(),
         },
-        hash: 'hash4',
-        lastModified: new Date()
-      }],
-      ['run-related-tests', {
-        path:../cli/hooks/run-related-tests.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'run-related-tests',
-          name: 'Run Related Tests',
-          description: 'Runs tests related to changed files',
-          category: 'testing' as const,
-          dependencies: ['validation-lib', 'test-discovery'],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'run-related-tests',
+        {
+          path: '../cli/hooks/run-related-tests.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'run-related-tests',
+            name: 'Run Related Tests',
+            description: 'Runs tests related to changed files',
+            category: 'testing' as const,
+            dependencies: ['validation-lib', 'test-discovery'],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash5',
+          lastModified: new Date(),
         },
-        hash: 'hash5',
-        lastModified: new Date()
-      }],
-      ['validation-lib', {
-        path:../cli/hooks/validation-lib.sh',
-        type: 'hook' as const,
-        metadata: {
-          id: 'validation-lib',
-          name: 'Validation Library',
-          description: 'Common validation utilities',
-          category: 'utility' as const,
-          dependencies: ['package-manager-detect'],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'validation-lib',
+        {
+          path: '../cli/hooks/validation-lib.sh',
+          type: 'hook' as const,
+          metadata: {
+            id: 'validation-lib',
+            name: 'Validation Library',
+            description: 'Common validation utilities',
+            category: 'utility' as const,
+            dependencies: ['package-manager-detect'],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash6',
+          lastModified: new Date(),
         },
-        hash: 'hash6',
-        lastModified: new Date()
-      }],
-      ['dev-cleanup', {
-        path:../cli/commands/dev/cleanup.md',
-        type: 'command' as const,
-        metadata: {
-          id: 'dev-cleanup',
-          name: 'Dev Cleanup',
-          description: 'Clean up development artifacts',
-          category: 'development' as const,
-          dependencies: [],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'dev-cleanup',
+        {
+          path: '../cli/commands/dev/cleanup.md',
+          type: 'command' as const,
+          metadata: {
+            id: 'dev-cleanup',
+            name: 'Dev Cleanup',
+            description: 'Clean up development artifacts',
+            category: 'development' as const,
+            dependencies: [],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash7',
+          lastModified: new Date(),
         },
-        hash: 'hash7',
-        lastModified: new Date()
-      }],
-      ['agent-init', {
-        path:../cli/commands/agent/init.md',
-        type: 'command' as const,
-        metadata: {
-          id: 'agent-init',
-          name: 'Agent Init',
-          description: 'Initialize AI assistant configuration',
-          category: 'ai-assistant' as const,
-          dependencies: [],
-          platforms: ['all'],
-          enabled: true
+      ],
+      [
+        'agent-init',
+        {
+          path: '../cli/commands/agent/init.md',
+          type: 'command' as const,
+          metadata: {
+            id: 'agent-init',
+            name: 'Agent Init',
+            description: 'Initialize AI assistant configuration',
+            category: 'ai-assistant' as const,
+            dependencies: [],
+            platforms: ['all'],
+            enabled: true,
+          },
+          hash: 'hash8',
+          lastModified: new Date(),
         },
-        hash: 'hash8',
-        lastModified: new Date()
-      }]
+      ],
     ]),
     dependencies: new Map(),
     dependents: new Map(),
     categories: new Map(),
     lastScan: new Date(),
-    cacheValid: true
+    cacheValid: true,
   };
 
   describe('TypeScript project recommendations', () => {
@@ -146,16 +170,18 @@ describe('Component Recommendation Engine', () => {
         hasESLint: false,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: true
+        isGitRepository: true,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       expect(result.essential).toHaveLength(2); // typecheck + auto-checkpoint
-      expect(result.essential.some(r => r.component.metadata.id === 'typecheck')).toBe(true);
-      expect(result.essential.some(r => r.component.metadata.id === 'auto-checkpoint')).toBe(true);
-      
-      const typecheckRec = result.essential.find(r => r.component.metadata.id === 'typecheck');
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+        true
+      );
+
+      const typecheckRec = result.essential.find((r) => r.component.metadata.id === 'typecheck');
       expect(typecheckRec?.reasons).toContain('TypeScript detected - type checking recommended');
       expect(typecheckRec?.dependencies).toContain('validation-lib');
     });
@@ -166,13 +192,15 @@ describe('Component Recommendation Engine', () => {
         hasESLint: false,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Check that validation-lib is included as a dependency
-      const validationLib = result.recommended.find(r => r.component.metadata.id === 'validation-lib');
+      const validationLib = result.recommended.find(
+        (r) => r.component.metadata.id === 'validation-lib'
+      );
       expect(validationLib).toBeDefined();
       expect(validationLib?.reasons).toContain('Required dependency for recommended components');
     });
@@ -185,15 +213,17 @@ describe('Component Recommendation Engine', () => {
         hasESLint: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some(r => r.component.metadata.id === 'eslint')).toBe(true);
-      
-      const eslintRec = result.essential.find(r => r.component.metadata.id === 'eslint');
-      expect(eslintRec?.reasons).toContain('ESLint configuration found - linting automation recommended');
+      expect(result.essential.some((r) => r.component.metadata.id === 'eslint')).toBe(true);
+
+      const eslintRec = result.essential.find((r) => r.component.metadata.id === 'eslint');
+      expect(eslintRec?.reasons).toContain(
+        'ESLint configuration found - linting automation recommended'
+      );
     });
   });
 
@@ -205,14 +235,16 @@ describe('Component Recommendation Engine', () => {
         hasJest: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some(r => r.component.metadata.id === 'run-related-tests')).toBe(true);
-      
-      const testRec = result.essential.find(r => r.component.metadata.id === 'run-related-tests');
+      expect(result.essential.some((r) => r.component.metadata.id === 'run-related-tests')).toBe(
+        true
+      );
+
+      const testRec = result.essential.find((r) => r.component.metadata.id === 'run-related-tests');
       expect(testRec?.reasons).toContain('Jest detected - automated test running recommended');
     });
 
@@ -223,12 +255,12 @@ describe('Component Recommendation Engine', () => {
         hasVitest: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      const testRec = result.essential.find(r => r.component.metadata.id === 'run-related-tests');
+      const testRec = result.essential.find((r) => r.component.metadata.id === 'run-related-tests');
       expect(testRec?.reasons).toContain('Vitest detected - automated test running recommended');
     });
   });
@@ -240,15 +272,21 @@ describe('Component Recommendation Engine', () => {
         hasESLint: false,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: true
+        isGitRepository: true,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some(r => r.component.metadata.id === 'auto-checkpoint')).toBe(true);
-      
-      const checkpointRec = result.essential.find(r => r.component.metadata.id === 'auto-checkpoint');
-      expect(checkpointRec?.reasons).toContain('Git repository - automatic checkpointing highly recommended');
+      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+        true
+      );
+
+      const checkpointRec = result.essential.find(
+        (r) => r.component.metadata.id === 'auto-checkpoint'
+      );
+      expect(checkpointRec?.reasons).toContain(
+        'Git repository - automatic checkpointing highly recommended'
+      );
     });
   });
 
@@ -259,13 +297,17 @@ describe('Component Recommendation Engine', () => {
         hasESLint: false,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.optional.some(r => r.component.metadata.category === 'development')).toBe(true);
-      expect(result.optional.some(r => r.component.metadata.category === 'ai-assistant')).toBe(true);
+      expect(result.optional.some((r) => r.component.metadata.category === 'development')).toBe(
+        true
+      );
+      expect(result.optional.some((r) => r.component.metadata.category === 'ai-assistant')).toBe(
+        true
+      );
     });
 
     it('should exclude optional when requested', async () => {
@@ -274,11 +316,11 @@ describe('Component Recommendation Engine', () => {
         hasESLint: false,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
-      const result = await recommendComponents(projectInfo, mockRegistry, { 
-        includeOptional: false 
+      const result = await recommendComponents(projectInfo, mockRegistry, {
+        includeOptional: false,
       });
 
       expect(result.optional).toHaveLength(0);
@@ -292,15 +334,19 @@ describe('Component Recommendation Engine', () => {
         hasESLint: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: true
+        isGitRepository: true,
       };
 
-      const result = await recommendComponents(projectInfo, mockRegistry, { 
-        excludeCategories: ['ai-assistant', 'development'] 
+      const result = await recommendComponents(projectInfo, mockRegistry, {
+        excludeCategories: ['ai-assistant', 'development'],
       });
 
-      expect(result.optional.some(r => r.component.metadata.category === 'ai-assistant')).toBe(false);
-      expect(result.optional.some(r => r.component.metadata.category === 'development')).toBe(false);
+      expect(result.optional.some((r) => r.component.metadata.category === 'ai-assistant')).toBe(
+        false
+      );
+      expect(result.optional.some((r) => r.component.metadata.category === 'development')).toBe(
+        false
+      );
     });
   });
 
@@ -311,7 +357,7 @@ describe('Component Recommendation Engine', () => {
         hasESLint: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: true
+        isGitRepository: true,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
@@ -329,7 +375,7 @@ describe('Component Recommendation Engine', () => {
         essential: [],
         recommended: [],
         optional: [],
-        totalScore: 0
+        totalScore: 0,
       };
 
       const formatted = formatRecommendationSummary(emptyResult);
@@ -345,13 +391,13 @@ describe('Component Recommendation Engine', () => {
         packageManager: 'npm',
         projectPath: '/test/project',
         isGitRepository: false,
-        frameworks: ['React', 'Next.js']
+        frameworks: ['React', 'Next.js'],
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
-      
+
       // Should still get TypeScript recommendations
-      expect(result.essential.some(r => r.component.metadata.id === 'typecheck')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
     });
   });
 
@@ -363,15 +409,17 @@ describe('Component Recommendation Engine', () => {
         hasPrettier: true,
         packageManager: 'npm',
         projectPath: '/test/project',
-        isGitRepository: false
+        isGitRepository: false,
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some(r => r.component.metadata.id === 'prettier')).toBe(true);
-      
-      const prettierRec = result.essential.find(r => r.component.metadata.id === 'prettier');
-      expect(prettierRec?.reasons).toContain('Prettier configuration found - formatting automation recommended');
+      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
+
+      const prettierRec = result.essential.find((r) => r.component.metadata.id === 'prettier');
+      expect(prettierRec?.reasons).toContain(
+        'Prettier configuration found - formatting automation recommended'
+      );
     });
   });
 
@@ -385,18 +433,22 @@ describe('Component Recommendation Engine', () => {
         packageManager: 'pnpm',
         projectPath: '/test/project',
         isGitRepository: true,
-        frameworks: ['React', 'Vite']
+        frameworks: ['React', 'Vite'],
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Should recommend all relevant hooks
-      expect(result.essential.some(r => r.component.metadata.id === 'typecheck')).toBe(true);
-      expect(result.essential.some(r => r.component.metadata.id === 'eslint')).toBe(true);
-      expect(result.essential.some(r => r.component.metadata.id === 'prettier')).toBe(true);
-      expect(result.essential.some(r => r.component.metadata.id === 'run-related-tests')).toBe(true);
-      expect(result.essential.some(r => r.component.metadata.id === 'auto-checkpoint')).toBe(true);
-      
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'eslint')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'run-related-tests')).toBe(
+        true
+      );
+      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+        true
+      );
+
       // Should have a high total score
       expect(result.totalScore).toBeGreaterThan(400);
     });

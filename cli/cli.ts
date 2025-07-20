@@ -34,11 +34,11 @@ program
       quiet: opts['quiet'] as boolean | undefined,
       dryRun: opts['dryRun'] as boolean | undefined,
     };
-    
+
     // Configure logger based on global options
-    if (globalOptions.quiet) {
+    if (globalOptions.quiet === true) {
       logger.setLevel('error');
-    } else if (globalOptions.verbose) {
+    } else if (globalOptions.verbose === true) {
       logger.setLevel('debug');
     }
   });
@@ -57,7 +57,7 @@ program
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun) {
+      if (globalOptions.dryRun === true) {
         logger.info('Dry run mode: Would initialize ClaudeKit configuration');
         return;
       }
@@ -78,7 +78,7 @@ program
   .action(async (type, name, options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun) {
+      if (globalOptions.dryRun === true) {
         logger.info(`Dry run mode: Would add ${type} "${name}"`);
         return;
       }
@@ -98,7 +98,7 @@ program
   .action(async (type, name, options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun) {
+      if (globalOptions.dryRun === true) {
         logger.info(`Dry run mode: Would remove ${type} "${name}"`);
         return;
       }
@@ -119,7 +119,7 @@ program
   .action(async (type, name, options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun) {
+      if (globalOptions.dryRun === true) {
         logger.info(`Dry run mode: Would update ${type} "${name}"`);
         return;
       }
@@ -156,7 +156,7 @@ program
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun) {
+      if (globalOptions.dryRun === true) {
         logger.info('Dry run mode: Would initialize ClaudeKit configuration');
         return;
       }

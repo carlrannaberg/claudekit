@@ -3,8 +3,8 @@
  * Provides comprehensive mocking for file system operations used in tests
  */
 
-import { vi } from 'vitest';
-import { promises as fs } from 'fs';
+// vi import removed - not needed in this file
+// Removed unused fs import
 
 // Track mock state for testing
 interface MockState {
@@ -18,7 +18,7 @@ const mockState: MockState = {
   files: new Map(),
   directories: new Set(),
   permissions: new Map(),
-  errors: new Map()
+  errors: new Map(),
 };
 
 // Helper functions for test setup
@@ -65,7 +65,7 @@ export const mockFsExtra = {
   createStructure(structure: Record<string, string | Record<string, any>>, basePath = '') {
     for (const [name, content] of Object.entries(structure)) {
       const fullPath = basePath ? `${basePath}/${name}` : name;
-      
+
       if (typeof content === 'string') {
         this.setFile(fullPath, content);
       } else if (typeof content === 'object' && content !== null) {
@@ -73,7 +73,7 @@ export const mockFsExtra = {
         this.createStructure(content, fullPath);
       }
     }
-  }
+  },
 };
 
 // Mock implementation
@@ -102,7 +102,7 @@ const createMockFsExtra = () => {
       checkError(path);
       const content = typeof data === 'string' ? data : data.toString();
       mockState.files.set(path, content);
-      
+
       // Ensure parent directory exists
       const dirPath = path.substring(0, path.lastIndexOf('/'));
       if (dirPath) {
@@ -128,14 +128,17 @@ const createMockFsExtra = () => {
     },
 
     // Directory operations
-    async mkdir(path: string, options?: { recursive?: boolean; mode?: number }): Promise<string | undefined> {
+    async mkdir(
+      path: string,
+      options?: { recursive?: boolean; mode?: number }
+    ): Promise<string | undefined> {
       checkError(path);
       if (options?.recursive) {
         // Create all parent directories
         const parts = path.split('/').filter(Boolean);
         let currentPath = '';
         for (const part of parts) {
-          currentPath += '/' + part;
+          currentPath += `/${part}`;
           mockState.directories.add(currentPath);
         }
       } else {
@@ -157,12 +160,12 @@ const createMockFsExtra = () => {
         // Remove directory and all contents
         mockState.directories.delete(path);
         for (const filePath of mockState.files.keys()) {
-          if (filePath.startsWith(path + '/')) {
+          if (filePath.startsWith(`${path}/`)) {
             mockState.files.delete(filePath);
           }
         }
         for (const dirPath of mockState.directories) {
-          if (dirPath.startsWith(path + '/')) {
+          if (dirPath.startsWith(`${path}/`)) {
             mockState.directories.delete(dirPath);
           }
         }
@@ -185,10 +188,10 @@ const createMockFsExtra = () => {
       }
 
       const items = new Set<string>();
-      
+
       // Add files in this directory
       for (const filePath of mockState.files.keys()) {
-        if (filePath.startsWith(path + '/')) {
+        if (filePath.startsWith(`${path}/`)) {
           const relativePath = filePath.substring(path.length + 1);
           const firstPart = relativePath.split('/')[0];
           if (firstPart) {
@@ -196,10 +199,10 @@ const createMockFsExtra = () => {
           }
         }
       }
-      
+
       // Add subdirectories
       for (const dirPath of mockState.directories) {
-        if (dirPath.startsWith(path + '/')) {
+        if (dirPath.startsWith(`${path}/`)) {
           const relativePath = dirPath.substring(path.length + 1);
           const firstPart = relativePath.split('/')[0];
           if (firstPart) {
@@ -212,7 +215,7 @@ const createMockFsExtra = () => {
     },
 
     // File/directory checks
-    async access(path: string, mode?: number): Promise<void> {
+    async access(path: string, _mode?: number): Promise<void> {
       checkError(path);
       const exists = mockState.files.has(path) || mockState.directories.has(path);
       if (!exists) {
@@ -226,7 +229,7 @@ const createMockFsExtra = () => {
       checkError(path);
       const isFile = mockState.files.has(path);
       const isDir = mockState.directories.has(path);
-      
+
       if (!isFile && !isDir) {
         const error = new Error(`ENOENT: no such file or directory, stat '${path}'`);
         (error as any).code = 'ENOENT';
@@ -237,10 +240,10 @@ const createMockFsExtra = () => {
         isFile: () => isFile,
         isDirectory: () => isDir,
         isSymbolicLink: () => false,
-        size: isFile ? (mockState.files.get(path)?.length || 0) : 0,
+        size: isFile ? mockState.files.get(path)?.length || 0 : 0,
         mtime: new Date(),
         ctime: new Date(),
-        atime: new Date()
+        atime: new Date(),
       };
     },
 
@@ -252,14 +255,14 @@ const createMockFsExtra = () => {
     async copy(src: string, dest: string): Promise<void> {
       checkError(src);
       checkError(dest);
-      
+
       const content = mockState.files.get(src);
       if (content === undefined) {
         const error = new Error(`ENOENT: no such file or directory, open '${src}'`);
         (error as any).code = 'ENOENT';
         throw error;
       }
-      
+
       mockState.files.set(dest, content);
     },
 
@@ -292,13 +295,15 @@ const createMockFsExtra = () => {
       if (mockState.files.has(path)) {
         mockState.files.delete(path);
       } else {
-        await mockState.directories.has(path) && this.rmdir(path, options);
+        if (mockState.directories.has(path)) {
+          await mockFs.rmdir(path, options);
+        }
       }
     },
 
     // JSON operations
     async readJson(path: string): Promise<any> {
-      const content = await this.readFile(path, 'utf-8') as string;
+      const content = (await this.readFile(path, 'utf-8')) as string;
       try {
         return JSON.parse(content);
       } catch (error) {
@@ -311,7 +316,7 @@ const createMockFsExtra = () => {
     async writeJson(path: string, obj: any, options?: { spaces?: number }): Promise<void> {
       const content = JSON.stringify(obj, null, options?.spaces || 2);
       await this.writeFile(path, content);
-    }
+    },
   };
 };
 

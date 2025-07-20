@@ -12,7 +12,7 @@ beforeAll(() => {
   // Set test environment variables
   process.env['NODE_ENV'] = 'test';
   process.env['CI'] = 'false';
-  
+
   // Suppress console output during tests (can be overridden in individual tests)
   if (!process.env['VERBOSE_TESTS']) {
     vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -61,8 +61,8 @@ vi.mock('picocolors', () => ({
     bgCyan: vi.fn((text: string) => text),
     bgMagenta: vi.fn((text: string) => text),
     bgWhite: vi.fn((text: string) => text),
-    isColorSupported: true
-  }
+    isColorSupported: true,
+  },
 }));
 
 // Global test utilities
@@ -71,7 +71,9 @@ declare global {
     createTempDir: () => Promise<string>;
     cleanupTempDir: (dir: string) => Promise<void>;
     createMockConfig: (overrides?: any) => any;
-    createMockFileSystem: (structure: Record<string, string | Record<string, any>>) => Promise<string>;
+    createMockFileSystem: (
+      structure: Record<string, string | Record<string, any>>
+    ) => Promise<string>;
     resetMocks: () => void;
   };
 }
@@ -85,7 +87,7 @@ global.testUtils = {
   async cleanupTempDir(dir: string): Promise<void> {
     try {
       await fs.rm(dir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors in tests
     }
   },
@@ -96,29 +98,40 @@ global.testUtils = {
         PostToolUse: [
           {
             matcher: 'tools:Write AND file_paths:**/*.ts',
-            hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 }],
+            hooks: [
+              { type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 },
+            ],
             enabled: true,
           },
         ],
         Stop: [
           {
             matcher: '*',
-            hooks: [{ type: 'command', command: '.claude/hooks/auto-checkpoint.sh', enabled: true, retries: 0 }],
+            hooks: [
+              {
+                type: 'command',
+                command: '.claude/hooks/auto-checkpoint.sh',
+                enabled: true,
+                retries: 0,
+              },
+            ],
             enabled: true,
           },
         ],
       },
-      ...overrides
+      ...overrides,
     };
   },
 
-  async createMockFileSystem(structure: Record<string, string | Record<string, any>>): Promise<string> {
+  async createMockFileSystem(
+    structure: Record<string, string | Record<string, any>>
+  ): Promise<string> {
     const tempDir = await global.testUtils.createTempDir();
-    
+
     async function createStructure(basePath: string, struct: Record<string, any>) {
       for (const [name, content] of Object.entries(struct)) {
         const fullPath = path.join(basePath, name);
-        
+
         if (typeof content === 'string') {
           // It's a file
           await fs.mkdir(path.dirname(fullPath), { recursive: true });
@@ -130,12 +143,12 @@ global.testUtils = {
         }
       }
     }
-    
+
     await createStructure(tempDir, structure);
     return tempDir;
   },
 
   resetMocks() {
     vi.clearAllMocks();
-  }
+  },
 };

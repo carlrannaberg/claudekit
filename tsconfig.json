@@ -21,6 +21,13 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     
+    // Path Mappings
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["cli/*"],
+      "@tests/*": ["tests/*"]
+    },
+    
     // Type Checking
     "strict": true,
     "noImplicitAny": true,

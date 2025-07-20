@@ -1,11 +1,12 @@
-import { promises as fs, constants, Stats } from 'fs';
+import type { Stats } from 'fs';
+import { promises as fs, constants } from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
 
 /**
  * Filesystem utilities with Unix focus for ClaudeKit CLI
- * 
+ *
  * Provides essential file operations with proper path validation,
  * permission checks, backup functionality, and idempotency.
  */
@@ -16,7 +17,7 @@ import crypto from 'crypto';
 
 /**
  * Validates that a project path is reasonable and safe
- * 
+ *
  * @param input - Path to validate
  * @returns true if path is valid for project operations
  */
@@ -32,7 +33,7 @@ export function validateProjectPath(input: string): boolean {
 
   // Normalize the path to handle relative paths and resolve symlinks
   const normalizedPath = path.resolve(input);
-  
+
   // Double-check for directory traversal after normalization
   if (normalizedPath.includes('..') || normalizedPath !== path.normalize(normalizedPath)) {
     return false;
@@ -50,9 +51,9 @@ export function validateProjectPath(input: string): boolean {
     homeDir,
     path.join(homeDir, 'Library'),
     path.join(homeDir, '.ssh'),
-    path.join(homeDir, '.gnupg')
+    path.join(homeDir, '.gnupg'),
   ];
-  
+
   if (criticalUserPaths.includes(normalizedPath)) {
     return false;
   }
@@ -76,7 +77,7 @@ export function validateProjectPath(input: string): boolean {
 
 /**
  * Ensures a directory exists, creating it recursively if needed
- * 
+ *
  * @param dirPath - Directory path to ensure exists
  * @throws Error if path validation fails or directory cannot be created
  */
@@ -112,7 +113,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
 
 /**
  * Sets executable permissions (755) on a file
- * 
+ *
  * @param filePath - Path to file to make executable
  * @throws Error if file doesn't exist or permissions cannot be set
  */
@@ -124,7 +125,7 @@ export async function setExecutablePermission(filePath: string): Promise<void> {
   try {
     // Verify file exists
     await fs.access(filePath, constants.F_OK);
-    
+
     // Set permissions to 755 (rwxr-xr-x)
     await fs.chmod(filePath, 0o755);
   } catch (error: any) {
@@ -137,7 +138,7 @@ export async function setExecutablePermission(filePath: string): Promise<void> {
 
 /**
  * Checks if we have write permission to a directory or file's parent directory
- * 
+ *
  * @param targetPath - Path to check write permissions for
  * @returns true if we can write to the target location
  */
@@ -174,7 +175,7 @@ export async function checkWritePermission(targetPath: string): Promise<boolean>
 
 /**
  * Calculates SHA-256 hash of a file
- * 
+ *
  * @param filePath - Path to file to hash
  * @returns Promise resolving to hex-encoded hash string
  * @throws Error if file cannot be read
@@ -193,7 +194,7 @@ export async function getFileHash(filePath: string): Promise<string> {
 /**
  * Determines if a target file needs updating compared to source
  * Uses SHA-256 comparison for reliable change detection
- * 
+ *
  * @param source - Source file path
  * @param target - Target file path
  * @returns true if target doesn't exist or differs from source
@@ -213,9 +214,9 @@ export async function needsUpdate(source: string, target: string): Promise<boole
     // Compare hashes
     const sourceHash = await getFileHash(source);
     const targetHash = await getFileHash(target);
-    
+
     return sourceHash !== targetHash;
-  } catch (error: any) {
+  } catch {
     // If we can't read either file, assume update is needed
     return true;
   }
@@ -227,7 +228,7 @@ export async function needsUpdate(source: string, target: string): Promise<boole
 
 /**
  * Copies a file from source to target with optional backup
- * 
+ *
  * @param source - Source file path
  * @param target - Target file path
  * @param backup - Whether to create backup of existing target
@@ -251,7 +252,7 @@ export async function copyFileWithBackup(
   // Verify source exists and is readable
   try {
     await fs.access(source, constants.R_OK);
-  } catch (error: any) {
+  } catch {
     throw new Error(`Source file not accessible: ${source}`);
   }
 
@@ -259,11 +260,11 @@ export async function copyFileWithBackup(
   if (backup) {
     try {
       await fs.access(target, constants.F_OK);
-      
+
       // Create timestamped backup
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const backupPath = `${target}.backup-${timestamp}`;
-      
+
       await fs.copyFile(target, backupPath);
     } catch (error: any) {
       if (error.code !== 'ENOENT') {
@@ -291,7 +292,7 @@ export async function copyFileWithBackup(
 
 /**
  * Checks if a path exists
- * 
+ *
  * @param filePath - Path to check
  * @returns true if path exists
  */
@@ -306,7 +307,7 @@ export async function pathExists(filePath: string): Promise<boolean> {
 
 /**
  * Gets file statistics
- * 
+ *
  * @param filePath - Path to get stats for
  * @returns File stats or null if file doesn't exist
  */
@@ -323,7 +324,7 @@ export async function getFileStats(filePath: string): Promise<Stats | null> {
 
 /**
  * Safely removes a file if it exists
- * 
+ *
  * @param filePath - Path to file to remove
  * @returns true if file was removed, false if it didn't exist
  */
@@ -341,7 +342,7 @@ export async function safeRemove(filePath: string): Promise<boolean> {
 
 /**
  * Expands tilde (~) in paths to home directory
- * 
+ *
  * @param filePath - Path that may contain tilde
  * @returns Expanded path
  */
@@ -358,7 +359,7 @@ export function expandHomePath(filePath: string): string {
 /**
  * Normalizes a path for consistent handling
  * Expands home directory and resolves relative paths
- * 
+ *
  * @param filePath - Path to normalize
  * @returns Normalized absolute path
  */

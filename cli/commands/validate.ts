@@ -2,11 +2,11 @@ import { Colors, symbols } from '../utils/colors.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createProgressReporter } from '../utils/progress.js';
-import { 
-  validateProject, 
-  checkAllPrerequisites, 
+import {
+  validateProject,
+  checkAllPrerequisites,
   formatValidationErrors,
-  type ValidationResult 
+  type ValidationResult,
 } from '../lib/validation.js';
 
 interface ValidateOptions {
@@ -23,11 +23,11 @@ interface LegacyValidationResult {
 }
 
 export async function validate(options: ValidateOptions): Promise<void> {
-  const progressReporter = createProgressReporter({ 
+  const progressReporter = createProgressReporter({
     quiet: options.quiet,
-    verbose: options.verbose 
+    verbose: options.verbose,
   });
-  
+
   const legacyResults: LegacyValidationResult[] = [];
   const validationResults: ValidationResult[] = [];
 
@@ -38,9 +38,9 @@ export async function validate(options: ValidateOptions): Promise<void> {
     progressReporter.start('Validating project structure...');
     const projectValidation = await validateProject(projectRoot, {
       requireGitRepository: false,
-      requireNodeProject: false
+      requireNodeProject: false,
     });
-    
+
     validationResults.push(projectValidation);
 
     // Check for .claude directory
@@ -97,12 +97,12 @@ export async function validate(options: ValidateOptions): Promise<void> {
     }
 
     // Optional: Check prerequisites
-    if (options.prerequisites) {
+    if (options.prerequisites === true) {
       progressReporter.update('Checking development prerequisites...');
       const prereqResult = await checkAllPrerequisites({
         requireTypeScript: false,
         requireESLint: false,
-        requireGitRepository: false
+        requireGitRepository: false,
       });
       validationResults.push(prereqResult);
     }
@@ -125,18 +125,22 @@ export async function validate(options: ValidateOptions): Promise<void> {
     }
 
     // Display enhanced validation results if detailed mode or if there are issues
-    if (options.detailed || !projectValidation.isValid || (options.prerequisites && validationResults.some(r => !r.isValid))) {
+    if (
+      options.detailed === true ||
+      !projectValidation.isValid ||
+      (options.prerequisites === true && validationResults.some((r) => !r.isValid))
+    ) {
       console.log('\nDetailed Validation:\n');
-      
+
       for (const result of validationResults) {
         if (!result.isValid || result.warnings.length > 0) {
           const formatted = formatValidationErrors(result);
-          if (formatted) {
+          if (formatted !== null && formatted !== undefined && formatted !== '') {
             console.log(formatted);
             console.log('');
           }
         }
-        
+
         if (!result.isValid) {
           allPassed = false;
         }
@@ -147,33 +151,33 @@ export async function validate(options: ValidateOptions): Promise<void> {
 
     if (allPassed) {
       console.log(Colors.bold(Colors.success('All validation checks passed!')));
-      
+
       // Show summary of what was checked
-      if (options.detailed) {
+      if (options.detailed === true) {
         console.log(Colors.dim('\nChecked:'));
         console.log(Colors.dim('• ClaudeKit directory structure'));
         console.log(Colors.dim('• Configuration file validity'));
         console.log(Colors.dim('• Hook installation'));
         console.log(Colors.dim('• Project path security'));
-        if (options.prerequisites) {
+        if (options.prerequisites === true) {
           console.log(Colors.dim('• Development prerequisites'));
         }
       }
     } else {
       console.log(Colors.bold(Colors.error('Some validation checks failed.')));
-      
+
       // Provide helpful suggestions
       console.log(Colors.warn('\nNext steps:'));
-      if (legacyResults.some(r => !r.passed && r.message.includes('.claude directory'))) {
+      if (legacyResults.some((r) => !r.passed && r.message.includes('.claude directory'))) {
         console.log(Colors.warn('• Run "claudekit init" to set up ClaudeKit'));
       }
-      if (legacyResults.some(r => !r.passed && r.message.includes('settings.json'))) {
+      if (legacyResults.some((r) => !r.passed && r.message.includes('settings.json'))) {
         console.log(Colors.warn('• Check your .claude/settings.json file for syntax errors'));
       }
-      if (legacyResults.some(r => !r.passed && r.message.includes('hooks directory'))) {
+      if (legacyResults.some((r) => !r.passed && r.message.includes('hooks directory'))) {
         console.log(Colors.warn('• Run "claudekit install" to install hooks'));
       }
-      
+
       process.exit(1);
     }
   } catch (error) {

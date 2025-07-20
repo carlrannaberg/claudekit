@@ -2,11 +2,11 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { 
-  detectProjectContext, 
-  discoverComponents, 
-  recommendComponents, 
-  formatRecommendationSummary 
+import {
+  detectProjectContext,
+  discoverComponents,
+  recommendComponents,
+  formatRecommendationSummary,
 } from '../lib/index.js';
 
 interface InitOptions {
@@ -38,24 +38,36 @@ export async function init(options: InitOptions): Promise<void> {
     // Analyze project and generate recommendations
     let recommendations;
     let projectInfo;
-    
-    if (!options.skipRecommendations) {
+
+    if (options.skipRecommendations !== true) {
       spinner.text = 'Analyzing project...';
       projectInfo = await detectProjectContext(projectRoot);
-      
+
       spinner.text = 'Discovering available components...';
       const registry = await discoverComponents(path.join(__dirname, '../../..'));
-      
+
       spinner.text = 'Generating recommendations...';
       recommendations = await recommendComponents(projectInfo, registry);
     }
 
     // Build settings based on recommendations
-    const defaultSettings: any = {
+    interface DefaultSettings {
+      hooks: {
+        PostToolUse: Array<{
+          matcher: string;
+          hooks: Array<{ type: string; command: string }>;
+        }>;
+        Stop: Array<{
+          matcher: string;
+          hooks: Array<{ type: string; command: string }>;
+        }>;
+      };
+    }
+    const defaultSettings: DefaultSettings = {
       hooks: {
         PostToolUse: [],
-        Stop: []
-      }
+        Stop: [],
+      },
     };
 
     if (recommendations) {
@@ -63,39 +75,39 @@ export async function init(options: InitOptions): Promise<void> {
       for (const rec of recommendations.essential) {
         if (rec.component.type === 'hook') {
           const hookPath = `.claude/hooks/${path.basename(rec.component.path)}`;
-          
+
           if (rec.component.metadata.id === 'typecheck') {
             defaultSettings.hooks.PostToolUse.push({
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: hookPath }]
+              hooks: [{ type: 'command', command: hookPath }],
             });
           } else if (rec.component.metadata.id === 'eslint') {
             defaultSettings.hooks.PostToolUse.push({
               matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-              hooks: [{ type: 'command', command: hookPath }]
+              hooks: [{ type: 'command', command: hookPath }],
             });
           } else if (rec.component.metadata.id === 'auto-checkpoint') {
             defaultSettings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }]
+              hooks: [{ type: 'command', command: hookPath }],
             });
           }
         }
       }
-      
+
       // Add recommended hooks if they're validation-related
       for (const rec of recommendations.recommended) {
         if (rec.component.type === 'hook' && rec.component.metadata.category === 'validation') {
           const hookPath = `.claude/hooks/${path.basename(rec.component.path)}`;
-          
+
           if (rec.component.metadata.id === 'validate-todo-completion') {
-            const stopEntry = defaultSettings.hooks.Stop.find((e: any) => e.matcher === '*');
-            if (stopEntry) {
+            const stopEntry = defaultSettings.hooks.Stop.find((e) => e.matcher === '*');
+            if (stopEntry !== undefined) {
               stopEntry.hooks.push({ type: 'command', command: hookPath });
             } else {
               defaultSettings.hooks.Stop.push({
                 matcher: '*',
-                hooks: [{ type: 'command', command: hookPath }]
+                hooks: [{ type: 'command', command: hookPath }],
               });
             }
           }
@@ -136,30 +148,48 @@ export async function init(options: InitOptions): Promise<void> {
     spinner.succeed(chalk.green('ClaudeKit initialized successfully!'));
 
     // Show recommendations if we generated them
-    if (recommendations && (recommendations.essential.length > 0 || 
-        recommendations.recommended.length > 0 || 
-        recommendations.optional.length > 0)) {
-      console.log('\n' + chalk.bold('Component Recommendations based on your project:'));
+    if (
+      recommendations &&
+      (recommendations.essential.length > 0 ||
+        recommendations.recommended.length > 0 ||
+        recommendations.optional.length > 0)
+    ) {
+      console.log(`\n${chalk.bold('Component Recommendations based on your project:')}`);
       console.log(formatRecommendationSummary(recommendations));
     }
 
     console.log('\nNext steps:');
-    console.log(chalk.blue('1.'), 'Run', chalk.cyan('claudekit install'), 'to install the recommended hooks');
+    console.log(
+      chalk.blue('1.'),
+      'Run',
+      chalk.cyan('claudekit install'),
+      'to install the recommended hooks'
+    );
     console.log(
       chalk.blue('2.'),
       'Review and customize your settings in',
       chalk.cyan('.claude/settings.json')
     );
     console.log(chalk.blue('3.'), 'Add custom commands to', chalk.cyan('.claude/commands/'));
-    
-    if (projectInfo && !options.skipRecommendations) {
-      console.log('\n' + chalk.dim('Project detected:'));
-      if (projectInfo.hasTypeScript) console.log(chalk.dim('  • TypeScript'));
-      if (projectInfo.hasESLint) console.log(chalk.dim('  • ESLint'));
-      if (projectInfo.hasPrettier) console.log(chalk.dim('  • Prettier'));
-      if (projectInfo.hasJest) console.log(chalk.dim('  • Jest'));
-      if (projectInfo.hasVitest) console.log(chalk.dim('  • Vitest'));
-      if (projectInfo.frameworks?.length) {
+
+    if (projectInfo !== undefined && options.skipRecommendations !== true) {
+      console.log(`\n${chalk.dim('Project detected:')}`);
+      if (projectInfo.hasTypeScript === true) {
+        console.log(chalk.dim('  • TypeScript'));
+      }
+      if (projectInfo.hasESLint === true) {
+        console.log(chalk.dim('  • ESLint'));
+      }
+      if (projectInfo.hasPrettier === true) {
+        console.log(chalk.dim('  • Prettier'));
+      }
+      if (projectInfo.hasJest === true) {
+        console.log(chalk.dim('  • Jest'));
+      }
+      if (projectInfo.hasVitest === true) {
+        console.log(chalk.dim('  • Vitest'));
+      }
+      if (projectInfo.frameworks?.length !== undefined && projectInfo.frameworks.length > 0) {
         console.log(chalk.dim(`  • Frameworks: ${projectInfo.frameworks.join(', ')}`));
       }
     }

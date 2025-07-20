@@ -7,7 +7,7 @@ import type { ComponentCategory, ComponentType } from '../types/config.js';
 
 /**
  * Comprehensive Validation Module
- * 
+ *
  * Provides security checks, prerequisite validation, input sanitization,
  * and clear error reporting for ClaudeKit CLI operations.
  */
@@ -28,7 +28,7 @@ export interface ValidationResult {
   isValid: boolean;
   errors: ValidationError[];
   warnings: ValidationError[];
-  sanitized?: any;
+  sanitized?: unknown;
 }
 
 export interface PrerequisiteCheck {
@@ -73,7 +73,7 @@ export function validateProjectPathSecure(
       field: 'path',
       message: 'Path must be a non-empty string',
       severity: 'error',
-      code: 'INVALID_INPUT'
+      code: 'INVALID_INPUT',
     });
     return { isValid: false, errors, warnings };
   }
@@ -87,7 +87,7 @@ export function validateProjectPathSecure(
       field: 'path',
       message: `Failed to normalize path: ${error instanceof Error ? error.message : 'Unknown error'}`,
       severity: 'error',
-      code: 'PATH_NORMALIZATION_ERROR'
+      code: 'PATH_NORMALIZATION_ERROR',
     });
     return { isValid: false, errors, warnings };
   }
@@ -99,7 +99,7 @@ export function validateProjectPathSecure(
       message: 'Directory traversal detected in path',
       severity: 'error',
       code: 'DIRECTORY_TRAVERSAL',
-      suggestions: ['Use absolute paths or paths relative to current directory without ".."']
+      suggestions: ['Use absolute paths or paths relative to current directory without ".."'],
     });
   }
 
@@ -109,7 +109,7 @@ export function validateProjectPathSecure(
       field: 'path',
       message: 'Path exceeds maximum length of 1000 characters',
       severity: 'error',
-      code: 'PATH_TOO_LONG'
+      code: 'PATH_TOO_LONG',
     });
   }
 
@@ -119,24 +119,29 @@ export function validateProjectPathSecure(
       field: 'path',
       message: 'Path contains invalid control characters',
       severity: 'error',
-      code: 'INVALID_CHARACTERS'
+      code: 'INVALID_CHARACTERS',
     });
   }
 
   // System path protection (unless explicitly allowed)
-  if (!options.allowSystemPaths) {
+  if (options.allowSystemPaths !== true) {
     const systemPaths = ['/', '/usr', '/bin', '/sbin', '/etc', '/boot', '/dev', '/proc', '/sys'];
     // Allow temporary directories which may be under /var or /tmp
     const tempDir = os.tmpdir();
-    const isInTempDir = normalizedPath.startsWith(tempDir + '/') || normalizedPath === tempDir;
-    
-    if (!isInTempDir && systemPaths.some(sysPath => normalizedPath === sysPath || normalizedPath.startsWith(sysPath + '/'))) {
+    const isInTempDir = normalizedPath.startsWith(`${tempDir}/`) || normalizedPath === tempDir;
+
+    if (
+      !isInTempDir &&
+      systemPaths.some(
+        (sysPath) => normalizedPath === sysPath || normalizedPath.startsWith(`${sysPath}/`)
+      )
+    ) {
       errors.push({
         field: 'path',
         message: 'Access to system directories is not allowed',
         severity: 'error',
         code: 'SYSTEM_PATH_FORBIDDEN',
-        suggestions: ['Use a directory in your home folder or project workspace']
+        suggestions: ['Use a directory in your home folder or project workspace'],
       });
     }
   }
@@ -150,7 +155,7 @@ export function validateProjectPathSecure(
     path.join(homeDir, '.gnupg'),
     path.join(homeDir, 'Desktop'),
     path.join(homeDir, 'Documents'),
-    path.join(homeDir, 'Downloads')
+    path.join(homeDir, 'Downloads'),
   ];
 
   if (criticalUserPaths.includes(normalizedPath)) {
@@ -159,30 +164,33 @@ export function validateProjectPathSecure(
       message: 'Direct access to critical user directories is not allowed',
       severity: 'error',
       code: 'CRITICAL_DIRECTORY_FORBIDDEN',
-      suggestions: ['Create a subdirectory or use a dedicated project folder']
+      suggestions: ['Create a subdirectory or use a dedicated project folder'],
     });
   }
 
   // Hidden directory warning (except for .claude and common dev directories)
   const basename = path.basename(normalizedPath);
-  if (basename.startsWith('.') && !['..', '.', '.claude', '.git', '.vscode', '.idea'].includes(basename)) {
+  if (
+    basename.startsWith('.') &&
+    !['..', '.', '.claude', '.git', '.vscode', '.idea'].includes(basename)
+  ) {
     warnings.push({
       field: 'path',
       message: 'Working with hidden directories may cause unexpected behavior',
       severity: 'warning',
-      code: 'HIDDEN_DIRECTORY'
+      code: 'HIDDEN_DIRECTORY',
     });
   }
 
   // Maximum nesting depth check
-  const maxDepth = options.maxDepth || 10;
-  const pathSegments = normalizedPath.split(path.sep).filter(segment => segment.length > 0);
+  const maxDepth = options.maxDepth ?? 10;
+  const pathSegments = normalizedPath.split(path.sep).filter((segment) => segment.length > 0);
   if (pathSegments.length > maxDepth) {
     warnings.push({
       field: 'path',
       message: `Path depth (${pathSegments.length}) exceeds recommended maximum (${maxDepth})`,
       severity: 'warning',
-      code: 'EXCESSIVE_NESTING'
+      code: 'EXCESSIVE_NESTING',
     });
   }
 
@@ -190,7 +198,7 @@ export function validateProjectPathSecure(
     isValid: errors.length === 0,
     errors,
     warnings,
-    sanitized: normalizedPath
+    sanitized: normalizedPath,
   };
 }
 
@@ -206,14 +214,14 @@ export async function validatePathAccessibility(
 
   try {
     const stats = await fs.stat(targetPath);
-    
+
     // Check if path is a directory when expected to be a file (and vice versa)
     if (targetPath.endsWith('/') && !stats.isDirectory()) {
       errors.push({
         field: 'path',
         message: 'Path appears to reference a directory but points to a file',
         severity: 'error',
-        code: 'TYPE_MISMATCH'
+        code: 'TYPE_MISMATCH',
       });
     }
 
@@ -226,13 +234,13 @@ export async function validatePathAccessibility(
       } else if (operation === 'execute') {
         await fs.access(targetPath, fs.constants.X_OK);
       }
-    } catch (permError) {
+    } catch {
       errors.push({
         field: 'path',
         message: `Insufficient ${operation} permissions for path`,
         severity: 'error',
         code: 'PERMISSION_DENIED',
-        suggestions: [`Check file permissions and ownership of ${targetPath}`]
+        suggestions: [`Check file permissions and ownership of ${targetPath}`],
       });
     }
 
@@ -242,12 +250,11 @@ export async function validatePathAccessibility(
         field: 'path',
         message: 'Configuration file is unusually large (>1MB)',
         severity: 'warning',
-        code: 'LARGE_CONFIG_FILE'
+        code: 'LARGE_CONFIG_FILE',
       });
     }
-
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       // For write operations, check if parent directory exists and is writable
       if (operation === 'write') {
         const parentDir = path.dirname(targetPath);
@@ -260,7 +267,7 @@ export async function validatePathAccessibility(
             message: 'Parent directory does not exist or is not writable',
             severity: 'error',
             code: 'PARENT_NOT_WRITABLE',
-            suggestions: ['Create the parent directory first', `mkdir -p ${parentDir}`]
+            suggestions: ['Create the parent directory first', `mkdir -p ${parentDir}`],
           });
         }
       } else {
@@ -269,15 +276,17 @@ export async function validatePathAccessibility(
           message: 'Path does not exist',
           severity: 'error',
           code: 'PATH_NOT_FOUND',
-          ...(operation === 'read' ? { suggestions: ['Check if the path is correct', 'Ensure the file was created'] } : {})
+          ...(operation === 'read'
+            ? { suggestions: ['Check if the path is correct', 'Ensure the file was created'] }
+            : {}),
         });
       }
     } else {
       errors.push({
         field: 'path',
-        message: `Failed to access path: ${error.message}`,
+        message: `Failed to access path: ${error instanceof Error ? error.message : String(error)}`,
         severity: 'error',
-        code: 'ACCESS_ERROR'
+        code: 'ACCESS_ERROR',
       });
     }
   }
@@ -292,11 +301,14 @@ export async function validatePathAccessibility(
 /**
  * Component name validation schema
  */
-const ComponentNameSchema = z.string()
+const ComponentNameSchema = z
+  .string()
   .min(1, 'Component name cannot be empty')
   .max(100, 'Component name cannot exceed 100 characters')
-  .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/, 
-    'Component name must start and end with alphanumeric characters and contain only lowercase letters, numbers, and hyphens');
+  .regex(
+    /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/,
+    'Component name must start and end with alphanumeric characters and contain only lowercase letters, numbers, and hyphens'
+  );
 
 /**
  * Validates component names with enhanced rules
@@ -309,7 +321,7 @@ export function validateComponentName(name: string): ValidationResult {
     ComponentNameSchema.parse(name);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      error.errors.forEach(err => {
+      error.errors.forEach((err) => {
         errors.push({
           field: 'componentName',
           message: err.message,
@@ -318,8 +330,8 @@ export function validateComponentName(name: string): ValidationResult {
           suggestions: [
             'Use lowercase letters, numbers, and hyphens only',
             'Start and end with alphanumeric characters',
-            'Examples: "my-hook", "git-utils", "validator"'
-          ]
+            'Examples: "my-hook", "git-utils", "validator"',
+          ],
         });
       });
     }
@@ -327,9 +339,24 @@ export function validateComponentName(name: string): ValidationResult {
 
   // Reserved name check
   const reservedNames = [
-    'init', 'validate', 'install', 'remove', 'list', 'update', 'add',
-    'system', 'config', 'settings', 'main', 'index', 'default',
-    'test', 'spec', 'example', 'sample', 'demo'
+    'init',
+    'validate',
+    'install',
+    'remove',
+    'list',
+    'update',
+    'add',
+    'system',
+    'config',
+    'settings',
+    'main',
+    'index',
+    'default',
+    'test',
+    'spec',
+    'example',
+    'sample',
+    'demo',
   ];
 
   if (reservedNames.includes(name.toLowerCase())) {
@@ -338,7 +365,7 @@ export function validateComponentName(name: string): ValidationResult {
       message: `"${name}" is a reserved name and cannot be used`,
       severity: 'error',
       code: 'RESERVED_NAME',
-      suggestions: [`Try "${name}-custom"`, `Try "my-${name}"`, `Try "${name}-hook"`]
+      suggestions: [`Try "${name}-custom"`, `Try "my-${name}"`, `Try "${name}-hook"`],
     });
   }
 
@@ -349,7 +376,7 @@ export function validateComponentName(name: string): ValidationResult {
       message: 'Underscores in component names may cause compatibility issues',
       severity: 'warning',
       code: 'UNDERSCORE_IN_NAME',
-      suggestions: ['Use hyphens instead of underscores']
+      suggestions: ['Use hyphens instead of underscores'],
     });
   }
 
@@ -358,7 +385,7 @@ export function validateComponentName(name: string): ValidationResult {
       field: 'componentName',
       message: 'Component name is quite long and may be difficult to work with',
       severity: 'warning',
-      code: 'LONG_NAME'
+      code: 'LONG_NAME',
     });
   }
 
@@ -381,13 +408,13 @@ export function sanitizeComponentList(
   if (!Array.isArray(components)) {
     if (typeof components === 'string') {
       // Try to split string by common delimiters
-      componentArray = components.split(/[,\s;]+/).filter(c => c.length > 0);
+      componentArray = components.split(/[,\s;]+/).filter((c) => c.length > 0);
     } else {
       errors.push({
         field: 'components',
         message: 'Components must be provided as an array or comma-separated string',
         severity: 'error',
-        code: 'INVALID_TYPE'
+        code: 'INVALID_TYPE',
       });
       return { isValid: false, errors, warnings };
     }
@@ -398,13 +425,13 @@ export function sanitizeComponentList(
   // Validate each component
   for (let i = 0; i < componentArray.length; i++) {
     const component = componentArray[i];
-    
+
     if (typeof component !== 'string') {
       warnings.push({
         field: `components[${i}]`,
         message: `Component at index ${i} is not a string and will be skipped`,
         severity: 'warning',
-        code: 'NON_STRING_COMPONENT'
+        code: 'NON_STRING_COMPONENT',
       });
       continue;
     }
@@ -415,7 +442,7 @@ export function sanitizeComponentList(
         field: `components[${i}]`,
         message: `Empty component at index ${i} will be skipped`,
         severity: 'warning',
-        code: 'EMPTY_COMPONENT'
+        code: 'EMPTY_COMPONENT',
       });
       continue;
     }
@@ -423,10 +450,10 @@ export function sanitizeComponentList(
     // Validate component name
     const nameValidation = validateComponentName(trimmed);
     if (!nameValidation.isValid) {
-      nameValidation.errors.forEach(error => {
+      nameValidation.errors.forEach((error) => {
         errors.push({
           ...error,
-          field: `components[${i}]`
+          field: `components[${i}]`,
         });
       });
       continue;
@@ -438,7 +465,7 @@ export function sanitizeComponentList(
         field: `components[${i}]`,
         message: `Duplicate component "${trimmed}" will be ignored`,
         severity: 'warning',
-        code: 'DUPLICATE_COMPONENT'
+        code: 'DUPLICATE_COMPONENT',
       });
       continue;
     }
@@ -453,7 +480,7 @@ export function sanitizeComponentList(
       field: 'components',
       message: `Component list truncated to ${maxComponents} items (had ${sanitized.length})`,
       severity: 'warning',
-      code: 'LIST_TRUNCATED'
+      code: 'LIST_TRUNCATED',
     });
     sanitized.splice(maxComponents);
   }
@@ -462,7 +489,7 @@ export function sanitizeComponentList(
     isValid: errors.length === 0,
     errors,
     warnings,
-    sanitized
+    sanitized,
   };
 }
 
@@ -483,24 +510,28 @@ export async function checkNodePrerequisite(minVersion = '18.0.0'): Promise<Prer
       try {
         const nodeVersion = process.version;
         const currentVersion = nodeVersion.slice(1); // Remove 'v' prefix
-        
+
         // Simple version comparison (works for semantic versions)
         const currentParts = currentVersion.split('.').map(Number);
         const requiredParts = minVersion.split('.').map(Number);
-        
+
         for (let i = 0; i < Math.max(currentParts.length, requiredParts.length); i++) {
           const current = currentParts[i] || 0;
           const required = requiredParts[i] || 0;
-          
-          if (current > required) return true;
-          if (current < required) return false;
+
+          if (current > required) {
+            return true;
+          }
+          if (current < required) {
+            return false;
+          }
         }
-        
+
         return true;
       } catch {
         return false;
       }
-    }
+    },
   };
 }
 
@@ -531,7 +562,7 @@ export async function checkTypeScriptPrerequisite(): Promise<PrerequisiteCheck> 
       } catch {
         return false;
       }
-    }
+    },
   };
 }
 
@@ -548,7 +579,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
       try {
         // Check for ESLint binary
         const localESLint = path.join(process.cwd(), 'node_modules', '.bin', 'eslint');
-        if (!await pathExists(localESLint)) {
+        if (!(await pathExists(localESLint))) {
           // Check global ESLint
           const { exec } = await import('child_process');
           const hasGlobalESLint = await new Promise<boolean>((resolve) => {
@@ -556,7 +587,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
               resolve(!error);
             });
           });
-          
+
           if (!hasGlobalESLint) {
             return false;
           }
@@ -569,7 +600,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
           '.eslintrc.yml',
           '.eslintrc.yaml',
           'eslint.config.js',
-          'eslint.config.mjs'
+          'eslint.config.mjs',
         ];
 
         for (const configFile of configFiles) {
@@ -593,7 +624,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
       } catch {
         return false;
       }
-    }
+    },
   };
 }
 
@@ -603,13 +634,15 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
 export async function checkGitPrerequisite(requireRepository = false): Promise<PrerequisiteCheck> {
   return {
     name: 'Git',
-    description: requireRepository ? 'Git with initialized repository' : 'Git version control system',
+    description: requireRepository
+      ? 'Git with initialized repository'
+      : 'Git version control system',
     required: false,
     installHint: 'Install Git from https://git-scm.com/',
     check: async () => {
       try {
         const { exec } = await import('child_process');
-        
+
         // Check if git is available
         const hasGit = await new Promise<boolean>((resolve) => {
           exec('git --version', (error) => {
@@ -634,19 +667,21 @@ export async function checkGitPrerequisite(requireRepository = false): Promise<P
       } catch {
         return false;
       }
-    }
+    },
   };
 }
 
 /**
  * Runs all relevant prerequisite checks for ClaudeKit operations
  */
-export async function checkAllPrerequisites(options: {
-  requireTypeScript?: boolean;
-  requireESLint?: boolean;
-  requireGitRepository?: boolean;
-  nodeMinVersion?: string;
-} = {}): Promise<ValidationResult> {
+export async function checkAllPrerequisites(
+  options: {
+    requireTypeScript?: boolean;
+    requireESLint?: boolean;
+    requireGitRepository?: boolean;
+    nodeMinVersion?: string;
+  } = {}
+): Promise<ValidationResult> {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
@@ -654,19 +689,19 @@ export async function checkAllPrerequisites(options: {
     await checkNodePrerequisite(options.nodeMinVersion),
     await checkTypeScriptPrerequisite(),
     await checkESLintPrerequisite(),
-    await checkGitPrerequisite(options.requireGitRepository)
+    await checkGitPrerequisite(options.requireGitRepository),
   ];
 
   for (const check of checks) {
     const isAvailable = await check.check();
-    
+
     if (!isAvailable) {
       const error: ValidationError = {
         field: 'prerequisites',
         message: `${check.name}: ${check.description} is not available`,
         severity: check.required ? 'error' : 'warning',
         code: `MISSING_${check.name.toUpperCase().replace(/[^A-Z]/g, '_')}`,
-        ...(check.installHint ? { suggestions: [check.installHint] } : {})
+        ...(check.installHint ? { suggestions: [check.installHint] } : {}),
       };
 
       if (check.required) {
@@ -696,7 +731,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
       field: 'input',
       message: 'Input must be a string',
       severity: 'error',
-      code: 'INVALID_TYPE'
+      code: 'INVALID_TYPE',
     });
     return { isValid: false, errors, warnings };
   }
@@ -709,19 +744,19 @@ export function sanitizeShellInput(input: string): ValidationResult {
       message: 'Input contains potentially dangerous shell characters',
       severity: 'error',
       code: 'DANGEROUS_CHARACTERS',
-      suggestions: ['Remove or escape special characters: ; & | ` $ ( ) { } [ ] < > \\']
+      suggestions: ['Remove or escape special characters: ; & | ` $ ( ) { } [ ] < > \\'],
     });
   }
 
   // Check for dangerous command patterns
   const dangerousPatterns = [
-    /\brm\s+(-[rf]+\s*)*\/+/i,  // rm -rf / variants
-    /\bsudo\s+rm\b/i,           // sudo rm
-    /\bmkfs\b/i,                // mkfs (format filesystem)
-    /\bdd\s+if=/i,              // dd if= (dangerous copy)
-    /\bchmod\s+777\b/i,         // chmod 777
+    /\brm\s+(-[rf]+\s*)*\/+/i, // rm -rf / variants
+    /\bsudo\s+rm\b/i, // sudo rm
+    /\bmkfs\b/i, // mkfs (format filesystem)
+    /\bdd\s+if=/i, // dd if= (dangerous copy)
+    /\bchmod\s+777\b/i, // chmod 777
     /\b(cat|grep|awk|sed)\s+.*\/etc\/passwd/i, // reading passwd
-    /\b(wget|curl).*http/i      // downloading from internet
+    /\b(wget|curl).*http/i, // downloading from internet
   ];
 
   for (const pattern of dangerousPatterns) {
@@ -731,7 +766,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
         message: 'Input contains potentially dangerous command patterns',
         severity: 'error',
         code: 'DANGEROUS_COMMAND',
-        suggestions: ['Avoid destructive commands or system access patterns']
+        suggestions: ['Avoid destructive commands or system access patterns'],
       });
       break;
     }
@@ -743,7 +778,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
       field: 'input',
       message: 'Input contains null bytes',
       severity: 'error',
-      code: 'NULL_BYTES'
+      code: 'NULL_BYTES',
     });
   }
 
@@ -753,7 +788,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
       field: 'input',
       message: 'Input is very long and may cause issues',
       severity: 'warning',
-      code: 'LONG_INPUT'
+      code: 'LONG_INPUT',
     });
   }
 
@@ -766,7 +801,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
     isValid: errors.length === 0,
     errors,
     warnings,
-    sanitized
+    sanitized,
   };
 }
 
@@ -782,7 +817,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
       field: 'config',
       message: 'Configuration cannot be null or undefined',
       severity: 'error',
-      code: 'NULL_CONFIG'
+      code: 'NULL_CONFIG',
     });
     return { isValid: false, errors, warnings };
   }
@@ -792,19 +827,25 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
       field: 'config',
       message: 'Configuration must be a plain object',
       severity: 'error',
-      code: 'INVALID_CONFIG_TYPE'
+      code: 'INVALID_CONFIG_TYPE',
     });
     return { isValid: false, errors, warnings };
   }
 
   // Check for functions and other non-serializable values before cloning
   function hasNonSerializableValues(obj: any, visited = new Set()): boolean {
-    if (visited.has(obj)) return true; // Circular reference
-    if (obj === null || typeof obj !== 'object') return false;
-    if (typeof obj === 'function') return true;
-    
+    if (visited.has(obj)) {
+      return true;
+    } // Circular reference
+    if (obj === null || typeof obj !== 'object') {
+      return false;
+    }
+    if (typeof obj === 'function') {
+      return true;
+    }
+
     visited.add(obj);
-    
+
     for (const value of Object.values(obj)) {
       if (typeof value === 'function' || typeof value === 'symbol') {
         return true;
@@ -815,7 +856,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
         }
       }
     }
-    
+
     visited.delete(obj);
     return false;
   }
@@ -826,7 +867,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
       message: 'Configuration contains non-serializable values',
       severity: 'error',
       code: 'NON_SERIALIZABLE',
-      suggestions: ['Remove functions, symbols, or circular references from configuration']
+      suggestions: ['Remove functions, symbols, or circular references from configuration'],
     });
     return { isValid: false, errors, warnings };
   }
@@ -835,13 +876,13 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
   let sanitized: any;
   try {
     sanitized = JSON.parse(JSON.stringify(config));
-  } catch (error) {
+  } catch {
     errors.push({
       field: 'config',
       message: 'Configuration contains non-serializable values',
       severity: 'error',
       code: 'NON_SERIALIZABLE',
-      suggestions: ['Remove functions, symbols, or circular references from configuration']
+      suggestions: ['Remove functions, symbols, or circular references from configuration'],
     });
     return { isValid: false, errors, warnings };
   }
@@ -866,7 +907,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
       field: 'config',
       message: `Configuration is deeply nested (depth: ${maxDepth}). This may impact performance.`,
       severity: 'warning',
-      code: 'DEEP_NESTING'
+      code: 'DEEP_NESTING',
     });
   }
 
@@ -874,7 +915,7 @@ export function sanitizeConfigInput(config: unknown): ValidationResult {
     isValid: errors.length === 0,
     errors,
     warnings,
-    sanitized
+    sanitized,
   };
 }
 
@@ -916,16 +957,16 @@ export async function validateProject(
         field: 'projectPath',
         message: 'Project path must be a directory',
         severity: 'error',
-        code: 'NOT_DIRECTORY'
+        code: 'NOT_DIRECTORY',
       });
       return { isValid: false, errors, warnings };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     errors.push({
       field: 'projectPath',
-      message: `Cannot access project directory: ${error.message}`,
+      message: `Cannot access project directory: ${error instanceof Error ? error.message : String(error)}`,
       severity: 'error',
-      code: 'ACCESS_ERROR'
+      code: 'ACCESS_ERROR',
     });
     return { isValid: false, errors, warnings };
   }
@@ -933,13 +974,13 @@ export async function validateProject(
   // Optional: Check for Node.js project
   if (options.requireNodeProject) {
     const packageJsonPath = path.join(sanitizedPath, 'package.json');
-    if (!await pathExists(packageJsonPath)) {
+    if (!(await pathExists(packageJsonPath))) {
       errors.push({
         field: 'projectPath',
         message: 'Project directory must contain a package.json file',
         severity: 'error',
         code: 'NOT_NODE_PROJECT',
-        suggestions: ['Run "npm init" to create a package.json file']
+        suggestions: ['Run "npm init" to create a package.json file'],
       });
     }
   }
@@ -947,13 +988,13 @@ export async function validateProject(
   // Optional: Check for Git repository
   if (options.requireGitRepository) {
     const gitPath = path.join(sanitizedPath, '.git');
-    if (!await pathExists(gitPath)) {
+    if (!(await pathExists(gitPath))) {
       errors.push({
         field: 'projectPath',
         message: 'Project directory must be a Git repository',
         severity: 'error',
         code: 'NOT_GIT_REPOSITORY',
-        suggestions: ['Run "git init" to initialize a Git repository']
+        suggestions: ['Run "git init" to initialize a Git repository'],
       });
     }
   }
@@ -962,7 +1003,7 @@ export async function validateProject(
     isValid: errors.length === 0,
     errors,
     warnings,
-    sanitized: sanitizedPath
+    sanitized: sanitizedPath,
   };
 }
 
@@ -978,15 +1019,15 @@ export function formatValidationErrors(result: ValidationResult): string {
 
   if (result.errors.length > 0) {
     messages.push('Validation Errors:');
-    result.errors.forEach(error => {
+    result.errors.forEach((error) => {
       let message = `  ✗ ${error.field}: ${error.message}`;
       if (error.code) {
         message += ` [${error.code}]`;
       }
       messages.push(message);
-      
+
       if (error.suggestions) {
-        error.suggestions.forEach(suggestion => {
+        error.suggestions.forEach((suggestion) => {
           messages.push(`    → ${suggestion}`);
         });
       }
@@ -994,9 +1035,11 @@ export function formatValidationErrors(result: ValidationResult): string {
   }
 
   if (result.warnings.length > 0) {
-    if (messages.length > 0) messages.push('');
+    if (messages.length > 0) {
+      messages.push('');
+    }
     messages.push('Validation Warnings:');
-    result.warnings.forEach(warning => {
+    result.warnings.forEach((warning) => {
       let message = `  ⚠ ${warning.field}: ${warning.message}`;
       if (warning.code) {
         message += ` [${warning.code}]`;
@@ -1025,7 +1068,7 @@ export function createValidationError(
     message,
     severity: options.severity || 'error',
     ...(options.code ? { code: options.code } : {}),
-    ...(options.suggestions ? { suggestions: options.suggestions } : {})
+    ...(options.suggestions ? { suggestions: options.suggestions } : {}),
   };
 }
 
@@ -1044,6 +1087,6 @@ export function combineValidationResults(...results: ValidationResult[]): Valida
   return {
     isValid: allErrors.length === 0,
     errors: allErrors,
-    warnings: allWarnings
+    warnings: allWarnings,
   };
 }

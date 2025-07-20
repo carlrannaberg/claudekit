@@ -1,10 +1,11 @@
-import ora, { Ora } from 'ora';
+import type { Ora } from 'ora';
+import ora from 'ora';
 import { Colors, status } from './colors.js';
 // import { symbols } from './colors.js'; // Unused
 
 /**
  * Progress reporting utility for ClaudeKit CLI
- * 
+ *
  * Provides consistent progress indicators, spinners, and status updates
  * with support for quiet mode and different operation types.
  */
@@ -24,7 +25,14 @@ export interface ProgressStep {
 }
 
 export interface ProgressState {
-  phase: 'planning' | 'discovering' | 'validating' | 'installing' | 'configuring' | 'complete' | 'failed';
+  phase:
+    | 'planning'
+    | 'discovering'
+    | 'validating'
+    | 'installing'
+    | 'configuring'
+    | 'complete'
+    | 'failed';
   currentStep?: ProgressStep;
   totalSteps: number;
   completedSteps: number;
@@ -51,7 +59,7 @@ export class ProgressReporter {
       completedSteps: 0,
       message: '',
       warnings: [],
-      errors: []
+      errors: [],
     };
   }
 
@@ -105,13 +113,13 @@ export class ProgressReporter {
    */
   step(step: ProgressStep, progress?: { current: number; total: number }): void {
     this.state.currentStep = step;
-    
+
     if (progress) {
       this.state.completedSteps = progress.current;
       this.state.totalSteps = progress.total;
     }
 
-    const message = progress 
+    const message = progress
       ? `[${progress.current}/${progress.total}] ${step.description}`
       : step.description;
 
@@ -127,7 +135,7 @@ export class ProgressReporter {
     }
 
     const finalMessage = message || this.formatCompletionMessage();
-    
+
     if (this.spinner) {
       this.spinner.succeed(Colors.success(finalMessage));
       this.spinner = null;
@@ -145,7 +153,7 @@ export class ProgressReporter {
     }
 
     const errorMessage = message || 'Operation failed';
-    
+
     if (this.spinner) {
       this.spinner.fail(Colors.error(errorMessage));
       this.spinner = null;
@@ -159,7 +167,7 @@ export class ProgressReporter {
    */
   warn(message: string): void {
     this.state.warnings.push(message);
-    
+
     if (!this.options.quiet) {
       console.log(status.warning(message));
     }
@@ -170,7 +178,7 @@ export class ProgressReporter {
    */
   error(message: string): void {
     this.state.errors.push(message);
-    
+
     if (!this.options.quiet) {
       console.log(status.error(message));
     }
@@ -224,11 +232,11 @@ export class ProgressReporter {
    */
   private formatProgressMessage(): string {
     const { phase, completedSteps, totalSteps, message, currentStep } = this.state;
-    
+
     if (totalSteps > 0) {
       const percentage = Math.round((completedSteps / totalSteps) * 100);
       const progress = `[${completedSteps}/${totalSteps}] ${percentage}%`;
-      
+
       if (currentStep) {
         return `${progress} ${currentStep.description}`;
       } else if (message) {
@@ -247,11 +255,11 @@ export class ProgressReporter {
   private formatCompletionMessage(): string {
     const elapsed = this.getElapsedTime();
     const duration = elapsed < 1000 ? `${elapsed}ms` : `${(elapsed / 1000).toFixed(1)}s`;
-    
+
     if (this.state.totalSteps > 0) {
       return `Completed ${this.state.totalSteps} steps in ${duration}`;
     }
-    
+
     return `Operation completed in ${duration}`;
   }
 }
@@ -280,37 +288,42 @@ export class FileProgressReporter {
    */
   initialize(files: string[]): void {
     this.files.clear();
-    files.forEach(file => this.files.set(file, {}));
-    
+    files.forEach((file) => this.files.set(file, {}));
+
     this.reporter.updateProgress({
       phase: 'installing',
       totalSteps: files.length,
       completedSteps: 0,
-      message: 'Preparing file operations...'
+      message: 'Preparing file operations...',
     });
   }
 
   /**
    * Report progress for a file operation
    */
-  fileProgress(filePath: string, status: 'started' | 'completed' | 'failed', details?: string): void {
+  fileProgress(
+    filePath: string,
+    status: 'started' | 'completed' | 'failed',
+    details?: string
+  ): void {
     const fileName = filePath.split('/').pop() || filePath;
-    
+
     switch (status) {
       case 'started':
         this.reporter.update(`Copying ${fileName}...`);
         break;
-        
+
       case 'completed':
-        const completed = Array.from(this.files.values()).filter(f => f.copied !== undefined).length + 1;
+        const completed =
+          Array.from(this.files.values()).filter((f) => f.copied !== undefined).length + 1;
         this.files.set(filePath, { ...this.files.get(filePath), copied: 100 });
-        
+
         this.reporter.updateProgress({
           completedSteps: completed,
-          message: `Installed ${fileName}`
+          message: `Installed ${fileName}`,
         });
         break;
-        
+
       case 'failed':
         this.reporter.error(`Failed to copy ${fileName}: ${details || 'Unknown error'}`);
         break;
@@ -353,19 +366,22 @@ export class ComponentProgressReporter {
   initialize(componentNames: string[]): void {
     this.components = componentNames;
     this.currentIndex = 0;
-    
+
     this.reporter.updateProgress({
       phase: 'discovering',
       totalSteps: componentNames.length,
       completedSteps: 0,
-      message: 'Discovering components...'
+      message: 'Discovering components...',
     });
   }
 
   /**
    * Report progress for component discovery/installation
    */
-  componentProgress(componentName: string, status: 'discovering' | 'installing' | 'completed' | 'failed'): void {
+  componentProgress(
+    componentName: string,
+    status: 'discovering' | 'installing' | 'completed' | 'failed'
+  ): void {
     const index = this.components.indexOf(componentName);
     if (index >= 0) {
       this.currentIndex = index;
@@ -376,25 +392,25 @@ export class ComponentProgressReporter {
         this.reporter.updateProgress({
           phase: 'discovering',
           completedSteps: this.currentIndex,
-          message: `Discovering ${componentName}...`
+          message: `Discovering ${componentName}...`,
         });
         break;
-        
+
       case 'installing':
         this.reporter.updateProgress({
           phase: 'installing',
           completedSteps: this.currentIndex,
-          message: `Installing ${componentName}...`
+          message: `Installing ${componentName}...`,
         });
         break;
-        
+
       case 'completed':
         this.reporter.updateProgress({
           completedSteps: this.currentIndex + 1,
-          message: `Installed ${componentName}`
+          message: `Installed ${componentName}`,
         });
         break;
-        
+
       case 'failed':
         this.reporter.error(`Failed to install ${componentName}`);
         break;
@@ -429,7 +445,7 @@ export const progress = {
     options: ProgressOptions = {}
   ): Promise<T> {
     const reporter = new ProgressReporter(options);
-    
+
     try {
       reporter.start(message);
       const result = await operation();
@@ -454,13 +470,15 @@ export const progress = {
     try {
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        if (!step) continue;
-        
+        if (!step) {
+          continue;
+        }
+
         reporter.step(
           {
             id: `step-${i}`,
             name: step.name,
-            description: step.name
+            description: step.name,
           },
           { current: i, total: steps.length }
         );
@@ -475,7 +493,7 @@ export const progress = {
       reporter.fail();
       throw error;
     }
-  }
+  },
 };
 
 // Types are already exported as interfaces above

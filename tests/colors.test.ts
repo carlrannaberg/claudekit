@@ -9,7 +9,7 @@ describe('Colors utility', () => {
     // Save original environment and TTY state
     originalEnv = { ...process.env };
     originalIsTTY = process.stdout.isTTY;
-    
+
     // Reset colors to environment detection
     Colors.reset();
   });
@@ -19,9 +19,9 @@ describe('Colors utility', () => {
     process.env = originalEnv;
     Object.defineProperty(process.stdout, 'isTTY', {
       value: originalIsTTY,
-      writable: true
+      writable: true,
     });
-    
+
     // Reset colors
     Colors.reset();
   });
@@ -31,7 +31,7 @@ describe('Colors utility', () => {
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true });
       delete process.env['NO_COLOR'];
       delete process.env['FORCE_COLOR'];
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(true);
     });
@@ -39,7 +39,7 @@ describe('Colors utility', () => {
     it('should disable colors when NO_COLOR is set', () => {
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true });
       process.env['NO_COLOR'] = '1';
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
     });
@@ -47,7 +47,7 @@ describe('Colors utility', () => {
     it('should disable colors when NO_COLOR is empty string', () => {
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true });
       process.env['NO_COLOR'] = '';
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
     });
@@ -55,7 +55,7 @@ describe('Colors utility', () => {
     it('should disable colors in non-TTY environment', () => {
       Object.defineProperty(process.stdout, 'isTTY', { value: false, writable: true });
       delete process.env['NO_COLOR'];
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
     });
@@ -64,7 +64,7 @@ describe('Colors utility', () => {
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true });
       process.env['FORCE_COLOR'] = '0';
       delete process.env['NO_COLOR'];
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
     });
@@ -292,7 +292,7 @@ describe('Colors utility', () => {
       process.env['NO_COLOR'] = '1';
       process.env['CI'] = 'true';
       Object.defineProperty(process.stdout, 'isTTY', { value: false, writable: true });
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
       expect(Colors.success('test')).toBe('test');
@@ -302,7 +302,7 @@ describe('Colors utility', () => {
       delete process.env['NO_COLOR'];
       delete process.env['FORCE_COLOR'];
       Object.defineProperty(process.stdout, 'isTTY', { value: true, writable: true });
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(true);
       // Force enable to test coloring regardless of current environment
@@ -313,7 +313,7 @@ describe('Colors utility', () => {
     it('should handle redirected output (non-TTY)', () => {
       delete process.env['NO_COLOR'];
       Object.defineProperty(process.stdout, 'isTTY', { value: false, writable: true });
-      
+
       Colors.reset();
       expect(Colors.enabled).toBe(false);
       expect(Colors.success('test')).toBe('test');

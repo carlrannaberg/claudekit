@@ -2,12 +2,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 // import { promisify } from 'util'; // Unused
-import { ProjectInfo, PackageManager } from '../types/index.js';
+import type { ProjectInfo, PackageManager } from '../types/index.js';
 import { pathExists, normalizePath, expandHomePath } from './filesystem.js';
 
 /**
  * Project Detection System for ClaudeKit CLI
- * 
+ *
  * Provides comprehensive project context detection for smart component recommendations.
  * Detects TypeScript, ESLint, package managers, and other project characteristics.
  */
@@ -18,7 +18,7 @@ import { pathExists, normalizePath, expandHomePath } from './filesystem.js';
 
 /**
  * Detects comprehensive project context including tools, frameworks, and configuration
- * 
+ *
  * @param projectPath - Path to the project directory (supports ~ expansion)
  * @returns ProjectInfo object with detected project characteristics
  */
@@ -37,7 +37,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
     hasClaudeConfig,
     nodeVersion,
     packageInfo,
-    frameworks
+    frameworks,
   ] = await Promise.all([
     detectTypeScript(resolvedPath),
     detectESLint(resolvedPath),
@@ -49,7 +49,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
     detectClaudeConfig(resolvedPath),
     detectNodeVersion(),
     detectPackageInfo(resolvedPath),
-    detectFrameworks(resolvedPath)
+    detectFrameworks(resolvedPath),
   ]);
 
   return {
@@ -62,11 +62,15 @@ export async function detectProjectContext(projectPath: string): Promise<Project
     projectPath: resolvedPath,
     isGitRepository,
     hasClaudeConfig,
-    ...(nodeVersion && { nodeVersion }),
-    ...(packageInfo?.name && { projectName: packageInfo.name }),
-    ...(packageInfo?.version && { projectVersion: packageInfo.version }),
+    ...(nodeVersion !== undefined && nodeVersion !== '' ? { nodeVersion } : {}),
+    ...(packageInfo?.name !== undefined && packageInfo.name !== ''
+      ? { projectName: packageInfo.name }
+      : {}),
+    ...(packageInfo?.version !== undefined && packageInfo.version !== ''
+      ? { projectVersion: packageInfo.version }
+      : {}),
     frameworks,
-    environment: process.env['NODE_ENV'] || 'development'
+    environment: process.env['NODE_ENV'] ?? 'development',
   };
 }
 
@@ -76,7 +80,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
 
 /**
  * Resolves and normalizes project path with proper ~ expansion
- * 
+ *
  * @param projectPath - Input path (may contain ~)
  * @returns Absolute normalized path
  */
@@ -84,7 +88,7 @@ export function resolveProjectPath(projectPath: string): string {
   if (!projectPath) {
     return process.cwd();
   }
-  
+
   const expanded = expandHomePath(projectPath);
   return normalizePath(expanded);
 }
@@ -95,7 +99,7 @@ export function resolveProjectPath(projectPath: string): string {
 
 /**
  * Detects if project uses TypeScript by checking for configuration files
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if TypeScript is configured
  */
@@ -104,7 +108,7 @@ export async function detectTypeScript(projectPath: string): Promise<boolean> {
     'tsconfig.json',
     'tsconfig.build.json',
     'tsconfig.app.json',
-    'tsconfig.spec.json'
+    'tsconfig.spec.json',
   ];
 
   for (const configFile of tsConfigFiles) {
@@ -120,7 +124,7 @@ export async function detectTypeScript(projectPath: string): Promise<boolean> {
     if (await pathExists(dirPath)) {
       try {
         const files = await fs.readdir(dirPath);
-        if (files.some(file => file.endsWith('.ts') || file.endsWith('.tsx'))) {
+        if (files.some((file) => file.endsWith('.ts') || file.endsWith('.tsx'))) {
           return true;
         }
       } catch {
@@ -138,7 +142,7 @@ export async function detectTypeScript(projectPath: string): Promise<boolean> {
 
 /**
  * Detects ESLint configuration in various formats
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if ESLint is configured
  */
@@ -152,7 +156,7 @@ export async function detectESLint(projectPath: string): Promise<boolean> {
     '.eslintrc.yml',
     'eslint.config.js',
     'eslint.config.mjs',
-    'eslint.config.cjs'
+    'eslint.config.cjs',
   ];
 
   for (const configFile of eslintConfigFiles) {
@@ -165,8 +169,11 @@ export async function detectESLint(projectPath: string): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      if (packageJson.eslintConfig) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as Record<
+        string,
+        unknown
+      >;
+      if (packageJson['eslintConfig'] !== undefined) {
         return true;
       }
     }
@@ -183,7 +190,7 @@ export async function detectESLint(projectPath: string): Promise<boolean> {
 
 /**
  * Detects Prettier configuration
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if Prettier is configured
  */
@@ -198,7 +205,7 @@ export async function detectPrettier(projectPath: string): Promise<boolean> {
     '.prettierrc.yml',
     'prettier.config.js',
     'prettier.config.cjs',
-    'prettier.config.mjs'
+    'prettier.config.mjs',
   ];
 
   for (const configFile of prettierConfigFiles) {
@@ -211,8 +218,11 @@ export async function detectPrettier(projectPath: string): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      if (packageJson.prettier) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as Record<
+        string,
+        unknown
+      >;
+      if (packageJson['prettier'] !== undefined) {
         return true;
       }
     }
@@ -229,7 +239,7 @@ export async function detectPrettier(projectPath: string): Promise<boolean> {
 
 /**
  * Detects Jest testing framework
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if Jest is configured
  */
@@ -239,7 +249,7 @@ export async function detectJest(projectPath: string): Promise<boolean> {
     'jest.config.ts',
     'jest.config.mjs',
     'jest.config.cjs',
-    'jest.config.json'
+    'jest.config.json',
   ];
 
   for (const configFile of jestConfigFiles) {
@@ -252,20 +262,29 @@ export async function detectJest(projectPath: string): Promise<boolean> {
   try {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      
-      if (packageJson.jest) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as Record<
+        string,
+        unknown
+      >;
+
+      if (packageJson['jest'] !== undefined) {
         return true;
       }
-      
+
       // Check dependencies
+      const dependencies = packageJson['dependencies'] as Record<string, unknown> | undefined;
+      const devDependencies = packageJson['devDependencies'] as Record<string, unknown> | undefined;
+      const peerDependencies = packageJson['peerDependencies'] as
+        | Record<string, unknown>
+        | undefined;
+
       const allDeps = {
-        ...packageJson.dependencies,
-        ...packageJson.devDependencies,
-        ...packageJson.peerDependencies
+        ...(dependencies || {}),
+        ...(devDependencies || {}),
+        ...(peerDependencies || {}),
       };
-      
-      if (allDeps.jest || allDeps['@types/jest']) {
+
+      if (allDeps['jest'] !== undefined || allDeps['@types/jest'] !== undefined) {
         return true;
       }
     }
@@ -278,7 +297,7 @@ export async function detectJest(projectPath: string): Promise<boolean> {
 
 /**
  * Detects Vitest testing framework
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if Vitest is configured
  */
@@ -291,7 +310,7 @@ export async function detectVitest(projectPath: string): Promise<boolean> {
     'vite.config.js',
     'vite.config.ts',
     'vite.config.mjs',
-    'vite.config.cjs'
+    'vite.config.cjs',
   ];
 
   for (const configFile of vitestConfigFiles) {
@@ -317,14 +336,14 @@ export async function detectVitest(projectPath: string): Promise<boolean> {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
       const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      
+
       const allDeps = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
-        ...packageJson.peerDependencies
+        ...packageJson.peerDependencies,
       };
-      
-      if (allDeps.vitest) {
+
+      if (allDeps.vitest !== undefined) {
         return true;
       }
     }
@@ -341,7 +360,7 @@ export async function detectVitest(projectPath: string): Promise<boolean> {
 
 /**
  * Detects the package manager used by the project
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns Detected package manager or null
  */
@@ -351,7 +370,7 @@ export async function detectPackageManager(projectPath: string): Promise<Package
     { file: 'bun.lockb', manager: 'bun' },
     { file: 'pnpm-lock.yaml', manager: 'pnpm' },
     { file: 'yarn.lock', manager: 'yarn' },
-    { file: 'package-lock.json', manager: 'npm' }
+    { file: 'package-lock.json', manager: 'npm' },
   ];
 
   for (const { file, manager } of lockFileChecks) {
@@ -364,11 +383,15 @@ export async function detectPackageManager(projectPath: string): Promise<Package
   try {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      
-      if (packageJson.packageManager) {
-        const pm = packageJson.packageManager.split('@')[0];
-        if (['npm', 'yarn', 'pnpm', 'bun'].includes(pm)) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as Record<
+        string,
+        unknown
+      >;
+
+      if (typeof packageJson['packageManager'] === 'string') {
+        const packageManagerValue = packageJson['packageManager'] as string;
+        const pm = packageManagerValue.split('@')[0];
+        if (pm && ['npm', 'yarn', 'pnpm', 'bun'].includes(pm)) {
           return pm as PackageManager;
         }
       }
@@ -398,7 +421,7 @@ export async function detectPackageManager(projectPath: string): Promise<Package
 
 /**
  * Detects if the project is a git repository
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if project is a git repository
  */
@@ -412,7 +435,7 @@ export async function detectGitRepository(projectPath: string): Promise<boolean>
 
 /**
  * Detects if the project has Claude configuration
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns true if .claude directory exists
  */
@@ -426,7 +449,7 @@ export async function detectClaudeConfig(projectPath: string): Promise<boolean> 
 
 /**
  * Detects the Node.js version in use
- * 
+ *
  * @returns Node.js version string or undefined if not detected
  */
 export async function detectNodeVersion(): Promise<string | undefined> {
@@ -444,24 +467,26 @@ export async function detectNodeVersion(): Promise<string | undefined> {
 
 /**
  * Reads package.json information
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns Package information or undefined
  */
-export async function detectPackageInfo(projectPath: string): Promise<{ name?: string; version?: string } | undefined> {
+export async function detectPackageInfo(
+  projectPath: string
+): Promise<{ name?: string; version?: string } | undefined> {
   try {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
       const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
       return {
         name: packageJson.name,
-        version: packageJson.version
+        version: packageJson.version,
       };
     }
   } catch {
     // Error reading package.json
   }
-  
+
   return undefined;
 }
 
@@ -471,7 +496,7 @@ export async function detectPackageInfo(projectPath: string): Promise<{ name?: s
 
 /**
  * Detects frameworks and libraries used by the project
- * 
+ *
  * @param projectPath - Absolute path to project
  * @returns Array of detected framework names
  */
@@ -482,11 +507,11 @@ export async function detectFrameworks(projectPath: string): Promise<string[]> {
     const packageJsonPath = path.join(projectPath, 'package.json');
     if (await pathExists(packageJsonPath)) {
       const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
-      
+
       const allDeps = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
-        ...packageJson.peerDependencies
+        ...packageJson.peerDependencies,
       };
 
       // Common framework patterns
@@ -510,7 +535,7 @@ export async function detectFrameworks(projectPath: string): Promise<string[]> {
         { pattern: /^cypress$/, name: 'Cypress' },
         { pattern: /^@testing-library/, name: 'Testing Library' },
         { pattern: /^storybook/, name: 'Storybook' },
-        { pattern: /^@storybook/, name: 'Storybook' }
+        { pattern: /^@storybook/, name: 'Storybook' },
       ];
 
       for (const [depName] of Object.entries(allDeps)) {
@@ -542,11 +567,11 @@ export async function detectFrameworks(projectPath: string): Promise<string[]> {
     { file: 'playwright.config.js', framework: 'Playwright' },
     { file: 'playwright.config.ts', framework: 'Playwright' },
     { file: 'cypress.config.js', framework: 'Cypress' },
-    { file: 'cypress.config.ts', framework: 'Cypress' }
+    { file: 'cypress.config.ts', framework: 'Cypress' },
   ];
 
   for (const { file, framework } of configFileChecks) {
-    if (await pathExists(path.join(projectPath, file)) && !frameworks.includes(framework)) {
+    if ((await pathExists(path.join(projectPath, file))) && !frameworks.includes(framework)) {
       frameworks.push(framework);
     }
   }
@@ -560,24 +585,24 @@ export async function detectFrameworks(projectPath: string): Promise<string[]> {
 
 /**
  * Executes a command and returns the output
- * 
+ *
  * @param command - Command to execute
  * @param args - Command arguments
  * @returns Command output as string
  */
 async function executeCommand(command: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {
-    const process = spawn(command, args, { 
+    const process = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'ignore'],
-      shell: false 
+      shell: false,
     });
-    
+
     let output = '';
-    
+
     process.stdout.on('data', (data) => {
       output += data.toString();
     });
-    
+
     process.on('close', (code) => {
       if (code === 0) {
         resolve(output);
@@ -585,7 +610,7 @@ async function executeCommand(command: string, args: string[] = []): Promise<str
         reject(new Error(`Command failed with exit code ${code}`));
       }
     });
-    
+
     process.on('error', (error) => {
       reject(error);
     });

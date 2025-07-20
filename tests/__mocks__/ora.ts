@@ -9,7 +9,7 @@ const mockSpinner = {
   info: vi.fn().mockReturnThis(),
   text: '',
   color: 'cyan',
-  spinner: 'dots'
+  spinner: 'dots',
 };
 
 const ora = vi.fn(() => mockSpinner);

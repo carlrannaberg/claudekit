@@ -6,7 +6,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { init } from '@/commands/init.js';
-import { TestFileSystem, TestAssertions, CommandTestHelper, ConsoleTestHelper } from '@tests/utils/test-helpers.js';
+import {
+  TestFileSystem,
+  TestAssertions,
+  CommandTestHelper,
+  ConsoleTestHelper,
+} from '@tests/utils/test-helpers.js';
 
 // Mock external dependencies inline
 vi.mock('ora', () => {
@@ -19,11 +24,11 @@ vi.mock('ora', () => {
     info: vi.fn().mockReturnThis(),
     text: '',
     color: 'cyan',
-    spinner: 'dots'
+    spinner: 'dots',
   };
-  
+
   return {
-    default: vi.fn(() => mockSpinner)
+    default: vi.fn(() => mockSpinner),
   };
 });
 
@@ -50,8 +55,8 @@ vi.mock('chalk', () => ({
     bgMagenta: vi.fn((text: string) => text),
     bgWhite: vi.fn((text: string) => text),
     enabled: true,
-    level: 3
-  }
+    level: 3,
+  },
 }));
 
 // Mock project detection
@@ -85,36 +90,36 @@ vi.mock('../../cli/lib/components.js', () => ({
         component: {
           type: 'hook',
           path: '/path/to/typecheck.sh',
-          metadata: { id: 'typecheck' }
-        }
+          metadata: { id: 'typecheck' },
+        },
       },
       {
         component: {
           type: 'hook',
           path: '/path/to/eslint.sh',
-          metadata: { id: 'eslint' }
-        }
+          metadata: { id: 'eslint' },
+        },
       },
       {
         component: {
           type: 'hook',
           path: '/path/to/auto-checkpoint.sh',
-          metadata: { id: 'auto-checkpoint' }
-        }
-      }
+          metadata: { id: 'auto-checkpoint' },
+        },
+      },
     ],
     recommended: [
       {
         component: {
           type: 'hook',
           path: '/path/to/validate-todo-completion.sh',
-          metadata: { id: 'validate-todo-completion', category: 'validation' }
-        }
-      }
+          metadata: { id: 'validate-todo-completion', category: 'validation' },
+        },
+      },
     ],
-    optional: []
+    optional: [],
   }),
-  formatRecommendationSummary: vi.fn().mockReturnValue('Mock recommendations summary')
+  formatRecommendationSummary: vi.fn().mockReturnValue('Mock recommendations summary'),
 }));
 
 describe('init command', () => {
@@ -148,32 +153,30 @@ describe('init command', () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = await testFs.readJson(settingsPath);
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
 
       expect(settings).toHaveProperty('hooks');
-      expect(settings.hooks).toHaveProperty('PostToolUse');
-      expect(settings.hooks).toHaveProperty('Stop');
-      expect(Array.isArray(settings.hooks.PostToolUse)).toBe(true);
-      expect(Array.isArray(settings.hooks.Stop)).toBe(true);
+      expect(settings['hooks']).toHaveProperty('PostToolUse');
+      expect(settings['hooks']).toHaveProperty('Stop');
+      expect(Array.isArray(settings['hooks'].PostToolUse)).toBe(true);
+      expect(Array.isArray(settings['hooks'].Stop)).toBe(true);
     });
 
     it('should create settings with TypeScript and ESLint hooks', async () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = await testFs.readJson(settingsPath);
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
 
-      const postToolUseHooks = settings.hooks.PostToolUse;
-      
+      const postToolUseHooks = settings['hooks'].PostToolUse;
+
       // Check for TypeScript hook
-      const tsHook = postToolUseHooks.find((hook: any) => 
-        hook.matcher.includes('**/*.ts')
-      );
+      const tsHook = postToolUseHooks.find((hook: any) => hook.matcher.includes('**/*.ts'));
       expect(tsHook).toBeDefined();
       expect(tsHook.hooks[0].command).toBe('.claude/hooks/typecheck.sh');
 
       // Check for ESLint hook
-      const eslintHook = postToolUseHooks.find((hook: any) => 
+      const eslintHook = postToolUseHooks.find((hook: any) =>
         hook.matcher.includes('**/*.{js,ts,tsx,jsx}')
       );
       expect(eslintHook).toBeDefined();
@@ -184,15 +187,15 @@ describe('init command', () => {
       await init({});
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
-      const settings = await testFs.readJson(settingsPath);
+      const settings = (await testFs.readJson(settingsPath)) as Record<string, any>;
 
-      const stopHooks = settings.hooks.Stop;
+      const stopHooks = settings['hooks'].Stop;
       expect(stopHooks).toHaveLength(1);
-      
+
       const stopHook = stopHooks[0];
       expect(stopHook.matcher).toBe('*');
       expect(stopHook.hooks).toHaveLength(2);
-      
+
       const commands = stopHook.hooks.map((h: any) => h.command);
       expect(commands).toContain('.claude/hooks/auto-checkpoint.sh');
       expect(commands).toContain('.claude/hooks/validate-todo-completion.sh');
@@ -203,7 +206,7 @@ describe('init command', () => {
 
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
       const content = await testFs.readFile(settingsPath);
-      
+
       // Check that JSON is properly formatted with 2-space indentation
       expect(content).toContain('  "hooks": {');
       expect(content).toContain('    "PostToolUse": [');
@@ -215,16 +218,16 @@ describe('init command', () => {
       // Create existing .claude directory
       await fs.mkdir(path.join(tempDir, '.claude'), { recursive: true });
 
-      const console = ConsoleTestHelper.mockConsole();
-      
+      ConsoleTestHelper.mockConsole();
+
       await init({});
 
       // Should not overwrite existing directory
       await TestAssertions.expectFileToExist(path.join(tempDir, '.claude'));
-      
+
       // Should not create settings.json
       await TestAssertions.expectFileNotToExist(path.join(tempDir, '.claude', 'settings.json'));
-      
+
       ConsoleTestHelper.restore();
     });
 
@@ -249,9 +252,11 @@ describe('init command', () => {
   describe('error handling', () => {
     it('should handle permission errors gracefully', async () => {
       // Mock fs.mkdir to throw permission error
-      const mkdirSpy = vi.spyOn(fs, 'mkdir').mockRejectedValueOnce(
-        Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
-      );
+      const mkdirSpy = vi
+        .spyOn(fs, 'mkdir')
+        .mockRejectedValueOnce(
+          Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' })
+        );
 
       await expect(init({})).rejects.toThrow('permission denied');
 
@@ -260,9 +265,9 @@ describe('init command', () => {
 
     it('should handle write errors gracefully', async () => {
       // Mock fs.writeFile to throw error
-      const writeFileSpy = vi.spyOn(fs, 'writeFile').mockRejectedValueOnce(
-        new Error('ENOSPC: no space left on device')
-      );
+      const writeFileSpy = vi
+        .spyOn(fs, 'writeFile')
+        .mockRejectedValueOnce(new Error('ENOSPC: no space left on device'));
 
       await expect(init({})).rejects.toThrow('no space left on device');
 
@@ -276,7 +281,7 @@ describe('init command', () => {
       const mockSpinner = {
         start: vi.fn().mockReturnThis(),
         succeed: vi.fn().mockReturnThis(),
-        fail: vi.fn().mockReturnThis()
+        fail: vi.fn().mockReturnThis(),
       };
       vi.mocked(ora.default).mockReturnValue(mockSpinner as any);
 
@@ -293,7 +298,7 @@ describe('init command', () => {
       const mockSpinner = {
         start: vi.fn().mockReturnThis(),
         succeed: vi.fn().mockReturnThis(),
-        fail: vi.fn().mockReturnThis()
+        fail: vi.fn().mockReturnThis(),
       };
       vi.mocked(ora.default).mockReturnValue(mockSpinner as any);
 

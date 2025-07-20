@@ -33,7 +33,7 @@ const chalk = {
   bgMagenta: createChalkFunction(),
   bgWhite: createChalkFunction(),
   enabled: true,
-  level: 3
+  level: 3,
 };
 
 export default chalk;

@@ -53,16 +53,18 @@ export function resolveHookPaths(hooksConfig: HooksConfig, projectRoot: string):
   const resolvedConfig: HooksConfig = {};
 
   for (const [eventType, matchers] of Object.entries(hooksConfig)) {
-    if (!matchers) continue;
-    
-    resolvedConfig[eventType as keyof HooksConfig] = matchers.map(matcher => ({
+    if (!matchers) {
+      continue;
+    }
+
+    resolvedConfig[eventType as keyof HooksConfig] = matchers.map((matcher) => ({
       ...matcher,
-      hooks: matcher.hooks.map(hook => ({
+      hooks: matcher.hooks.map((hook) => ({
         ...hook,
-        command: path.isAbsolute(hook.command) 
-          ? hook.command 
-          : path.resolve(projectRoot, hook.command)
-      }))
+        command: path.isAbsolute(hook.command)
+          ? hook.command
+          : path.resolve(projectRoot, hook.command),
+      })),
     }));
   }
 
@@ -73,34 +75,46 @@ export function resolveHookPaths(hooksConfig: HooksConfig, projectRoot: string):
  * Checks if two hook configurations are equivalent (same matcher and command paths)
  */
 function areHooksEquivalent(hook1: HookMatcher, hook2: HookMatcher): boolean {
-  if (hook1.matcher !== hook2.matcher) return false;
-  
-  if (hook1.hooks.length !== hook2.hooks.length) return false;
-  
+  if (hook1.matcher !== hook2.matcher) {
+    return false;
+  }
+
+  if (hook1.hooks.length !== hook2.hooks.length) {
+    return false;
+  }
+
   // Sort hooks by command for comparison
   const sortedHooks1 = [...hook1.hooks].sort((a, b) => a.command.localeCompare(b.command));
   const sortedHooks2 = [...hook2.hooks].sort((a, b) => a.command.localeCompare(b.command));
-  
+
   return sortedHooks1.every((hook, index) => {
     const otherHook = sortedHooks2[index];
-    if (!otherHook) return false;
-    return hook.type === otherHook.type && 
-           hook.command === otherHook.command &&
-           hook.enabled === otherHook.enabled &&
-           hook.timeout === otherHook.timeout &&
-           hook.retries === otherHook.retries;
+    if (!otherHook) {
+      return false;
+    }
+    return (
+      hook.type === otherHook.type &&
+      hook.command === otherHook.command &&
+      hook.enabled === otherHook.enabled &&
+      hook.timeout === otherHook.timeout &&
+      hook.retries === otherHook.retries
+    );
   });
 }
 
 /**
  * Merges two configuration objects with proper deduplication
  */
-export async function mergeConfigs(newConfig: Config, existingConfig: Config, projectRoot: string): Promise<Config> {
+export async function mergeConfigs(
+  newConfig: Config,
+  existingConfig: Config,
+  projectRoot: string
+): Promise<Config> {
   // Start with existing config as base
   const result: Config = {
     ...existingConfig,
     ...newConfig, // Allow top-level properties to be overridden
-    hooks: { ...existingConfig.hooks } // We'll merge hooks separately
+    hooks: { ...existingConfig.hooks }, // We'll merge hooks separately
   };
 
   // Resolve paths in both configs
@@ -109,22 +123,24 @@ export async function mergeConfigs(newConfig: Config, existingConfig: Config, pr
 
   // Merge hooks by event type
   for (const [eventType, newMatchers] of Object.entries(resolvedNewHooks)) {
-    if (!newMatchers) continue;
-    
+    if (!newMatchers) {
+      continue;
+    }
+
     const existingMatchers = resolvedExistingHooks[eventType as keyof HooksConfig] || [];
     const allMatchers = [...existingMatchers];
-    
+
     // Add new matchers that don't already exist
     for (const newMatcher of newMatchers) {
-      const isDuplicate = existingMatchers.some(existing => 
+      const isDuplicate = existingMatchers.some((existing) =>
         areHooksEquivalent(existing, newMatcher)
       );
-      
+
       if (!isDuplicate) {
         allMatchers.push(newMatcher);
       }
     }
-    
+
     result.hooks[eventType as keyof HooksConfig] = allMatchers;
   }
 
@@ -135,37 +151,34 @@ export async function mergeConfigs(newConfig: Config, existingConfig: Config, pr
  * Loads and merges configuration from multiple sources
  */
 export async function loadMergedConfig(
-  projectRoot: string, 
+  projectRoot: string,
   additionalConfigs: Config[] = []
 ): Promise<Config> {
   let baseConfig: Config = { hooks: {} };
-  
+
   // Load existing config if it exists
   if (await configExists(projectRoot)) {
     baseConfig = await loadConfig(projectRoot);
   }
-  
+
   // Merge additional configs in order
   let mergedConfig = baseConfig;
   for (const config of additionalConfigs) {
     mergedConfig = await mergeConfigs(config, mergedConfig, projectRoot);
   }
-  
+
   return mergedConfig;
 }
 
 /**
  * Saves configuration with proper formatting and validation
  */
-export async function saveMergedConfig(
-  projectRoot: string, 
-  newConfig: Config
-): Promise<Config> {
+export async function saveMergedConfig(projectRoot: string, newConfig: Config): Promise<Config> {
   // Load existing config and merge
   const mergedConfig = await loadMergedConfig(projectRoot, [newConfig]);
-  
+
   // Save the merged result
   await saveConfig(projectRoot, mergedConfig);
-  
+
   return mergedConfig;
 }

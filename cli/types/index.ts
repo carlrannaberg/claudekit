@@ -1,6 +1,6 @@
 /**
  * Comprehensive type definitions for ClaudeKit CLI
- * 
+ *
  * This file contains all interfaces, types, and enums used throughout the ClaudeKit CLI application.
  * It provides type safety and consistency across the entire codebase.
  */
@@ -20,13 +20,13 @@ export type Platform = 'darwin' | 'linux' | 'win32' | 'all';
 /**
  * Component categories for organization
  */
-export type ComponentCategory = 
-  | 'git' 
-  | 'validation' 
-  | 'development' 
-  | 'testing' 
-  | 'ai-assistant' 
-  | 'workflow' 
+export type ComponentCategory =
+  | 'git'
+  | 'validation'
+  | 'development'
+  | 'testing'
+  | 'ai-assistant'
+  | 'workflow'
   | 'project-management'
   | 'debugging'
   | 'utility';
@@ -76,43 +76,43 @@ export type TemplateType = 'default' | 'basic' | 'advanced' | 'custom';
 export interface Component {
   /** Unique identifier for the component */
   id: string;
-  
+
   /** Type of component */
   type: ComponentType;
-  
+
   /** Human-readable name */
   name: string;
-  
+
   /** Brief description of what the component does */
   description: string;
-  
+
   /** File system path to the component */
   path: string;
-  
+
   /** List of dependencies required by this component */
   dependencies: string[];
-  
+
   /** Supported platforms */
   platforms: Platform[];
-  
+
   /** Category for organization */
   category: ComponentCategory;
-  
+
   /** Version of the component */
   version?: string;
-  
+
   /** Author information */
   author?: string;
-  
+
   /** Whether the component is enabled */
   enabled?: boolean;
-  
+
   /** Configuration options specific to this component */
   config?: Record<string, unknown>;
-  
+
   /** Creation timestamp */
   createdAt?: Date;
-  
+
   /** Last modified timestamp */
   updatedAt?: Date;
 }
@@ -127,43 +127,43 @@ export interface Component {
 export interface ProjectInfo {
   /** Whether TypeScript is configured in the project */
   hasTypeScript: boolean;
-  
+
   /** Whether ESLint is configured in the project */
   hasESLint: boolean;
-  
+
   /** Whether Prettier is configured in the project */
   hasPrettier?: boolean;
-  
+
   /** Whether Jest is configured in the project */
   hasJest?: boolean;
-  
+
   /** Whether Vitest is configured in the project */
   hasVitest?: boolean;
-  
+
   /** Detected package manager */
   packageManager: PackageManager | null;
-  
+
   /** Absolute path to the project root */
   projectPath: string;
-  
+
   /** Whether the project is a git repository */
   isGitRepository?: boolean;
-  
+
   /** Whether the project has a .claude directory */
   hasClaudeConfig?: boolean;
-  
+
   /** Node.js version if detected */
   nodeVersion?: string;
-  
+
   /** Project name from package.json */
   projectName?: string;
-  
+
   /** Project version from package.json */
   projectVersion?: string;
-  
+
   /** List of detected frameworks/libraries */
   frameworks?: string[];
-  
+
   /** Environment type (development, production, etc.) */
   environment?: string;
 }
@@ -178,28 +178,28 @@ export interface ProjectInfo {
 export interface Installation {
   /** Components to install */
   components: Component[];
-  
+
   /** Where to install the components */
   target: InstallTarget;
-  
+
   /** Whether to create backups before installation */
   backup: boolean;
-  
+
   /** Whether this is a dry run (no actual changes) */
   dryRun: boolean;
-  
+
   /** Project information for context-aware installation */
   projectInfo?: ProjectInfo;
-  
+
   /** Template to use for new components */
   template?: TemplateType;
-  
+
   /** Force installation even if components exist */
   force?: boolean;
-  
+
   /** Whether to install dependencies automatically */
   installDependencies?: boolean;
-  
+
   /** Custom installation directory */
   customPath?: string;
 }
@@ -210,28 +210,28 @@ export interface Installation {
 export interface InstallationResult {
   /** Whether the installation was successful */
   success: boolean;
-  
+
   /** Number of components successfully installed */
   installedCount: number;
-  
+
   /** Number of components that failed to install */
   failedCount: number;
-  
+
   /** List of successfully installed components */
   installed: Component[];
-  
+
   /** List of components that failed with error details */
   failed: Array<{
     component: Component;
     error: string;
   }>;
-  
+
   /** Warnings generated during installation */
   warnings: string[];
-  
+
   /** Time taken for the installation */
   duration?: number;
-  
+
   /** Backup information if backups were created */
   backups?: BackupInfo[];
 }
@@ -242,13 +242,13 @@ export interface InstallationResult {
 export interface BackupInfo {
   /** Original file path */
   originalPath: string;
-  
+
   /** Backup file path */
   backupPath: string;
-  
+
   /** Timestamp when backup was created */
   timestamp: Date;
-  
+
   /** File hash for integrity verification */
   hash?: string;
 }
@@ -263,16 +263,16 @@ export interface BackupInfo {
 export interface GlobalOptions {
   /** Enable verbose output */
   verbose?: boolean;
-  
+
   /** Suppress non-error output */
   quiet?: boolean;
-  
+
   /** Perform dry run without making changes */
   dryRun?: boolean;
-  
+
   /** Force operation even if warnings exist */
   force?: boolean;
-  
+
   /** Configuration file path */
   config?: string;
 }
@@ -283,10 +283,10 @@ export interface GlobalOptions {
 export interface InitOptions extends GlobalOptions {
   /** Template to use for initialization */
   template?: TemplateType;
-  
+
   /** Skip interactive prompts */
   skipPrompts?: boolean;
-  
+
   /** Git repository URL for template */
   templateRepo?: string;
 }
@@ -297,16 +297,16 @@ export interface InitOptions extends GlobalOptions {
 export interface AddOptions extends GlobalOptions {
   /** Template to use for the new component */
   template?: TemplateType;
-  
+
   /** Custom path for the component */
   path?: string;
-  
+
   /** Category for the component */
   category?: ComponentCategory;
-  
+
   /** Dependencies for the component */
   dependencies?: string[];
-  
+
   /** Platforms the component supports */
   platforms?: Platform[];
 }
@@ -317,10 +317,10 @@ export interface AddOptions extends GlobalOptions {
 export interface RemoveOptions extends GlobalOptions {
   /** Skip confirmation prompts */
   skipConfirmation?: boolean;
-  
+
   /** Remove dependencies that are no longer needed */
   removeDependencies?: boolean;
-  
+
   /** Create backup before removal */
   backup?: boolean;
 }
@@ -331,13 +331,13 @@ export interface RemoveOptions extends GlobalOptions {
 export interface UpdateOptions extends GlobalOptions {
   /** Configuration as JSON string */
   config?: string;
-  
+
   /** Configuration from file */
   file?: string;
-  
+
   /** Update all components */
   all?: boolean;
-  
+
   /** Check for updates without applying them */
   checkOnly?: boolean;
 }
@@ -348,16 +348,16 @@ export interface UpdateOptions extends GlobalOptions {
 export interface ListOptions extends GlobalOptions {
   /** Output format */
   format?: OutputFormat;
-  
+
   /** Filter pattern */
   filter?: string;
-  
+
   /** Include disabled components */
   includeDisabled?: boolean;
-  
+
   /** Sort by field */
   sortBy?: keyof Component;
-  
+
   /** Sort in descending order */
   descending?: boolean;
 }
@@ -368,10 +368,10 @@ export interface ListOptions extends GlobalOptions {
 export interface ValidateOptions extends GlobalOptions {
   /** Type of validation to perform */
   type?: ValidationType;
-  
+
   /** Fix issues automatically where possible */
   autoFix?: boolean;
-  
+
   /** Output validation report to file */
   outputFile?: string;
 }
@@ -386,22 +386,22 @@ export interface ValidateOptions extends GlobalOptions {
 export interface ValidationResult {
   /** Whether the validation passed */
   passed: boolean;
-  
+
   /** Human-readable message */
   message: string;
-  
+
   /** Validation type that was performed */
   type: ValidationType;
-  
+
   /** Severity level of any issues found */
   severity?: 'info' | 'warning' | 'error';
-  
+
   /** Detailed error information */
   details?: string;
-  
+
   /** Suggestions for fixing issues */
   suggestions?: string[];
-  
+
   /** Whether the issue can be auto-fixed */
   autoFixable?: boolean;
 }
@@ -412,10 +412,10 @@ export interface ValidationResult {
 export interface ValidationReport {
   /** Overall validation status */
   passed: boolean;
-  
+
   /** Individual validation results */
   results: ValidationResult[];
-  
+
   /** Summary statistics */
   summary: {
     total: number;
@@ -423,13 +423,13 @@ export interface ValidationReport {
     failed: number;
     warnings: number;
   };
-  
+
   /** Project information used for validation */
   projectInfo: ProjectInfo;
-  
+
   /** Timestamp when validation was performed */
   timestamp: Date;
-  
+
   /** Time taken for validation */
   duration: number;
 }
@@ -444,16 +444,16 @@ export interface ValidationReport {
 export interface OperationResult<T = unknown> {
   /** Whether the operation was successful */
   success: boolean;
-  
+
   /** Result data if successful */
   data?: T;
-  
+
   /** Error message if failed */
   error?: string;
-  
+
   /** Warnings generated during operation */
   warnings?: string[];
-  
+
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
@@ -464,10 +464,10 @@ export interface OperationResult<T = unknown> {
 export interface ListResult {
   /** List of components */
   components: Component[];
-  
+
   /** Total count */
   total: number;
-  
+
   /** Filters applied */
   filters: {
     type?: ComponentType;
@@ -475,7 +475,7 @@ export interface ListResult {
     enabled?: boolean;
     pattern?: string;
   };
-  
+
   /** Project information */
   projectInfo: ProjectInfo;
 }
@@ -486,22 +486,22 @@ export interface ListResult {
 export interface FileOperationResult {
   /** Path to the file */
   path: string;
-  
+
   /** Operation performed */
   operation: 'create' | 'update' | 'delete' | 'backup' | 'restore';
-  
+
   /** Whether the operation was successful */
   success: boolean;
-  
+
   /** Error message if failed */
   error?: string;
-  
+
   /** File size after operation */
   size?: number;
-  
+
   /** File permissions */
   permissions?: string;
-  
+
   /** Backup path if backup was created */
   backupPath?: string;
 }
@@ -516,31 +516,31 @@ export interface FileOperationResult {
 export interface UserSettings {
   /** Default template preference */
   defaultTemplate?: TemplateType;
-  
+
   /** Default installation target */
   defaultTarget?: InstallTarget;
-  
+
   /** Whether to create backups by default */
   autoBackup?: boolean;
-  
+
   /** Default log level */
   logLevel?: LogLevel;
-  
+
   /** Environment variables */
   environment?: Record<string, string>;
-  
+
   /** Custom component paths */
   componentPaths?: string[];
-  
+
   /** Editor preferences */
   editor?: string;
-  
+
   /** Color preferences */
   colorOutput?: boolean;
-  
+
   /** Auto-update settings */
   autoUpdate?: boolean;
-  
+
   /** Notification preferences */
   notifications?: boolean;
 }
@@ -551,16 +551,16 @@ export interface UserSettings {
 export interface ProjectSettings {
   /** Project-specific hooks configuration */
   hooks?: Record<string, unknown>;
-  
+
   /** Environment variables for this project */
   environment?: Record<string, string>;
-  
+
   /** Custom commands for this project */
   commands?: Record<string, unknown>;
-  
+
   /** Project-specific component overrides */
   components?: Partial<Component>[];
-  
+
   /** Validation rules for this project */
   validation?: {
     rules: string[];
@@ -579,24 +579,27 @@ export interface ProjectSettings {
 export interface TemplateConfig {
   /** Template name */
   name: string;
-  
+
   /** Template description */
   description: string;
-  
+
   /** Template type */
   type: TemplateType;
-  
+
   /** Supported component types */
   supportedTypes: ComponentType[];
-  
+
   /** Template variables */
-  variables: Record<string, {
-    description: string;
-    default?: string;
-    required?: boolean;
-    type: 'string' | 'number' | 'boolean' | 'array';
-  }>;
-  
+  variables: Record<
+    string,
+    {
+      description: string;
+      default?: string;
+      required?: boolean;
+      type: 'string' | 'number' | 'boolean' | 'array';
+    }
+  >;
+
   /** Template files */
   files: Array<{
     path: string;
@@ -611,19 +614,19 @@ export interface TemplateConfig {
 export interface DependencyInfo {
   /** Name of the dependency */
   name: string;
-  
+
   /** Required version or version range */
   version?: string;
-  
+
   /** Whether the dependency is optional */
   optional?: boolean;
-  
+
   /** Installation command */
   installCommand?: string;
-  
+
   /** Platforms where this dependency is available */
   platforms?: Platform[];
-  
+
   /** Description of what this dependency provides */
   description?: string;
 }
@@ -634,22 +637,22 @@ export interface DependencyInfo {
 export interface ErrorDetails {
   /** Error code */
   code: string;
-  
+
   /** Human-readable error message */
   message: string;
-  
+
   /** Detailed error description */
   details?: string;
-  
+
   /** Stack trace if available */
   stack?: string;
-  
+
   /** Context information */
   context?: Record<string, unknown>;
-  
+
   /** Suggestions for resolution */
   suggestions?: string[];
-  
+
   /** Whether the error is recoverable */
   recoverable?: boolean;
 }
@@ -669,19 +672,19 @@ export type HookEvent = 'PostToolUse' | 'Stop' | 'PreAction' | 'PostAction';
 export interface HookContext {
   /** Event that triggered the hook */
   event: HookEvent;
-  
+
   /** Tool that was used (for PostToolUse events) */
   toolName?: string;
-  
+
   /** File paths affected by the operation */
   filePaths?: string[];
-  
+
   /** Project information */
   projectInfo: ProjectInfo;
-  
+
   /** Environment variables */
   environment: Record<string, string>;
-  
+
   /** Timestamp when the hook was triggered */
   timestamp: Date;
 }
@@ -692,22 +695,22 @@ export interface HookContext {
 export interface HookExecutionResult {
   /** Hook that was executed */
   hook: Component;
-  
+
   /** Whether execution was successful */
   success: boolean;
-  
+
   /** Exit code from hook execution */
   exitCode: number;
-  
+
   /** Standard output */
   stdout?: string;
-  
+
   /** Standard error */
   stderr?: string;
-  
+
   /** Execution time in milliseconds */
   duration: number;
-  
+
   /** Error details if execution failed */
   error?: ErrorDetails;
 }
@@ -751,9 +754,9 @@ export function isComponent(value: unknown): value is Component {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  
+
   const obj = value as Record<string, unknown>;
-  
+
   return (
     typeof obj['id'] === 'string' &&
     isComponentType(obj['type']) &&

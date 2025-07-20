@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs, constants } from 'fs';
 import path from 'path';
-import os from 'os';
+// import os from 'os'; // Removed unused import
 import crypto from 'crypto';
 
 // Mock modules before importing the module under test
@@ -66,7 +66,7 @@ import {
 } from '../../cli/lib/filesystem.js';
 
 const mockFs = fs as any;
-const mockOs = os as any;
+// const mockOs = os as any; // Removed unused variable
 const mockCrypto = crypto as any;
 
 describe('filesystem module', () => {
@@ -107,7 +107,7 @@ describe('filesystem module', () => {
     });
 
     it('should return false for excessively long paths', () => {
-      const longPath = '/very/' + 'long/'.repeat(200) + 'path';
+      const longPath = `/very/${'long/'.repeat(200)}path`;
       expect(validateProjectPath(longPath)).toBe(false);
     });
 
@@ -126,26 +126,27 @@ describe('filesystem module', () => {
 
     it('should return early if directory already exists', async () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
-      
+
       await ensureDirectoryExists('/Users/testuser/projects/test');
-      
+
       expect(mockFs.stat).toHaveBeenCalledWith('/Users/testuser/projects/test');
       expect(mockFs.mkdir).not.toHaveBeenCalled();
     });
 
     it('should throw error if path exists but is not directory', async () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => false });
-      
-      await expect(ensureDirectoryExists('/Users/testuser/projects/file.txt'))
-        .rejects.toThrow('Path exists but is not a directory');
+
+      await expect(ensureDirectoryExists('/Users/testuser/projects/file.txt')).rejects.toThrow(
+        'Path exists but is not a directory'
+      );
     });
 
     it('should create directory if it does not exist', async () => {
       mockFs.stat.mockRejectedValue({ code: 'ENOENT' });
       mockFs.mkdir.mockResolvedValue(undefined);
-      
+
       await ensureDirectoryExists('/Users/testuser/projects/newdir');
-      
+
       expect(mockFs.mkdir).toHaveBeenCalledWith('/Users/testuser/projects/newdir', {
         recursive: true,
         mode: 0o755,
@@ -155,9 +156,10 @@ describe('filesystem module', () => {
     it('should throw error if directory creation fails', async () => {
       mockFs.stat.mockRejectedValue({ code: 'ENOENT' });
       mockFs.mkdir.mockRejectedValue(new Error('Permission denied'));
-      
-      await expect(ensureDirectoryExists('/Users/testuser/projects/newdir'))
-        .rejects.toThrow('Failed to create directory');
+
+      await expect(ensureDirectoryExists('/Users/testuser/projects/newdir')).rejects.toThrow(
+        'Failed to create directory'
+      );
     });
   });
 
@@ -168,27 +170,32 @@ describe('filesystem module', () => {
 
     it('should throw error if file does not exist', async () => {
       mockFs.access.mockRejectedValue({ code: 'ENOENT' });
-      
-      await expect(setExecutablePermission('/Users/testuser/projects/nonexistent'))
-        .rejects.toThrow('File not found');
+
+      await expect(setExecutablePermission('/Users/testuser/projects/nonexistent')).rejects.toThrow(
+        'File not found'
+      );
     });
 
     it('should set executable permissions on existing file', async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.chmod.mockResolvedValue(undefined);
-      
+
       await setExecutablePermission('/Users/testuser/projects/script.sh');
-      
-      expect(mockFs.access).toHaveBeenCalledWith('/Users/testuser/projects/script.sh', constants.F_OK);
+
+      expect(mockFs.access).toHaveBeenCalledWith(
+        '/Users/testuser/projects/script.sh',
+        constants.F_OK
+      );
       expect(mockFs.chmod).toHaveBeenCalledWith('/Users/testuser/projects/script.sh', 0o755);
     });
 
     it('should throw error if chmod fails', async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.chmod.mockRejectedValue(new Error('Permission denied'));
-      
-      await expect(setExecutablePermission('/Users/testuser/projects/script.sh'))
-        .rejects.toThrow('Failed to set executable permission');
+
+      await expect(setExecutablePermission('/Users/testuser/projects/script.sh')).rejects.toThrow(
+        'Failed to set executable permission'
+      );
     });
   });
 
@@ -196,9 +203,9 @@ describe('filesystem module', () => {
     it('should return true for writable directory', async () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.access.mockResolvedValue(undefined);
-      
+
       const result = await checkWritePermission('/Users/testuser/projects');
-      
+
       expect(result).toBe(true);
       expect(mockFs.access).toHaveBeenCalledWith('/Users/testuser/projects', constants.W_OK);
     });
@@ -206,19 +213,22 @@ describe('filesystem module', () => {
     it('should return true for writable file', async () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => false });
       mockFs.access.mockResolvedValue(undefined);
-      
+
       const result = await checkWritePermission('/Users/testuser/projects/file.txt');
-      
+
       expect(result).toBe(true);
-      expect(mockFs.access).toHaveBeenCalledWith('/Users/testuser/projects/file.txt', constants.W_OK);
+      expect(mockFs.access).toHaveBeenCalledWith(
+        '/Users/testuser/projects/file.txt',
+        constants.W_OK
+      );
     });
 
     it('should check parent directory if file does not exist', async () => {
       mockFs.stat.mockRejectedValue({ code: 'ENOENT' });
       mockFs.access.mockResolvedValue(undefined);
-      
+
       const result = await checkWritePermission('/Users/testuser/projects/newfile.txt');
-      
+
       expect(result).toBe(true);
       expect(mockFs.access).toHaveBeenCalledWith('/Users/testuser/projects', constants.W_OK);
     });
@@ -226,9 +236,9 @@ describe('filesystem module', () => {
     it('should return false if no write permission', async () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.access.mockRejectedValue(new Error('Permission denied'));
-      
+
       const result = await checkWritePermission('/Users/testuser/readonly');
-      
+
       expect(result).toBe(false);
     });
   });
@@ -241,9 +251,9 @@ describe('filesystem module', () => {
       };
       mockCrypto.createHash.mockReturnValue(mockHash);
       mockFs.readFile.mockResolvedValue(Buffer.from('test content'));
-      
+
       const result = await getFileHash('/Users/testuser/projects/file.txt');
-      
+
       expect(result).toBe('abc123hash');
       expect(mockCrypto.createHash).toHaveBeenCalledWith('sha256');
       expect(mockHash.update).toHaveBeenCalledWith(Buffer.from('test content'));
@@ -252,54 +262,55 @@ describe('filesystem module', () => {
 
     it('should throw error if file cannot be read', async () => {
       mockFs.readFile.mockRejectedValue(new Error('File not found'));
-      
-      await expect(getFileHash('/Users/testuser/projects/missing.txt'))
-        .rejects.toThrow('Failed to hash file');
+
+      await expect(getFileHash('/Users/testuser/projects/missing.txt')).rejects.toThrow(
+        'Failed to hash file'
+      );
     });
   });
 
   describe('needsUpdate', () => {
     it('should return true if target does not exist', async () => {
       mockFs.access.mockRejectedValue({ code: 'ENOENT' });
-      
+
       const result = await needsUpdate('/source.txt', '/target.txt');
-      
+
       expect(result).toBe(true);
     });
 
     it('should return true if hashes differ', async () => {
       mockFs.access.mockResolvedValue(undefined);
-      
+
       // Mock different hashes for source and target
       const mockHash1 = { update: vi.fn(), digest: vi.fn(() => 'hash1') };
       const mockHash2 = { update: vi.fn(), digest: vi.fn(() => 'hash2') };
       mockCrypto.createHash.mockReturnValueOnce(mockHash1).mockReturnValueOnce(mockHash2);
       mockFs.readFile.mockResolvedValue(Buffer.from('content'));
-      
+
       const result = await needsUpdate('/source.txt', '/target.txt');
-      
+
       expect(result).toBe(true);
     });
 
     it('should return false if hashes are identical', async () => {
       mockFs.access.mockResolvedValue(undefined);
-      
+
       // Mock identical hashes
       const mockHash = { update: vi.fn(), digest: vi.fn(() => 'samehash') };
       mockCrypto.createHash.mockReturnValue(mockHash);
       mockFs.readFile.mockResolvedValue(Buffer.from('content'));
-      
+
       const result = await needsUpdate('/source.txt', '/target.txt');
-      
+
       expect(result).toBe(false);
     });
 
     it('should return true if hash comparison fails', async () => {
       mockFs.access.mockResolvedValue(undefined);
       mockFs.readFile.mockRejectedValue(new Error('Read error'));
-      
+
       const result = await needsUpdate('/source.txt', '/target.txt');
-      
+
       expect(result).toBe(true);
     });
   });
@@ -318,9 +329,11 @@ describe('filesystem module', () => {
     it('should throw error for invalid paths', async () => {
       // Restore actual path functions temporarily for this test
       vi.restoreAllMocks();
-      
-      await expect(copyFileWithBackup('/usr', '/target')).rejects.toThrow('Invalid source or target path');
-      
+
+      await expect(copyFileWithBackup('/usr', '/target')).rejects.toThrow(
+        'Invalid source or target path'
+      );
+
       // Re-setup mocks for other tests
       vi.spyOn(path, 'resolve').mockImplementation((p) => `/resolved${p}`);
       vi.spyOn(path, 'normalize').mockImplementation((p) => p);
@@ -332,14 +345,21 @@ describe('filesystem module', () => {
         .mockResolvedValueOnce(undefined) // source readable
         .mockResolvedValueOnce(undefined) // write permission check
         .mockRejectedValueOnce({ code: 'ENOENT' }); // target doesn't exist
-      
+
       mockFs.stat.mockRejectedValue({ code: 'ENOENT' }); // dir doesn't exist
       mockFs.mkdir.mockResolvedValue(undefined);
       mockFs.copyFile.mockResolvedValue(undefined);
-      
-      await copyFileWithBackup('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt', true);
-      
-      expect(mockFs.copyFile).toHaveBeenCalledWith('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt');
+
+      await copyFileWithBackup(
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt',
+        true
+      );
+
+      expect(mockFs.copyFile).toHaveBeenCalledWith(
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt'
+      );
     });
 
     it('should create backup when target exists and backup is requested', async () => {
@@ -348,47 +368,70 @@ describe('filesystem module', () => {
         .mockResolvedValueOnce(undefined) // source readable
         .mockResolvedValueOnce(undefined) // target writable
         .mockResolvedValueOnce(undefined); // target exists for backup
-      
+
       mockFs.stat.mockResolvedValue({ isDirectory: () => true }); // dir exists
       mockFs.copyFile.mockResolvedValue(undefined);
-      
+
       // Mock Date to control timestamp
       const mockDate = new Date('2024-01-01T12:00:00.000Z');
       vi.spyOn(global, 'Date').mockImplementation(() => mockDate as any);
-      
-      await copyFileWithBackup('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt', true);
-      
+
+      await copyFileWithBackup(
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt',
+        true
+      );
+
       expect(mockFs.copyFile).toHaveBeenCalledTimes(2);
-      expect(mockFs.copyFile).toHaveBeenNthCalledWith(1, '/Users/testuser/projects/target.txt', '/Users/testuser/projects/target.txt.backup-2024-01-01T12-00-00-000Z');
-      expect(mockFs.copyFile).toHaveBeenNthCalledWith(2, '/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt');
+      expect(mockFs.copyFile).toHaveBeenNthCalledWith(
+        1,
+        '/Users/testuser/projects/target.txt',
+        '/Users/testuser/projects/target.txt.backup-2024-01-01T12-00-00-000Z'
+      );
+      expect(mockFs.copyFile).toHaveBeenNthCalledWith(
+        2,
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt'
+      );
     });
 
     it('should not create backup when backup is false', async () => {
       mockFs.access
         .mockResolvedValueOnce(undefined) // source readable
         .mockResolvedValueOnce(undefined); // target writable
-      
+
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.copyFile.mockResolvedValue(undefined);
-      
-      await copyFileWithBackup('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt', false);
-      
+
+      await copyFileWithBackup(
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt',
+        false
+      );
+
       expect(mockFs.copyFile).toHaveBeenCalledTimes(1);
-      expect(mockFs.copyFile).toHaveBeenCalledWith('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt');
+      expect(mockFs.copyFile).toHaveBeenCalledWith(
+        '/Users/testuser/projects/source.txt',
+        '/Users/testuser/projects/target.txt'
+      );
     });
 
     it('should throw error if write permission check fails', async () => {
       // Mock write permission check (fails)
       mockFs.access.mockRejectedValue(new Error('Permission denied'));
-      
-      await expect(copyFileWithBackup('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt'))
-        .rejects.toThrow('No write permission for target');
+
+      await expect(
+        copyFileWithBackup(
+          '/Users/testuser/projects/source.txt',
+          '/Users/testuser/projects/target.txt'
+        )
+      ).rejects.toThrow('No write permission for target');
     });
 
     it('should throw error if source is not accessible', async () => {
       // Need to mock both checkWritePermission (which calls fs.stat and fs.access)
       // and the direct fs.access call for source file verification
-      
+
       // First, mock fs.stat for checkWritePermission to return a file
       mockFs.stat.mockResolvedValueOnce({ isDirectory: () => false });
       // Then mock the first fs.access call (for write permission) to succeed
@@ -396,9 +439,13 @@ describe('filesystem module', () => {
       mockFs.access
         .mockResolvedValueOnce(undefined) // write permission check passes
         .mockRejectedValueOnce(new Error('Permission denied')); // source access fails
-      
-      await expect(copyFileWithBackup('/Users/testuser/projects/source.txt', '/Users/testuser/projects/target.txt'))
-        .rejects.toThrow('Source file not accessible');
+
+      await expect(
+        copyFileWithBackup(
+          '/Users/testuser/projects/source.txt',
+          '/Users/testuser/projects/target.txt'
+        )
+      ).rejects.toThrow('Source file not accessible');
     });
 
     it('should throw error if copy operation fails', async () => {
@@ -406,30 +453,31 @@ describe('filesystem module', () => {
         .mockResolvedValueOnce(undefined) // source readable
         .mockResolvedValueOnce(undefined) // target writable
         .mockRejectedValueOnce({ code: 'ENOENT' }); // target doesn't exist
-      
+
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.copyFile.mockRejectedValue(new Error('Disk full'));
-      
-      await expect(copyFileWithBackup('/valid/source.txt', '/valid/target.txt'))
-        .rejects.toThrow('Failed to copy');
+
+      await expect(copyFileWithBackup('/valid/source.txt', '/valid/target.txt')).rejects.toThrow(
+        'Failed to copy'
+      );
     });
   });
 
   describe('pathExists', () => {
     it('should return true if path exists', async () => {
       mockFs.access.mockResolvedValue(undefined);
-      
+
       const result = await pathExists('/existing/path');
-      
+
       expect(result).toBe(true);
       expect(mockFs.access).toHaveBeenCalledWith('/existing/path', constants.F_OK);
     });
 
     it('should return false if path does not exist', async () => {
       mockFs.access.mockRejectedValue({ code: 'ENOENT' });
-      
+
       const result = await pathExists('/nonexistent/path');
-      
+
       expect(result).toBe(false);
     });
   });
@@ -438,23 +486,23 @@ describe('filesystem module', () => {
     it('should return file stats if file exists', async () => {
       const mockStats = { size: 1024, isFile: () => true };
       mockFs.stat.mockResolvedValue(mockStats);
-      
+
       const result = await getFileStats('/existing/file.txt');
-      
+
       expect(result).toBe(mockStats);
     });
 
     it('should return null if file does not exist', async () => {
       mockFs.stat.mockRejectedValue({ code: 'ENOENT' });
-      
+
       const result = await getFileStats('/nonexistent/file.txt');
-      
+
       expect(result).toBe(null);
     });
 
     it('should throw error for other stat failures', async () => {
       mockFs.stat.mockRejectedValue(new Error('Permission denied'));
-      
+
       await expect(getFileStats('/restricted/file.txt')).rejects.toThrow('Permission denied');
     });
   });
@@ -462,24 +510,24 @@ describe('filesystem module', () => {
   describe('safeRemove', () => {
     it('should return true if file was removed', async () => {
       mockFs.unlink.mockResolvedValue(undefined);
-      
+
       const result = await safeRemove('/file/to/remove.txt');
-      
+
       expect(result).toBe(true);
       expect(mockFs.unlink).toHaveBeenCalledWith('/file/to/remove.txt');
     });
 
     it('should return false if file does not exist', async () => {
       mockFs.unlink.mockRejectedValue({ code: 'ENOENT' });
-      
+
       const result = await safeRemove('/nonexistent/file.txt');
-      
+
       expect(result).toBe(false);
     });
 
     it('should throw error for other unlink failures', async () => {
       mockFs.unlink.mockRejectedValue(new Error('Permission denied'));
-      
+
       await expect(safeRemove('/restricted/file.txt')).rejects.toThrow('Permission denied');
     });
   });
@@ -514,19 +562,19 @@ describe('filesystem module', () => {
 
     it('should expand home directory and resolve path', () => {
       const result = normalizePath('~/work');
-      
+
       expect(result).toBe('/Users/testuser/work');
     });
 
     it('should resolve relative paths', () => {
       const result = normalizePath('./relative/path');
-      
+
       expect(result).toBe('/resolved./relative/path');
     });
 
     it('should handle absolute paths', () => {
       const result = normalizePath('/absolute/path');
-      
+
       expect(result).toBe('/resolved/absolute/path');
     });
   });

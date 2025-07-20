@@ -15,12 +15,12 @@ import {
   detectClaudeConfig,
   detectNodeVersion,
   detectPackageInfo,
-  detectFrameworks
+  detectFrameworks,
 } from '../../cli/lib/project-detection.js';
 
 /**
  * Test suite for project detection system
- * 
+ *
  * Tests various project configurations to ensure accurate detection
  * of TypeScript, ESLint, package managers, frameworks, and other tools.
  */
@@ -72,14 +72,14 @@ describe('Project Detection System', () => {
   describe('detectTypeScript', () => {
     it('should detect TypeScript via tsconfig.json', async () => {
       await fs.writeFile(path.join(testProjectPath, 'tsconfig.json'), '{}');
-      
+
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(true);
     });
 
     it('should detect TypeScript via tsconfig.build.json', async () => {
       await fs.writeFile(path.join(testProjectPath, 'tsconfig.build.json'), '{}');
-      
+
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(true);
     });
@@ -88,7 +88,7 @@ describe('Project Detection System', () => {
       const srcDir = path.join(testProjectPath, 'src');
       await fs.mkdir(srcDir);
       await fs.writeFile(path.join(srcDir, 'index.ts'), 'export {};');
-      
+
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(true);
     });
@@ -97,14 +97,14 @@ describe('Project Detection System', () => {
       const srcDir = path.join(testProjectPath, 'src');
       await fs.mkdir(srcDir);
       await fs.writeFile(path.join(srcDir, 'App.tsx'), 'export {};');
-      
+
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(true);
     });
 
     it('should return false when no TypeScript detected', async () => {
       await fs.writeFile(path.join(testProjectPath, 'index.js'), 'console.log("hello");');
-      
+
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(false);
     });
@@ -113,14 +113,14 @@ describe('Project Detection System', () => {
   describe('detectESLint', () => {
     it('should detect ESLint via .eslintrc.json', async () => {
       await fs.writeFile(path.join(testProjectPath, '.eslintrc.json'), '{}');
-      
+
       const result = await detectESLint(testProjectPath);
       expect(result).toBe(true);
     });
 
     it('should detect ESLint via eslint.config.js', async () => {
       await fs.writeFile(path.join(testProjectPath, 'eslint.config.js'), 'module.exports = {};');
-      
+
       const result = await detectESLint(testProjectPath);
       expect(result).toBe(true);
     });
@@ -129,11 +129,11 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         eslintConfig: {
-          extends: ['eslint:recommended']
-        }
+          extends: ['eslint:recommended'],
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectESLint(testProjectPath);
       expect(result).toBe(true);
     });
@@ -147,14 +147,14 @@ describe('Project Detection System', () => {
   describe('detectPrettier', () => {
     it('should detect Prettier via .prettierrc', async () => {
       await fs.writeFile(path.join(testProjectPath, '.prettierrc'), '{}');
-      
+
       const result = await detectPrettier(testProjectPath);
       expect(result).toBe(true);
     });
 
     it('should detect Prettier via prettier.config.js', async () => {
       await fs.writeFile(path.join(testProjectPath, 'prettier.config.js'), 'module.exports = {};');
-      
+
       const result = await detectPrettier(testProjectPath);
       expect(result).toBe(true);
     });
@@ -163,11 +163,11 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         prettier: {
-          semi: false
-        }
+          semi: false,
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectPrettier(testProjectPath);
       expect(result).toBe(true);
     });
@@ -181,7 +181,7 @@ describe('Project Detection System', () => {
   describe('detectJest', () => {
     it('should detect Jest via jest.config.js', async () => {
       await fs.writeFile(path.join(testProjectPath, 'jest.config.js'), 'module.exports = {};');
-      
+
       const result = await detectJest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -190,11 +190,11 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         jest: {
-          testEnvironment: 'node'
-        }
+          testEnvironment: 'node',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectJest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -203,11 +203,11 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         devDependencies: {
-          jest: '^29.0.0'
-        }
+          jest: '^29.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectJest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -221,7 +221,7 @@ describe('Project Detection System', () => {
   describe('detectVitest', () => {
     it('should detect Vitest via vitest.config.js', async () => {
       await fs.writeFile(path.join(testProjectPath, 'vitest.config.js'), 'export default {};');
-      
+
       const result = await detectVitest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -236,7 +236,7 @@ describe('Project Detection System', () => {
         });
       `;
       await fs.writeFile(path.join(testProjectPath, 'vite.config.js'), viteConfig);
-      
+
       const result = await detectVitest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -245,11 +245,11 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         devDependencies: {
-          vitest: '^1.0.0'
-        }
+          vitest: '^1.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectVitest(testProjectPath);
       expect(result).toBe(true);
     });
@@ -263,28 +263,28 @@ describe('Project Detection System', () => {
   describe('detectPackageManager', () => {
     it('should detect npm via package-lock.json', async () => {
       await fs.writeFile(path.join(testProjectPath, 'package-lock.json'), '{}');
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('npm');
     });
 
     it('should detect yarn via yarn.lock', async () => {
       await fs.writeFile(path.join(testProjectPath, 'yarn.lock'), '');
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('yarn');
     });
 
     it('should detect pnpm via pnpm-lock.yaml', async () => {
       await fs.writeFile(path.join(testProjectPath, 'pnpm-lock.yaml'), '');
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('pnpm');
     });
 
     it('should detect bun via bun.lockb', async () => {
       await fs.writeFile(path.join(testProjectPath, 'bun.lockb'), '');
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('bun');
     });
@@ -294,7 +294,7 @@ describe('Project Detection System', () => {
       await fs.writeFile(path.join(testProjectPath, 'package-lock.json'), '{}');
       await fs.writeFile(path.join(testProjectPath, 'yarn.lock'), '');
       await fs.writeFile(path.join(testProjectPath, 'bun.lockb'), '');
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('bun');
     });
@@ -302,10 +302,10 @@ describe('Project Detection System', () => {
     it('should detect package manager via package.json packageManager field', async () => {
       const packageJson = {
         name: 'test',
-        packageManager: 'pnpm@8.0.0'
+        packageManager: 'pnpm@8.0.0',
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('pnpm');
     });
@@ -313,7 +313,7 @@ describe('Project Detection System', () => {
     it('should fallback to npm when package.json exists but no lock files', async () => {
       const packageJson = { name: 'test' };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectPackageManager(testProjectPath);
       expect(result).toBe('npm');
     });
@@ -327,7 +327,7 @@ describe('Project Detection System', () => {
   describe('detectGitRepository', () => {
     it('should detect git repository via .git directory', async () => {
       await fs.mkdir(path.join(testProjectPath, '.git'));
-      
+
       const result = await detectGitRepository(testProjectPath);
       expect(result).toBe(true);
     });
@@ -341,7 +341,7 @@ describe('Project Detection System', () => {
   describe('detectClaudeConfig', () => {
     it('should detect Claude configuration via .claude directory', async () => {
       await fs.mkdir(path.join(testProjectPath, '.claude'));
-      
+
       const result = await detectClaudeConfig(testProjectPath);
       expect(result).toBe(true);
     });
@@ -355,7 +355,7 @@ describe('Project Detection System', () => {
   describe('detectNodeVersion', () => {
     it('should detect Node.js version', async () => {
       const result = await detectNodeVersion();
-      
+
       // Should return a version string or undefined if Node.js not available
       if (result) {
         expect(typeof result).toBe('string');
@@ -371,14 +371,14 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test-project',
         version: '1.0.0',
-        description: 'Test project'
+        description: 'Test project',
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectPackageInfo(testProjectPath);
       expect(result).toEqual({
         name: 'test-project',
-        version: '1.0.0'
+        version: '1.0.0',
       });
     });
 
@@ -389,7 +389,7 @@ describe('Project Detection System', () => {
 
     it('should handle malformed package.json gracefully', async () => {
       await fs.writeFile(path.join(testProjectPath, 'package.json'), 'invalid json');
-      
+
       const result = await detectPackageInfo(testProjectPath);
       expect(result).toBeUndefined();
     });
@@ -400,18 +400,18 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         dependencies: {
-          react: '^18.0.0'
-        }
+          react: '^18.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectFrameworks(testProjectPath);
       expect(result).toContain('React');
     });
 
     it('should detect Next.js via config file', async () => {
       await fs.writeFile(path.join(testProjectPath, 'next.config.js'), 'module.exports = {};');
-      
+
       const result = await detectFrameworks(testProjectPath);
       expect(result).toContain('Next.js');
     });
@@ -421,15 +421,15 @@ describe('Project Detection System', () => {
         name: 'test',
         dependencies: {
           react: '^18.0.0',
-          express: '^4.18.0'
+          express: '^4.18.0',
         },
         devDependencies: {
           vite: '^4.0.0',
-          '@testing-library/react': '^13.0.0'
-        }
+          '@testing-library/react': '^13.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectFrameworks(testProjectPath);
       expect(result).toContain('React');
       expect(result).toContain('Express');
@@ -441,14 +441,14 @@ describe('Project Detection System', () => {
       const packageJson = {
         name: 'test',
         dependencies: {
-          react: '^18.0.0'
-        }
+          react: '^18.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
       await fs.writeFile(path.join(testProjectPath, 'next.config.js'), 'module.exports = {};');
-      
+
       const result = await detectFrameworks(testProjectPath);
-      expect(result.filter(f => f === 'Next.js')).toHaveLength(1);
+      expect(result.filter((f) => f === 'Next.js')).toHaveLength(1);
     });
 
     it('should return empty array when no frameworks detected', async () => {
@@ -462,11 +462,11 @@ describe('Project Detection System', () => {
         dependencies: {
           react: '^18.0.0',
           express: '^4.18.0',
-          vue: '^3.0.0'
-        }
+          vue: '^3.0.0',
+        },
       };
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
-      
+
       const result = await detectFrameworks(testProjectPath);
       expect(result).toEqual(['Express', 'React', 'Vue.js']);
     });
@@ -480,17 +480,17 @@ describe('Project Detection System', () => {
         version: '2.1.0',
         dependencies: {
           react: '^18.0.0',
-          express: '^4.18.0'
+          express: '^4.18.0',
         },
         devDependencies: {
           typescript: '^5.0.0',
           eslint: '^8.0.0',
           prettier: '^2.8.0',
-          vitest: '^1.0.0'
+          vitest: '^1.0.0',
         },
-        packageManager: 'pnpm@8.0.0'
+        packageManager: 'pnpm@8.0.0',
       };
-      
+
       await fs.writeFile(path.join(testProjectPath, 'package.json'), JSON.stringify(packageJson));
       await fs.writeFile(path.join(testProjectPath, 'tsconfig.json'), '{}');
       await fs.writeFile(path.join(testProjectPath, '.eslintrc.json'), '{}');
@@ -499,9 +499,9 @@ describe('Project Detection System', () => {
       await fs.writeFile(path.join(testProjectPath, 'pnpm-lock.yaml'), '');
       await fs.mkdir(path.join(testProjectPath, '.git'));
       await fs.mkdir(path.join(testProjectPath, '.claude'));
-      
+
       const result = await detectProjectContext(testProjectPath);
-      
+
       expect(result).toMatchObject({
         hasTypeScript: true,
         hasESLint: true,
@@ -515,9 +515,9 @@ describe('Project Detection System', () => {
         projectName: 'comprehensive-test',
         projectVersion: '2.1.0',
         frameworks: expect.arrayContaining(['React', 'Express']),
-        environment: expect.any(String)
+        environment: expect.any(String),
       });
-      
+
       if (result.nodeVersion) {
         expect(result.nodeVersion).toMatch(/^\d+\.\d+\.\d+/);
       }
@@ -525,20 +525,20 @@ describe('Project Detection System', () => {
 
     it('should handle minimal project setup', async () => {
       const result = await detectProjectContext(testProjectPath);
-      
+
       expect(result).toMatchObject({
         hasTypeScript: false,
         hasESLint: false,
         packageManager: null,
         projectPath: testProjectPath,
-        frameworks: []
+        frameworks: [],
       });
     });
 
     it('should resolve path correctly', async () => {
       const relativePath = path.relative(process.cwd(), testProjectPath);
       const result = await detectProjectContext(relativePath);
-      
+
       expect(result.projectPath).toBe(testProjectPath);
     });
   });
@@ -546,7 +546,7 @@ describe('Project Detection System', () => {
   describe('Edge cases and error handling', () => {
     it('should handle missing directories gracefully', async () => {
       const nonExistentPath = path.join(tempDir, 'non-existent');
-      
+
       const result = await detectProjectContext(nonExistentPath);
       expect(result.projectPath).toBe(nonExistentPath);
       expect(result.hasTypeScript).toBe(false);
@@ -555,7 +555,7 @@ describe('Project Detection System', () => {
 
     it('should handle corrupted package.json files', async () => {
       await fs.writeFile(path.join(testProjectPath, 'package.json'), 'invalid json content');
-      
+
       const result = await detectProjectContext(testProjectPath);
       expect(result.packageManager).toBe(null);
       expect(result.projectName).toBeUndefined();
@@ -566,10 +566,10 @@ describe('Project Detection System', () => {
       // Create a directory with restricted permissions (if supported)
       const restrictedDir = path.join(testProjectPath, 'restricted');
       await fs.mkdir(restrictedDir);
-      
+
       try {
         await fs.chmod(restrictedDir, 0o000);
-        
+
         const result = await detectFrameworks(testProjectPath);
         expect(Array.isArray(result)).toBe(true);
       } catch {

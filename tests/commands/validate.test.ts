@@ -6,7 +6,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { validate } from '@/commands/validate.js';
-import { TestFileSystem, TestAssertions, CommandTestHelper, ConsoleTestHelper } from '@tests/utils/test-helpers.js';
+import {
+  TestFileSystem,
+  // TestAssertions, // Removed unused import
+  CommandTestHelper,
+  ConsoleTestHelper,
+} from '@tests/utils/test-helpers.js';
 
 // Mock external dependencies
 vi.mock('ora', () => ({
@@ -15,8 +20,8 @@ vi.mock('ora', () => ({
     stop: vi.fn().mockReturnThis(),
     succeed: vi.fn().mockReturnThis(),
     fail: vi.fn().mockReturnThis(),
-    text: ''
-  }))
+    text: '',
+  })),
 }));
 
 vi.mock('chalk', () => {
@@ -33,7 +38,7 @@ vi.mock('chalk', () => {
     mock.gray = createChainableInstance();
     return mock;
   };
-  
+
   return {
     default: {
       green: createChainableInstance(),
@@ -42,8 +47,8 @@ vi.mock('chalk', () => {
       blue: createChainableInstance(),
       gray: createChainableInstance(),
       bold: createChainableInstance(),
-      dim: createChainableInstance()
-    }
+      dim: createChainableInstance(),
+    },
   };
 });
 
@@ -51,16 +56,16 @@ describe('validate command', () => {
   let testFs: TestFileSystem;
   let tempDir: string;
   let restoreCwd: () => void;
-  let console: ReturnType<typeof ConsoleTestHelper.mockConsole>;
+  // let console: ReturnType<typeof ConsoleTestHelper.mockConsole>; // Removed unused variable
   let processExit: ReturnType<typeof CommandTestHelper.mockProcessExit>;
 
   beforeEach(async () => {
     testFs = new TestFileSystem();
     tempDir = await testFs.createTempDir();
     restoreCwd = CommandTestHelper.mockProcessCwd(tempDir);
-    console = ConsoleTestHelper.mockConsole();
+    ConsoleTestHelper.mockConsole();
     processExit = CommandTestHelper.mockProcessExit();
-    
+
     // Reset mocks
     vi.clearAllMocks();
   });
@@ -78,18 +83,22 @@ describe('validate command', () => {
       // Create complete .claude setup
       await testFs.createFileStructure(tempDir, {
         '.claude': {
-          'settings.json': JSON.stringify({
-            hooks: {
-              PostToolUse: [],
-              Stop: []
-            }
-          }, null, 2),
-          'hooks': {
+          'settings.json': JSON.stringify(
+            {
+              hooks: {
+                PostToolUse: [],
+                Stop: [],
+              },
+            },
+            null,
+            2
+          ),
+          hooks: {
             'typecheck.sh': '#!/bin/bash\necho "TypeScript check"',
-            'eslint.sh': '#!/bin/bash\necho "ESLint check"'
+            'eslint.sh': '#!/bin/bash\necho "ESLint check"',
           },
-          'commands': {}
-        }
+          commands: {},
+        },
       });
 
       await validate({});
@@ -110,15 +119,15 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': JSON.stringify({ hooks: {} }),
-          'hooks': {},
-          'commands': {}
-        }
+          hooks: {},
+          commands: {},
+        },
       });
 
       await validate({});
 
       expect(processExit.exit).not.toHaveBeenCalled();
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('Found 0 hook(s)');
     });
@@ -129,7 +138,7 @@ describe('validate command', () => {
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✗');
       expect(output).toContain('.claude directory not found');
@@ -140,14 +149,14 @@ describe('validate command', () => {
     it('should fail when settings.json does not exist', async () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✓'); // .claude directory exists
       expect(output).toContain('✗'); // settings.json issues
@@ -158,14 +167,14 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': '{ invalid json }',
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('settings.json contains invalid JSON');
     });
@@ -173,14 +182,14 @@ describe('validate command', () => {
     it('should fail when hooks directory does not exist', async () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
-          'settings.json': JSON.stringify({ hooks: {} })
-        }
+          'settings.json': JSON.stringify({ hooks: {} }),
+        },
       });
 
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('hooks directory not found');
     });
@@ -192,12 +201,12 @@ describe('validate command', () => {
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✓'); // .claude directory exists
       expect(output).toContain('settings.json not found');
       expect(output).toContain('hooks directory not found');
-      
+
       // Should have multiple ✗ symbols
       const failureCount = (output.match(/✗/g) || []).length;
       expect(failureCount).toBeGreaterThan(1);
@@ -209,8 +218,8 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': '"string is valid JSON but not config"',
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       await validate({});
@@ -224,14 +233,14 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': '',
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       await validate({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
-      
+
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('settings.json contains invalid JSON');
     });
@@ -240,15 +249,15 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': JSON.stringify({ hooks: {} }),
-          'hooks': {
+          hooks: {
             'typecheck.sh': '#!/bin/bash',
-            'nested': {
-              'other.sh': '#!/bin/bash'
+            nested: {
+              'other.sh': '#!/bin/bash',
             },
             '.hidden': 'hidden file',
-            'README.md': 'documentation'
-          }
-        }
+            'README.md': 'documentation',
+          },
+        },
       });
 
       await validate({});
@@ -264,8 +273,8 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': JSON.stringify({ hooks: {} }),
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       await validate({});
@@ -277,10 +286,12 @@ describe('validate command', () => {
 
     it('should handle spinner errors gracefully', async () => {
       // Mock fs.access to throw an unexpected error
-      const accessSpy = vi.spyOn(fs, 'access').mockRejectedValueOnce(new Error('Unexpected filesystem error'));
+      const accessSpy = vi
+        .spyOn(fs, 'access')
+        .mockRejectedValueOnce(new Error('Unexpected filesystem error'));
 
       await expect(validate({})).rejects.toThrow('Unexpected filesystem error');
-      
+
       accessSpy.mockRestore();
     });
   });
@@ -290,8 +301,8 @@ describe('validate command', () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': JSON.stringify({ hooks: {} }),
-          'hooks': {}
-        }
+          hooks: {},
+        },
       });
 
       // Test that options parameter is accepted but doesn't affect behavior
