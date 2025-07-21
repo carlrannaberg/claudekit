@@ -12,7 +12,7 @@ import {
   TestAssertions,
   CommandTestHelper,
   ConsoleTestHelper,
-} from '../utils/test-helpers.js';
+} from '@tests/utils/test-helpers';
 
 // Mock external dependencies inline
 vi.mock('ora', () => {
