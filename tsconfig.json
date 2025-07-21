@@ -4,7 +4,7 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "module": "ES2022",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node16",
     
     // Emit
     "declaration": true,
