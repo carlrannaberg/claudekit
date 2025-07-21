@@ -1,14 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ loose: true })],
+  plugins: [tsconfigPaths()],
   resolve: {
-    alias: {
-      '@tests': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'tests'),
-    },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
   test: {
@@ -63,7 +58,7 @@ export default defineConfig({
     teardownTimeout: 5000,
     // Enable file watching in development
     watch: process.env['CI'] === undefined,
-    // Parallel testing for faster execution
+    // Use forks pool for better module resolution compatibility
     pool: 'forks',
     poolOptions: {
       forks: {
