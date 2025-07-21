@@ -103,6 +103,8 @@ jobs:
         # Check that CLI entry point exists
         if [ ! -f "bin/claudekit" ]; then
           echo "::error::CLI entry point 'bin/claudekit' is missing"
+          echo "Contents of bin directory:"
+          ls -la bin/ || echo "bin directory not found"
           exit 1
         fi
         
