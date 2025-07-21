@@ -3,14 +3,8 @@ set -euo pipefail
 
 ################################################################################
 # Test Framework for Claudekit Hooks                                           #
-# Inspired by autonomous-agents-template testing approach                       #
+# Simple test framework for shell scripts                                      #
 ################################################################################
-
-# Test counters
-TESTS_RUN=0
-TESTS_PASSED=0
-TESTS_FAILED=0
-CURRENT_TEST=""
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,6 +12,12 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Test counters
+TESTS_RUN=0
+TESTS_PASSED=0
+TESTS_FAILED=0
+CURRENT_TEST=""
 
 # Test directories
 TEST_DIR=""
@@ -39,6 +39,16 @@ fail() {
     ((TESTS_FAILED++))
     echo -e "  ${RED}✗${NC} $message"
     echo -e "    ${RED}in test: $CURRENT_TEST${NC}"
+}
+
+assert_pass() {
+    local message="${1:-Test passed}"
+    pass "$message"
+}
+
+assert_fail() {
+    local message="${1:-Test failed}"
+    fail "$message"
 }
 
 ################################################################################
@@ -153,31 +163,6 @@ assert_file_contains() {
     fi
 }
 
-assert_json_field() {
-    local json="$1"
-    local field="$2"
-    local expected="$3"
-    local message="${4:-JSON field assertion failed}"
-    
-    ((TESTS_RUN++))
-    
-    if command -v jq &>/dev/null; then
-        local actual=$(echo "$json" | jq -r ".$field" 2>/dev/null || echo "PARSE_ERROR")
-        if [[ "$actual" == "$expected" ]]; then
-            pass "$message"
-        else
-            fail "$message: field '$field' expected '$expected', got '$actual'"
-        fi
-    else
-        # Fallback to grep-based check
-        if echo "$json" | grep -q "\"$field\".*\"$expected\""; then
-            pass "$message"
-        else
-            fail "$message: could not verify field '$field' equals '$expected' (jq not available)"
-        fi
-    fi
-}
-
 ################################################################################
 # Test Lifecycle Management                                                    #
 ################################################################################
@@ -207,9 +192,25 @@ cleanup_test() {
     CURRENT_TEST=""
 }
 
-after_each() {
-    local cleanup_function="$1"
-    CLEANUP_FUNCTIONS+=("$cleanup_function")
+################################################################################
+# Test Discovery and Execution                                                 #
+################################################################################
+
+discover_tests() {
+    local file="$1"
+    # Find all functions that start with "test_"
+    grep -E "^test_[a-zA-Z0-9_]+\(\)" "$file" | sed 's/().*//'
+}
+
+run_all_tests_in_file() {
+    local test_file="$1"
+    local test_functions=$(discover_tests "$test_file")
+    
+    echo -e "\n${BLUE}Test Suite: $(basename "$test_file")${NC}"
+    
+    for test_func in $test_functions; do
+        run_test "$test_func" "$test_func" || true
+    done
 }
 
 run_test() {
@@ -226,6 +227,75 @@ run_test() {
         cleanup_test
         return 1
     fi
+}
+
+################################################################################
+# Test Suite Execution                                                         #
+################################################################################
+
+run_test_suite() {
+    local suite_name="$1"
+    local exit_code=0
+    
+    echo -e "\n${BLUE}📋 Unit Tests${NC}"
+    echo "================"
+    echo ""
+    echo -e "${BLUE}Test Suite: $suite_name${NC}"
+    echo ""
+    
+    # Reset counters for this suite
+    TESTS_RUN=0
+    TESTS_PASSED=0
+    TESTS_FAILED=0
+    
+    # Run setUp if it exists
+    if declare -f setUp &>/dev/null; then
+        setUp || {
+            echo -e "${RED}✗ setUp failed${NC}"
+            exit 1
+        }
+    fi
+    
+    # Discover and run all test functions
+    local test_functions=$(declare -F | grep "declare -f test_" | cut -d' ' -f3)
+    
+    for test_func in $test_functions; do
+        init_test "$test_func"
+        
+        # Run the test function
+        if $test_func 2>&1; then
+            true # Test function handles its own pass/fail
+        else
+            exit_code=1
+        fi
+        
+        cleanup_test
+    done
+    
+    # Run tearDown if it exists
+    if declare -f tearDown &>/dev/null; then
+        tearDown || {
+            echo -e "${RED}✗ tearDown failed${NC}"
+            exit 1
+        }
+    fi
+    
+    # Print summary
+    echo ""
+    echo "==============================================="
+    echo -e "Tests run: ${YELLOW}$TESTS_RUN${NC}"
+    echo -e "Passed:    ${GREEN}$TESTS_PASSED${NC}"
+    echo -e "Failed:    ${RED}$TESTS_FAILED${NC}"
+    echo "==============================================="
+    
+    if [[ $TESTS_FAILED -eq 0 ]]; then
+        echo -e "${GREEN}All tests passed!${NC}"
+    else
+        echo -e "${RED}Some tests failed.${NC}"
+        exit_code=1
+    fi
+    
+    exit $exit_code
 }
 
 ################################################################################
@@ -301,67 +371,6 @@ esac
 "
 }
 
-create_mock_npm() {
-    local test_result="$1"  # pass, fail, error
-    
-    create_mock_command "npm" "
-if [[ \"\$1\" == 'test' ]]; then
-    case '$test_result' in
-        pass)
-            echo '> test'
-            echo '> jest'
-            echo ''
-            echo 'PASS src/math.test.js'
-            echo '  ✓ adds 1 + 2 to equal 3 (5ms)'
-            echo ''
-            echo 'Test Suites: 1 passed, 1 total'
-            echo 'Tests:       1 passed, 1 total'
-            exit 0
-            ;;
-        fail)
-            echo '> test'
-            echo '> jest'
-            echo ''
-            echo 'FAIL src/math.test.js'
-            echo '  ✕ adds 1 + 2 to equal 3 (5ms)'
-            echo ''
-            echo '    Expected: 3'
-            echo '    Received: 4'
-            echo ''
-            echo 'Test Suites: 1 failed, 1 total'
-            echo 'Tests:       1 failed, 1 total'
-            exit 1
-            ;;
-        error)
-            echo 'npm ERR! Missing script: \"test\"'
-            exit 1
-            ;;
-    esac
-fi
-"
-}
-
-################################################################################
-# Test Discovery and Execution                                                 #
-################################################################################
-
-discover_tests() {
-    local file="$1"
-    # Find all functions that start with "test_"
-    grep -E "^test_[a-zA-Z0-9_]+\(\)" "$file" | sed 's/().*//'
-}
-
-run_all_tests_in_file() {
-    local test_file="$1"
-    local test_functions=$(discover_tests "$test_file")
-    
-    echo -e "\n${BLUE}Test Suite: $(basename "$test_file")${NC}"
-    
-    for test_func in $test_functions; do
-        run_test "$test_func" "$test_func" || true
-    done
-}
-
 ################################################################################
 # Utility Functions                                                            #
 ################################################################################
@@ -371,14 +380,28 @@ create_test_file() {
     local content="$2"
     
     mkdir -p "$(dirname "$filename")"
-    echo "$content" > "$filename"
+    echo -e "$content" > "$filename"
+    chmod +r "$filename"
 }
 
-setup_debug_mode() {
-    touch ~/.claude/hooks-debug
-    after_each "cleanup_debug_mode"
-}
+create_command_file() {
+    local filename="$1"
+    local description="$2"
+    local allowed_tools="${3:-Read,Write}"
+    
+    mkdir -p "$(dirname "$filename")"
+    cat > "$filename" << EOF
+---
+description: $description
+allowed-tools: $allowed_tools
+---
 
-cleanup_debug_mode() {
-    rm -f ~/.claude/hooks-debug
+## Instructions for Claude:
+
+1. Read the user's request
+2. Perform the requested action
+
+This is a test command.
+EOF
+    chmod +r "$filename"
 }

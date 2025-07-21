@@ -69,47 +69,22 @@ test_command_structure_validation() {
     # Test that commands follow proper structure
     local test_command=".claude/commands/test-command.md"
     
-    # Create a valid command file
-    cat > "$test_command" << 'EOF'
----
-description: Test command for validation
-allowed-tools: Read, Write
----
-
-# Test Command
-
-This is a test command.
-
-## Usage
-`/test-command`
-
-## Task
-1. Do something
-2. Do something else
-EOF
+    # Create a valid command file using helper function
+    create_command_file "$test_command" "Test command for validation" "Read, Write"
     
     # Validate the command structure
     assert_file_exists "$test_command" "Command file should exist"
     assert_file_contains "$test_command" "description:" "Command should have description"
     assert_file_contains "$test_command" "allowed-tools:" "Command should have allowed-tools"
-    assert_file_contains "$test_command" "# Test Command" "Command should have header"
+    assert_file_contains "$test_command" "Instructions for Claude" "Command should have header"
 }
 
 test_command_security_validation() {
     # Test that commands don't have unsafe tool permissions
     local test_command=".claude/commands/unsafe-command.md"
     
-    # Create a command with unsafe permissions
-    cat > "$test_command" << 'EOF'
----
-description: Unsafe command
-allowed-tools: Bash
----
-
-# Unsafe Command
-
-This command has unrestricted bash access.
-EOF
+    # Create a command with unsafe permissions using helper function
+    create_command_file "$test_command" "Unsafe command" "Bash"
     
     # Check that the command has unsafe permissions
     assert_file_contains "$test_command" "allowed-tools: Bash" "Command should have Bash permission"
@@ -118,9 +93,9 @@ EOF
     # For testing purposes, we just verify we can detect it
     local content=$(cat "$test_command")
     if echo "$content" | grep -q "allowed-tools: Bash"; then
-        test_pass "Detected unrestricted Bash access"
+        assert_pass "Detected unrestricted Bash access"
     else
-        test_fail "Should detect unrestricted Bash access"
+        assert_fail "Should detect unrestricted Bash access"
     fi
 }
 
