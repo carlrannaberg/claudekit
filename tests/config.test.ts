@@ -623,7 +623,7 @@ describe('Config utilities', () => {
       });
 
       // Verify specific hooks exist
-      const postToolUseHooks = merged.hooks.PostToolUse || [];
+      const postToolUseHooks = merged.hooks.PostToolUse ?? [];
       expect(
         postToolUseHooks.some((h) => h.hooks.some((hook) => hook.command.includes('typecheck.sh')))
       ).toBe(true);
@@ -636,7 +636,7 @@ describe('Config utilities', () => {
         )
       ).toBe(true);
 
-      const stopHooks = merged.hooks.Stop || [];
+      const stopHooks = merged.hooks.Stop ?? [];
       expect(
         stopHooks.some((h) => h.hooks.some((hook) => hook.command.includes('auto-checkpoint.sh')))
       ).toBe(true);
@@ -678,7 +678,7 @@ describe('Config utilities', () => {
 
       const merged = await mergeConfigs(config2, config1, tempDir);
 
-      const hooks = merged.hooks.PostToolUse || [];
+      const hooks = merged.hooks.PostToolUse ?? [];
       expect(hooks).toHaveLength(2);
 
       // Check that relative path was resolved

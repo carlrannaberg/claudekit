@@ -355,14 +355,14 @@ describe('Installer', () => {
       return {
         essential: [],
         recommended: [
-          ...(typecheckComponent ? [{
+          ...(typecheckComponent !== undefined ? [{
             component: typecheckComponent,
             score: 85,
             reasons: ['TypeScript detected'],
             dependencies: ['tsc'],
             isRequired: false,
           }] : []),
-          ...(eslintComponent ? [{
+          ...(eslintComponent !== undefined ? [{
             component: eslintComponent,
             score: 80,
             reasons: ['ESLint detected'],
@@ -746,7 +746,7 @@ describe('Installer', () => {
       expect(Array.isArray(installation.components)).toBe(true);
       
       // projectInfo may or may not be defined depending on the implementation
-      if (installation.projectInfo) {
+      if (installation.projectInfo !== undefined) {
         expect(typeof installation.projectInfo).toBe('object');
       }
       

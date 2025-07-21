@@ -335,14 +335,14 @@ describe('Setup Command - Non-Interactive Flags', () => {
       return Promise.resolve({
         essential: [],
         recommended: [
-          ...(typecheckComponent ? [{
+          ...(typecheckComponent !== undefined ? [{
             component: typecheckComponent,
             score: 85,
             reasons: ['TypeScript detected'],
             dependencies: ['tsc'],
             isRequired: false,
           }] : []),
-          ...(eslintComponent ? [{
+          ...(eslintComponent !== undefined ? [{
             component: eslintComponent,
             score: 80,
             reasons: ['ESLint detected'],
@@ -351,14 +351,14 @@ describe('Setup Command - Non-Interactive Flags', () => {
           }] : []),
         ],
         optional: [
-          ...(checkpointCreateComponent ? [{
+          ...(checkpointCreateComponent !== undefined ? [{
             component: checkpointCreateComponent,
             score: 60,
             reasons: ['Version control workflow'],
             dependencies: [],
             isRequired: false,
           }] : []),
-          ...(gitCommitComponent ? [{
+          ...(gitCommitComponent !== undefined ? [{
             component: gitCommitComponent,
             score: 55,
             reasons: ['Git workflow enhancement'],

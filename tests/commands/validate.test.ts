@@ -221,7 +221,8 @@ describe('validate command', () => {
       expect(output).toContain('hooks directory not found');
 
       // Should have multiple ✗ symbols
-      const failureCount = (output.match(/✗/g) || []).length;
+      const matches = output.match(/✗/g);
+      const failureCount = matches !== null ? matches.length : 0;
       expect(failureCount).toBeGreaterThan(1);
     });
   });

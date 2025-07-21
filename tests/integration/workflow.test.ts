@@ -106,7 +106,7 @@ describe('CLI workflow integration', () => {
         hooks: {
           ...initialConfig.hooks,
           PostToolUse: [
-            ...(initialConfig.hooks.PostToolUse || []),
+            ...(initialConfig.hooks.PostToolUse ?? []),
             {
               matcher: 'tools:Write AND file_paths:**/*.py',
               hooks: [
