@@ -1,11 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
     globals: true,
     environment: 'node',
@@ -72,9 +74,7 @@ export default defineConfig({
   resolve: {
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     alias: {
-      '@': path.resolve(__dirname, './cli'),
-      '../utils/test-helpers': path.resolve(__dirname, './tests/utils/test-helpers.ts')
-    },
-    mainFields: ['module', 'main']
+      '@': path.resolve(__dirname, './cli')
+    }
   }
 });
