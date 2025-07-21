@@ -174,7 +174,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     const projectInfo = await detectProjectContext(projectPath);
 
     progressReporter.update('Discovering components...');
-    const claudekitRoot = path.resolve(new globalThis.URL('../../../../..', import.meta.url).pathname);
+    const claudekitRoot = path.resolve(new globalThis.URL('../..', import.meta.url).pathname);
     const registry = await discoverComponents(claudekitRoot);
 
     progressReporter.update('Generating recommendations...');
