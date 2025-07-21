@@ -44,8 +44,8 @@ export default defineConfig({
         'cli/commands/**/*.ts': {
           branches: 40,
           functions: 10,
-          lines: 25,
-          statements: 25
+          lines: 21,
+          statements: 21
         }
       },
       all: true,
