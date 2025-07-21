@@ -10,8 +10,8 @@ import {
   loadMergedConfig,
   saveMergedConfig,
   resolveHookPaths,
-} from '../cli/utils/config.js';
-import type { Config } from '../cli/types/config.js';
+} from '../cli/utils/config';
+import type { Config } from '../cli/types/config';
 
 describe('Config utilities', () => {
   let tempDir: string;
@@ -201,7 +201,7 @@ describe('Config utilities', () => {
         hooks: {
           PostToolUse: [
             {
-              matcher: 'tools:Write AND file_paths:**/*.js',
+              matcher: 'tools:Write AND file_paths:**/*',
               hooks: [
                 { type: 'command', command: '.claude/hooks/eslint.sh', enabled: true, retries: 0 },
               ],

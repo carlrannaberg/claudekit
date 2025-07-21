@@ -4,16 +4,16 @@ import {
   createInstallPlan,
   validateInstallPlan,
   simulateInstallation,
-} from '../../cli/lib/installer.js';
+} from '../../cli/lib/installer';
 import type {
   Installation,
   Component,
   InstallOptions,
   InstallProgress,
-} from '../../cli/types/config.js';
+} from '../../cli/types/config';
 // import * as fs from 'fs/promises'; // Removed unused import
 import * as path from 'path';
-import type { ComponentType, ComponentCategory, Platform } from '../../cli/types/config.js';
+import type { ComponentType, ComponentCategory, Platform } from '../../cli/types/config';
 
 interface ComponentFile {
   path: string;
@@ -32,7 +32,7 @@ interface ComponentFile {
 }
 
 // Mock filesystem module
-vi.mock('../../cli/lib/filesystem.js', () => ({
+vi.mock('../../cli/lib/filesystem', () => ({
   copyFileWithBackup: vi.fn(),
   ensureDirectoryExists: vi.fn(),
   setExecutablePermission: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock('../../cli/lib/filesystem.js', () => ({
 }));
 
 // Mock components module
-vi.mock('../../cli/lib/components.js', () => {
+vi.mock('../../cli/lib/components', () => {
   // Helper to create component file structure
   const createComponentFile = (
     type: string,
@@ -212,7 +212,7 @@ vi.mock('../../cli/lib/components.js', () => {
 });
 
 // Mock project detection
-vi.mock('../../cli/lib/project-detection.js', () => ({
+vi.mock('../../cli/lib/project-detection', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     hasTypeScript: true,
     hasESLint: true,
@@ -235,7 +235,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 // Mock logger to prevent error output during expected test failures
-vi.mock('../../cli/utils/logger.js', () => ({
+vi.mock('../../cli/utils/logger', () => ({
   Logger: {
     create: vi.fn(() => ({
       info: vi.fn(),
@@ -335,8 +335,8 @@ describe('Installer', () => {
     vi.clearAllMocks();
     
     // Re-apply mock implementations after clearing
-    const { discoverComponents, resolveDependencyOrder, getMissingDependencies, recommendComponents } = await import('../../cli/lib/components.js');
-    const { pathExists, checkWritePermission } = await import('../../cli/lib/filesystem.js');
+    const { discoverComponents, resolveDependencyOrder, getMissingDependencies, recommendComponents } = await import('../../cli/lib/components');
+    const { pathExists, checkWritePermission } = await import('../../cli/lib/filesystem');
     
     vi.mocked(resolveDependencyOrder).mockImplementation((ids: string[]) => ids);
     vi.mocked(getMissingDependencies).mockReturnValue([]);
@@ -466,7 +466,7 @@ describe('Installer', () => {
         components: [mainComponent, depComponent],
       };
 
-      const components = await import('../../cli/lib/components.js');
+      const components = await import('../../cli/lib/components');
       vi.mocked(components.resolveDependencyOrder).mockReturnValue(['dependency', 'main']);
       vi.mocked(components.getMissingDependencies).mockReturnValue([]);
 
@@ -504,7 +504,7 @@ describe('Installer', () => {
 
   describe('validateInstallPlan', () => {
     it('should validate a valid plan', async () => {
-      const { pathExists } = await import('../../cli/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem');
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(true); // Source files exist
 
       const plan = await createInstallPlan(mockInstallation);
@@ -514,7 +514,7 @@ describe('Installer', () => {
     });
 
     it('should detect missing write permissions', async () => {
-      const { checkWritePermission } = await import('../../cli/lib/filesystem.js');
+      const { checkWritePermission } = await import('../../cli/lib/filesystem');
       (checkWritePermission as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(false);
 
       const plan = await createInstallPlan(mockInstallation);
@@ -525,7 +525,7 @@ describe('Installer', () => {
     });
 
     it('should detect missing source files', async () => {
-      const { pathExists } = await import('../../cli/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem');
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
         if (path.includes('/source/')) {
           return false;
@@ -552,7 +552,7 @@ describe('Installer', () => {
 
       // Should not call actual file operations
       const { copyFileWithBackup, ensureDirectoryExists } = await import(
-        '../../cli/lib/filesystem.js'
+        '../../cli/lib/filesystem'
       );
       expect(copyFileWithBackup).not.toHaveBeenCalled();
       expect(ensureDirectoryExists).not.toHaveBeenCalled();
@@ -577,7 +577,7 @@ describe('Installer', () => {
   describe('Installer.install', () => {
     it('should execute a complete installation', async () => {
       const { copyFileWithBackup, ensureDirectoryExists, setExecutablePermission, pathExists } =
-        await import('../../cli/lib/filesystem.js');
+        await import('../../cli/lib/filesystem');
 
       // Mock pathExists to return true for source files, false for target files
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -607,7 +607,7 @@ describe('Installer', () => {
     });
 
     it('should handle dry run mode', async () => {
-      const { copyFileWithBackup, pathExists } = await import('../../cli/lib/filesystem.js');
+      const { copyFileWithBackup, pathExists } = await import('../../cli/lib/filesystem');
 
       // Mock pathExists to return true for source files
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -630,7 +630,7 @@ describe('Installer', () => {
 
     it('should rollback on failure', async () => {
       const { copyFileWithBackup, pathExists, ensureDirectoryExists } = await import(
-        '../../cli/lib/filesystem.js'
+        '../../cli/lib/filesystem'
       );
 
       // Mock pathExists to return true for source files
@@ -666,7 +666,7 @@ describe('Installer', () => {
     });
 
     it('should report progress throughout installation', async () => {
-      const { pathExists } = await import('../../cli/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem');
 
       // Mock pathExists to return true for source files
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -699,7 +699,7 @@ describe('Installer', () => {
     it('should create configuration based on project info', async () => {
       const { writeFile } = await import('fs/promises');
       const writeFileMock = vi.mocked(writeFile);
-      const { pathExists } = await import('../../cli/lib/filesystem.js');
+      const { pathExists } = await import('../../cli/lib/filesystem');
 
       // Mock pathExists to return true for source files
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {

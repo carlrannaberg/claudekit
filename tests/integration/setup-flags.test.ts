@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 // import path from 'path'; // Removed unused import
 import type { Stats } from 'fs';
-import { setup } from '../../cli/commands/setup.js';
-import type { SetupOptions } from '../../cli/commands/setup.js';
+import { setup } from '../../cli/commands/setup';
+import type { SetupOptions } from '../../cli/commands/setup';
 
 // Mock all the external dependencies
 vi.mock('@inquirer/prompts', () => ({
@@ -20,7 +20,7 @@ vi.mock('ora', () => ({
     text: '',
   }),
 }));
-vi.mock('../../cli/utils/logger.js', () => ({
+vi.mock('../../cli/utils/logger', () => ({
   Logger: vi.fn().mockImplementation(() => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -46,13 +46,13 @@ vi.mock('../../cli/utils/logger.js', () => ({
     setLevel: vi.fn(),
   },
 }));
-vi.mock('../../cli/lib/filesystem.js', () => ({
+vi.mock('../../cli/lib/filesystem', () => ({
   pathExists: vi.fn().mockResolvedValue(true),
   ensureDirectoryExists: vi.fn().mockResolvedValue(undefined),
   expandHomePath: vi.fn((path: string) => path.replace('~', '/home/user')),
   normalizePath: vi.fn((path: string) => path),
 }));
-vi.mock('../../cli/lib/index.js', () => ({
+vi.mock('../../cli/lib/index', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     projectRoot: process.cwd(),
     hasTypeScript: true,
@@ -188,7 +188,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
     vi.clearAllMocks();
     
     // Re-apply logger mock after clearing
-    const logger = await import('../../cli/utils/logger.js');
+    const logger = await import('../../cli/utils/logger');
     vi.mocked(logger.Logger).mockImplementation(() => ({
       info: vi.fn(),
       warn: vi.fn(), 
@@ -208,11 +208,11 @@ describe('Setup Command - Non-Interactive Flags', () => {
     vi.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
     
     // Re-apply filesystem mocks after clearing
-    const filesystem = await import('../../cli/lib/filesystem.js');
+    const filesystem = await import('../../cli/lib/filesystem');
     vi.mocked(filesystem.ensureDirectoryExists).mockResolvedValue(undefined);
     
     // Re-apply mocks after clearing
-    const libIndex = await import('../../cli/lib/index.js');
+    const libIndex = await import('../../cli/lib/index');
     vi.mocked(libIndex.detectProjectContext).mockResolvedValue({
       hasTypeScript: true,
       hasESLint: true,
@@ -392,7 +392,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       expect(confirm).not.toHaveBeenCalled();
 
       // Should install components
-      const { installComponents } = await import('../../cli/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index');
       expect(installComponents).toHaveBeenCalled();
     });
 
@@ -404,7 +404,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../cli/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index');
       expect(installComponents).toHaveBeenCalledTimes(2);
 
       // Check that both user and project installations happened
@@ -465,7 +465,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('--project flag', () => {
     it('should use specified project directory', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+      const mockPathExists = (await import('../../cli/lib/filesystem'))
         .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
@@ -481,7 +481,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../cli/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index');
       const projectCall = (
         installComponents as unknown as ReturnType<typeof vi.fn>
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
@@ -492,7 +492,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
     });
 
     it('should throw error if project directory does not exist', async () => {
-      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+      const mockPathExists = (await import('../../cli/lib/filesystem'))
         .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(false);
 
@@ -540,7 +540,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../cli/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index');
       const firstCall = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
       expect(firstCall).toBeDefined();
       if (firstCall) {
@@ -553,7 +553,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('Combined flags', () => {
     it('should work with --yes --project combination', async () => {
       const testDir = '/tmp/test-project';
-      const mockPathExists = (await import('../../cli/lib/filesystem.js'))
+      const mockPathExists = (await import('../../cli/lib/filesystem'))
         .pathExists as unknown as ReturnType<typeof vi.fn>;
       mockPathExists.mockResolvedValue(true);
       vi.spyOn(fs, 'stat').mockResolvedValue({
@@ -569,7 +569,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       await setup(options);
 
-      const { installComponents } = await import('../../cli/lib/index.js');
+      const { installComponents } = await import('../../cli/lib/index');
       expect(installComponents).toHaveBeenCalledTimes(2);
 
       const projectCall = (

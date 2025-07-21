@@ -16,7 +16,7 @@ import {
   detectNodeVersion,
   detectPackageInfo,
   detectFrameworks,
-} from '../../cli/lib/project-detection.js';
+} from '../../cli/lib/project-detection';
 
 /**
  * Test suite for project detection system
@@ -103,7 +103,7 @@ describe('Project Detection System', () => {
     });
 
     it('should return false when no TypeScript detected', async () => {
-      await fs.writeFile(path.join(testProjectPath, 'index.js'), 'console.log("hello");');
+      await fs.writeFile(path.join(testProjectPath, 'index'), 'console.log("hello");');
 
       const result = await detectTypeScript(testProjectPath);
       expect(result).toBe(false);
@@ -118,7 +118,7 @@ describe('Project Detection System', () => {
       expect(result).toBe(true);
     });
 
-    it('should detect ESLint via eslint.config.js', async () => {
+    it('should detect ESLint via eslint.config', async () => {
       await fs.writeFile(path.join(testProjectPath, 'eslint.config.js'), 'module.exports = {};');
 
       const result = await detectESLint(testProjectPath);
@@ -152,7 +152,7 @@ describe('Project Detection System', () => {
       expect(result).toBe(true);
     });
 
-    it('should detect Prettier via prettier.config.js', async () => {
+    it('should detect Prettier via prettier.config', async () => {
       await fs.writeFile(path.join(testProjectPath, 'prettier.config.js'), 'module.exports = {};');
 
       const result = await detectPrettier(testProjectPath);
@@ -179,7 +179,7 @@ describe('Project Detection System', () => {
   });
 
   describe('detectJest', () => {
-    it('should detect Jest via jest.config.js', async () => {
+    it('should detect Jest via jest.config', async () => {
       await fs.writeFile(path.join(testProjectPath, 'jest.config.js'), 'module.exports = {};');
 
       const result = await detectJest(testProjectPath);
@@ -219,7 +219,7 @@ describe('Project Detection System', () => {
   });
 
   describe('detectVitest', () => {
-    it('should detect Vitest via vitest.config.js', async () => {
+    it('should detect Vitest via vitest.config', async () => {
       await fs.writeFile(path.join(testProjectPath, 'vitest.config.js'), 'export default {};');
 
       const result = await detectVitest(testProjectPath);
@@ -495,7 +495,7 @@ describe('Project Detection System', () => {
       await fs.writeFile(path.join(testProjectPath, 'tsconfig.json'), '{}');
       await fs.writeFile(path.join(testProjectPath, '.eslintrc.json'), '{}');
       await fs.writeFile(path.join(testProjectPath, '.prettierrc'), '{}');
-      await fs.writeFile(path.join(testProjectPath, 'vitest.config.js'), 'export default {};');
+      await fs.writeFile(path.join(testProjectPath, 'vitest.config'), 'export default {};');
       await fs.writeFile(path.join(testProjectPath, 'pnpm-lock.yaml'), '');
       await fs.mkdir(path.join(testProjectPath, '.git'));
       await fs.mkdir(path.join(testProjectPath, '.claude'));

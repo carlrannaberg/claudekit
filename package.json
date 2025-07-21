@@ -57,14 +57,14 @@
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
     "commander": "^14.0.0",
+    "fs-extra": "^11.3.0",
     "ora": "^8.2.0",
     "picocolors": "^1.1.0",
-    "fs-extra": "^11.3.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22.10.6",
     "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.10.6",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "@vitest/coverage-v8": "^2.1.8",
@@ -73,6 +73,7 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.8.0",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.8"
   },
   "keywords": [

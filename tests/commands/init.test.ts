@@ -6,13 +6,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Ora } from 'ora';
-import { init } from '../../cli/commands/init.js';
+import { init } from '../../cli/commands/init';
 import {
   TestFileSystem,
   TestAssertions,
   CommandTestHelper,
   ConsoleTestHelper,
-} from '../utils/test-helpers.js';
+} from '../utils/test-helpers';
 
 // Mock external dependencies inline
 vi.mock('ora', () => {
@@ -61,7 +61,7 @@ vi.mock('chalk', () => ({
 }));
 
 // Mock project detection
-vi.mock('../../cli/lib/project-detection.js', () => ({
+vi.mock('../../cli/lib/project-detection', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
     hasTypeScript: true,
     hasESLint: true,
@@ -76,7 +76,7 @@ vi.mock('../../cli/lib/project-detection.js', () => ({
 }));
 
 // Mock components
-vi.mock('../../cli/lib/components.js', () => ({
+vi.mock('../../cli/lib/components', () => ({
   discoverComponents: vi.fn().mockResolvedValue({
     components: new Map(),
     dependencies: new Map(),
