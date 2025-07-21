@@ -297,7 +297,7 @@ function parseShellHeader(content: string): Record<string, unknown> {
 /**
  * Extract dependencies from file content
  */
-function extractDependencies(content: string, type: ComponentType): string[] {
+function extractDependencies(content: string, type: ComponentType, componentId?: string): string[] {
   const dependencies = new Set<string>();
 
   if (type === 'command') {
@@ -344,7 +344,13 @@ function extractDependencies(content: string, type: ComponentType): string[] {
     // Look for command calls
     const bashCommands = content.match(/\b(git|npm|yarn|pnpm|node|eslint|tsc|jq)\b/g);
     if (bashCommands) {
-      bashCommands.forEach((cmd) => dependencies.add(cmd));
+      bashCommands.forEach((cmd) => {
+        // Skip self-reference
+        if (componentId && cmd === componentId) {
+          return;
+        }
+        dependencies.add(cmd);
+      });
     }
 
     // Look for other hook references
@@ -352,7 +358,7 @@ function extractDependencies(content: string, type: ComponentType): string[] {
     if (hookRefs) {
       hookRefs.forEach((ref) => {
         const hookName = ref.split('/').pop()?.replace('.sh', '');
-        if (hookName !== undefined && hookName !== '') {
+        if (hookName !== undefined && hookName !== '' && hookName !== componentId) {
           dependencies.add(hookName);
         }
       });
@@ -476,11 +482,11 @@ async function parseComponentFile(
     // Parse metadata based on file type
     const rawMetadata = type === 'command' ? parseFrontmatter(content) : parseShellHeader(content);
 
-    // Extract dependencies
-    const dependencies = extractDependencies(content, type);
-
-    // Create component metadata
+    // Create component ID first so we can use it for dependency extraction
     const id = createComponentId(filePath, type);
+
+    // Extract dependencies (excluding self-references)
+    const dependencies = extractDependencies(content, type, id);
     const metadata: ComponentMetadata = {
       id,
       name: rawMetadata['name'] as string || path.basename(filePath, type === 'command' ? '.md' : '.sh'),

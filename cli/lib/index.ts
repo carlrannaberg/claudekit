@@ -134,3 +134,10 @@ export {
   // Installer class
   Installer,
 } from './installer.js';
+
+export {
+  // Path utilities
+  findComponentsDirectory,
+  getUserClaudeDirectory,
+  getProjectClaudeDirectory,
+} from './paths.js';

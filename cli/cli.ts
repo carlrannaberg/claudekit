@@ -57,10 +57,6 @@ program
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun === true) {
-        logger.info('Dry run mode: Would initialize ClaudeKit configuration');
-        return;
-      }
       const { setup } = await import('./commands/setup.js');
       await setup(mergedOptions);
     } catch (error) {

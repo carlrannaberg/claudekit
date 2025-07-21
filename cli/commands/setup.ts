@@ -16,6 +16,7 @@ import {
   recommendComponents,
   installComponents,
 } from '../lib/index.js';
+import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 
@@ -174,11 +175,28 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     const projectInfo = await detectProjectContext(projectPath);
 
     progressReporter.update('Discovering components...');
-    const claudekitRoot = path.resolve(new globalThis.URL('../..', import.meta.url).pathname);
-    const registry = await discoverComponents(claudekitRoot);
+    let srcDir: string;
+    try {
+      srcDir = await findComponentsDirectory();
+      if (options.verbose) {
+        console.log(`Components directory found at: ${srcDir}`);
+      }
+    } catch (error) {
+      progressReporter.fail('Failed to locate components');
+      throw new Error(
+        `Could not find claudekit components: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+    const registry = await discoverComponents(srcDir);
+    if (options.verbose) {
+      console.log(`Discovered ${registry.components.size} components in ${registry.categories.size} categories`);
+    }
 
     progressReporter.update('Generating recommendations...');
     const recommendations = await recommendComponents(projectInfo, registry);
+    if (options.verbose) {
+      console.log(`Generated ${recommendations.recommended.length} recommended and ${recommendations.optional.length} optional components`);
+    }
 
     progressReporter.succeed('Project analysis complete');
 
@@ -267,6 +285,20 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           checked: false,
         })),
       ];
+
+      if (options.verbose) {
+        console.log(`Total components for selection: ${allComponents.length}`);
+      }
+
+      if (allComponents.length === 0) {
+        throw new Error(
+          'No components available for installation. This may be due to:\n' +
+          '1. Components directory not found or empty\n' +
+          '2. Component discovery failed\n' +
+          '3. All components filtered out by recommendations\n\n' +
+          'Try running with --verbose flag for more details.'
+        );
+      }
 
       selectedComponents = (await checkbox({
         message: 'Select components to install:',

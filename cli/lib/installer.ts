@@ -21,6 +21,7 @@ import {
   registryToComponents,
   // getComponentsByType
 } from './components.js';
+import { findComponentsDirectory } from './paths.js';
 import { detectProjectContext as detectProjectInfo } from './project-detection.js';
 import type {
   Installation,
@@ -209,7 +210,14 @@ export async function createInstallPlan(
   const projectDir = path.join(process.cwd(), '.claude');
 
   // Get components in dependency order with auto-included dependencies
-  const sourceDir = path.dirname(path.dirname(import.meta.url.replace('file://', '')));
+  let sourceDir: string;
+  try {
+    sourceDir = await findComponentsDirectory();
+  } catch (error) {
+    throw new Error(
+      `Could not find claudekit components: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
   const registry = await discoverComponents(sourceDir);
   const componentIds = installation.components.map((c) => c.id);
 
@@ -916,7 +924,14 @@ export class Installer {
     const projectInfo = await detectProjectInfo(process.cwd());
 
     // Discover available components
-    const sourceDir = path.dirname(path.dirname(import.meta.url.replace('file://', '')));
+    let sourceDir: string;
+    try {
+      sourceDir = await findComponentsDirectory();
+    } catch (error) {
+      throw new Error(
+        `Could not find claudekit components: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
     const registry = await discoverComponents(sourceDir);
     const allComponents = registryToComponents(registry);
 
