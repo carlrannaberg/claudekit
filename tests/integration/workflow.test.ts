@@ -5,11 +5,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { init } from '@/commands/init.js';
-import { validate } from '@/commands/validate.js';
-import { loadConfig, saveConfig, configExists } from '@/utils/config.js';
+import { init } from '../../cli/commands/init.js';
+import { validate } from '../../cli/commands/validate.js';
+import { loadConfig, saveConfig, configExists } from '../../cli/utils/config.js';
 import { TestFileSystem, CommandTestHelper, ConsoleTestHelper } from '@tests/utils/test-helpers.js';
-import type { Config } from '@/types/config.js';
+import type { Config } from '../../cli/types/config.js';
 
 // Mock external dependencies
 vi.mock('ora', () => ({

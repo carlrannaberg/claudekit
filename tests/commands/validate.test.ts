@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { validate } from '@/commands/validate.js';
+import { validate } from '../../cli/commands/validate.js';
 import {
   TestFileSystem,
   // TestAssertions, // Removed unused import

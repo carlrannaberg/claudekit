@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Ora } from 'ora';
-import { init } from '@/commands/init.js';
+import { init } from '../../cli/commands/init.js';
 import {
   TestFileSystem,
   TestAssertions,
