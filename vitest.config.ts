@@ -5,9 +5,6 @@ import path from 'path';
 export default defineConfig({
   plugins: [tsconfigPaths({ loose: true })],
   resolve: {
-    alias: {
-      '@tests': path.resolve(__dirname, 'tests'),
-    },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
   test: {
