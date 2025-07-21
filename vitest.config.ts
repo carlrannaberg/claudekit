@@ -72,10 +72,6 @@ export default defineConfig({
     }
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-    alias: {
-      '@': path.join(__dirname, 'cli'),
-      '@tests': path.join(__dirname, 'tests')
-    }
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   }
 });
