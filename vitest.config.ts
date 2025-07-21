@@ -1,12 +1,22 @@
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import path from 'path';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  resolve: {
+    alias: {
+      '@tests': path.resolve(__dirname, 'tests'),
+    },
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
+  },
   test: {
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
+    deps: {
+      registerNodeLoader: true,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -53,10 +63,10 @@ export default defineConfig({
     // Enable file watching in development
     watch: process.env['CI'] === undefined,
     // Parallel testing for faster execution
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false,
+      forks: {
+        singleFork: false,
         isolate: true
       }
     },
@@ -65,8 +75,5 @@ export default defineConfig({
     outputFile: {
       junit: './coverage/junit.xml'
     }
-  },
-  resolve: {
-    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   }
 });
