@@ -17,6 +17,7 @@
     
     // Interop Constraints
     "isolatedModules": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -49,7 +50,7 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     
-    // Skip Lib Check
+    // Skip Lib Check  
     "skipLibCheck": true
   },
   "include": ["cli/**/*", "tests/**/*", "vitest.config.ts"],

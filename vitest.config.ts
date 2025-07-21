@@ -3,7 +3,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  plugins: [tsconfigPaths({ loose: true })],
   resolve: {
     alias: {
       '@tests': path.resolve(__dirname, 'tests'),
