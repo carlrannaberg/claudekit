@@ -26,7 +26,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:types",
     "build:esm": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external && esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --packages=external",
-    "build:types": "tsc --emitDeclarationOnly",
+    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "clean": "rm -rf dist",
     "dev": "tsx watch cli/cli.ts",
     "test": "vitest run",
