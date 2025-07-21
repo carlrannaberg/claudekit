@@ -5,13 +5,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { validate } from '../../cli/commands/validate';
+import { validate } from '../../cli/commands/validate.js';
 import {
   TestFileSystem,
   // TestAssertions, // Removed unused import
   CommandTestHelper,
   ConsoleTestHelper,
-} from '../utils/test-helpers';
+} from '../utils/test-helpers.js';
 
 // Mock external dependencies
 vi.mock('ora', () => ({

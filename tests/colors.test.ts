@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { Colors, symbols, status, colors } from '../cli/utils/colors';
+import { Colors, symbols, status, colors } from '../cli/utils/colors.js';
 
 declare global {
   namespace NodeJS {

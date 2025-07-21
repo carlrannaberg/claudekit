@@ -24,8 +24,8 @@ import {
   combineValidationResults,
   type ValidationResult,
   // type ValidationError, // Removed unused import
-} from '../../cli/lib/validation';
-import { TestFileSystem } from '../utils/test-helpers';
+} from '../../cli/lib/validation.js';
+import { TestFileSystem } from '../utils/test-helpers.js';
 
 describe('validation module', () => {
   let testFs: TestFileSystem;

@@ -4,16 +4,16 @@ import {
   createInstallPlan,
   validateInstallPlan,
   simulateInstallation,
-} from '../../cli/lib/installer';
+} from '../../cli/lib/installer.js';
 import type {
   Installation,
   Component,
   InstallOptions,
   InstallProgress,
-} from '../../cli/types/config';
+} from '../../cli/types/config.js';
 // import * as fs from 'fs/promises'; // Removed unused import
 import * as path from 'path';
-import type { ComponentType, ComponentCategory, Platform } from '../../cli/types/config';
+import type { ComponentType, ComponentCategory, Platform } from '../../cli/types/config.js';
 
 interface ComponentFile {
   path: string;

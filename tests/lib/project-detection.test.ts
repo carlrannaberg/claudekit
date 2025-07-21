@@ -16,7 +16,7 @@ import {
   detectNodeVersion,
   detectPackageInfo,
   detectFrameworks,
-} from '../../cli/lib/project-detection';
+} from '../../cli/lib/project-detection.js';
 
 /**
  * Test suite for project detection system

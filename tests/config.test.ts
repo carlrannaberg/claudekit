@@ -10,8 +10,8 @@ import {
   loadMergedConfig,
   saveMergedConfig,
   resolveHookPaths,
-} from '../cli/utils/config';
-import type { Config } from '../cli/types/config';
+} from '../cli/utils/config.js';
+import type { Config } from '../cli/types/config.js';
 
 describe('Config utilities', () => {
   let tempDir: string;

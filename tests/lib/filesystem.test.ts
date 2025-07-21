@@ -63,7 +63,7 @@ import {
   safeRemove,
   expandHomePath,
   normalizePath,
-} from '../../cli/lib/filesystem';
+} from '../../cli/lib/filesystem.js';
 
 const mockFs = fs as unknown as {
   stat: ReturnType<typeof vi.fn>;
