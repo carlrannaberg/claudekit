@@ -70,9 +70,6 @@ export default defineConfig({
     }
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './cli'),
-      '@tests': path.resolve(__dirname, './tests')
-    }
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
   }
 });
