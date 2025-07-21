@@ -6,9 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  esbuild: {
-    target: 'node18'
-  },
   test: {
     globals: true,
     environment: 'node',
@@ -75,11 +72,9 @@ export default defineConfig({
   resolve: {
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     alias: {
-      '@': path.resolve(__dirname, './cli')
+      '@': path.resolve(__dirname, './cli'),
+      '../utils/test-helpers': path.resolve(__dirname, './tests/utils/test-helpers.ts')
     },
     mainFields: ['module', 'main']
-  },
-  optimizeDeps: {
-    include: ['vitest/config']
   }
 });
