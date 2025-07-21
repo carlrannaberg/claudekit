@@ -4,8 +4,8 @@ import {
   formatRecommendationSummary,
   // type ComponentRecommendation, // Removed unused import
   type RecommendationResult,
-} from '../../cli/lib/components.js';
-import type { ProjectInfo, Platform } from '../../cli/types/index.js';
+} from '../../cli/lib/components';
+import type { ProjectInfo, Platform } from '../../cli/types/index';
 
 describe('Component Recommendation Engine', () => {
   // Mock component registry with test components

@@ -14,7 +14,7 @@ import {
   registryToComponents,
   getDiscoveryStats,
   invalidateCache,
-} from '../../cli/lib/components.js';
+} from '../../cli/lib/components';
 
 describe('Component Discovery System', () => {
   let tempDir: string;

@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 // import path from 'path'; // Removed unused import
 import type { Stats } from 'fs';
-import { setup } from '../../cli/commands/setup.js';
-import type { SetupOptions } from '../../cli/commands/setup.js';
+import { setup } from '../../cli/commands/setup';
+import type { SetupOptions } from '../../cli/commands/setup';
 
 // Mock all the external dependencies
 vi.mock('@inquirer/prompts', () => ({

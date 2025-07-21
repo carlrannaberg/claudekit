@@ -6,13 +6,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Ora } from 'ora';
-import { init } from '../../cli/commands/init.js';
+import { init } from '../../cli/commands/init';
 import {
   TestFileSystem,
   TestAssertions,
   CommandTestHelper,
   ConsoleTestHelper,
-} from '../utils/test-helpers.js';
+} from '../utils/test-helpers';
 
 // Mock external dependencies inline
 vi.mock('ora', () => {

@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mockFs, mockFsExtra } from './fs-extra.js';
-import { mockInquirer } from './inquirer-prompts.js';
+import { mockFs, mockFsExtra } from './fs-extra';
+import { mockInquirer } from './inquirer-prompts';
 
 describe('Mock implementations', () => {
   describe('fs-extra mock', () => {
@@ -139,7 +139,7 @@ describe('Mock implementations', () => {
     });
 
     it('should track prompt history', async () => {
-      const { input, confirm } = await import('./inquirer-prompts.js');
+      const { input, confirm } = await import('./inquirer-prompts');
 
       await input({ message: 'Enter name', name: 'username' });
       await confirm({ message: 'Are you sure?', name: 'confirmed' });
@@ -153,7 +153,7 @@ describe('Mock implementations', () => {
     });
 
     it('should return configured responses', async () => {
-      const { input, select } = await import('./inquirer-prompts.js');
+      const { input, select } = await import('./inquirer-prompts');
 
       mockInquirer.setResponse('username', 'john-doe');
       mockInquirer.setResponse('language', 'typescript');
@@ -170,7 +170,7 @@ describe('Mock implementations', () => {
     });
 
     it('should provide default responses when not configured', async () => {
-      const { input, confirm, number } = await import('./inquirer-prompts.js');
+      const { input, confirm, number } = await import('./inquirer-prompts');
 
       const name = await input({ message: 'Enter name' });
       const confirmed = await confirm({ message: 'Confirm?' });
@@ -182,7 +182,7 @@ describe('Mock implementations', () => {
     });
 
     it('should handle error simulation', async () => {
-      const { input } = await import('./inquirer-prompts.js');
+      const { input } = await import('./inquirer-prompts');
 
       const customError = new Error('User interrupted');
       mockInquirer.setShouldThrow(true, customError);
@@ -191,7 +191,7 @@ describe('Mock implementations', () => {
     });
 
     it('should support multiple response setup', async () => {
-      const { input, confirm, select } = await import('./inquirer-prompts.js');
+      const { input, confirm, select } = await import('./inquirer-prompts');
 
       mockInquirer.setResponses({
         name: 'test-user',
@@ -213,7 +213,7 @@ describe('Mock implementations', () => {
     });
 
     it('should handle checkbox selections', async () => {
-      const { checkbox } = await import('./inquirer-prompts.js');
+      const { checkbox } = await import('./inquirer-prompts');
 
       mockInquirer.setResponse('features', ['typescript', 'eslint']);
 
@@ -227,7 +227,7 @@ describe('Mock implementations', () => {
     });
 
     it('should provide fallback for choices', async () => {
-      const { select, checkbox } = await import('./inquirer-prompts.js');
+      const { select, checkbox } = await import('./inquirer-prompts');
 
       // Without configured response, should pick first choice
       const single = await select({
@@ -248,7 +248,7 @@ describe('Mock implementations', () => {
     });
 
     it('should clear history independently of responses', async () => {
-      const { input } = await import('./inquirer-prompts.js');
+      const { input } = await import('./inquirer-prompts');
 
       mockInquirer.setResponse('test', 'value');
       await input({ name: 'test', message: 'Test' });
