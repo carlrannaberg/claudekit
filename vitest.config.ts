@@ -1,13 +1,6 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import tsconfigPaths from 'vite-tsconfig-paths';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
   test: {
     globals: true,
     environment: 'node',
@@ -72,10 +65,6 @@ export default defineConfig({
     }
   },
   resolve: {
-    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
-    alias: {
-      '@': path.resolve(__dirname, './cli'),
-      '@tests': path.resolve(__dirname, './tests')
-    }
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   }
 });
