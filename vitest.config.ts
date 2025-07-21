@@ -7,6 +7,9 @@ export default defineConfig({
     projects: ['./tsconfig.json']
   })],
   resolve: {
+    alias: {
+      '@tests': new URL('./tests', import.meta.url).pathname,
+    },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
   test: {
