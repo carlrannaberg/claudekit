@@ -1,12 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 export default defineConfig({
   plugins: [tsconfigPaths({ loose: true })],
   resolve: {
     alias: {
-      '@tests': new URL('./tests/', import.meta.url).pathname,
+      '@tests': path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'tests'),
     },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
