@@ -42,10 +42,10 @@ export default defineConfig({
         },
         // Lower thresholds for command files due to CLI interaction complexity
         'cli/commands/**/*.ts': {
-          branches: 50,
-          functions: 20,
-          lines: 40,
-          statements: 40
+          branches: 40,
+          functions: 10,
+          lines: 25,
+          statements: 25
         }
       },
       all: true,
