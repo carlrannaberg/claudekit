@@ -8,7 +8,7 @@ import path from 'path';
 import { init } from '../../cli/commands/init.js';
 import { validate } from '../../cli/commands/validate.js';
 import { loadConfig, saveConfig, configExists } from '../../cli/utils/config.js';
-import { TestFileSystem, CommandTestHelper, ConsoleTestHelper } from '@tests/utils/test-helpers.js';
+import { TestFileSystem, CommandTestHelper, ConsoleTestHelper } from '../utils/test-helpers.js';
 import type { Config } from '../../cli/types/config.js';
 
 // Mock external dependencies

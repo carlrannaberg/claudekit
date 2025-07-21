@@ -11,7 +11,7 @@ import {
   // TestAssertions, // Removed unused import
   CommandTestHelper,
   ConsoleTestHelper,
-} from '@tests/utils/test-helpers.js';
+} from '../utils/test-helpers.js';
 
 // Mock external dependencies
 vi.mock('ora', () => ({
