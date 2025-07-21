@@ -16,9 +16,9 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    deps: {
-      registerNodeLoader: true,
-    },
+    // deps: {
+    //   registerNodeLoader: true,
+    // },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -63,7 +63,7 @@ export default defineConfig({
       'dist', 
       'coverage',
       // Temporarily exclude files with import issues in CI
-      ...(process.env.CI ? [
+      ...(process.env['CI'] ? [
         'tests/commands/init.test.ts',
         'tests/commands/validate.test.ts', 
         'tests/integration/workflow.test.ts',
