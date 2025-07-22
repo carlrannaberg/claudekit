@@ -297,7 +297,71 @@ export async function createInstallPlan(
     directories.add(path.join(customPath, 'hooks'));
   }
 
-  // First, collect all directories needed by analyzing components
+  // First pass: collect all directories needed by analyzing components
+  for (const component of orderedComponents) {
+    // Calculate relative path from source base to preserve directory structure
+    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
+    
+    // Use basename as fallback if sourceDir is not available (e.g., in tests)
+    let relativePath: string;
+    if (sourceDir) {
+      const baseSourceDir = path.join(sourceDir, componentTypeDir);
+      relativePath = path.relative(baseSourceDir, component.path);
+    } else {
+      // Fallback for tests or when sourceDir is not available
+      relativePath = path.basename(component.path);
+    }
+
+    // Collect directories for each target
+    if (installation.target === 'user' || installation.target === 'both') {
+      const targetPath = path.join(userDir, componentTypeDir, relativePath);
+      
+      // Ensure all parent directories are added to the directories set
+      let parentDir = path.dirname(targetPath);
+      const baseDir = path.join(userDir, componentTypeDir);
+      while (parentDir !== baseDir && parentDir.startsWith(baseDir)) {
+        directories.add(parentDir);
+        parentDir = path.dirname(parentDir);
+      }
+    }
+
+    if (installation.target === 'project' || installation.target === 'both') {
+      const targetPath = path.join(projectDir, componentTypeDir, relativePath);
+      
+      // Ensure all parent directories are added to the directories set
+      let parentDir = path.dirname(targetPath);
+      const baseDir = path.join(projectDir, componentTypeDir);
+      while (parentDir !== baseDir && parentDir.startsWith(baseDir)) {
+        directories.add(parentDir);
+        parentDir = path.dirname(parentDir);
+      }
+    }
+
+    if (options.customPath !== undefined) {
+      const customPath = normalizePath(options.customPath);
+      const targetPath = path.join(customPath, componentTypeDir, relativePath);
+      
+      // Ensure all parent directories are added to the directories set
+      let parentDir = path.dirname(targetPath);
+      const baseDir = path.join(customPath, componentTypeDir);
+      while (parentDir !== baseDir && parentDir.startsWith(baseDir)) {
+        directories.add(parentDir);
+        parentDir = path.dirname(parentDir);
+      }
+    }
+  }
+
+  // Create directory steps FIRST, before any file operations
+  for (const dir of directories) {
+    steps.push({
+      id: `create-dir-${dir}`,
+      type: 'create-dir',
+      description: `Create directory: ${dir}`,
+      target: dir,
+    });
+  }
+
+  // Second pass: create file copy and permission steps
   for (const component of orderedComponents) {
     const targets: string[] = [];
 
@@ -316,49 +380,16 @@ export async function createInstallPlan(
 
     // Determine target paths
     if (installation.target === 'user' || installation.target === 'both') {
-      const targetPath = path.join(
-        userDir,
-        componentTypeDir,
-        relativePath
-      );
-      targets.push(targetPath);
-      
-      // Ensure parent directory is added to the directories set
-      const parentDir = path.dirname(targetPath);
-      if (parentDir !== path.join(userDir, componentTypeDir)) {
-        directories.add(parentDir);
-      }
+      targets.push(path.join(userDir, componentTypeDir, relativePath));
     }
 
     if (installation.target === 'project' || installation.target === 'both') {
-      const targetPath = path.join(
-        projectDir,
-        componentTypeDir,
-        relativePath
-      );
-      targets.push(targetPath);
-      
-      // Ensure parent directory is added to the directories set
-      const parentDir = path.dirname(targetPath);
-      if (parentDir !== path.join(projectDir, componentTypeDir)) {
-        directories.add(parentDir);
-      }
+      targets.push(path.join(projectDir, componentTypeDir, relativePath));
     }
 
     if (options.customPath !== undefined) {
       const customPath = normalizePath(options.customPath);
-      const targetPath = path.join(
-        customPath,
-        componentTypeDir,
-        relativePath
-      );
-      targets.push(targetPath);
-      
-      // Ensure parent directory is added to the directories set
-      const parentDir = path.dirname(targetPath);
-      if (parentDir !== path.join(customPath, componentTypeDir)) {
-        directories.add(parentDir);
-      }
+      targets.push(path.join(customPath, componentTypeDir, relativePath));
     }
 
     // Create copy steps for each target
@@ -408,16 +439,6 @@ export async function createInstallPlan(
         });
       }
     }
-  }
-
-  // Now create directory steps after we know all directories
-  for (const dir of directories) {
-    steps.push({
-      id: `create-dir-${dir}`,
-      type: 'create-dir',
-      description: `Create directory: ${dir}`,
-      target: dir,
-    });
   }
 
   // Plan configuration steps
