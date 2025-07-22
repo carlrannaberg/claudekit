@@ -3,6 +3,9 @@ import { promises as fs, constants } from 'fs';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
+import { Logger } from '../utils/logger.js';
+
+const logger = Logger.create('filesystem');
 
 interface NodeJSError {
   code?: string;
@@ -251,7 +254,8 @@ export async function needsUpdate(source: string, target: string): Promise<boole
 export async function copyFileWithBackup(
   source: string,
   target: string,
-  backup: boolean = true
+  backup: boolean = true,
+  onConflict?: (source: string, target: string) => Promise<boolean>
 ): Promise<void> {
   // Validate paths
   if (!validateProjectPath(source) || !validateProjectPath(target)) {
@@ -270,22 +274,42 @@ export async function copyFileWithBackup(
     throw new Error(`Source file not accessible: ${source}`);
   }
 
-  // Create backup if requested and target exists
-  if (backup) {
-    try {
-      await fs.access(target, constants.F_OK);
+  // Check if target exists and has different content
+  let targetExists = false;
+  try {
+    await fs.access(target, constants.F_OK);
+    targetExists = true;
+  } catch {
+    // Target doesn't exist - no conflict
+  }
 
-      // Create timestamped backup
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = `${target}.backup-${timestamp}`;
-
-      await fs.copyFile(target, backupPath);
-    } catch (error: unknown) {
-      const nodeError = error as NodeJSError;
-      if (nodeError.code !== undefined && nodeError.code !== 'ENOENT') {
-        throw new Error(`Failed to create backup: ${nodeError.message}`);
+  if (targetExists) {
+    // Check if files are different
+    const sourceHash = await getFileHash(source);
+    const targetHash = await getFileHash(target);
+    
+    if (sourceHash !== targetHash) {
+      // Files are different - potential conflict
+      if (onConflict) {
+        const shouldProceed = await onConflict(source, target);
+        if (!shouldProceed) {
+          logger.info(`Skipping ${target} - user chose not to overwrite`);
+          return;
+        }
       }
-      // Target doesn't exist, no backup needed
+      
+      // Create backup if requested
+      if (backup) {
+        // Create timestamped backup
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = `${target}.backup-${timestamp}`;
+        logger.debug(`Creating backup: ${backupPath}`);
+        await fs.copyFile(target, backupPath);
+      }
+    } else {
+      // Files are identical - skip copy
+      logger.debug(`Skipping ${target} - identical to source`);
+      return;
     }
   }
 

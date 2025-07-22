@@ -164,47 +164,60 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
     return commands;
   }
 
-  const files = await fs.readdir(commandsDir);
   const pattern =
     options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
 
-  for (const file of files) {
-    if (!file.endsWith('.md')) {
-      continue;
-    }
-    if (pattern !== null && !pattern.test(file)) {
-      continue;
-    }
-
-    const name = path.basename(file, '.md');
-    const filePath = path.join(commandsDir, file);
-    const stats = await fs.stat(filePath);
-
-    // Try to extract description from frontmatter
-    let description = '';
-    try {
-      const content = await fs.readFile(filePath, 'utf8');
-      const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
-      if (match !== null && match[1] !== undefined && match[1] !== '') {
-        const frontmatter = match[1];
-        const descMatch = frontmatter.match(/description:\s*(.+)/);
-        if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
-          description = descMatch[1].trim();
+  // Recursively find all .md files in commands directory
+  async function findCommandFiles(dir: string, prefix: string = ''): Promise<void> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      if (entry.isDirectory()) {
+        // Recurse into subdirectories
+        const newPrefix = prefix ? `${prefix}:${entry.name}` : entry.name;
+        await findCommandFiles(fullPath, newPrefix);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        const baseName = path.basename(entry.name, '.md');
+        const commandName = prefix ? `${prefix}:${baseName}` : baseName;
+        
+        if (pattern !== null && !pattern.test(commandName)) {
+          continue;
         }
-      }
-    } catch {
-      // Ignore errors reading file
-    }
+        
+        const stats = await fs.stat(fullPath);
 
-    commands.push({
-      name,
-      type: 'command',
-      path: filePath,
-      description,
-      size: stats.size,
-      modified: stats.mtime,
-    });
+        // Try to extract description from frontmatter
+        let description = '';
+        try {
+          const content = await fs.readFile(fullPath, 'utf8');
+          const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+          if (match !== null && match[1] !== undefined && match[1] !== '') {
+            const frontmatter = match[1];
+            const descMatch = frontmatter.match(/description:\s*(.+)/);
+            if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
+              description = descMatch[1].trim();
+            }
+          }
+        } catch {
+          // Ignore errors reading file
+        }
+
+        commands.push({
+          name: commandName,
+          type: 'command',
+          path: fullPath,
+          description,
+          size: stats.size,
+          modified: stats.mtime,
+        });
+      }
+    }
   }
+
+  // Start the recursive search from the commands directory
+  await findCommandFiles(commandsDir);
 
   return commands;
 }

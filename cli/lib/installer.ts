@@ -1,7 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 // import os from 'os'; // Unused
+import { confirm } from '@inquirer/prompts';
 import { Logger } from '../utils/logger.js';
+import { Colors } from '../utils/colors.js';
 import {
   copyFileWithBackup,
   ensureDirectoryExists,
@@ -295,17 +297,7 @@ export async function createInstallPlan(
     directories.add(path.join(customPath, 'hooks'));
   }
 
-  // Create directory steps
-  for (const dir of directories) {
-    steps.push({
-      id: `create-dir-${dir}`,
-      type: 'create-dir',
-      description: `Create directory: ${dir}`,
-      target: dir,
-    });
-  }
-
-  // Plan component installation
+  // First, collect all directories needed by analyzing components
   for (const component of orderedComponents) {
     const targets: string[] = [];
 
@@ -416,6 +408,16 @@ export async function createInstallPlan(
         });
       }
     }
+  }
+
+  // Now create directory steps after we know all directories
+  for (const dir of directories) {
+    steps.push({
+      id: `create-dir-${dir}`,
+      type: 'create-dir',
+      description: `Create directory: ${dir}`,
+      target: dir,
+    });
   }
 
   // Plan configuration steps
@@ -776,7 +778,24 @@ async function executeStep(
         logger.debug(`Creating backup: ${backupPath}`);
       }
 
-      await copyFileWithBackup(step.source, step.target, options.backup !== false);
+      await copyFileWithBackup(
+        step.source, 
+        step.target, 
+        options.backup !== false,
+        options.force ? undefined : async (_source: string, target: string) => {
+          // Interactive conflict resolution (skip if force is true)
+          console.log(`\n${Colors.warn('File conflict detected!')}`);
+          console.log(`Target file: ${Colors.accent(target)}`);
+          console.log(`This file already exists with different content.`);
+          
+          const shouldOverwrite = await confirm({
+            message: 'Do you want to overwrite the existing file?',
+            default: false
+          });
+          
+          return shouldOverwrite;
+        }
+      );
       transaction.recordFileCreated(step.target);
       break;
 

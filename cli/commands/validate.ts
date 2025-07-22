@@ -96,6 +96,37 @@ export async function validate(options: ValidateOptions): Promise<void> {
       });
     }
 
+    // Check for commands directory
+    progressReporter.update('Checking commands installation...');
+    const commandsDir = path.join(claudeDir, 'commands');
+    try {
+      await fs.access(commandsDir);
+      
+      // Count commands recursively
+      let commandCount = 0;
+      async function countCommands(dir: string): Promise<void> {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            await countCommands(path.join(dir, entry.name));
+          } else if (entry.name.endsWith('.md')) {
+            commandCount++;
+          }
+        }
+      }
+      
+      await countCommands(commandsDir);
+      legacyResults.push({
+        passed: true,
+        message: `Found ${commandCount} command(s)`,
+      });
+    } catch {
+      legacyResults.push({
+        passed: false,
+        message: 'commands directory not found',
+      });
+    }
+
     // Optional: Check prerequisites
     if (options.prerequisites === true) {
       progressReporter.update('Checking development prerequisites...');
@@ -158,6 +189,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
         console.log(Colors.dim('• ClaudeKit directory structure'));
         console.log(Colors.dim('• Configuration file validity'));
         console.log(Colors.dim('• Hook installation'));
+        console.log(Colors.dim('• Command installation'));
         console.log(Colors.dim('• Project path security'));
         if (options.prerequisites === true) {
           console.log(Colors.dim('• Development prerequisites'));
@@ -175,7 +207,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
         console.log(Colors.warn('• Check your .claude/settings.json file for syntax errors'));
       }
       if (legacyResults.some((r) => !r.passed && r.message.includes('hooks directory'))) {
-        console.log(Colors.warn('• Run "claudekit install" to install hooks'));
+        console.log(Colors.warn('• Run "claudekit setup" to install hooks'));
+      }
+      if (legacyResults.some((r) => !r.passed && r.message.includes('commands directory'))) {
+        console.log(Colors.warn('• Run "claudekit setup" to install commands'));
       }
 
       process.exit(1);
