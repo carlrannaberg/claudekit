@@ -668,12 +668,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           }
         },
         onPromptStart: () => {
-          // Pause the progress reporter to show the prompt
+          // Pause ALL progress reporters to show the prompt
+          progressReporter.stop();
           installProgressReporter.stop();
         },
         onPromptEnd: () => {
           // Resume progress reporting after prompt
-          // The next onProgress call will restart the spinner
+          // The next onProgress call will restart the spinners
         },
       };
 
