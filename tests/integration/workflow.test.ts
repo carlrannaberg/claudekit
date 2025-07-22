@@ -216,14 +216,14 @@ describe('CLI workflow integration', () => {
       expect(processExit.exit).not.toHaveBeenCalled();
     });
 
-    it('should handle missing hooks directory recovery', async () => {
+    it('should handle missing settings.json recovery', async () => {
       // Initialize normally
       await init({});
 
-      // Remove hooks directory
-      await fs.rm(path.join(tempDir, '.claude', 'hooks'), { recursive: true });
+      // Remove settings.json to cause validation failure
+      await fs.rm(path.join(tempDir, '.claude', 'settings.json'));
 
-      // Validation should fail
+      // Validation should fail (missing settings.json)
       processExit.exit.mockClear();
       await validate({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
@@ -231,8 +231,8 @@ describe('CLI workflow integration', () => {
       // Force reinitialize to recover
       await init({ force: true });
 
-      // Hooks directory should be recreated
-      await expect(fs.access(path.join(tempDir, '.claude', 'hooks'))).resolves.not.toThrow();
+      // Settings file should be recreated
+      await expect(fs.access(path.join(tempDir, '.claude', 'settings.json'))).resolves.not.toThrow();
 
       // Validation should pass
       processExit.exit.mockClear();

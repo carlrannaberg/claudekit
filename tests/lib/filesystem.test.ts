@@ -35,19 +35,20 @@ vi.mock('os', async () => {
 });
 
 vi.mock('crypto', async () => {
-  return {
-    default: {
-      createHash: vi.fn(() => ({
-        update: vi.fn(),
-        digest: vi.fn(() => 'mocked-hash'),
-      })),
-    },
+  const mockCrypto = {
     createHash: vi.fn(() => ({
       update: vi.fn(),
       digest: vi.fn(() => 'mocked-hash'),
     })),
   };
+  return {
+    default: mockCrypto,
+    createHash: mockCrypto.createHash,
+  };
 });
+
+// Create a reference to the mocked crypto after imports
+let mockCrypto: any;
 
 // Import after mocking
 import {
@@ -76,9 +77,9 @@ const mockFs = fs as unknown as {
   unlink: ReturnType<typeof vi.fn>;
 };
 // const mockOs = os as any; // Removed unused variable
-const mockCrypto = crypto as unknown as {
-  createHash: ReturnType<typeof vi.fn>;
-};
+
+// Initialize mockCrypto reference after imports
+mockCrypto = crypto as any;
 
 describe('filesystem module', () => {
   beforeEach(() => {
@@ -395,11 +396,23 @@ describe('filesystem module', () => {
       // Setup mocks for backup scenario
       mockFs.access
         .mockResolvedValueOnce(undefined) // source readable
-        .mockResolvedValueOnce(undefined) // target writable
-        .mockResolvedValueOnce(undefined); // target exists for backup
+        .mockResolvedValueOnce(undefined) // target exists
+        .mockResolvedValueOnce(undefined); // target dir writable
 
       mockFs.stat.mockResolvedValue({ isDirectory: () => true }); // dir exists
       mockFs.copyFile.mockResolvedValue(undefined);
+      
+      // Mock readFile to return different content for source and target
+      mockFs.readFile
+        .mockResolvedValueOnce(Buffer.from('source content')) // source file content
+        .mockResolvedValueOnce(Buffer.from('target content')); // target file content (different)
+      
+      // Mock crypto to return different hashes
+      let hashCount = 0;
+      mockCrypto.createHash.mockImplementation(() => ({
+        update: vi.fn(),
+        digest: vi.fn(() => hashCount++ === 0 ? 'source-hash' : 'target-hash'),
+      }));
 
       // Mock Date to control timestamp
       const mockDate = new Date('2024-01-01T12:00:00.000Z');
@@ -427,10 +440,23 @@ describe('filesystem module', () => {
     it('should not create backup when backup is false', async () => {
       mockFs.access
         .mockResolvedValueOnce(undefined) // source readable
-        .mockResolvedValueOnce(undefined); // target writable
+        .mockResolvedValueOnce(undefined) // target exists
+        .mockResolvedValueOnce(undefined); // target dir writable
 
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.copyFile.mockResolvedValue(undefined);
+      
+      // Mock readFile to return different content for source and target
+      mockFs.readFile
+        .mockResolvedValueOnce(Buffer.from('source content')) // source file content
+        .mockResolvedValueOnce(Buffer.from('target content')); // target file content (different)
+      
+      // Mock crypto to return different hashes
+      let hashCount = 0;
+      mockCrypto.createHash.mockImplementation(() => ({
+        update: vi.fn(),
+        digest: vi.fn(() => hashCount++ === 0 ? 'source-hash' : 'target-hash'),
+      }));
 
       await copyFileWithBackup(
         '/Users/testuser/projects/source.txt',

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
-// import path from 'path'; // Removed unused import
+import path from 'path';
 import type { Stats } from 'fs';
 import { setup } from '../../cli/commands/setup';
 import type { SetupOptions } from '../../cli/commands/setup';
@@ -47,10 +47,19 @@ vi.mock('../../cli/utils/logger', () => ({
   },
 }));
 vi.mock('../../cli/lib/filesystem', () => ({
-  pathExists: vi.fn().mockResolvedValue(true),
+  pathExists: vi.fn().mockImplementation((path: string) => {
+    // Return false for settings.json to avoid conflict detection
+    if (path.endsWith('settings.json')) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(true);
+  }),
   ensureDirectoryExists: vi.fn().mockResolvedValue(undefined),
   expandHomePath: vi.fn((path: string) => path.replace('~', '/home/user')),
   normalizePath: vi.fn((path: string) => path),
+}));
+vi.mock('../../cli/lib/paths', () => ({
+  findComponentsDirectory: vi.fn().mockResolvedValue('/mocked/src/path'),
 }));
 vi.mock('../../cli/lib/index', () => ({
   detectProjectContext: vi.fn().mockResolvedValue({
@@ -176,13 +185,29 @@ vi.mock('../../cli/lib/index', () => ({
       totalScore: 100,
     };
   }),
-  installComponents: vi.fn().mockResolvedValue(undefined),
+  installComponents: vi.fn().mockResolvedValue({
+    success: true,
+    installedComponents: [],
+    modifiedFiles: [],
+    createdDirectories: [],
+    backupFiles: [],
+    warnings: [],
+    errors: [],
+    duration: 100,
+  }),
 }));
 
 describe('Setup Command - Non-Interactive Flags', () => {
   const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+  // Mock readFile to throw ENOENT for settings.json (file doesn't exist)
+  vi.spyOn(fs, 'readFile').mockImplementation((path) => {
+    if (typeof path === 'string' && path.endsWith('settings.json')) {
+      return Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+    }
+    return Promise.resolve('{}');
+  });
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -206,10 +231,24 @@ describe('Setup Command - Non-Interactive Flags', () => {
     // Mock fs.writeFile for settings creation
     vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
     vi.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
+    // Mock readFile to throw ENOENT for settings.json (file doesn't exist)
+    vi.spyOn(fs, 'readFile').mockImplementation((path) => {
+      if (typeof path === 'string' && path.endsWith('settings.json')) {
+        return Promise.reject(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
+      }
+      return Promise.resolve('{}');
+    });
     
     // Re-apply filesystem mocks after clearing
     const filesystem = await import('../../cli/lib/filesystem');
     vi.mocked(filesystem.ensureDirectoryExists).mockResolvedValue(undefined);
+    vi.mocked(filesystem.pathExists).mockImplementation((path: string) => {
+      // Return false for settings.json to avoid conflict detection
+      if (path.endsWith('settings.json')) {
+        return Promise.resolve(false);
+      }
+      return Promise.resolve(true);
+    });
     
     // Re-apply mocks after clearing
     const libIndex = await import('../../cli/lib/index');
@@ -369,6 +408,17 @@ describe('Setup Command - Non-Interactive Flags', () => {
         totalScore: 100,
       });
     });
+    
+    vi.mocked(libIndex.installComponents).mockResolvedValue({
+      success: true,
+      installedComponents: [],
+      modifiedFiles: [],
+      createdDirectories: [],
+      backupFiles: [],
+      warnings: [],
+      errors: [],
+      duration: 100,
+    });
   });
 
   afterEach(() => {
@@ -467,7 +517,13 @@ describe('Setup Command - Non-Interactive Flags', () => {
       const testDir = '/tmp/test-project';
       const mockPathExists = (await import('../../cli/lib/filesystem'))
         .pathExists as unknown as ReturnType<typeof vi.fn>;
-      mockPathExists.mockResolvedValue(true);
+      mockPathExists.mockImplementation((path: string) => {
+        // Return false for settings.json to avoid conflict
+        if (path.endsWith('settings.json')) {
+          return Promise.resolve(false);
+        }
+        return Promise.resolve(true);
+      });
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
       } as Stats);
@@ -487,7 +543,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
       if (projectCall !== undefined) {
-        expect(projectCall[2].customPath).toBe(testDir);
+        expect(projectCall[2].customPath).toBe(path.join(testDir, '.claude'));
       }
     });
 
@@ -555,7 +611,13 @@ describe('Setup Command - Non-Interactive Flags', () => {
       const testDir = '/tmp/test-project';
       const mockPathExists = (await import('../../cli/lib/filesystem'))
         .pathExists as unknown as ReturnType<typeof vi.fn>;
-      mockPathExists.mockResolvedValue(true);
+      mockPathExists.mockImplementation((path: string) => {
+        // Return false for settings.json to avoid conflict
+        if (path.endsWith('settings.json')) {
+          return Promise.resolve(false);
+        }
+        return Promise.resolve(true);
+      });
       vi.spyOn(fs, 'stat').mockResolvedValue({
         isDirectory: () => true,
       } as Stats);
@@ -577,7 +639,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       ).mock.calls.find((call: unknown[]) => call[1] === 'project');
       expect(projectCall).toBeDefined();
       if (projectCall !== undefined) {
-        expect(projectCall[2].customPath).toBe(testDir);
+        expect(projectCall[2].customPath).toBe(path.join(testDir, '.claude'));
       }
     });
 

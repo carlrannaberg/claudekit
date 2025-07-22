@@ -215,8 +215,8 @@ eslint src/`
 
       const registry = await discoverComponents(tempDir);
 
-      expect(getComponent('git-commit', registry)).toBeDefined();
-      expect(getComponent('validation-eslint', registry)).toBeDefined();
+      expect(getComponent('git:commit', registry)).toBeDefined();
+      expect(getComponent('validation:eslint', registry)).toBeDefined();
       expect(registry.components.size).toBe(2);
     });
 

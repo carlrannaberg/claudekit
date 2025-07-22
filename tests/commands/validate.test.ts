@@ -192,7 +192,7 @@ describe('validate command', () => {
       expect(output).toContain('settings.json contains invalid JSON');
     });
 
-    it('should fail when hooks directory does not exist', async () => {
+    it('should pass when hooks directory does not exist', async () => {
       await testFs.createFileStructure(tempDir, {
         '.claude': {
           'settings.json': JSON.stringify({ hooks: {} }),
@@ -201,13 +201,15 @@ describe('validate command', () => {
 
       await validate({});
 
-      expect(processExit.exit).toHaveBeenCalledWith(1);
+      // Should not exit with error - missing hooks is valid
+      expect(processExit.exit).not.toHaveBeenCalled();
 
       const output = ConsoleTestHelper.getOutput('log').join('\n');
-      expect(output).toContain('hooks directory not found');
+      expect(output).toContain('No hooks installed');
+      expect(output).toContain('✓');
     });
 
-    it('should show multiple failures', async () => {
+    it('should fail when settings.json is missing', async () => {
       // Only create .claude directory, nothing else
       await fs.mkdir(path.join(tempDir, '.claude'));
 
@@ -218,12 +220,13 @@ describe('validate command', () => {
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✓'); // .claude directory exists
       expect(output).toContain('settings.json not found');
-      expect(output).toContain('hooks directory not found');
+      expect(output).toContain('No hooks installed'); // Missing hooks is not a failure
+      expect(output).toContain('No commands installed'); // Missing commands is not a failure
 
-      // Should have multiple ✗ symbols
+      // Should have exactly one ✗ symbol (only settings.json)
       const matches = output.match(/✗/g);
       const failureCount = matches !== null ? matches.length : 0;
-      expect(failureCount).toBeGreaterThan(1);
+      expect(failureCount).toBe(1);
     });
   });
 
