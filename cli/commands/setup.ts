@@ -99,31 +99,23 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
   console.log(`\n${Colors.bold('Step 1: Choose Command Groups')}`);
   console.log(Colors.dim('Select groups of slash commands for Claude Code'));
 
-  const commandGroupChoices = COMMAND_GROUPS.map(group => ({
-    value: group.id,
-    name: group.name,
-    description: group.description,
-    checked: group.recommended
-  }));
-
-  const commandChoices = commandGroupChoices.map(choice => {
-    const group = COMMAND_GROUPS.find(g => g.id === choice.value);
-    const commandList = group ? group.commands.map(cmd => `/${cmd}`).join(', ') : '';
+  const commandChoices = COMMAND_GROUPS.map(group => {
+    const commandList = group.commands.map(cmd => `/${cmd}`).join(', ');
     return {
-      value: choice.value,
-      name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
-      checked: choice.checked,
+      value: group.id,
+      name: `${group.name}\n  ${Colors.dim(group.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
+      checked: group.recommended,
       disabled: false
     };
   });
 
-  // Add navigation hint with select all tip
-  console.log(Colors.dim(`\n(${commandChoices.length} groups available - press 'a' to toggle all, arrow keys to navigate)\n`));
+  // Add hint about keyboard shortcuts
+  console.log(Colors.dim(`\n(${COMMAND_GROUPS.length} groups - use space to toggle, 'a' to select/deselect all, enter to confirm)\n`));
 
   const selectedGroups = (await checkbox({
     message: 'Select command groups to install:',
     choices: commandChoices,
-    pageSize: 10 // Show more items at once to reduce scrolling
+    pageSize: 20 // Large page size ensures all groups are visible without scrolling
   })) as string[];
 
   // Add selected commands from groups
@@ -150,13 +142,12 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     triggerEvent: group.triggerEvent
   }));
 
-  const hookChoices = hookGroupChoices.map(choice => {
-    const group = HOOK_GROUPS.find(g => g.id === choice.value);
-    const hooksList = group ? group.hooks.join(', ') : '';
+  const hookChoices = HOOK_GROUPS.map(group => {
+    const hooksList = group.hooks.join(', ');
     return {
-      value: choice.value,
-      name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}`,
-      checked: choice.checked,
+      value: group.id,
+      name: `${group.name}\n  ${Colors.dim(group.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}`,
+      checked: hookGroupChoices.find(g => g.value === group.id)?.checked || false,
       disabled: false
     };
   });
@@ -171,13 +162,13 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
 
   const allHookChoices = [...hookChoices, customChoice];
 
-  // Add navigation hint
-  console.log(Colors.dim(`\n(${hookChoices.length} hook groups + custom option available - press 'a' to toggle all)\n`));
+  // Add hint
+  console.log(Colors.dim(`\n(${HOOK_GROUPS.length} groups + custom option - use space to toggle, enter to confirm)\n`));
 
   const selectedHookGroups = (await checkbox({
     message: 'Select hook groups to install:',
     choices: allHookChoices,
-    pageSize: 10
+    pageSize: 20 // Large page size ensures all options are visible without scrolling
   })) as string[];
 
   // Handle custom selection
