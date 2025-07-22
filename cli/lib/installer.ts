@@ -190,6 +190,18 @@ class InstallTransaction {
   getBackupFiles(): string[] {
     return [...this.backupFiles];
   }
+
+  async cleanupBackups(): Promise<void> {
+    // Remove backup files after successful installation
+    for (const backupPath of this.backupFiles) {
+      try {
+        await safeRemove(backupPath);
+        this.logger.debug(`Removed backup: ${backupPath}`);
+      } catch (error) {
+        this.logger.warn(`Failed to remove backup ${backupPath}: ${error}`);
+      }
+    }
+  }
 }
 
 // ============================================================================
@@ -724,6 +736,11 @@ export async function executeInstallation(
 
     const duration = Date.now() - startTime;
     logger.success(`Installation completed in ${duration}ms`);
+
+    // Clean up backup files on success
+    if (options.dryRun !== true) {
+      await transaction.cleanupBackups();
+    }
 
     return {
       success: true,
