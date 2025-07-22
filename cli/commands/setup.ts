@@ -34,7 +34,7 @@ const COMMAND_GROUPS: CommandGroup[] = [
     id: 'essential-workflow',
     name: '🔧 Essential Workflow',
     description: 'Core git operations, checkpoints, and daily development tools',
-    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore'],
+    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore', 'gh:repo-init', 'dev:cleanup'],
     recommended: true
   },
   {
@@ -47,8 +47,8 @@ const COMMAND_GROUPS: CommandGroup[] = [
   {
     id: 'ai-assistant',
     name: '🤖 AI Assistant Configuration',
-    description: 'Initialize, migrate, and enhance AGENT.md files for AI coding assistants',
-    commands: ['agent:init', 'agent:migration', 'agent:cli'],
+    description: 'Manage AGENT.md, create custom commands, and configure Claude Code',
+    commands: ['agent:init', 'agent:migration', 'agent:cli', 'create-command', 'config:bash-timeout'],
     recommended: false
   },
   {
@@ -56,13 +56,6 @@ const COMMAND_GROUPS: CommandGroup[] = [
     name: '📋 Specification Management',
     description: 'Spec-driven development: create, validate, and execute specifications',
     commands: ['spec:create', 'spec:validate', 'spec:decompose', 'spec:execute'],
-    recommended: false
-  },
-  {
-    id: 'dev-utilities',
-    name: '🛠️ Development Utilities',
-    description: 'Project setup, cleanup tools, and development configuration',
-    commands: ['gh:repo-init', 'dev:cleanup', 'create-command', 'config:bash-timeout'],
     recommended: false
   }
 ];
