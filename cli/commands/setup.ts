@@ -667,6 +667,14 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             }
           }
         },
+        onPromptStart: () => {
+          // Pause the progress reporter to show the prompt
+          installProgressReporter.stop();
+        },
+        onPromptEnd: () => {
+          // Resume progress reporting after prompt
+          // The next onProgress call will restart the spinner
+        },
       };
 
       if (config.installationType === 'user' || config.installationType === 'both') {

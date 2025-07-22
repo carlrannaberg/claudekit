@@ -432,6 +432,13 @@ export class ComponentProgressReporter {
   fail(message: string): void {
     this.reporter.fail(message);
   }
+
+  /**
+   * Stop the progress spinner (for interactive prompts)
+   */
+  stop(): void {
+    this.reporter.stop();
+  }
 }
 
 /**
