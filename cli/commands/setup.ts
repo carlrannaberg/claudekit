@@ -632,6 +632,9 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       // Initialize progress tracking
       const componentNames = finalComponents.map((c) => c.name);
       installProgressReporter.initialize(componentNames);
+      
+      // Track settings backup for cleanup
+      let settingsBackupPath: string | null = null;
 
       // Install based on installation type
       const isNonInteractive = options.yes === true || options.commands !== undefined || options.hooks !== undefined;
@@ -705,10 +708,23 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
-        await createProjectSettings(claudeDir, finalComponents, installOptions);
+        settingsBackupPath = await createProjectSettings(claudeDir, finalComponents, installOptions);
       }
 
       progressReporter.succeed('Installation complete!');
+      
+      // Clean up settings backup file if it was created
+      if (settingsBackupPath) {
+        try {
+          await fs.unlink(settingsBackupPath);
+          if (options.verbose) {
+            console.log(Colors.dim(`Cleaned up settings backup: ${settingsBackupPath}`));
+          }
+        } catch (error) {
+          // Log warning but don't fail installation
+          console.log(Colors.dim(`Warning: Could not clean up backup file ${settingsBackupPath}: ${error}`));
+        }
+      }
       
       // Complete the install progress reporter
       installProgressReporter.complete();
@@ -749,8 +765,9 @@ interface HookSettings {
   };
 }
 
-async function createProjectSettings(claudeDir: string, components: Component[], options: InstallOptions): Promise<void> {
+async function createProjectSettings(claudeDir: string, components: Component[], options: InstallOptions): Promise<string | null> {
   const settingsPath = path.join(claudeDir, 'settings.json');
+  let backupPath: string | null = null;
   
   // Read existing settings if present
   let existingSettings: HookSettings | null = null;
@@ -926,23 +943,26 @@ async function createProjectSettings(claudeDir: string, components: Component[],
         
         if (!shouldOverwrite) {
           console.log(Colors.info('Skipping settings.json update'));
-          return;
+          return null;
         }
         
         // Create backup if requested
         if (options.backup !== false) {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const backupPath = `${settingsPath}.backup-${timestamp}`;
+          backupPath = `${settingsPath}.backup-${timestamp}`;
           await fs.copyFile(settingsPath, backupPath);
           console.log(Colors.dim(`Created backup: ${backupPath}`));
         }
       }
     } else {
       // Files are identical, skip
-      return;
+      return null;
     }
   }
   
   // Write the new content
   await fs.writeFile(settingsPath, newContent);
+  
+  // Return backup path for cleanup
+  return backupPath;
 }
