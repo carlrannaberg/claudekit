@@ -705,7 +705,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
-        await createProjectSettings(claudeDir, finalComponents);
+        await createProjectSettings(claudeDir, finalComponents, installOptions);
       }
 
       progressReporter.succeed('Installation complete!');
@@ -749,7 +749,7 @@ interface HookSettings {
   };
 }
 
-async function createProjectSettings(claudeDir: string, components: Component[]): Promise<void> {
+async function createProjectSettings(claudeDir: string, components: Component[], options: InstallOptions): Promise<void> {
   const settingsPath = path.join(claudeDir, 'settings.json');
   
   // Read existing settings if present
@@ -882,6 +882,67 @@ async function createProjectSettings(claudeDir: string, components: Component[])
     }
   }
 
-  // Write settings.json
-  await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+  // Write settings.json with conflict detection
+  const newContent = JSON.stringify(settings, null, 2);
+  
+  // Check if file exists and has different content
+  if (await pathExists(settingsPath)) {
+    const existingContent = await fs.readFile(settingsPath, 'utf-8');
+    if (existingContent !== newContent) {
+      // In non-interactive mode, throw error
+      if (options.interactive === false && !options.force) {
+        throw new Error(
+          `\nFile conflict detected: ${settingsPath} already exists with different content.\n` +
+          `To overwrite existing files, run with --force flag.`
+        );
+      }
+      
+      // In interactive mode, prompt for confirmation
+      if (!options.force) {
+        // Interactive conflict resolution
+        if (options.onPromptStart) {
+          options.onPromptStart();
+        }
+        
+        // Clear the spinner and show conflict info
+        process.stdout.write('\x1B[2K\r');
+        console.log(`\n${Colors.warn('━━━ Settings Conflict Detected ━━━')}`);
+        console.log(`File: ${Colors.accent(settingsPath)}`);
+        console.log(`This file already exists with different content.`);
+        console.log(`The setup wants to add new hook configurations.`);
+        console.log('');
+        
+        const shouldOverwrite = await confirm({
+          message: 'Do you want to update the settings file?',
+          default: true
+        });
+        
+        console.log(''); // Add spacing after prompt
+        
+        // Notify that prompt is done
+        if (options.onPromptEnd) {
+          options.onPromptEnd();
+        }
+        
+        if (!shouldOverwrite) {
+          console.log(Colors.info('Skipping settings.json update'));
+          return;
+        }
+        
+        // Create backup if requested
+        if (options.backup !== false) {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const backupPath = `${settingsPath}.backup-${timestamp}`;
+          await fs.copyFile(settingsPath, backupPath);
+          console.log(Colors.dim(`Created backup: ${backupPath}`));
+        }
+      }
+    } else {
+      // Files are identical, skip
+      return;
+    }
+  }
+  
+  // Write the new content
+  await fs.writeFile(settingsPath, newContent);
 }
