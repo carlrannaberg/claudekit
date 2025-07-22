@@ -33,15 +33,8 @@ const COMMAND_GROUPS: CommandGroup[] = [
   {
     id: 'essential-workflow',
     name: '🔧 Essential Workflow',
-    description: 'Core git operations, checkpoints, and daily development tools',
-    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore', 'gh:repo-init', 'dev:cleanup'],
-    recommended: true
-  },
-  {
-    id: 'code-quality',
-    name: '✅ Code Quality & Validation',
-    description: 'Automated validation, linting fixes, and quality assurance tools',
-    commands: ['validate-and-fix'],
+    description: 'Git operations, checkpoints, validation, and daily development tools',
+    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore', 'validate-and-fix', 'gh:repo-init', 'dev:cleanup'],
     recommended: true
   },
   {
