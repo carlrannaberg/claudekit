@@ -109,6 +109,14 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     checked: group.recommended
   }));
 
+  // Add "Select All" option at the top
+  const selectAllChoice = {
+    value: '__SELECT_ALL__',
+    name: `${Colors.bold('📦 Select All Groups')}\n  ${Colors.dim('Install all available command groups')}`,
+    checked: false,
+    disabled: false
+  };
+
   const commandChoices = commandGroupChoices.map(choice => {
     const group = COMMAND_GROUPS.find(g => g.id === choice.value);
     const commandList = group ? group.commands.map(cmd => `/${cmd}`).join(', ') : '';
@@ -120,14 +128,31 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     };
   });
 
-  // Add navigation hint
-  console.log(Colors.dim(`\n(${commandChoices.length} groups available - use arrow keys to navigate)\n`));
+  // Add separator
+  const separatorChoice = {
+    value: '__SEPARATOR__',
+    name: Colors.dim('─'.repeat(60)),
+    disabled: true
+  };
 
-  const selectedGroups = (await checkbox({
+  const allChoices = [selectAllChoice, separatorChoice, ...commandChoices];
+
+  // Add navigation hint
+  console.log(Colors.dim(`\n(${commandChoices.length} groups available - use arrow keys to navigate, or select all)\n`));
+
+  let selectedGroups = (await checkbox({
     message: 'Select command groups to install:',
-    choices: commandChoices,
+    choices: allChoices,
     pageSize: 10 // Show more items at once to reduce scrolling
   })) as string[];
+
+  // Handle "Select All" option
+  if (selectedGroups.includes('__SELECT_ALL__')) {
+    selectedGroups = commandGroupChoices.map(choice => choice.value);
+  } else {
+    // Filter out special choices
+    selectedGroups = selectedGroups.filter(id => !id.startsWith('__'));
+  }
 
   // Add selected commands from groups
   for (const groupId of selectedGroups) {
