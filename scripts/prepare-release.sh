@@ -125,8 +125,8 @@ validate_environment() {
 
     # Check if we're on master branch
     current_branch=$(git branch --show-current)
-    if [[ "$current_branch" != "master" ]]; then
-        print_warning "Not on master branch (current: $current_branch)"
+    if [[ "$current_branch" != "master" && "$current_branch" != "main" ]]; then
+        print_warning "Not on main / master branch (current: $current_branch)"
         if [[ "$INTERACTIVE" == "true" ]]; then
             read -p "Continue anyway? [y/N]: " -r
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -208,7 +208,7 @@ run_tests() {
         print_error "Build failed. Please fix the build errors before preparing a release."
         exit 1
     fi
-    
+
     # Run tests with CI reporter (non-interactive)
     if ! npm run test:ci; then
         print_error "Tests are failing. Please fix the failing tests before preparing a release."
@@ -277,7 +277,7 @@ pre_compute_release_data() {
         # First check if we have too many files to process efficiently
         FILE_COUNT=$(echo "$ALL_CHANGED_FILES" | wc -l)
         echo "Total files changed: $FILE_COUNT"
-        
+
         if [ "$FILE_COUNT" -gt 200 ]; then
             echo "Too many files changed ($FILE_COUNT) - skipping detailed diff analysis"
             CODE_CHANGED_FILES=""
@@ -290,7 +290,7 @@ pre_compute_release_data() {
             # Count files and estimate diff size first
             CODE_FILE_COUNT=$(echo "$CODE_CHANGED_FILES" | wc -l)
             echo "Code files to analyze: $CODE_FILE_COUNT"
-            
+
             # If too many files, skip diff generation entirely
             if [ "$CODE_FILE_COUNT" -gt 50 ]; then
                 echo "Too many code files changed ($CODE_FILE_COUNT) - providing file list only"
@@ -356,7 +356,7 @@ pre_compute_release_data() {
 # Function to generate AI changelog and update README
 generate_ai_updates() {
     print_ai "Analyzing changes and updating CHANGELOG.md and README.md..."
-    
+
     if [[ "$DRY_RUN" == "true" ]]; then
         print_info "Dry run: Skipping AI-powered CHANGELOG and README updates"
         return
