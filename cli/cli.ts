@@ -54,6 +54,7 @@ program
   .option('--hooks <list>', 'comma-separated list of hook IDs to install')
   .option('--project <path>', 'target directory for project installation')
   .option('--commands-only', 'install only commands in user directory (~/.claude)')
+  .option('--select-individual', 'use legacy individual component selection instead of groups')
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };

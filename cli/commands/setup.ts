@@ -20,6 +20,184 @@ import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 
+// Command group definitions for improved setup flow
+interface CommandGroup {
+  id: string;
+  name: string;
+  description: string;
+  commands: string[];
+  recommended: boolean;
+}
+
+const COMMAND_GROUPS: CommandGroup[] = [
+  {
+    id: 'essential-workflow',
+    name: '🔧 Essential Workflow',
+    description: 'Core git operations, checkpoints, and daily development tools',
+    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore'],
+    recommended: true
+  },
+  {
+    id: 'code-quality',
+    name: '✅ Code Quality & Validation',
+    description: 'Automated validation, linting fixes, and quality assurance tools',
+    commands: ['validate-and-fix'],
+    recommended: true
+  },
+  {
+    id: 'ai-assistant',
+    name: '🤖 AI Assistant Management',
+    description: 'Configure AI assistants, capture tool docs, and manage AGENT.md',
+    commands: ['agent:init', 'agent:migration', 'agent:cli'],
+    recommended: false
+  },
+  {
+    id: 'spec-management',
+    name: '📋 Specification Management',
+    description: 'Spec-driven development: create, validate, and execute specifications',
+    commands: ['spec:create', 'spec:validate', 'spec:decompose', 'spec:execute'],
+    recommended: false
+  },
+  {
+    id: 'dev-utilities',
+    name: '🛠️ Development Utilities',
+    description: 'Project setup, cleanup tools, and development configuration',
+    commands: ['gh:repo-init', 'dev:cleanup', 'create-command', 'config:bash-timeout'],
+    recommended: false
+  }
+];
+
+interface HookQualityLevel {
+  id: string;
+  name: string;
+  description: string;
+  hooks: string[];
+  suitable: string;
+}
+
+const HOOK_QUALITY_LEVELS: HookQualityLevel[] = [
+  {
+    id: 'basic-safety',
+    name: '🔒 Basic Safety',
+    description: 'Essential safety nets that work for any git project',
+    hooks: ['auto-checkpoint'],
+    suitable: 'All projects - provides automatic checkpoints when stopping'
+  },
+  {
+    id: 'standard-quality',
+    name: '📊 Standard Quality',
+    description: 'Basic safety plus language-specific validation for JS/TS projects',
+    hooks: ['auto-checkpoint', 'eslint', 'typecheck', 'validate-todo-completion'],
+    suitable: 'JavaScript/TypeScript projects with moderate quality requirements'
+  },
+  {
+    id: 'comprehensive-quality',
+    name: '🎯 Comprehensive Quality',
+    description: 'Full validation suite with testing and project-wide quality checks',
+    hooks: ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'],
+    suitable: 'Production projects requiring maximum quality assurance'
+  },
+  {
+    id: 'custom-selection',
+    name: '⚙️ Custom Selection',
+    description: 'Choose individual hooks manually for advanced users',
+    hooks: [],
+    suitable: 'Power users who want granular control over hook selection'
+  }
+];
+
+/**
+ * Perform improved two-step selection: command groups then hook quality levels
+ */
+async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
+  const selectedComponents: string[] = [];
+
+  // Step 1: Command Group Selection
+  console.log(`\n${Colors.bold('Step 1: Choose Command Groups')}`);
+  console.log(Colors.dim('Select groups of slash commands for Claude Code'));
+
+  const commandGroupChoices = COMMAND_GROUPS.map(group => ({
+    value: group.id,
+    name: group.name,
+    description: group.description,
+    checked: group.recommended
+  }));
+
+  const selectedGroups = (await checkbox({
+    message: 'Select command groups to install:',
+    choices: commandGroupChoices.map(choice => ({
+      value: choice.value,
+      name: `${choice.name}\n  ${Colors.dim(choice.description)}`,
+      checked: choice.checked
+    }))
+  })) as string[];
+
+  // Add selected commands from groups
+  for (const groupId of selectedGroups) {
+    const group = COMMAND_GROUPS.find(g => g.id === groupId);
+    if (group) {
+      selectedComponents.push(...group.commands);
+    }
+  }
+
+  // Step 2: Hook Quality Level Selection
+  console.log(`\n${Colors.bold('Step 2: Choose Quality Level')}`);
+  console.log(Colors.dim('Select automated validation hooks for code quality'));
+
+  // Determine default quality level based on project
+  let defaultQuality = 'basic-safety';
+  if (projectInfo.hasTypeScript || projectInfo.hasEslint) {
+    defaultQuality = 'standard-quality';
+  }
+
+  const hookLevelChoices = HOOK_QUALITY_LEVELS.map(level => ({
+    value: level.id,
+    name: `${level.name}\n  ${Colors.dim(level.description)}\n  ${Colors.accent('→')} ${Colors.dim(level.suitable)}`,
+    checked: level.id === defaultQuality
+  }));
+
+  const selectedQualityLevel = (await select({
+    message: 'Choose your quality level:',
+    choices: hookLevelChoices
+  })) as string;
+
+  if (selectedQualityLevel === 'custom-selection') {
+    // Allow custom hook selection for power users
+    const availableHooks = ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'];
+    const hookChoices = availableHooks.map(hook => {
+      let description = '';
+      switch (hook) {
+        case 'auto-checkpoint': description = 'Automatic git checkpoints when stopping'; break;
+        case 'eslint': description = 'ESLint validation for JS/TS files'; break;
+        case 'typecheck': description = 'TypeScript type checking'; break;
+        case 'run-related-tests': description = 'Run tests related to modified files'; break;
+        case 'project-validation': description = 'Comprehensive project validation'; break;
+        case 'validate-todo-completion': description = 'Ensure todos are completed'; break;
+      }
+      return {
+        value: hook,
+        name: `${hook} - ${description}`,
+        checked: hook === 'auto-checkpoint' // Default to basic safety
+      };
+    });
+
+    const selectedHooks = (await checkbox({
+      message: 'Select individual hooks:',
+      choices: hookChoices
+    })) as string[];
+
+    selectedComponents.push(...selectedHooks);
+  } else {
+    // Add hooks from selected quality level
+    const qualityLevel = HOOK_QUALITY_LEVELS.find(level => level.id === selectedQualityLevel);
+    if (qualityLevel) {
+      selectedComponents.push(...qualityLevel.hooks);
+    }
+  }
+
+  return selectedComponents;
+}
+
 export interface SetupOptions {
   force?: boolean;
   template?: string;
@@ -31,6 +209,7 @@ export interface SetupOptions {
   hooks?: string;
   project?: string;
   commandsOnly?: boolean;
+  selectIndividual?: boolean; // Flag for power users to select individual components
 }
 
 interface SetupConfig {
@@ -232,7 +411,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       console.log(`Detected: ${detected.join(', ')}`);
     }
 
-    // Step 4: Component selection
+    // Step 4: Component selection - Two-step process with groups
     let selectedComponents: string[];
 
     if (options.commands !== undefined || options.hooks !== undefined) {
@@ -266,8 +445,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         ...recommendations.essential.map((r) => r.component.metadata.id),
         ...recommendations.recommended.map((r) => r.component.metadata.id),
       ];
-    } else {
-      // Interactive selection
+    } else if (options.selectIndividual === true) {
+      // Legacy individual component selection for power users
       const allComponents = [
         ...recommendations.essential.map((r) => ({
           value: r.component.metadata.id,
@@ -286,24 +465,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         })),
       ];
 
-      if (options.verbose) {
-        console.log(`Total components for selection: ${allComponents.length}`);
-      }
-
-      if (allComponents.length === 0) {
-        throw new Error(
-          'No components available for installation. This may be due to:\n' +
-          '1. Components directory not found or empty\n' +
-          '2. Component discovery failed\n' +
-          '3. All components filtered out by recommendations\n\n' +
-          'Try running with --verbose flag for more details.'
-        );
-      }
-
       selectedComponents = (await checkbox({
-        message: 'Select components to install:',
+        message: 'Select individual components to install:',
         choices: allComponents,
       })) as string[];
+    } else {
+      // New improved two-step selection process
+      selectedComponents = await performTwoStepSelection(projectInfo);
     }
 
     // Step 5: Configuration options
