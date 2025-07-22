@@ -53,47 +53,52 @@ const COMMAND_GROUPS: CommandGroup[] = [
   }
 ];
 
-interface HookQualityLevel {
+interface HookGroup {
   id: string;
   name: string;
   description: string;
   hooks: string[];
-  suitable: string;
+  recommended: boolean;
+  triggerEvent: string;
 }
 
-const HOOK_QUALITY_LEVELS: HookQualityLevel[] = [
+const HOOK_GROUPS: HookGroup[] = [
   {
-    id: 'basic-safety',
-    name: '🔒 Basic Safety',
-    description: 'Essential safety nets that work for any git project',
+    id: 'file-validation',
+    name: '📝 File Validation (PostToolUse)',
+    description: 'Validate individual files immediately after modification',
+    hooks: ['eslint', 'typecheck'],
+    recommended: true,
+    triggerEvent: 'PostToolUse'
+  },
+  {
+    id: 'test-runner',
+    name: '🧪 Test Runner (PostToolUse)', 
+    description: 'Run tests related to modified files for immediate feedback',
+    hooks: ['run-related-tests'],
+    recommended: false,
+    triggerEvent: 'PostToolUse'
+  },
+  {
+    id: 'safety-checkpoint',
+    name: '💾 Safety Checkpoint (Stop)',
+    description: 'Automatically save work when Claude Code stops',
     hooks: ['auto-checkpoint'],
-    suitable: 'All projects - provides automatic checkpoints when stopping'
+    recommended: true,
+    triggerEvent: 'Stop'
   },
   {
-    id: 'standard-quality',
-    name: '📊 Standard Quality',
-    description: 'Basic safety plus language-specific validation for JS/TS projects',
-    hooks: ['auto-checkpoint', 'eslint', 'typecheck', 'validate-todo-completion'],
-    suitable: 'JavaScript/TypeScript projects with moderate quality requirements'
-  },
-  {
-    id: 'comprehensive-quality',
-    name: '🎯 Comprehensive Quality',
-    description: 'Full validation suite with testing and project-wide quality checks',
-    hooks: ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'],
-    suitable: 'Production projects requiring maximum quality assurance'
-  },
-  {
-    id: 'custom-selection',
-    name: '⚙️ Custom Selection',
-    description: 'Choose individual hooks manually for advanced users',
-    hooks: [],
-    suitable: 'Power users who want granular control over hook selection'
+    id: 'completion-validation',
+    name: '✅ Completion Validation (Stop)',
+    description: 'Ensure quality and task completion before stopping',
+    hooks: ['project-validation', 'validate-todo-completion'],
+    recommended: false,
+    triggerEvent: 'Stop'
   }
 ];
 
 /**
- * Perform improved two-step selection: command groups then hook quality levels
+ * Perform improved two-step selection: command groups then hook groups
  */
 async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
   const selectedComponents: string[] = [];
@@ -137,68 +142,108 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     }
   }
 
-  // Step 2: Hook Quality Level Selection
-  console.log(`\n${Colors.bold('Step 2: Choose Quality Level')}`);
-  console.log(Colors.dim('Select automated validation hooks for code quality'));
+  // Step 2: Hook Group Selection
+  console.log(`\n${Colors.bold('Step 2: Choose Validation Hooks')}`);
+  console.log(Colors.dim('Select automated hooks by when they run and what they do'));
 
-  // Determine default quality level based on project
-  let defaultQuality = 'basic-safety';
-  if (projectInfo.hasTypeScript || projectInfo.hasEslint) {
-    defaultQuality = 'standard-quality';
-  }
+  const hookGroupChoices = HOOK_GROUPS.map(group => ({
+    value: group.id,
+    name: group.name,
+    description: group.description,
+    hooks: group.hooks,
+    checked: group.recommended && (
+      // Only recommend JS/TS hooks if project uses those languages
+      group.id === 'file-validation' ? (projectInfo.hasTypeScript || projectInfo.hasEslint) : true
+    ),
+    triggerEvent: group.triggerEvent
+  }));
 
-  const hookLevelChoices = HOOK_QUALITY_LEVELS.map(level => {
-    const hooksList = level.hooks.length > 0 ? level.hooks.join(', ') : 'Choose manually';
+  const hookChoices = hookGroupChoices.map(choice => {
+    const group = HOOK_GROUPS.find(g => g.id === choice.value);
+    const hooksList = group ? group.hooks.join(', ') : '';
     return {
-      value: level.id,
-      name: `${level.name}\n  ${Colors.dim(level.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}\n  ${Colors.accent('Best for:')} ${Colors.dim(level.suitable)}`,
+      value: choice.value,
+      name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}`,
+      checked: choice.checked,
       disabled: false
     };
   });
 
+  // Add custom selection option
+  const customChoice = {
+    value: '__CUSTOM__',
+    name: `${Colors.bold('⚙️  Custom Selection')}\n  ${Colors.dim('Choose individual hooks manually for fine-grained control')}`,
+    checked: false,
+    disabled: false
+  };
+
+  const allHookChoices = [...hookChoices, customChoice];
+
   // Add navigation hint
-  console.log(Colors.dim(`\n(${hookLevelChoices.length} quality levels available)\n`));
+  console.log(Colors.dim(`\n(${hookChoices.length} hook groups + custom option available - press 'a' to toggle all)\n`));
 
-  const selectedQualityLevel = (await select({
-    message: 'Choose your quality level:',
-    choices: hookLevelChoices,
-    default: defaultQuality
-  })) as string;
+  const selectedHookGroups = (await checkbox({
+    message: 'Select hook groups to install:',
+    choices: allHookChoices,
+    pageSize: 10
+  })) as string[];
 
-  if (selectedQualityLevel === 'custom-selection') {
-    // Allow custom hook selection for power users
+  // Handle custom selection
+  if (selectedHookGroups.includes('__CUSTOM__')) {
     const availableHooks = ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'];
-    const hookChoices = availableHooks.map(hook => {
+    const individualHookChoices = availableHooks.map(hook => {
       let description = '';
+      let triggerEvent = '';
       switch (hook) {
-        case 'auto-checkpoint': description = 'Automatic git checkpoints when stopping'; break;
-        case 'eslint': description = 'ESLint validation for JS/TS files'; break;
-        case 'typecheck': description = 'TypeScript type checking'; break;
-        case 'run-related-tests': description = 'Run tests related to modified files'; break;
-        case 'project-validation': description = 'Comprehensive project validation'; break;
-        case 'validate-todo-completion': description = 'Ensure todos are completed'; break;
+        case 'auto-checkpoint': 
+          description = 'Automatic git checkpoints when stopping';
+          triggerEvent = 'Stop';
+          break;
+        case 'eslint': 
+          description = 'ESLint validation for JS/TS files';
+          triggerEvent = 'PostToolUse';
+          break;
+        case 'typecheck': 
+          description = 'TypeScript type checking';
+          triggerEvent = 'PostToolUse';
+          break;
+        case 'run-related-tests': 
+          description = 'Run tests related to modified files';
+          triggerEvent = 'PostToolUse';
+          break;
+        case 'project-validation': 
+          description = 'Comprehensive project validation';
+          triggerEvent = 'Stop';
+          break;
+        case 'validate-todo-completion': 
+          description = 'Ensure todos are completed';
+          triggerEvent = 'Stop';
+          break;
       }
       return {
         value: hook,
-        name: `${hook} - ${description}`,
-        checked: hook === 'auto-checkpoint' // Default to basic safety
+        name: `${hook} (${triggerEvent})\n  ${Colors.dim(description)}`,
+        checked: false
       };
     });
 
-    console.log(Colors.dim(`\n(${hookChoices.length} hooks available - press 'a' to toggle all)\n`));
+    console.log(Colors.dim(`\n(${individualHookChoices.length} individual hooks available - press 'a' to toggle all)\n`));
     
-    const selectedHooks = (await checkbox({
+    const selectedIndividualHooks = (await checkbox({
       message: 'Select individual hooks:',
-      choices: hookChoices,
+      choices: individualHookChoices,
       pageSize: 10
     })) as string[];
 
-    selectedComponents.push(...selectedHooks);
-  } else {
-    // Add hooks from selected quality level
-    const qualityLevel = HOOK_QUALITY_LEVELS.find(level => level.id === selectedQualityLevel);
-    if (qualityLevel) {
-      selectedComponents.push(...qualityLevel.hooks);
+    selectedComponents.push(...selectedIndividualHooks);
+  }
+
+  // Add selected hooks from groups (excluding custom)
+  const regularGroups = selectedHookGroups.filter(id => id !== '__CUSTOM__');
+  for (const groupId of regularGroups) {
+    const group = HOOK_GROUPS.find(g => g.id === groupId);
+    if (group) {
+      selectedComponents.push(...group.hooks);
     }
   }
 
