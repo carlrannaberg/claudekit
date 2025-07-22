@@ -165,14 +165,19 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
   // Add hint
   console.log(Colors.dim(`\n(${HOOK_GROUPS.length} groups + custom option - use space to toggle, enter to confirm)\n`));
 
-  const selectedHookGroups = (await checkbox({
+  let selectedHookGroups = (await checkbox({
     message: 'Select hook groups to install:',
     choices: allHookChoices,
     pageSize: 20 // Large page size ensures all options are visible without scrolling
   })) as string[];
 
-  // Handle custom selection
-  if (selectedHookGroups.includes('__CUSTOM__')) {
+  // If other groups are selected along with custom, remove custom to avoid confusion
+  if (selectedHookGroups.length > 1 && selectedHookGroups.includes('__CUSTOM__')) {
+    selectedHookGroups = selectedHookGroups.filter(id => id !== '__CUSTOM__');
+  }
+
+  // Handle custom selection only if it's the only selection
+  if (selectedHookGroups.length === 1 && selectedHookGroups[0] === '__CUSTOM__') {
     const availableHooks = ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'];
     const individualHookChoices = availableHooks.map(hook => {
       let description = '';
