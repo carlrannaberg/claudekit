@@ -9,8 +9,17 @@ Clean up temporary files and debug artifacts that Claude Code commonly creates d
 
 ## Context
 
-- Git status and directory: !bash -c 'git status --porcelain && git status --ignored --porcelain | grep "^!!" && echo "--- PWD: $(pwd) ---" && ls -la'
-- Check if working directory is clean: !bash -c 'if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true"; git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi'
+Git status and directory:
+!git status --porcelain
+!git status --ignored --porcelain | grep "^!!" || echo "No ignored files"
+!pwd
+!ls -la
+
+Check working directory status:
+!git status --porcelain | wc -l | xargs -I {} sh -c 'if [ {} -eq 0 ]; then echo "WORKING_DIR_CLEAN=true"; else echo "WORKING_DIR_CLEAN=false"; fi'
+
+If working directory is clean, check for committed cleanup candidates:
+!git ls-files | grep -E "(analyze-|debug-|test-|research-|quick-test|verify-|temp-|_SUMMARY|_REPORT|_CHECKLIST|_COMPLETE|_GUIDE|_ANALYSIS|-analysis|-examples)\.(js|ts|md)" | head -20 || echo "No cleanup candidates found"
 
 Launch ONE subagent to analyze the git status (including ignored files) and propose files for deletion. If the working directory is clean, also check for committed files that match cleanup patterns.
 
