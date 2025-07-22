@@ -461,7 +461,7 @@ function createComponentId(filePath: string, type: ComponentType): string {
     return fileName;
   }
 
-  return `${parentDir}-${fileName}`;
+  return `${parentDir}:${fileName}`;
 }
 
 /**
