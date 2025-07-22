@@ -700,6 +700,9 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       }
 
       progressReporter.succeed('Installation complete!');
+      
+      // Complete the install progress reporter
+      installProgressReporter.complete();
 
       // Show next steps unless quiet mode
       if (options.quiet !== true) {
