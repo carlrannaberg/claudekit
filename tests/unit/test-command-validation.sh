@@ -42,7 +42,7 @@ test_command_has_valid_frontmatter() {
         local full_path="${BASH_SOURCE%/*}/$cmd_file"
         if [[ -f "$full_path" ]]; then
             # Check for frontmatter markers
-            assert_file_contains "$full_path" "---" "Command $cmd_file should have frontmatter"
+            assert_file_contains "$full_path" "^---" "Command $cmd_file should have frontmatter"
             assert_file_contains "$full_path" "description:" "Command $cmd_file should have description"
         fi
     done

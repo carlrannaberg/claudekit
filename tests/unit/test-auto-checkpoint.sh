@@ -111,9 +111,10 @@ esac
 }
 
 test_checkpoint_includes_timestamp_in_message() {
-    # Setup: Mock git with changes
-    local stash_message=""
+    # Setup: Mock git with changes and log commands
+    local git_commands_log="$PWD/git-commands.log"
     create_mock_command "git" "
+echo \"\$*\" >> '$git_commands_log'
 case \"\$1\" in
     status)
         echo 'Changes not staged for commit:'
@@ -125,8 +126,6 @@ case \"\$1\" in
             echo 'abc123def456'
             exit 0
         elif [[ \"\$2\" == 'store' ]]; then
-            # Capture the message
-            echo \"Stash message: \$*\" >&2
             exit 0
         fi
         ;;
@@ -134,11 +133,13 @@ esac
 "
     
     # Execute hook
-    local output=$("$HOOK_PATH" 2>&1)
+    "$HOOK_PATH" 2>&1
+    local exit_code=$?
     
     # Should include timestamp in stash message
-    assert_contains "$output" "claude-checkpoint:" "Should use claude-checkpoint prefix"
-    assert_contains "$output" "Auto-save at" "Should include auto-save message"
+    assert_exit_code 0 $exit_code "Should succeed with uncommitted changes"
+    assert_file_contains "$git_commands_log" "claude-checkpoint:" "Should use claude-checkpoint prefix"
+    assert_file_contains "$git_commands_log" "Auto-save at" "Should include auto-save message"
 }
 
 test_checkpoint_handles_stash_create_failure() {
