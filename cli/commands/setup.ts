@@ -47,7 +47,7 @@ const COMMAND_GROUPS: CommandGroup[] = [
   {
     id: 'spec-management',
     name: '📋 Specification Management',
-    description: 'Spec-driven development: create, validate, and execute specifications',
+    description: 'Spec-driven development: create, validate, decompose, and execute specifications',
     commands: ['spec:create', 'spec:validate', 'spec:decompose', 'spec:execute'],
     recommended: false
   }
