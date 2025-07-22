@@ -17,7 +17,7 @@ import {
   installComponents,
 } from '../lib/index.js';
 import { findComponentsDirectory } from '../lib/paths.js';
-import type { Component, Platform } from '../types/index.js';
+import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 
 // Command group definitions for improved setup flow
@@ -92,7 +92,7 @@ const HOOK_GROUPS: HookGroup[] = [
 /**
  * Perform improved two-step selection: command groups then hook groups
  */
-async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
+async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string[]> {
   const selectedComponents: string[] = [];
 
   // Step 1: Command Group Selection
@@ -137,7 +137,7 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     hooks: group.hooks,
     checked: group.recommended && (
       // Only recommend JS/TS hooks if project uses those languages
-      group.id === 'file-validation' ? (projectInfo.hasTypeScript || projectInfo.hasEslint) : true
+      group.id === 'file-validation' ? (projectInfo.hasTypeScript === true || projectInfo.hasESLint === true) : true
     ),
     triggerEvent: group.triggerEvent
   }));
@@ -147,7 +147,7 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     return {
       value: group.id,
       name: `${group.name}\n  ${Colors.dim(group.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}`,
-      checked: hookGroupChoices.find(g => g.value === group.id)?.checked || false,
+      checked: hookGroupChoices.find(g => g.value === group.id)?.checked ?? false,
       disabled: false
     };
   });
@@ -397,7 +397,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     let srcDir: string;
     try {
       srcDir = await findComponentsDirectory();
-      if (options.verbose) {
+      if (options.verbose === true) {
         console.log(`Components directory found at: ${srcDir}`);
       }
     } catch (error) {
@@ -407,13 +407,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       );
     }
     const registry = await discoverComponents(srcDir);
-    if (options.verbose) {
+    if (options.verbose === true) {
       console.log(`Discovered ${registry.components.size} components in ${registry.categories.size} categories`);
     }
 
     progressReporter.update('Generating recommendations...');
     const recommendations = await recommendComponents(projectInfo, registry);
-    if (options.verbose) {
+    if (options.verbose === true) {
       console.log(`Generated ${recommendations.recommended.length} recommended and ${recommendations.optional.length} optional components`);
     }
 
@@ -680,7 +680,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         );
         
         if (!userResult.success) {
-          throw new Error(userResult.errors?.[0] || 'User installation failed');
+          throw new Error((userResult.errors?.[0] !== null && userResult.errors?.[0] !== undefined && userResult.errors[0] !== '') ? userResult.errors[0] : 'User installation failed');
         }
       }
 
@@ -703,7 +703,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         );
         
         if (!projectResult.success) {
-          throw new Error(projectResult.errors?.[0] || 'Project installation failed');
+          throw new Error((projectResult.errors?.[0] !== null && projectResult.errors?.[0] !== undefined && projectResult.errors[0] !== '') ? projectResult.errors[0] : 'Project installation failed');
         }
 
         // Create settings.json with hook configurations
@@ -714,10 +714,10 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       progressReporter.succeed('Installation complete!');
       
       // Clean up settings backup file if it was created
-      if (settingsBackupPath) {
+      if (settingsBackupPath !== null && settingsBackupPath !== undefined && settingsBackupPath !== '') {
         try {
           await fs.unlink(settingsBackupPath);
-          if (options.verbose) {
+          if (options.verbose === true) {
             console.log(Colors.dim(`Cleaned up settings backup: ${settingsBackupPath}`));
           }
         } catch (error) {
@@ -787,16 +787,16 @@ async function createProjectSettings(claudeDir: string, components: Component[],
   };
   
   // Ensure required structure exists
-  if (!settings.hooks) {
+  if (settings.hooks === null || settings.hooks === undefined) {
     settings.hooks = {
       PostToolUse: [],
       Stop: [],
     };
   }
-  if (!settings.hooks.PostToolUse) {
+  if (settings.hooks.PostToolUse === null || settings.hooks.PostToolUse === undefined) {
     settings.hooks.PostToolUse = [];
   }
-  if (!settings.hooks.Stop) {
+  if (settings.hooks.Stop === null || settings.hooks.Stop === undefined) {
     settings.hooks.Stop = [];
   }
 
@@ -907,7 +907,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
     const existingContent = await fs.readFile(settingsPath, 'utf-8');
     if (existingContent !== newContent) {
       // In non-interactive mode, throw error
-      if (options.interactive === false && !options.force) {
+      if (options.interactive === false && options.force !== true) {
         throw new Error(
           `\nFile conflict detected: ${settingsPath} already exists with different content.\n` +
           `To overwrite existing files, run with --force flag.`
@@ -915,7 +915,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       }
       
       // In interactive mode, prompt for confirmation
-      if (!options.force) {
+      if (options.force !== true) {
         // Interactive conflict resolution
         if (options.onPromptStart) {
           options.onPromptStart();

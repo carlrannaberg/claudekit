@@ -336,7 +336,7 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
     if (bashCommands) {
       bashCommands.forEach((cmd) => {
         // Skip self-reference
-        if (componentId && cmd === componentId) {
+        if (componentId !== null && componentId !== undefined && componentId !== '' && cmd === componentId) {
           return;
         }
         dependencies.add(cmd);

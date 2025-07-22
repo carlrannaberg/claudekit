@@ -822,7 +822,7 @@ async function executeStep(
         step.source, 
         step.target, 
         options.backup !== false,
-        options.force ? undefined : async (_source: string, target: string) => {
+        options.force === true ? undefined : async (_source: string, target: string): Promise<boolean> => {
           // Check if we're in non-interactive mode
           if (options.interactive === false) {
             throw new Error(

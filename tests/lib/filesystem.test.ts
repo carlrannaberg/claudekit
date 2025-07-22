@@ -48,7 +48,11 @@ vi.mock('crypto', async () => {
 });
 
 // Create a reference to the mocked crypto after imports
-let mockCrypto: any;
+const mockCrypto: {
+  createHash: ReturnType<typeof vi.fn>;
+} = {} as {
+  createHash: ReturnType<typeof vi.fn>;
+};
 
 // Import after mocking
 import {
@@ -79,7 +83,9 @@ const mockFs = fs as unknown as {
 // const mockOs = os as any; // Removed unused variable
 
 // Initialize mockCrypto reference after imports
-mockCrypto = crypto as any;
+Object.assign(mockCrypto, crypto as unknown as {
+  createHash: ReturnType<typeof vi.fn>;
+});
 
 describe('filesystem module', () => {
   beforeEach(() => {

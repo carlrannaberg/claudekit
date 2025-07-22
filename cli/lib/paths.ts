@@ -74,7 +74,7 @@ export async function findComponentsDirectory(): Promise<string> {
  * Get the user's home .claude directory
  */
 export function getUserClaudeDirectory(): string {
-  const homeDir = process.env['HOME'] || process.env['USERPROFILE'] || '';
+  const homeDir = process.env['HOME'] ?? process.env['USERPROFILE'] ?? '';
   if (!homeDir) {
     throw new Error('Could not determine user home directory');
   }
@@ -85,6 +85,6 @@ export function getUserClaudeDirectory(): string {
  * Get the project's .claude directory
  */
 export function getProjectClaudeDirectory(projectPath?: string): string {
-  const basePath = projectPath || process.cwd();
+  const basePath = projectPath ?? process.cwd();
   return path.join(basePath, '.claude');
 }
