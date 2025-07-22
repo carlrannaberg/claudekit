@@ -542,27 +542,33 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (config.installationType !== 'user') {
         console.log(`Project path: ${Colors.accent(config.projectPath)}`);
       }
-      console.log(`\nComponents to install (${config.selectedComponents.length}):`);
-      config.selectedComponents.forEach((id) => {
-        const componentFile = registry.components.get(id);
-        if (componentFile !== undefined) {
-          console.log(`  • ${componentFile.metadata.name}`);
-        }
-      });
+      // Separate commands and hooks for clearer display
+      const selectedCommands = config.selectedComponents.filter(id => 
+        registry.components.get(id)?.type === 'command'
+      );
+      const selectedHooks = config.selectedComponents.filter(id => 
+        registry.components.get(id)?.type === 'hook'
+      );
 
-      console.log('\nOptions:');
-      console.log(
-        `  • Auto checkpoint: ${config.options.autoCheckpoint ? Colors.success('✓') : Colors.error('✗')}`
-      );
-      console.log(
-        `  • Validate TODOs: ${config.options.validateTodos ? Colors.success('✓') : Colors.error('✗')}`
-      );
-      console.log(
-        `  • Run tests: ${config.options.runTests ? Colors.success('✓') : Colors.error('✗')}`
-      );
-      console.log(
-        `  • Git integration: ${config.options.gitIntegration ? Colors.success('✓') : Colors.error('✗')}`
-      );
+      if (selectedCommands.length > 0) {
+        console.log(`\nSlash commands (${selectedCommands.length}):`);
+        selectedCommands.forEach((id) => {
+          const componentFile = registry.components.get(id);
+          if (componentFile !== undefined) {
+            console.log(`  • /${id}`);
+          }
+        });
+      }
+
+      if (selectedHooks.length > 0) {
+        console.log(`\nValidation hooks (${selectedHooks.length}):`);
+        selectedHooks.forEach((id) => {
+          const componentFile = registry.components.get(id);
+          if (componentFile !== undefined) {
+            console.log(`  • ${componentFile.metadata.name}`);
+          }
+        });
+      }
     }
 
     // Ask for confirmation unless non-interactive mode
