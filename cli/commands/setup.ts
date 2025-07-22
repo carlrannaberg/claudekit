@@ -72,19 +72,19 @@ const HOOK_GROUPS: HookGroup[] = [
     triggerEvent: 'PostToolUse'
   },
   {
-    id: 'safety-checkpoint',
-    name: '💾 Safety Checkpoint (Stop)',
-    description: 'Automatically save work when Claude Code stops',
-    hooks: ['auto-checkpoint'],
-    recommended: false,
-    triggerEvent: 'Stop'
-  },
-  {
     id: 'completion-validation',
     name: '✅ Completion Validation (Stop)',
     description: 'Ensure quality and task completion before stopping',
     hooks: ['project-validation', 'validate-todo-completion'],
     recommended: true,
+    triggerEvent: 'Stop'
+  },
+  {
+    id: 'safety-checkpoint',
+    name: '💾 Safety Checkpoint (Stop)',
+    description: 'Automatically save work when Claude Code stops',
+    hooks: ['auto-checkpoint'],
+    recommended: false,
     triggerEvent: 'Stop'
   }
 ];
