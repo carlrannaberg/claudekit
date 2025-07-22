@@ -88,7 +88,7 @@ echo "2. Another step"
 - Specify `allowed-tools` for security in frontmatter
 - Use `$ARGUMENTS` for user input
 - Support dynamic content:
-  - `!command` - Execute bash commands and include output
+  - `\!command` - Execute bash commands and include output (note: exclamation mark must be escaped with backslash)
   - `@file` - Include file contents
   - `$ARGUMENTS` - User-provided arguments
 - Provide clear numbered steps for Claude to follow
