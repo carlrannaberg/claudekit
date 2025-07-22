@@ -90,9 +90,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
         message: `Found ${hooks.length} hook(s)`,
       });
     } catch {
+      // Hooks directory doesn't exist - this is valid, just means no hooks installed
       legacyResults.push({
-        passed: false,
-        message: 'hooks directory not found',
+        passed: true,
+        message: 'No hooks installed',
       });
     }
 
@@ -121,9 +122,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
         message: `Found ${commandCount} command(s)`,
       });
     } catch {
+      // Commands directory doesn't exist - this is valid, just means no commands installed
       legacyResults.push({
-        passed: false,
-        message: 'commands directory not found',
+        passed: true,
+        message: 'No commands installed',
       });
     }
 
@@ -195,6 +197,20 @@ export async function validate(options: ValidateOptions): Promise<void> {
           console.log(Colors.dim('• Development prerequisites'));
         }
       }
+      
+      // Show helpful suggestions for empty installations
+      const suggestions: string[] = [];
+      if (legacyResults.some((r) => r.message === 'No hooks installed')) {
+        suggestions.push('• Run "claudekit setup" to install hooks');
+      }
+      if (legacyResults.some((r) => r.message === 'No commands installed')) {
+        suggestions.push('• Run "claudekit setup" to install commands');
+      }
+      
+      if (suggestions.length > 0) {
+        console.log(Colors.dim('\nTo get started:'));
+        suggestions.forEach(s => console.log(Colors.dim(s)));
+      }
     } else {
       console.log(Colors.bold(Colors.error('Some validation checks failed.')));
 
@@ -206,12 +222,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
       if (legacyResults.some((r) => !r.passed && r.message.includes('settings.json'))) {
         console.log(Colors.warn('• Check your .claude/settings.json file for syntax errors'));
       }
-      if (legacyResults.some((r) => !r.passed && r.message.includes('hooks directory'))) {
-        console.log(Colors.warn('• Run "claudekit setup" to install hooks'));
-      }
-      if (legacyResults.some((r) => !r.passed && r.message.includes('commands directory'))) {
-        console.log(Colors.warn('• Run "claudekit setup" to install commands'));
-      }
+      // Hooks/commands suggestions are now shown in the success case
 
       process.exit(1);
     }
