@@ -109,17 +109,24 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     checked: group.recommended
   }));
 
+  const commandChoices = commandGroupChoices.map(choice => {
+    const group = COMMAND_GROUPS.find(g => g.id === choice.value);
+    const commandList = group ? group.commands.map(cmd => `/${cmd}`).join(', ') : '';
+    return {
+      value: choice.value,
+      name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
+      checked: choice.checked,
+      disabled: false
+    };
+  });
+
+  // Add navigation hint
+  console.log(Colors.dim(`\n(${commandChoices.length} groups available - use arrow keys to navigate)\n`));
+
   const selectedGroups = (await checkbox({
     message: 'Select command groups to install:',
-    choices: commandGroupChoices.map(choice => {
-      const group = COMMAND_GROUPS.find(g => g.id === choice.value);
-      const commandList = group ? group.commands.map(cmd => `/${cmd}`).join(', ') : '';
-      return {
-        value: choice.value,
-        name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
-        checked: choice.checked
-      };
-    })
+    choices: commandChoices,
+    pageSize: 10 // Show more items at once to reduce scrolling
   })) as string[];
 
   // Add selected commands from groups
@@ -145,13 +152,17 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     return {
       value: level.id,
       name: `${level.name}\n  ${Colors.dim(level.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}\n  ${Colors.accent('Best for:')} ${Colors.dim(level.suitable)}`,
-      checked: level.id === defaultQuality
+      disabled: false
     };
   });
 
+  // Add navigation hint
+  console.log(Colors.dim(`\n(${hookLevelChoices.length} quality levels available)\n`));
+
   const selectedQualityLevel = (await select({
     message: 'Choose your quality level:',
-    choices: hookLevelChoices
+    choices: hookLevelChoices,
+    default: defaultQuality
   })) as string;
 
   if (selectedQualityLevel === 'custom-selection') {
@@ -174,9 +185,12 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
       };
     });
 
+    console.log(Colors.dim(`\n(${hookChoices.length} hooks available)\n`));
+    
     const selectedHooks = (await checkbox({
       message: 'Select individual hooks:',
-      choices: hookChoices
+      choices: hookChoices,
+      pageSize: 10
     })) as string[];
 
     selectedComponents.push(...selectedHooks);
