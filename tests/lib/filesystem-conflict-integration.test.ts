@@ -110,7 +110,11 @@ describe('File Conflict Detection - Integration Tests', () => {
       expect(backupFiles).toHaveLength(1);
       
       // Verify backup contains original content
-      const backupPath = path.join(tempDir, backupFiles[0]!);
+      const backupFileName = backupFiles[0];
+      if (backupFileName === undefined || backupFileName === null || backupFileName === '') {
+        throw new Error('Expected backup file not found');
+      }
+      const backupPath = path.join(tempDir, backupFileName);
       const backupContent = await fs.readFile(backupPath, 'utf-8');
       expect(backupContent).toBe(targetContent);
       
