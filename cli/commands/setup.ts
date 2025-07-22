@@ -66,17 +66,9 @@ const HOOK_GROUPS: HookGroup[] = [
   {
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
-    description: 'Validate individual files immediately after modification',
-    hooks: ['eslint', 'typecheck'],
+    description: 'Validate files immediately after modification - linting, types, and tests',
+    hooks: ['eslint', 'typecheck', 'run-related-tests'],
     recommended: true,
-    triggerEvent: 'PostToolUse'
-  },
-  {
-    id: 'test-runner',
-    name: '🧪 Test Runner (PostToolUse)', 
-    description: 'Run tests related to modified files for immediate feedback',
-    hooks: ['run-related-tests'],
-    recommended: false,
     triggerEvent: 'PostToolUse'
   },
   {
