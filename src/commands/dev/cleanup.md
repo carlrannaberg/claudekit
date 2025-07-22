@@ -54,14 +54,14 @@ Launch ONE subagent to analyze the git status (including ignored files) and prop
 ## Safety Rules
 
 **Files safe to propose for deletion:**
-- Must be untracked (`??` in git status) OR ignored (`!!` in git status)
+- Must be untracked (?? in git status) OR ignored (!! in git status)
 - Should match or be similar to cleanup patterns above
 - Must be clearly temporary/debug files
 
 **Never propose these files:**
-- Any committed files (not marked `??` or `!!`) unless working directory is clean
-- `CHANGELOG.md`, `README.md`, `AGENT.md`, `CLAUDE.md` (even if untracked)
-- Core project directories: `src/`, `dist/`, `scripts/`, `node_modules/`, etc.
+- Any committed files (not marked ?? or !!) unless working directory is clean
+- CHANGELOG.md, README.md, AGENT.md, CLAUDE.md (even if untracked)
+- Core project directories: src/, dist/, scripts/, node_modules/, etc.
 - Standard test directories: `test/`, `tests/`, `__tests__/` (without hyphens)
 - Any files you're uncertain about
 
@@ -72,7 +72,7 @@ Launch ONE subagent to:
 1. **Analyze the git status output** provided in the context above
 2. **Check if WORKING_DIR_CLEAN=true**: If so, also analyze committed files that match cleanup patterns
 3. **Identify cleanup candidates**:
-   - For dirty working directory: Focus on untracked (`??`) and ignored (`!!`) files
+   - For dirty working directory: Focus on untracked (??) and ignored (!!) files
    - For clean working directory: Also include committed files matching cleanup patterns
 4. **Create a proposal list** of files and directories to delete
 5. **Present the list to the user** for approval before any deletion
@@ -80,7 +80,7 @@ Launch ONE subagent to:
 
 The agent should provide:
 - Clear list of proposed deletions with reasons
-- For untracked files: Confirmation they are marked (`??`) or (`!!`)
+- For untracked files: Confirmation they are marked (??) or (!!)
 - For committed files: Clear indication they are committed and match debug/temp patterns
 - Ask user for explicit approval before proceeding
 
