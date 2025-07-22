@@ -805,15 +805,20 @@ async function executeStep(
         options.backup !== false,
         options.force ? undefined : async (_source: string, target: string) => {
           // Interactive conflict resolution (skip if force is true)
-          console.log(`\n${Colors.warn('File conflict detected!')}`);
+          // Clear the progress spinner line to ensure prompt is visible
+          process.stdout.write('\x1B[2K\x1B[1A\x1B[2K\r');
+          
+          console.log(`\n${Colors.warn('━━━ File Conflict Detected ━━━')}`);
           console.log(`Target file: ${Colors.accent(target)}`);
           console.log(`This file already exists with different content.`);
+          console.log('');
           
           const shouldOverwrite = await confirm({
             message: 'Do you want to overwrite the existing file?',
             default: false
           });
           
+          console.log(''); // Add spacing after prompt
           return shouldOverwrite;
         }
       );
