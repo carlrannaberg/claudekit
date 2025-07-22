@@ -514,43 +514,12 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       selectedComponents = await performTwoStepSelection(projectInfo);
     }
 
-    // Step 5: Configuration options
-    let autoCheckpoint: boolean;
-    let validateTodos: boolean;
-    let runTests: boolean;
-    let gitIntegration: boolean;
-
-    if (options.yes === true || options.commands !== undefined || options.hooks !== undefined || options.commandsOnly === true) {
-      // Default configuration for non-interactive mode
-      autoCheckpoint = true;
-      validateTodos = true;
-      runTests = projectInfo.hasJest === true || projectInfo.hasVitest === true;
-      gitIntegration = projectInfo.isGitRepository === true || true;
-    } else {
-      // Interactive configuration
-      console.log(`\n${Colors.bold('Configuration Options')}`);
-      console.log(Colors.dim('─'.repeat(40)));
-
-      autoCheckpoint = await confirm({
-        message: 'Enable automatic git checkpointing?',
-        default: true,
-      });
-
-      validateTodos = await confirm({
-        message: 'Enable TODO validation on stop?',
-        default: true,
-      });
-
-      runTests = await confirm({
-        message: 'Run related tests after file changes?',
-        default: projectInfo.hasJest === true || projectInfo.hasVitest === true,
-      });
-
-      gitIntegration = await confirm({
-        message: 'Enable git workflow commands?',
-        default: projectInfo.isGitRepository === true || true,
-      });
-    }
+    // Step 5: Set configuration based on selected components
+    // These are now determined by which hooks/commands the user selected
+    const autoCheckpoint = selectedComponents.includes('auto-checkpoint');
+    const validateTodos = selectedComponents.includes('validate-todo-completion');
+    const runTests = selectedComponents.includes('run-related-tests');
+    const gitIntegration = selectedComponents.some(id => id.startsWith('git:') || id.startsWith('checkpoint:'));
 
     // Step 6: Confirmation
     const config: SetupConfig = {
