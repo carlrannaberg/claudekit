@@ -46,8 +46,8 @@ const COMMAND_GROUPS: CommandGroup[] = [
   },
   {
     id: 'ai-assistant',
-    name: '🤖 AI Assistant Management',
-    description: 'Configure AI assistants, capture tool docs, and manage AGENT.md',
+    name: '🤖 AI Assistant Configuration',
+    description: 'Initialize, migrate, and enhance AGENT.md files for AI coding assistants',
     commands: ['agent:init', 'agent:migration', 'agent:cli'],
     recommended: false
   },
@@ -125,11 +125,15 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
 
   const selectedGroups = (await checkbox({
     message: 'Select command groups to install:',
-    choices: commandGroupChoices.map(choice => ({
-      value: choice.value,
-      name: `${choice.name}\n  ${Colors.dim(choice.description)}`,
-      checked: choice.checked
-    }))
+    choices: commandGroupChoices.map(choice => {
+      const group = COMMAND_GROUPS.find(g => g.id === choice.value);
+      const commandList = group ? group.commands.map(cmd => `/${cmd}`).join(', ') : '';
+      return {
+        value: choice.value,
+        name: `${choice.name}\n  ${Colors.dim(choice.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
+        checked: choice.checked
+      };
+    })
   })) as string[];
 
   // Add selected commands from groups
@@ -150,11 +154,14 @@ async function performTwoStepSelection(projectInfo: any): Promise<string[]> {
     defaultQuality = 'standard-quality';
   }
 
-  const hookLevelChoices = HOOK_QUALITY_LEVELS.map(level => ({
-    value: level.id,
-    name: `${level.name}\n  ${Colors.dim(level.description)}\n  ${Colors.accent('→')} ${Colors.dim(level.suitable)}`,
-    checked: level.id === defaultQuality
-  }));
+  const hookLevelChoices = HOOK_QUALITY_LEVELS.map(level => {
+    const hooksList = level.hooks.length > 0 ? level.hooks.join(', ') : 'Choose manually';
+    return {
+      value: level.id,
+      name: `${level.name}\n  ${Colors.dim(level.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}\n  ${Colors.accent('Best for:')} ${Colors.dim(level.suitable)}`,
+      checked: level.id === defaultQuality
+    };
+  });
 
   const selectedQualityLevel = (await select({
     message: 'Choose your quality level:',
