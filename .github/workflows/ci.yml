@@ -147,9 +147,10 @@ jobs:
       run: |
         echo "📊 Validating test coverage..."
         
-        # Count total tests
-        total_tests=$(./tests/run-tests.sh | grep -E "Passed:|Failed:|Total:" | tail -1 | grep -oE "Total:\s+[0-9]+" | grep -oE "[0-9]+")
-        passed_tests=$(./tests/run-tests.sh | grep -E "Passed:|Failed:|Total:" | tail -1 | grep -oE "Passed:\s+[0-9]+" | grep -oE "[0-9]+")
+        # Count total tests (capture output once, strip ANSI codes)
+        test_output=$(./tests/run-tests.sh | sed 's/\x1b\[[0-9;]*m//g')
+        total_tests=$(echo "$test_output" | grep -E "Tests run:" | tail -1 | grep -oE "[0-9]+" | head -1)
+        passed_tests=$(echo "$test_output" | grep -E "Passed:" | tail -1 | grep -oE "[0-9]+")
         
         echo "Total tests: $total_tests"
         echo "Passed tests: $passed_tests"
