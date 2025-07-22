@@ -1,5 +1,6 @@
 ---
 description: Capture CLI tool help documentation and add it to CLAUDE.md for AI assistant reference
+category: ai-assistant
 allowed-tools: Bash(*:--help), Bash(*:-h), Bash(*:help), Bash(which:*), Edit, Read
 argument-hint: "<cli-tool-name>"
 ---

@@ -1,5 +1,6 @@
 ---
 description: Restore project to a previous checkpoint
+category: workflow
 allowed-tools: Bash(git stash:*), Bash(git status:*), Bash(git reset:*)
 argument-hint: "<checkpoint-number|latest>"
 ---

@@ -626,31 +626,20 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         })
         .filter((c): c is Component => c !== undefined);
 
-      // Filter components based on options
-      const finalComponents = componentsToInstall.filter((component) => {
-        if (config.options.autoCheckpoint !== true && component.id === 'auto-checkpoint') {
-          return false;
-        }
-        if (config.options.validateTodos !== true && component.id === 'validate-todo-completion') {
-          return false;
-        }
-        if (config.options.runTests !== true && component.id === 'run-related-tests') {
-          return false;
-        }
-        if (config.options.gitIntegration !== true && component.category === 'git') {
-          return false;
-        }
-        return true;
-      });
+      // Use all selected components
+      const finalComponents = componentsToInstall;
 
       // Initialize progress tracking
       const componentNames = finalComponents.map((c) => c.name);
       installProgressReporter.initialize(componentNames);
 
       // Install based on installation type
+      const isNonInteractive = options.yes === true || options.commands !== undefined || options.hooks !== undefined;
+      
       const installOptions: InstallOptions = {
         dryRun: options.dryRun ?? false,
         force: options.force ?? false,
+        interactive: !isNonInteractive,
         onProgress: (progress) => {
           if (progress.currentStep?.component) {
             const componentName = progress.currentStep.component.name;
@@ -681,11 +670,15 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (config.installationType === 'user' || config.installationType === 'both') {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
-        await installComponents(
+        const userResult = await installComponents(
           finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
           'user',
           userInstallOptions
         );
+        
+        if (!userResult.success) {
+          throw new Error(userResult.errors?.[0] || 'User installation failed');
+        }
       }
 
       if (config.installationType === 'project' || config.installationType === 'both') {
@@ -695,13 +688,20 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         const claudeDir = path.join(config.projectPath, '.claude');
         await ensureDirectoryExists(claudeDir);
 
-        // Install components
-        const projectInstallOptions = { ...installOptions, customPath: config.projectPath };
-        await installComponents(
+        // Install components with the project path
+        const projectInstallOptions = { 
+          ...installOptions,
+          customPath: claudeDir // Use the .claude directory as the custom path
+        };
+        const projectResult = await installComponents(
           finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
           'project',
           projectInstallOptions
         );
+        
+        if (!projectResult.success) {
+          throw new Error(projectResult.errors?.[0] || 'Project installation failed');
+        }
 
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
@@ -750,17 +750,65 @@ interface HookSettings {
 }
 
 async function createProjectSettings(claudeDir: string, components: Component[]): Promise<void> {
-  const settings: HookSettings = {
+  const settingsPath = path.join(claudeDir, 'settings.json');
+  
+  // Read existing settings if present
+  let existingSettings: HookSettings | null = null;
+  try {
+    const content = await fs.readFile(settingsPath, 'utf-8');
+    existingSettings = JSON.parse(content) as HookSettings;
+  } catch {
+    // No existing settings or invalid JSON
+  }
+
+  // Start with existing settings or create new structure
+  const settings: HookSettings = existingSettings ?? {
     hooks: {
       PostToolUse: [],
       Stop: [],
     },
+  };
+  
+  // Ensure required structure exists
+  if (!settings.hooks) {
+    settings.hooks = {
+      PostToolUse: [],
+      Stop: [],
+    };
+  }
+  if (!settings.hooks.PostToolUse) {
+    settings.hooks.PostToolUse = [];
+  }
+  if (!settings.hooks.Stop) {
+    settings.hooks.Stop = [];
+  }
+
+  // Helper function to check if a hook is already configured
+  const isHookConfigured = (hookPath: string): boolean => {
+    // Check PostToolUse hooks
+    for (const entry of settings.hooks.PostToolUse) {
+      if (entry.hooks.some(h => h.command === hookPath)) {
+        return true;
+      }
+    }
+    // Check Stop hooks
+    for (const entry of settings.hooks.Stop) {
+      if (entry.hooks.some(h => h.command === hookPath)) {
+        return true;
+      }
+    }
+    return false;
   };
 
   // Add hooks based on installed components and options
   for (const component of components) {
     if (component.type === 'hook') {
       const hookPath = `.claude/hooks/${path.basename(component.path)}`;
+      
+      // Skip if this hook is already configured
+      if (isHookConfigured(hookPath)) {
+        continue;
+      }
 
       switch (component.id) {
         case 'typecheck':
@@ -816,11 +864,24 @@ async function createProjectSettings(claudeDir: string, components: Component[])
           }
           break;
         }
+
+        case 'project-validation': {
+          // Add project-validation to Stop hooks
+          const stopEntryValidation = settings.hooks.Stop.find((e) => e.matcher === '*');
+          if (stopEntryValidation !== undefined) {
+            stopEntryValidation.hooks.push({ type: 'command', command: hookPath });
+          } else {
+            settings.hooks.Stop.push({
+              matcher: '*',
+              hooks: [{ type: 'command', command: hookPath }],
+            });
+          }
+          break;
+        }
       }
     }
   }
 
   // Write settings.json
-  const settingsPath = path.join(claudeDir, 'settings.json');
   await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
 }

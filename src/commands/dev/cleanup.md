@@ -1,5 +1,6 @@
 ---
 description: Clean up debug files, test artifacts, and status reports created during development
+category: workflow
 allowed-tools: Task, Bash(git:*)
 ---
 

@@ -1,5 +1,6 @@
 ---
 description: Intelligently analyze git status and provide insights about current project state
+category: workflow
 allowed-tools: Bash(git:*)
 ---
 

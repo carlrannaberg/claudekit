@@ -1,5 +1,6 @@
 ---
 description: Migrate AI assistant configuration to AGENT.md standard with universal compatibility
+category: ai-assistant
 allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Read
 ---
 

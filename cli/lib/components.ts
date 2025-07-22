@@ -82,21 +82,11 @@ interface ScanOptions {
  * Maps component IDs to their required dependencies
  */
 const COMPONENT_DEPENDENCIES: Record<string, string[]> = {
-  // Hooks that need validation utilities
-  typecheck: ['validation-lib'],
-  eslint: ['validation-lib'],
-  prettier: ['validation-lib'],
-  'run-related-tests': ['validation-lib', 'test-discovery'],
-
   // Commands that depend on other commands
-  'spec-decompose': ['spec-validate', 'simple-task-master'],
-  'spec-execute': ['spec-validate', 'agent-orchestration'],
-  'git-push': ['git-status'],
-  'checkpoint-restore': ['checkpoint-list'],
-
-  // Dependency chains
-  'validation-lib': ['package-manager-detect'],
-  'test-discovery': ['package-manager-detect'],
+  'spec:decompose': ['spec:validate'],
+  'spec:execute': ['spec:validate'],
+  'git:push': ['git:status'],
+  'checkpoint:restore': ['checkpoint:list'],
 };
 
 /**

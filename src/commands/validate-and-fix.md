@@ -1,5 +1,6 @@
 ---
 description: Run quality checks and automatically fix issues using concurrent agents
+category: workflow
 allowed-tools: Bash, Task, TodoWrite, Read, Edit, MultiEdit
 ---
 

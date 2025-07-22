@@ -1,5 +1,6 @@
 ---
 description: Break down a validated specification into actionable implementation tasks
+category: validation
 allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir -p, cat >, grep, echo, basename, date, command, stm:*)
 argument-hint: "<path-to-spec-file>"
 ---

@@ -806,6 +806,14 @@ async function executeStep(
         step.target, 
         options.backup !== false,
         options.force ? undefined : async (_source: string, target: string) => {
+          // Check if we're in non-interactive mode
+          if (options.interactive === false) {
+            throw new Error(
+              `\nFile conflict detected: ${target} already exists with different content.\n` +
+              `To overwrite existing files, run with --force flag.`
+            );
+          }
+          
           // Interactive conflict resolution (skip if force is true)
           // Notify that we're starting a prompt (to pause progress)
           if (options.onPromptStart) {

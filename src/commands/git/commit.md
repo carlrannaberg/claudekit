@@ -1,3 +1,9 @@
+---
+description: Create a git commit following the project's established style
+category: workflow
+allowed-tools: Bash(git:*), Read, Edit
+---
+
 Create a git commit following the project's established style
 
 ## Efficiency Note:

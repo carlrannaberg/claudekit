@@ -1,5 +1,6 @@
 ---
 description: List all Claude Code checkpoints with time and description
+category: workflow
 allowed-tools: Bash(git stash:*)
 ---
 
