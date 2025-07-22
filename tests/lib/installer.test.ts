@@ -226,6 +226,11 @@ vi.mock('../../cli/lib/project-detection', () => ({
   }),
 }));
 
+// Mock paths module
+vi.mock('../../cli/lib/paths', () => ({
+  findComponentsDirectory: vi.fn().mockResolvedValue('/source'),
+}));
+
 // Mock fs promises
 vi.mock('fs/promises', () => ({
   writeFile: vi.fn(),
@@ -443,8 +448,12 @@ describe('Installer', () => {
 
       // Check targets
       const targets = copySteps.map((s) => s.target);
-      expect(targets.some((t) => t.includes('/.claude/'))).toBe(true);
+      // Both targets should include .claude in their path
+      expect(targets.filter((t) => t.includes('.claude')).length).toBe(2);
+      // One should be in user home directory
       expect(targets.some((t) => t.includes('/home/user/.claude/'))).toBe(true);
+      // One should be in project directory (current working directory)
+      expect(targets.some((t) => t.includes('.claude') && !t.includes('/home/user/'))).toBe(true);
     });
 
     it('should respect dependency order', async () => {

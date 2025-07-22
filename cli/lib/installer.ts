@@ -309,33 +309,64 @@ export async function createInstallPlan(
   for (const component of orderedComponents) {
     const targets: string[] = [];
 
+    // Calculate relative path from source base to preserve directory structure
+    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
+    
+    // Use basename as fallback if sourceDir is not available (e.g., in tests)
+    let relativePath: string;
+    if (sourceDir) {
+      const baseSourceDir = path.join(sourceDir, componentTypeDir);
+      relativePath = path.relative(baseSourceDir, component.path);
+    } else {
+      // Fallback for tests or when sourceDir is not available
+      relativePath = path.basename(component.path);
+    }
+
     // Determine target paths
     if (installation.target === 'user' || installation.target === 'both') {
       const targetPath = path.join(
         userDir,
-        component.type === 'command' ? 'commands' : 'hooks',
-        path.basename(component.path)
+        componentTypeDir,
+        relativePath
       );
       targets.push(targetPath);
+      
+      // Ensure parent directory is added to the directories set
+      const parentDir = path.dirname(targetPath);
+      if (parentDir !== path.join(userDir, componentTypeDir)) {
+        directories.add(parentDir);
+      }
     }
 
     if (installation.target === 'project' || installation.target === 'both') {
       const targetPath = path.join(
         projectDir,
-        component.type === 'command' ? 'commands' : 'hooks',
-        path.basename(component.path)
+        componentTypeDir,
+        relativePath
       );
       targets.push(targetPath);
+      
+      // Ensure parent directory is added to the directories set
+      const parentDir = path.dirname(targetPath);
+      if (parentDir !== path.join(projectDir, componentTypeDir)) {
+        directories.add(parentDir);
+      }
     }
 
     if (options.customPath !== undefined) {
       const customPath = normalizePath(options.customPath);
       const targetPath = path.join(
         customPath,
-        component.type === 'command' ? 'commands' : 'hooks',
-        path.basename(component.path)
+        componentTypeDir,
+        relativePath
       );
       targets.push(targetPath);
+      
+      // Ensure parent directory is added to the directories set
+      const parentDir = path.dirname(targetPath);
+      if (parentDir !== path.join(customPath, componentTypeDir)) {
+        directories.add(parentDir);
+      }
     }
 
     // Create copy steps for each target
@@ -361,7 +392,7 @@ export async function createInstallPlan(
         steps.push({
           id: `chmod-${component.id}-at-${target}`,
           type: 'set-permission',
-          description: `Set executable permission on ${path.basename(target)}`,
+          description: `Set executable permission on ${path.relative(path.dirname(target), target)}`,
           target,
           component,
         });
