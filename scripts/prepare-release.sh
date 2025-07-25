@@ -110,6 +110,17 @@ validate_environment() {
         exit 1
     fi
 
+    # Check if aio-stream is available
+    if ! command -v aio-stream &> /dev/null; then
+        print_warning "aio-stream not found. Install it for better output formatting:"
+        echo "  npm install -g @agent-io/stream"
+        echo ""
+        echo "Continuing without formatted output..."
+        AIO_STREAM_CMD=""
+    else
+        AIO_STREAM_CMD="aio-stream"
+    fi
+
     # Check if package.json exists
     if [[ ! -f "$PACKAGE_JSON" ]]; then
         print_error "package.json not found. Please run this script from the project root."
@@ -429,9 +440,15 @@ IMPORTANT:
 - Focus on accuracy - changelog entries should reflect actual code changes, not just commit messages
 - Ensure README.md is comprehensive and up-to-date with all features in the new release"
 
-    $TIMEOUT_CMD $AI_CLI $AI_MODEL $AI_FLAGS -p "$prompt"
-
-    AI_EXIT_CODE=$?
+    # Check if aio-stream is available and AI is Claude with stream-json output
+    if [[ -n "$AIO_STREAM_CMD" ]] && [[ "$AI_CLI" == "claude" ]]; then
+        print_info "Using aio-stream for formatted output..."
+        $TIMEOUT_CMD $AI_CLI $AI_MODEL $AI_FLAGS -p "$prompt" | $AIO_STREAM_CMD --vendor claude
+        AI_EXIT_CODE=${PIPESTATUS[0]}  # Get exit code from claude, not aio-stream
+    else
+        $TIMEOUT_CMD $AI_CLI $AI_MODEL $AI_FLAGS -p "$prompt"
+        AI_EXIT_CODE=$?
+    fi
     set -e  # Re-enable exit on error
 
     if [ $AI_EXIT_CODE -eq 124 ]; then
