@@ -1,7 +1,7 @@
 ---
 description: Clean up debug files, test artifacts, and status reports created during development
 category: workflow
-allowed-tools: Task, Bash(git:*)
+allowed-tools: Task, Bash(git:*), Bash(echo:*), Bash(grep:*), Bash(ls:*), Bash(pwd:*), Bash(head:*), Bash(wc:*), Bash(test:*)
 ---
 
 ## Purpose

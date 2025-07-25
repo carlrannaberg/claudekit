@@ -1,7 +1,7 @@
 ---
 description: Restore project to a previous checkpoint
 category: workflow
-allowed-tools: Bash(git stash:*), Bash(git status:*), Bash(git reset:*)
+allowed-tools: Bash(git stash:*), Bash(git status:*), Bash(git reset:*), Bash(grep:*), Bash(head:*)
 argument-hint: "<checkpoint-number|latest>"
 ---
 

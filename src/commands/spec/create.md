@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Grep, Glob, TodoWrite, TodoRead, AgentTool, mcp__context7__resolve-library-id, mcp__context7__get-library-docs
+allowed-tools: Read, Write, Grep, Glob, TodoWrite, TodoRead, AgentTool, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, Bash(ls:*), Bash(echo:*), Bash(command:*), Bash(npm:*), Bash(claude:*)
 description: Generate a spec file for a new feature or bugfix
 category: validation
 argument-hint: "<feature-or-bugfix-description>"

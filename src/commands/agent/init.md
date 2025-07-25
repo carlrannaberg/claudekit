@@ -1,7 +1,7 @@
 ---
 description: Initialize project with AGENT.md and create symlinks for all AI assistants
 category: ai-assistant
-allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Read, Glob, Task
+allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Bash(echo:*), Read, Glob, Task
 ---
 
 # Initialize AGENT.md for Your Project
