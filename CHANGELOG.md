@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Enhanced allowed-tools validation to prevent unrestricted bash access across all commands
 
+## [0.1.5] - 2025-07-25
+
+### Documentation
+- Added command execution guidelines from debugging session to AGENT.md and create-command.md
+- Enhanced bash command execution best practices for complex subshells and git commands
+- Added performance optimization guidelines for combined command execution in slash commands
+
 ## [0.1.4] - 2025-07-25
 
 ### Added
