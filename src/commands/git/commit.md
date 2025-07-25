@@ -1,7 +1,7 @@
 ---
 description: Create a git commit following the project's established style
 category: workflow
-allowed-tools: Bash(git:*), Read, Edit
+allowed-tools: Bash(git:*), Bash(echo:*), Bash(head:*), Bash(wc:*), Bash(test:*), Bash([:[*), Read, Edit
 ---
 
 Create a git commit following the project's established style
@@ -18,8 +18,9 @@ All git commands are combined into a single bash call for maximum speed.
    - Look for patterns like "Git Status Analysis", "Modified Files:", "Uncommitted Changes:"
    - If found and recent (within last 2-3 messages): Reuse those results
    - If not found or stale: Run a single combined git command:
-   !git status --porcelain=v1 && echo "---DIFF---" && git diff && echo "---LOG---" && git log --oneline -5
+   !git status --porcelain=v1; echo "---STAT---" && git diff --stat && echo "---DIFF---" && (git diff | head -2000; [ $(git diff | wc -l) -gt 2000 ] && echo "... [DIFF TRUNCATED - showing first 2000 lines]") && echo "---LOG---" && git log --oneline -5
    - Note: Only skip git status if you're confident the working directory hasn't changed
+   - Note: Full diff is capped at 2000 lines to prevent context flooding. The stat summary above shows all changed files
 2. Review the diff output to verify:
    - No sensitive information (passwords, API keys, tokens) in the changes
    - No debugging code or console.log statements left in production code
