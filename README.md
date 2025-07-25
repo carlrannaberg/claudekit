@@ -115,7 +115,7 @@ Automatically enforce code quality and run tests:
 - `/agent:migration` - Convert other AI config files to AGENT.md
 
 #### Git & GitHub Integration
-- `/git:commit` - Create commits following project conventions
+- `/git:commit` - Create commits following project conventions with diff statistics and smart truncation
 - `/gh:repo-init [name]` - Create new GitHub repository with full setup
 
 #### Git Checkpoint System
