@@ -107,15 +107,22 @@ Automatically enforce code quality and run tests:
 
 #### Development Tools
 - `/spec:create [feature]` - Generate comprehensive specification documents
+- `/spec:validate [file]` - Analyze specification completeness and quality
+- `/spec:decompose [file]` - Decompose specification into TaskMaster tasks
+- `/spec:execute [file]` - Execute specification with concurrent agents
 - `/validate-and-fix` - Run quality checks and auto-fix discovered issues
 - `/dev:cleanup` - Clean up debug files and development artifacts
+- `/config:bash-timeout [duration] [scope]` - Configure bash command timeout values
 
 #### AGENT.md Configuration
 - `/agent:init` - Create or improve AGENT.md with intelligent codebase analysis
 - `/agent:migration` - Convert other AI config files to AGENT.md
+- `/agent:cli [tool]` - Capture CLI tool help documentation and add it to AGENT.md
 
 #### Git & GitHub Integration
 - `/git:commit` - Create commits following project conventions with diff statistics and smart truncation
+- `/git:status` - Intelligently analyze git status and provide insights about current state
+- `/git:push` - Push commits to remote with safety checks and branch management
 - `/gh:repo-init [name]` - Create new GitHub repository with full setup
 
 #### Git Checkpoint System
