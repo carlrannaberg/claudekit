@@ -19,6 +19,8 @@ export class NoAnyHook extends BaseHook {
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      if (!line) continue; // Handle undefined from noUncheckedIndexedAccess
+      
       const lineNum = i + 1;
       
       // Skip comments and test utilities

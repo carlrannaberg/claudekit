@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
 import os from 'os';
-import type { Config, PostToolUseConfig } from '@/types/config';
+import type { Config } from '@/types/config';
 
 /**
  * Integration tests for hook execution flow
@@ -479,7 +479,8 @@ describe('Hook Integration Tests', () => {
                 type: 'command',
                 command: '.claude/hooks/typecheck.sh',
                 enabled: true,
-                timeout: 60000
+                timeout: 60000,
+                retries: 0
               }],
               enabled: true
             }

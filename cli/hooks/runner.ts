@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { z } from 'zod';
 import { readStdin } from './utils.js';
-import { BaseHook, HookResult } from './base.js';
+import { BaseHook } from './base.js';
 
 // Import all hooks
 import { TypecheckHook } from './typecheck.js';

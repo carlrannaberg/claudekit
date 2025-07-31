@@ -19,7 +19,7 @@ export interface ClaudePayload {
 }
 
 export interface HookContext {
-  filePath?: string;
+  filePath?: string | undefined;
   projectRoot: string;
   payload: ClaudePayload;
   packageManager: PackageManager;
@@ -82,10 +82,19 @@ export abstract class BaseHook {
     args: string[] = [],
     options?: { cwd?: string; timeout?: number }
   ): Promise<ExecResult> {
-    return execCommand(command, args, {
-      timeout: this.config.timeout,
+    const mergedOptions: { cwd?: string; timeout?: number } = {
       ...options
-    });
+    };
+    
+    // Only set timeout if it's defined in either config or options
+    if (this.config.timeout !== undefined) {
+      mergedOptions.timeout = this.config.timeout;
+    }
+    if (options?.timeout !== undefined) {
+      mergedOptions.timeout = options.timeout;
+    }
+    
+    return execCommand(command, args, mergedOptions);
   }
   
   // Progress message to stderr

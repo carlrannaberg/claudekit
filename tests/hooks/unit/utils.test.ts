@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { exec } from 'child_process';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import {
   readStdin,
   findProjectRoot,
@@ -9,7 +7,6 @@ import {
   execCommand,
   formatError,
   checkToolAvailable,
-  executeCommand,
   fileExists,
   readJsonFile,
   writeJsonFile,
@@ -27,22 +24,34 @@ vi.mock('child_process', () => ({
 }));
 
 // Mock fs-extra
-vi.mock('fs-extra', () => ({
-  default: {
-    pathExists: vi.fn(),
-    readJson: vi.fn(),
-    readFile: vi.fn(),
-    writeJson: vi.fn(),
-    stat: vi.fn(),
-    ensureDir: vi.fn()
-  },
-  pathExists: vi.fn(),
-  readJson: vi.fn(),
-  readFile: vi.fn(),
-  writeJson: vi.fn(),
-  stat: vi.fn(),
-  ensureDir: vi.fn()
-}));
+vi.mock('fs-extra', () => {
+  const pathExistsMock = vi.fn();
+  const readJsonMock = vi.fn();
+  const readFileMock = vi.fn();
+  const writeJsonMock = vi.fn();
+  const statMock = vi.fn();
+  const ensureDirMock = vi.fn();
+  
+  return {
+    default: {
+      pathExists: pathExistsMock,
+      readJson: readJsonMock,
+      readFile: readFileMock,
+      writeJson: writeJsonMock,
+      stat: statMock,
+      ensureDir: ensureDirMock
+    },
+    pathExists: pathExistsMock,
+    readJson: readJsonMock,
+    readFile: readFileMock,
+    writeJson: writeJsonMock,
+    stat: statMock,
+    ensureDir: ensureDirMock
+  };
+});
+
+// Get mocked fs module
+const fs = (await import('fs-extra')) as any;
 
 describe('utils', () => {
   beforeEach(() => {
@@ -58,7 +67,7 @@ describe('utils', () => {
       // Mock stdin that never sends data
       const originalStdin = process.stdin;
       const mockStdin = {
-        on: vi.fn((event, callback) => {
+        on: vi.fn((event, _callback) => {
           if (event === 'data') {
             // Don't call callback - simulate no data
           } else if (event === 'end') {
@@ -112,7 +121,7 @@ describe('utils', () => {
   describe('findProjectRoot', () => {
     it('should use git rev-parse to find project root', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: '/test/project/root\n', stderr: '' });
       });
 
@@ -128,7 +137,7 @@ describe('utils', () => {
 
     it('should return current directory when git command fails', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(new Error('Not a git repository'), null);
       });
 
@@ -140,7 +149,7 @@ describe('utils', () => {
 
     it('should use current directory when no startDir provided', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: '/test/project\n', stderr: '' });
       });
 
@@ -156,7 +165,7 @@ describe('utils', () => {
 
   describe('detectPackageManager', () => {
     it('should detect pnpm when pnpm-lock.yaml exists', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('pnpm-lock.yaml');
       });
 
@@ -171,7 +180,7 @@ describe('utils', () => {
     });
 
     it('should detect yarn when yarn.lock exists', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('yarn.lock');
       });
 
@@ -186,10 +195,10 @@ describe('utils', () => {
     });
 
     it('should detect pnpm from packageManager field in package.json', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('package.json');
       });
-      vi.mocked(fs.readJson).mockResolvedValue({
+      fs.readJson.mockResolvedValue({
         packageManager: 'pnpm@8.0.0'
       });
 
@@ -204,10 +213,10 @@ describe('utils', () => {
     });
 
     it('should detect yarn from packageManager field in package.json', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('package.json');
       });
-      vi.mocked(fs.readJson).mockResolvedValue({
+      fs.readJson.mockResolvedValue({
         packageManager: 'yarn@3.0.0'
       });
 
@@ -222,10 +231,10 @@ describe('utils', () => {
     });
 
     it('should default to npm when no lock files or packageManager field', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('package.json');
       });
-      vi.mocked(fs.readJson).mockResolvedValue({});
+      fs.readJson.mockResolvedValue({});
 
       const result = await detectPackageManager('/test/dir');
       
@@ -238,7 +247,7 @@ describe('utils', () => {
     });
 
     it('should default to npm when no package.json exists', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      fs.pathExists.mockResolvedValue(false);
 
       const result = await detectPackageManager('/test/dir');
       
@@ -251,10 +260,10 @@ describe('utils', () => {
     });
 
     it('should handle package.json read errors gracefully', async () => {
-      vi.mocked(fs.pathExists).mockImplementation(async (filePath) => {
+      fs.pathExists.mockImplementation(async (filePath: any) => {
         return (filePath as string).includes('package.json');
       });
-      vi.mocked(fs.readJson).mockRejectedValue(new Error('Invalid JSON'));
+      fs.readJson.mockRejectedValue(new Error('Invalid JSON'));
 
       const result = await detectPackageManager('/test/dir');
       
@@ -270,7 +279,7 @@ describe('utils', () => {
   describe('execCommand', () => {
     it('should execute command successfully', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: 'Success output', stderr: 'Some warnings' });
       });
 
@@ -299,7 +308,7 @@ describe('utils', () => {
       error.stdout = 'Partial output';
       error.stderr = 'Error output';
       
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(error, null);
       });
 
@@ -314,7 +323,7 @@ describe('utils', () => {
 
     it('should use default options when not provided', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: 'output', stderr: '' });
       });
 
@@ -333,7 +342,7 @@ describe('utils', () => {
 
     it('should respect custom timeout', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: 'output', stderr: '' });
       });
 
@@ -378,7 +387,7 @@ describe('utils', () => {
 
   describe('checkToolAvailable', () => {
     it('should return false when config file does not exist', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(false);
+      fs.pathExists.mockResolvedValue(false);
 
       const result = await checkToolAvailable('eslint', '.eslintrc.json', '/test/project');
       
@@ -387,9 +396,9 @@ describe('utils', () => {
     });
 
     it('should check tool execution when config exists', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      fs.pathExists.mockResolvedValue(true);
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: 'v8.0.0', stderr: '' });
       });
 
@@ -405,9 +414,9 @@ describe('utils', () => {
     });
 
     it('should return false when tool execution fails', async () => {
-      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      fs.pathExists.mockResolvedValue(true);
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(new Error('Command not found'), null);
       });
 
@@ -420,7 +429,7 @@ describe('utils', () => {
   describe('file operations', () => {
     describe('fileExists', () => {
       it('should return true when file exists', async () => {
-        vi.mocked(fs.pathExists).mockResolvedValue(true);
+        fs.pathExists.mockResolvedValue(true);
         
         const result = await fileExists('/test/file.ts');
         
@@ -429,7 +438,7 @@ describe('utils', () => {
       });
 
       it('should return false when file does not exist', async () => {
-        vi.mocked(fs.pathExists).mockResolvedValue(false);
+        fs.pathExists.mockResolvedValue(false);
         
         const result = await fileExists('/test/missing.ts');
         
@@ -437,7 +446,7 @@ describe('utils', () => {
       });
 
       it('should handle errors gracefully', async () => {
-        vi.mocked(fs.pathExists).mockRejectedValue(new Error('Permission denied'));
+        fs.pathExists.mockRejectedValue(new Error('Permission denied'));
         
         const result = await fileExists('/test/file.ts');
         
@@ -448,7 +457,7 @@ describe('utils', () => {
     describe('readJsonFile', () => {
       it('should read and parse JSON file', async () => {
         const testData = { test: 'data', count: 42 };
-        vi.mocked(fs.readJson).mockResolvedValue(testData);
+        fs.readJson.mockResolvedValue(testData);
 
         const result = await readJsonFile('/test/config.json');
         
@@ -460,7 +469,7 @@ describe('utils', () => {
     describe('writeJsonFile', () => {
       it('should write JSON file with proper formatting', async () => {
         const testData = { test: 'data', count: 42 };
-        vi.mocked(fs.writeJson).mockResolvedValue(undefined);
+        fs.writeJson.mockResolvedValue(undefined);
 
         await writeJsonFile('/test/output.json', testData);
         
@@ -471,7 +480,7 @@ describe('utils', () => {
     describe('getFileModTime', () => {
       it('should return file modification time', async () => {
         const modTime = new Date('2025-01-01T00:00:00Z');
-        vi.mocked(fs.stat).mockResolvedValue({
+        fs.stat.mockResolvedValue({
           mtime: modTime
         } as any);
 
@@ -484,7 +493,7 @@ describe('utils', () => {
 
     describe('ensureDirectory', () => {
       it('should create directory if it does not exist', async () => {
-        vi.mocked(fs.ensureDir).mockResolvedValue(undefined);
+        fs.ensureDir.mockResolvedValue(undefined);
 
         await ensureDirectory('/test/new/dir');
         
@@ -496,7 +505,7 @@ describe('utils', () => {
   describe('findFiles', () => {
     it('should find files matching pattern', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: './src/file1.ts\n./src/file2.ts\n./test/file3.ts\n', stderr: '' });
       });
 
@@ -517,7 +526,7 @@ describe('utils', () => {
 
     it('should handle empty results', async () => {
       const mockExec = exec as any;
-      mockExec.mockImplementation((cmd: string, opts: any, callback: any) => {
+      mockExec.mockImplementation((_cmd: string, _opts: any, callback: any) => {
         callback(null, { stdout: '', stderr: '' });
       });
 

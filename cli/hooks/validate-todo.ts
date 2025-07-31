@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { BaseHook, HookContext, HookResult } from './base.js';
 
 interface Todo {
@@ -20,7 +19,7 @@ export class ValidateTodoCompletionHook extends BaseHook {
     }
     
     // Expand ~ to home directory
-    transcriptPath = transcriptPath.replace(/^~/, process.env.HOME || '');
+    transcriptPath = transcriptPath.replace(/^~/, process.env['HOME'] || '');
     
     if (!await this.fileExists(transcriptPath)) {
       // Allow stop - transcript not found
@@ -63,6 +62,8 @@ export class ValidateTodoCompletionHook extends BaseHook {
     // Read from end to find most recent todo state
     for (let i = lines.length - 1; i >= 0; i--) {
       const line = lines[i];
+      if (!line) continue; // Handle undefined from noUncheckedIndexedAccess
+      
       try {
         const entry = JSON.parse(line);
         if (entry.toolUseResult?.newTodos && Array.isArray(entry.toolUseResult.newTodos)) {

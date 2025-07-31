@@ -326,7 +326,7 @@ describe('HookRunner', () => {
 
       const config = await runner['loadConfig']();
       
-      expect(config.hooks.typecheck).toEqual({
+      expect(config.hooks['typecheck']).toEqual({
         timeout: 30000,
         customOption: 'value',
         anotherOption: true

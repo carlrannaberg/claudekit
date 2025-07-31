@@ -5,8 +5,8 @@ export class AutoCheckpointHook extends BaseHook {
   
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;
-    const prefix = this.config.prefix || 'claude';
-    const maxCheckpoints = this.config.maxCheckpoints || 10;
+    const prefix = this.config['prefix'] || 'claude';
+    const maxCheckpoints = this.config['maxCheckpoints'] || 10;
     
     // Check if there are any changes to checkpoint
     const { stdout } = await this.execCommand('git', ['status', '--porcelain'], {

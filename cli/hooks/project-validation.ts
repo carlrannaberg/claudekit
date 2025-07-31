@@ -15,7 +15,7 @@ export class ProjectValidationHook extends BaseHook {
     // Run TypeScript check if available
     if (await checkToolAvailable('tsc', 'tsconfig.json', projectRoot)) {
       validationOutput += '📘 Running TypeScript validation...\n';
-      const tsCommand = this.config.typescriptCommand || packageManager.exec + ' tsc --noEmit';
+      const tsCommand = this.config['typescriptCommand'] || packageManager.exec + ' tsc --noEmit';
       const tsResult = await this.execCommand(tsCommand, [], { cwd: projectRoot });
       
       if (tsResult.exitCode === 0) {
@@ -30,7 +30,7 @@ export class ProjectValidationHook extends BaseHook {
     // Run ESLint if available
     if (await checkToolAvailable('eslint', '.eslintrc.json', projectRoot)) {
       validationOutput += '🔍 Running ESLint validation...\n';
-      const eslintCommand = this.config.eslintCommand || packageManager.exec + ' eslint . --ext .js,.jsx,.ts,.tsx';
+      const eslintCommand = this.config['eslintCommand'] || packageManager.exec + ' eslint . --ext .js,.jsx,.ts,.tsx';
       const eslintResult = await this.execCommand(eslintCommand, [], { cwd: projectRoot });
       
       if (eslintResult.exitCode === 0 && !eslintResult.stdout.includes('error')) {
@@ -46,7 +46,7 @@ export class ProjectValidationHook extends BaseHook {
     const { stdout: pkgJson } = await this.execCommand('cat', ['package.json'], { cwd: projectRoot });
     if (pkgJson.includes('"test"')) {
       validationOutput += '🧪 Running test suite...\n';
-      const testCommand = this.config.testCommand || packageManager.test;
+      const testCommand = this.config['testCommand'] || packageManager.test;
       const testResult = await this.execCommand(testCommand, [], { cwd: projectRoot });
       
       if (testResult.exitCode === 0 && !testResult.stdout.match(/FAIL|failed|Error:|failing/)) {

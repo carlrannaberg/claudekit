@@ -35,14 +35,14 @@ export function createHooksCLI(): Command {
     .command('run <hook>')
     .description('Run a specific hook')
     .action(async (hookName: string) => {
-      const hookRunner = new HookRunner(program.opts().config);
+      const hookRunner = new HookRunner(program.opts()['config']);
       const exitCode = await hookRunner.run(hookName);
       process.exit(exitCode);
     });
     
   // Handle --list option
   program.hook('preAction', (thisCommand) => {
-    if (thisCommand.opts().list) {
+    if (thisCommand.opts()['list']) {
       console.log('Available hooks:');
       console.log('  typecheck      - TypeScript type checking');
       console.log('  no-any         - Forbid any types in TypeScript');
