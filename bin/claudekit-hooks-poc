@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+// Direct import of the hooks POC
+import '../dist/hooks-poc.js';

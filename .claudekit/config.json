@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "auto-checkpoint": {
+      "prefix": "claude",
+      "maxCheckpoints": 10
+    }
+  }
+}
