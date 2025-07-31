@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+// Import and run the hooks CLI
+import('../dist/hooks-cli.js').then((module) => {
+  if (module.createHooksCLI) {
+    module.createHooksCLI().parse(process.argv);
+  }
+}).catch((error) => {
+  console.error('Failed to load claudekit-hooks CLI:', error.message);
+  process.exit(1);
+});

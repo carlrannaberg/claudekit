@@ -1,0 +1,81 @@
+{
+  // Hook configuration for npm-based projects
+  // Place this file at .claudekit/config.json in your project
+  "hooks": {
+    // TypeScript type checking
+    "typecheck": {
+      // Use npx to run TypeScript compiler from node_modules
+      "command": "npx tsc --noEmit",
+      // Timeout for TypeScript checking (45 seconds)
+      "timeout": 45000
+    },
+    
+    // Detect 'any' usage in TypeScript
+    "no-any": {
+      // Uses built-in detection, no command needed
+      "timeout": 5000
+    },
+    
+    // ESLint configuration
+    "eslint": {
+      // Run ESLint via npx
+      "command": "npx eslint",
+      // ESLint timeout (30 seconds)
+      "timeout": 30000,
+      // Auto-fix issues when possible
+      "fix": true,
+      // File extensions to check
+      "extensions": [".js", ".jsx", ".ts", ".tsx"]
+    },
+    
+    // Run tests for changed files
+    "run-related-tests": {
+      // Standard npm test command
+      "command": "npm test",
+      // Test timeout (60 seconds)
+      "timeout": 60000,
+      // Optional: specify test file pattern
+      "pattern": "**/*.{test,spec}.{js,ts,jsx,tsx}",
+      // Optional: run only tests matching changed files
+      "onlyRelated": true
+    },
+    
+    // Auto-checkpoint configuration
+    "auto-checkpoint": {
+      // Stash timeout
+      "timeout": 10000,
+      // Custom prefix for npm projects
+      "prefix": "npm-claude",
+      // Keep last 15 checkpoints
+      "maxCheckpoints": 15
+    },
+    
+    // Project validation
+    "project-validation": {
+      // Use npm scripts for validation
+      "command": "npm run validate",
+      // Or specify individual commands:
+      "typescriptCommand": "npm run type-check",
+      "eslintCommand": "npm run lint",
+      "testCommand": "npm run test:ci",
+      // Allow more time for full validation
+      "timeout": 120000
+    },
+    
+    // Todo completion validation
+    "validate-todo-completion": {
+      // Quick validation
+      "timeout": 5000,
+      // Optional: strict mode ensures all todos are marked
+      "strict": true
+    }
+  },
+  
+  // Additional configuration options
+  "options": {
+    // Enable verbose logging for debugging
+    "verbose": false,
+    // Custom log file location
+    "logFile": ".claudekit/hooks.log"
+  }
+}

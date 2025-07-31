@@ -92,6 +92,60 @@ Options:
   --project  Configure project-level settings only
 ```
 
+## Hooks System
+
+Claudekit includes a dedicated hooks system for Claude Code integration.
+
+### Installation
+
+When you install claudekit globally, you get two binaries:
+- `claudekit` - Main CLI for commands and project management
+- `claudekit-hooks` - Dedicated hooks execution system
+
+### Hook Configuration
+
+Hooks are configured in `.claudekit/config.json`:
+
+```json
+{
+  "hooks": {
+    "typecheck": {
+      "command": "pnpm exec tsc --noEmit",
+      "timeout": 45000
+    }
+  }
+}
+```
+
+### Available Hooks
+
+- `typecheck` - TypeScript type checking
+- `no-any` - Forbid any types in TypeScript
+- `eslint` - ESLint code validation
+- `auto-checkpoint` - Git auto-checkpoint on stop
+- `run-related-tests` - Run tests for changed files
+- `project-validation` - Full project validation
+- `validate-todo-completion` - Validate todo completions
+
+### Claude Code Integration
+
+Update your `.claude/settings.json` to use claudekit hooks:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks typecheck"}
+        ]
+      }
+    ]
+  }
+}
+```
+
 ## Features
 
 ### 🛡️ Development Hooks
@@ -210,6 +264,8 @@ Enables `/spec:create` to fetch up-to-date library documentation.
 - [Claude Code Configuration](docs/claude-code-configuration.md) - Comprehensive configuration guide
 - [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
 - [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
+- [Hooks Reference](docs/hooks-reference.md) - Complete hook configuration options
+- [Migration from Shell Hooks](docs/migration-from-shell-hooks.md) - Migrating from shell script hooks
 - [File Organization](docs/file-organization.md) - Project structure best practices
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 - [Testing Guide](tests/README.md) - Running the test suite

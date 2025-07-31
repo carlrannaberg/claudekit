@@ -1,0 +1,79 @@
+{
+  // Claude Code settings for embedded hooks integration
+  // This file configures when hooks are triggered
+  "hooks": {
+    // PostToolUse event - triggered after file modifications
+    "PostToolUse": [
+      {
+        // Matcher: TypeScript files only
+        // Syntax: "tools:ToolName AND file_paths:pattern"
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          // Run typecheck and no-any detection for TypeScript files
+          {"type": "command", "command": "claudekit-hooks typecheck"},
+          {"type": "command", "command": "claudekit-hooks no-any"}
+        ]
+      },
+      {
+        // Matcher: All JavaScript/TypeScript files
+        // Supports multiple extensions with {ext1,ext2} syntax
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [
+          // Run ESLint for all JS/TS files
+          {"type": "command", "command": "claudekit-hooks eslint"}
+        ]
+      },
+      {
+        // Matcher: Any file modification tool
+        // Comma-separated list acts as OR condition
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          // Run tests related to modified files
+          {"type": "command", "command": "claudekit-hooks run-related-tests"}
+        ]
+      },
+      {
+        // Matcher: Python files
+        "matcher": "tools:Write AND file_paths:**/*.py",
+        "hooks": [
+          // Example: Run Python-specific hooks
+          {"type": "command", "command": "claudekit-hooks python-lint"}
+        ]
+      }
+    ],
+    
+    // Stop event - triggered when Claude Code session ends
+    "Stop": [
+      {
+        // Matcher: Universal - matches all Stop events
+        "matcher": "*",
+        "hooks": [
+          // Create checkpoint of current work
+          {"type": "command", "command": "claudekit-hooks auto-checkpoint"},
+          // Validate all todos are properly marked
+          {"type": "command", "command": "claudekit-hooks validate-todo-completion"},
+          // Run project-wide validation
+          {"type": "command", "command": "claudekit-hooks project-validation"}
+        ]
+      }
+    ],
+    
+    // PreToolUse event (optional) - before tool execution
+    "PreToolUse": [
+      {
+        // Example: Validate before major operations
+        "matcher": "tools:Bash AND command:rm*",
+        "hooks": [
+          // Could add safety checks before destructive operations
+          {"type": "command", "command": "claudekit-hooks safety-check"}
+        ]
+      }
+    ]
+  },
+  
+  // Other Claude Code settings can go here
+  "env": {
+    // Environment variables for hooks
+    "NODE_ENV": "development"
+  }
+}

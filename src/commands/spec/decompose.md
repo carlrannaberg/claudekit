@@ -19,6 +19,21 @@ This command takes a validated specification and breaks it down into:
 
 !which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")
 
+## ⚠️ CRITICAL: Content Preservation Requirements
+
+**THIS IS THE MOST IMPORTANT PART**: When creating STM tasks, you MUST copy ALL content from the task breakdown into the STM tasks. Do NOT summarize or reference the spec - include the ACTUAL CODE and details.
+
+## Pre-Flight Checklist
+
+Before creating any STM tasks, confirm your understanding:
+- [ ] I will NOT write summaries like "Create X as specified in spec"
+- [ ] I will COPY all code blocks from the task breakdown into STM --details
+- [ ] I will USE heredocs or temp files for multi-line content
+- [ ] I will INCLUDE complete implementations, not references
+- [ ] Each STM task will be self-contained with ALL details from the breakdown
+
+**If you find yourself typing phrases like "as specified", "from spec", or "see specification" - STOP and copy the actual content instead!**
+
 ## Instructions for Claude:
 
 0. **Task Management System**:
@@ -63,6 +78,13 @@ This command takes a validated specification and breaks it down into:
    - All acceptance criteria and test scenarios
    
    Think of each task as a complete mini-specification that contains everything needed to implement it without referring back to the original spec.
+   
+   ## 📋 THE TWO-STEP PROCESS YOU MUST FOLLOW:
+   
+   **Step 1**: Create the task breakdown DOCUMENT with all details
+   **Step 2**: Copy those SAME details into STM tasks
+   
+   The task breakdown document is NOT just for reference - it's the SOURCE for your STM task content!
    
    Task structure:
    - Foundation tasks: Core infrastructure (database, frameworks, testing setup)
@@ -159,9 +181,74 @@ This command takes a validated specification and breaks it down into:
    
 5. **Create Task Management Entries**:
    
-   If STM is available, create STM tasks with FULL specification details:
+   ## 🚨 STOP AND READ: Common Mistake vs Correct Approach
    
-   **CRITICAL**: Preserve ALL implementation details, code blocks, and technical requirements from the specification. Use heredocs or temporary files to capture multi-line content.
+   ❌ **WRONG - What NOT to do**:
+   ```bash
+   stm add "[P1.3] Implement common hook utilities" \
+     --description "Create shared utilities module for all hooks" \
+     --details "Create cli/hooks/utils.ts with readStdin() with 1-second timeout, findProjectRoot() using git rev-parse, detectPackageManager() checking lock files" \
+     --validation "readStdin with timeout. Project root discovery. Package manager detection."
+   ```
+   
+   ✅ **CORRECT - What you MUST do**:
+   ```bash
+   # For each task in the breakdown, find the corresponding section and COPY ALL its content
+   # Use temporary files for large content to preserve formatting
+   
+   cat > /tmp/task-details.txt << 'EOF'
+   Create cli/hooks/utils.ts with the following implementations:
+   
+   ```typescript
+   import { exec } from 'child_process';
+   import { promisify } from 'util';
+   import * as fs from 'fs-extra';
+   import * as path from 'path';
+   
+   const execAsync = promisify(exec);
+   
+   // Standard input reader
+   export async function readStdin(): Promise<string> {
+     return new Promise((resolve) => {
+       let data = '';
+       process.stdin.on('data', chunk => data += chunk);
+       process.stdin.on('end', () => resolve(data));
+       setTimeout(() => resolve(''), 1000); // Timeout fallback
+     });
+   }
+   
+   // Project root discovery
+   export async function findProjectRoot(startDir: string = process.cwd()): Promise<string> {
+     try {
+       const { stdout } = await execAsync('git rev-parse --show-toplevel', { cwd: startDir });
+       return stdout.trim();
+     } catch {
+       return process.cwd();
+     }
+   }
+   
+   // [Include ALL other functions from the task breakdown...]
+   ```
+   
+   Technical Requirements:
+   - Standard input reader with timeout
+   - Project root discovery using git
+   - Package manager detection (npm/yarn/pnpm)
+   - Command execution wrapper
+   - Error formatting helper
+   - Tool availability checker
+   EOF
+   
+   stm add "[P1.3] Implement common hook utilities" \
+     --description "Create shared utilities module for all hooks with stdin reader, project root discovery, package manager detection, command execution wrapper, error formatting, and tool availability checking" \
+     --details "$(cat /tmp/task-details.txt)" \
+     --validation "readStdin with 1-second timeout. Project root discovery via git. Package manager detection for npm/yarn/pnpm. Command execution with timeout and output capture. Error formatting follows BLOCKED: pattern. Tool availability checker works." \
+     --tags "phase1,infrastructure,utilities"
+   
+   rm /tmp/task-details.txt
+   ```
+   
+   **Remember**: The task breakdown document you created has ALL the implementation details. Your job is to COPY those details into STM, not summarize them!
    
    ```bash
    # Example: Creating a task with complete specification details
@@ -279,13 +366,45 @@ This command takes a validated specification and breaks it down into:
    - `--description`: Brief what & why (1-2 sentences max)
    - `--details`: Complete technical implementation including:
      - All technical requirements from spec
-     - Full code examples with proper formatting
+     - Full code examples with proper formatting (COPY from breakdown, don't summarize!)
      - Implementation steps and notes
      - Architecture decisions
+     - **MUST be self-contained** - someone should be able to implement the task without seeing the original spec
    - `--validation`: Complete acceptance criteria including:
      - All test scenarios
      - Success/failure conditions
      - Edge cases to verify
+   
+   ## Content Size Guidelines
+   
+   - **Small tasks (< 20 lines)**: Can use heredocs directly in command
+   - **Medium tasks (20-200 lines)**: Use temporary files to preserve formatting
+   - **Large tasks (> 200 lines)**: Always use temporary files
+   - **Tasks with code blocks**: MUST use heredocs or files (never inline)
+   
+   Example for medium/large content:
+   ```bash
+   # Extract the full implementation from your task breakdown
+   cat > /tmp/stm-task-details.txt << 'EOF'
+   [PASTE THE ENTIRE "Technical Requirements" and "Implementation" sections from the task breakdown]
+   [Include ALL code blocks with proper formatting]
+   [Include ALL technical notes and comments]
+   EOF
+   
+   cat > /tmp/stm-task-validation.txt << 'EOF'
+   [PASTE THE ENTIRE "Acceptance Criteria" section]
+   [Include ALL test scenarios]
+   EOF
+   
+   stm add "[Task Title]" \
+     --description "[One line summary]" \
+     --details "$(cat /tmp/stm-task-details.txt)" \
+     --validation "$(cat /tmp/stm-task-validation.txt)" \
+     --tags "appropriate,tags" \
+     --deps "1,2,3"
+   
+   rm /tmp/stm-task-*.txt
+   ```
    
    If STM is not available, use TodoWrite:
    ```javascript
@@ -369,8 +488,35 @@ The decomposition is complete when:
 - ✅ Parallel execution opportunities are identified
 - ✅ **STM tasks use all three fields properly:**
   - `--description`: Brief what & why (1-2 sentences)
-  - `--details`: Complete technical implementation from spec
+  - `--details`: Complete technical implementation from spec (ACTUAL CODE, not references)
   - `--validation`: Full acceptance criteria and test scenarios
+- ✅ **Quality check passed**: Running `stm show [any-task-id]` displays full code implementations
+- ✅ **No summary phrases**: Tasks don't contain "as specified", "from spec", or similar references
+
+## Post-Creation Validation
+
+After creating STM tasks, perform these checks:
+
+1. **Sample Task Review**:
+   ```bash
+   # Pick a random task and check it has full implementation
+   stm show [task-id] | grep -E "(as specified|from spec|see specification)"
+   # Should return NO matches - if it does, the task is incomplete
+   ```
+
+2. **Content Length Check**:
+   ```bash
+   # Implementation tasks should have substantial details
+   stm list --format json | jq '.[] | select(.details | length < 500) | {id, title}'
+   # Review any tasks with very short details - they likely need more content
+   ```
+
+3. **Code Block Verification**:
+   ```bash
+   # Check that tasks contain actual code blocks
+   stm grep "```" | wc -l
+   # Should show many matches for tasks with code implementations
+   ```
 
 ## Integration with Other Commands
 

@@ -1,0 +1,202 @@
+{
+  // Hook configuration with custom commands and scripts
+  // Demonstrates advanced customization options
+  "hooks": {
+    // Custom TypeScript validation
+    "typecheck": {
+      // Use custom npm script for stricter checking
+      "command": "npm run typecheck:strict",
+      // Longer timeout for comprehensive checks
+      "timeout": 60000,
+      // Custom arguments passed to the command
+      "args": ["--incremental", "--pretty"],
+      // Environment variables for the command
+      "env": {
+        "NODE_ENV": "development",
+        "TS_NODE_TRANSPILE_ONLY": "false"
+      }
+    },
+    
+    // Custom 'any' detection with reporting
+    "no-any": {
+      // Use a custom script instead of built-in
+      "command": "./scripts/detect-any-usage.js",
+      "timeout": 10000,
+      // Generate report file
+      "reportFile": ".claudekit/any-usage-report.json",
+      // Severity levels: error, warning, info
+      "severity": "error"
+    },
+    
+    // Advanced ESLint configuration
+    "eslint": {
+      // Custom lint script with multiple configs
+      "command": "./scripts/multi-lint.sh",
+      "timeout": 45000,
+      // Run different configs based on file type
+      "configs": {
+        "src/**/*.ts": ".eslintrc.strict.json",
+        "tests/**/*.ts": ".eslintrc.tests.json",
+        "scripts/**/*.js": ".eslintrc.scripts.json"
+      },
+      // Custom error formatting
+      "format": "stylish",
+      // Maximum warnings before failing
+      "maxWarnings": 10
+    },
+    
+    // Sophisticated test runner
+    "run-related-tests": {
+      // Custom test orchestration script
+      "command": "./scripts/smart-test-runner.js",
+      "timeout": 90000,
+      // Test selection strategy
+      "strategy": "affected",
+      // Parallel execution
+      "parallel": true,
+      // Number of workers
+      "workers": 4,
+      // Retry flaky tests
+      "retries": 2,
+      // Custom test patterns
+      "patterns": {
+        "unit": "**/*.unit.{test,spec}.{js,ts}",
+        "integration": "**/*.integration.{test,spec}.{js,ts}",
+        "e2e": "**/*.e2e.{test,spec}.{js,ts}"
+      }
+    },
+    
+    // Enhanced checkpoint system
+    "auto-checkpoint": {
+      // Custom checkpoint script
+      "command": "./scripts/checkpoint-manager.sh",
+      "timeout": 15000,
+      // Checkpoint naming strategy
+      "namingStrategy": "timestamp",
+      // Include build artifacts
+      "includeBuildArtifacts": false,
+      // Compression for checkpoints
+      "compress": true,
+      // Remote backup
+      "remoteBackup": {
+        "enabled": true,
+        "bucket": "s3://my-checkpoints",
+        "retention": "7d"
+      }
+    },
+    
+    // Multi-stage project validation
+    "project-validation": {
+      // Custom validation pipeline
+      "stages": [
+        {
+          "name": "pre-checks",
+          "command": "npm run validate:pre",
+          "timeout": 30000,
+          "failFast": true
+        },
+        {
+          "name": "build",
+          "typescriptCommand": "npm run build:check",
+          "timeout": 60000
+        },
+        {
+          "name": "quality",
+          "eslintCommand": "npm run lint:all",
+          "testCommand": "npm run test:ci",
+          "timeout": 120000
+        },
+        {
+          "name": "security",
+          "command": "npm audit --audit-level=moderate",
+          "timeout": 30000
+        },
+        {
+          "name": "performance",
+          "command": "./scripts/perf-check.js",
+          "timeout": 45000,
+          "optional": true
+        }
+      ],
+      // Overall timeout for all stages
+      "timeout": 300000,
+      // Generate validation report
+      "report": {
+        "enabled": true,
+        "format": "json",
+        "path": ".claudekit/validation-report.json"
+      }
+    },
+    
+    // Custom todo validation with integrations
+    "validate-todo-completion": {
+      // Custom todo checker
+      "command": "./scripts/todo-validator.js",
+      "timeout": 10000,
+      // Integration with task management
+      "integrations": {
+        "jira": {
+          "enabled": true,
+          "updateStatus": true
+        },
+        "github": {
+          "enabled": true,
+          "createIssues": false
+        }
+      }
+    },
+    
+    // Custom hook: Documentation generator
+    "generate-docs": {
+      "command": "./scripts/generate-docs.js",
+      "timeout": 30000,
+      "trigger": "PostToolUse",
+      "filePatterns": ["src/**/*.ts", "!**/*.test.ts"],
+      "outputDir": "docs/api"
+    },
+    
+    // Custom hook: Code metrics
+    "code-metrics": {
+      "command": "./scripts/calculate-metrics.js",
+      "timeout": 20000,
+      "metrics": ["complexity", "coverage", "duplication"],
+      "thresholds": {
+        "complexity": 10,
+        "coverage": 80,
+        "duplication": 5
+      }
+    }
+  },
+  
+  // Global options for all hooks
+  "options": {
+    // Enable debug logging
+    "debug": true,
+    // Custom log directory
+    "logDir": ".claudekit/logs",
+    // Log rotation
+    "logRotation": {
+      "maxSize": "10MB",
+      "maxFiles": 5
+    },
+    // Notification settings
+    "notifications": {
+      "enabled": true,
+      "channels": ["console", "desktop"],
+      "onError": true,
+      "onWarning": false
+    }
+  },
+  
+  // Hook execution policies
+  "policies": {
+    // Continue on hook failure
+    "continueOnError": false,
+    // Run hooks in parallel where possible
+    "parallel": true,
+    // Maximum concurrent hooks
+    "maxConcurrent": 3,
+    // Global timeout for all hooks
+    "globalTimeout": 600000
+  }
+}

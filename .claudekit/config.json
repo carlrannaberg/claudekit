@@ -1,8 +1,61 @@
 {
+  // Hook configuration for claudekit project
+  // This file customizes behavior of embedded hooks
   "hooks": {
+    // TypeScript type checking hook
+    "typecheck": {
+      // Custom command to run (defaults to built-in check)
+      "command": "pnpm exec tsc --noEmit",
+      // Maximum time to wait for completion (milliseconds)
+      "timeout": 45000
+    },
+    
+    // Detect TypeScript 'any' usage
+    "no-any": {
+      // Uses built-in pattern matching (no command needed)
+      "timeout": 5000
+    },
+    
+    // ESLint linting hook
+    "eslint": {
+      // Custom ESLint command
+      "command": "pnpm exec eslint",
+      // Timeout for ESLint execution
+      "timeout": 30000
+    },
+    
+    // Run tests related to changed files
+    "run-related-tests": {
+      // Test command to execute
+      "command": "pnpm test",
+      // Maximum test execution time
+      "timeout": 60000,
+      // Pattern to identify test files (optional)
+      "pattern": "**/*.{test,spec}.{js,ts}"
+    },
+    
+    // Auto-checkpoint on Stop event
     "auto-checkpoint": {
+      // Quick timeout for stash operations
+      "timeout": 10000,
+      // Prefix for checkpoint messages
       "prefix": "claude",
+      // Maximum number of checkpoints to keep
       "maxCheckpoints": 10
+    },
+    
+    // Project-wide validation
+    "project-validation": {
+      // Custom validation command
+      "command": "pnpm run validate",
+      // Allow longer timeout for comprehensive checks
+      "timeout": 120000
+    },
+    
+    // Validate todo list completion
+    "validate-todo-completion": {
+      // Uses built-in todo validation logic
+      "timeout": 5000
     }
   }
 }
