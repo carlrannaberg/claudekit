@@ -86,7 +86,7 @@ export async function execCommand(
   } catch (error: any) {
     return {
       stdout: error.stdout || '',
-      stderr: error.stderr || error.message,
+      stderr: error.stderr || '',
       exitCode: error.code || 1
     };
   }
