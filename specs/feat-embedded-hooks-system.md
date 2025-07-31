@@ -2,7 +2,8 @@
 
 **Status**: Draft  
 **Authors**: Claude, 2025-07-29  
-**Type**: Feature
+**Type**: Feature  
+**POC**: ✅ [Completed](feat-embedded-hooks-system-poc.md)
 
 ## Overview
 
@@ -204,8 +205,10 @@ process.exit(2);
 ### Exit Code Logic
 
 Hooks use consistent exit codes:
-- `0` - Success or allowed to continue
+- `0` - Success or allowed to continue (skip conditions)
 - `2` - Block operation with error message
+
+Note: The POC incorrectly used exit code 1 for failures. This should be corrected in the full implementation.
 
 **Binary Decision**
 ```typescript
@@ -1802,7 +1805,8 @@ Each hook can be configured in `.claudekit/config.json`:
     "build": "npm run clean && npm run build:main && npm run build:hooks && npm run build:types",
     "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external",
     "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/hooks-cli.js --external:node:* --packages=external",
-    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly"
+    "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
+    "build:hooks-dev": "tsc cli/hooks-cli.ts --outDir dist --module esnext --target es2022 --moduleResolution node --skipLibCheck"
   }
 }
 ```
@@ -1816,8 +1820,10 @@ import('../dist/cli.js');
 ```
 
 **bin/claudekit-hooks**:
-```bash
+```javascript
 #!/usr/bin/env node
+
+// Direct import of the hooks CLI
 import('../dist/hooks-cli.js');
 ```
 
@@ -1881,6 +1887,32 @@ Ensure `tsconfig.json` includes the hooks directory:
 }
 ```
 
+## Lessons from POC
+
+Based on the [POC implementation](feat-embedded-hooks-system-poc.md):
+
+### Build Configuration
+- TypeScript compilation requires additional flags: `--moduleResolution node --skipLibCheck`
+- Simple binary wrapper with direct import works best
+- esbuild for production, tsc for development/debugging
+
+### Architecture Validation
+- Separate binary approach proven successful
+- Configuration loading pattern validated
+- Exit code handling works as expected (0 for success/skip, 2 for blocking errors)
+- Claude Code integration via hooks system confirmed
+- Note: POC used exit code 1 incorrectly - should use 2 for blocking
+
+### Performance Observations
+- Acceptable startup time for POC
+- No noticeable delays in hook execution
+- Stdin reading with 1-second timeout sufficient
+
+### Configuration Approach
+- Current directory config loading acceptable for POC
+- Project root discovery needed for full implementation
+- Default values essential for missing config
+
 ## Implementation Phases
 
 ### Phase 1: Core Infrastructure
@@ -1914,8 +1946,20 @@ Ensure `tsconfig.json` includes the hooks directory:
    - Should we support running old shell scripts?
    - Decision: No, clean break with clear migration path
 
+## Implementation Timeline
+
+Based on POC validation:
+- **POC**: ✅ Completed (2 hours)
+- **Phase 1 (Core Infrastructure)**: 3-4 days
+- **Phase 2 (Hook Migration)**: 5-7 days
+- **Phase 3 (Testing & Documentation)**: 3-4 days
+- **Phase 4 (Release)**: 1-2 days
+- **Total**: 2-3 weeks
+
 ## References
 
+- [POC Implementation](feat-embedded-hooks-system-poc.md)
+- [POC Validation Report](../reports/POC_VALIDATION_REPORT.md)
 - Current shell script implementations in `src/hooks/`
 - Claude Code hooks documentation
 - Existing claudekit CLI structure in `cli/`
