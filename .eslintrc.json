@@ -20,6 +20,16 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/strict-boolean-expressions": "off"
       }
+    },
+    {
+      "files": ["*.config.ts", "*.config.js"],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/explicit-function-return-type": "off"
+      }
     }
   ],
   "ignorePatterns": [

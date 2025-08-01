@@ -12,7 +12,7 @@ const commonOptions: BuildOptions = {
   logLevel: 'info',
 };
 
-async function buildAll() {
+async function buildAll(): Promise<void> {
   const startTime = Date.now();
   
   try {

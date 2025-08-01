@@ -8,7 +8,7 @@ export default defineConfig({
   })],
   resolve: {
     alias: {
-      '@tests': new URL('./tests', import.meta.url).pathname,
+      '@tests': new globalThis.URL('./tests', import.meta.url).pathname,
     },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
@@ -63,7 +63,7 @@ export default defineConfig({
       'dist', 
       'coverage',
       // Temporarily exclude files with import issues in CI
-      ...(process.env['CI'] ? [
+      ...(process.env['CI'] !== undefined ? [
         'tests/commands/init.test.ts',
         'tests/commands/validate.test.ts', 
         'tests/integration/workflow.test.ts',
