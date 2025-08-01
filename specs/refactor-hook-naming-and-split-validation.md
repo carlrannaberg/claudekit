@@ -215,7 +215,7 @@ export const HOOK_REGISTRY = {
 
 1. **Backward Compatibility**: Keep old names in registry pointing to new implementations
 2. **Deprecation Warnings**: Log warnings when old names are used
-3. **Migration Command**: Add `claudekit migrate-hooks` command to update settings.json
+3. **Migration Path**: Users should reinstall claudekit to get updated configurations
 4. **Grace Period**: Support old names for 3 months with deprecation notices
 
 ### 4. File Renaming
@@ -304,9 +304,9 @@ Users with existing configurations will see:
 claudekit has updated hook names for clarity. Your hooks still work but 
 we recommend updating to the new names.
 
-Run: claudekit migrate-hooks
+To update: claudekit init
 
-This will update your .claude/settings.json to use the new hook names.
+This will reinstall claudekit with the new hook names.
 Your hooks will continue to function identically.
 
 Old → New name mappings:
@@ -349,7 +349,7 @@ describe('Split project validation hooks', () => {
 ### Integration Tests
 
 - Test complete setup flow with new hook names
-- Verify migration command updates settings correctly
+- Verify reinstallation updates settings correctly
 - Test backward compatibility with old names
 - Ensure split hooks can be configured independently
 - Verify error formatting matches current behavior
@@ -358,7 +358,7 @@ describe('Split project validation hooks', () => {
 
 1. Run setup wizard and verify new hook descriptions
 2. Test each renamed hook functions identically
-3. Run migration command on existing project
+3. Test reinstallation on existing project
 4. Verify deprecation warnings appear for old names
 5. Test granular configuration of project validations
 6. Ensure error messages are clear and actionable
@@ -405,10 +405,10 @@ describe('Split project validation hooks', () => {
 
 ### Phase 2: Migration Support (1 day)
 
-1. Implement `claudekit migrate-hooks` command
-2. Add backward compatibility aliases
-3. Create migration documentation
-4. Update setup wizard UI
+1. Add backward compatibility aliases
+2. Create migration documentation
+3. Update setup wizard UI
+4. Update init command to handle migration
 
 ### Phase 3: Testing and Polish (1 day)
 
@@ -421,8 +421,8 @@ describe('Split project validation hooks', () => {
 
 1. Should we keep the old `project-validation` hook as a meta-hook that runs all three?
 2. How long should we maintain backward compatibility (suggested: 3 months)?
-3. Should migration be automatic or require user confirmation?
-4. Should we add a `--force-old-names` flag for compatibility?
+3. Should we add a `--force-old-names` flag for compatibility?
+4. Should the init command detect old hook names and prompt for update?
 
 ## References
 
