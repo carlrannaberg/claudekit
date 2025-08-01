@@ -13,9 +13,12 @@ This is a TypeScript-based toolkit. Key commands:
 
 - **Install**: `npm install -g claudekit` - Install claudekit globally
 - **Setup**: `claudekit init` - Initialize claudekit in your project
+- **Build**: `npm run build` - **IMPORTANT: Run after any code changes to compile TypeScript**
 - **Test hooks**: Manually trigger by editing files or using Claude Code
 - **Check shell syntax**: `bash -n script.sh`
 - **Validate JSON**: `jq . settings.json`
+
+**Important**: After making any changes to TypeScript files (hooks, commands, or library code), you MUST run `npm run build` before testing. The project uses compiled JavaScript from the `dist/` directory, not the source TypeScript files.
 
 ### Slash Commands (in Claude Code)
 - `/checkpoint:create [description]` - Create a git stash checkpoint
