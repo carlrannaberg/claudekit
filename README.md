@@ -60,7 +60,7 @@ Options:
 
 Examples:
   claudekit install                    # Install all recommended components
-  claudekit install typecheck eslint   # Install specific hooks
+  claudekit install typecheck eslint   # Install specific components
   claudekit install --type command     # Install all commands
   claudekit install --essential        # Install only essential components
 ```
@@ -94,42 +94,25 @@ Options:
 
 ## Hooks System
 
-Claudekit includes a dedicated hooks system for Claude Code integration.
+Claudekit provides an embedded hooks system that integrates seamlessly with Claude Code through the `claudekit-hooks` executable.
 
-### Installation
+### Overview
 
-When you install claudekit globally, you get two binaries:
-- `claudekit` - Main CLI for commands and project management
-- `claudekit-hooks` - Dedicated hooks execution system
+The embedded hooks system allows you to run validation and automation hooks without managing individual script files. All hooks are built into the `claudekit-hooks` executable, which is installed globally with claudekit.
+
+### Available Embedded Hooks
+
+- **typecheck** - TypeScript type checking with automatic project detection
+- **no-any** - Forbid `any` types in TypeScript files (excludes test files)
+- **eslint** - ESLint validation with automatic config detection
+- **auto-checkpoint** - Automatically create git checkpoints when Claude Code stops
+- **run-related-tests** - Run tests related to modified files
+- **project-validation** - Comprehensive project validation checks
+- **validate-todo-completion** - Ensure all todos are completed before stopping
 
 ### Hook Configuration
 
-Hooks are configured in `.claudekit/config.json`:
-
-```json
-{
-  "hooks": {
-    "typecheck": {
-      "command": "pnpm exec tsc --noEmit",
-      "timeout": 45000
-    }
-  }
-}
-```
-
-### Available Hooks
-
-- `typecheck` - TypeScript type checking
-- `no-any` - Forbid any types in TypeScript
-- `eslint` - ESLint code validation
-- `auto-checkpoint` - Git auto-checkpoint on stop
-- `run-related-tests` - Run tests for changed files
-- `project-validation` - Full project validation
-- `validate-todo-completion` - Validate todo completions
-
-### Claude Code Integration
-
-Update your `.claude/settings.json` to use claudekit hooks:
+Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <hook>` command format:
 
 ```json
 {
@@ -137,8 +120,19 @@ Update your `.claude/settings.json` to use claudekit hooks:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks typecheck"}
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
         ]
       }
     ]
@@ -146,12 +140,27 @@ Update your `.claude/settings.json` to use claudekit hooks:
 }
 ```
 
+### Testing Hooks
+
+You can test hooks outside of Claude Code using the `claudekit-hooks test` command:
+
+```bash
+# Test a specific hook with a file
+claudekit-hooks test typecheck --file src/index.ts
+
+# Test a hook without file context
+claudekit-hooks test auto-checkpoint
+
+# List all available hooks
+claudekit-hooks list
+```
+
 ## Features
 
 ### 🛡️ Development Hooks
-Automatically enforce code quality and run tests:
+Automatically enforce code quality and run tests with embedded hooks:
 
-- **typecheck** - TypeScript type checking (blocks `any` types)
+- **typecheck** - TypeScript type checking with automatic project detection
 - **eslint** - ESLint code style and quality validation
 - **run-related-tests** - Auto-run tests for modified files
 - **validate-todo-completion** - Prevent stopping with incomplete todos
@@ -200,15 +209,15 @@ claudekit uses a two-level configuration system:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
-          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
         ]
       }
     ]

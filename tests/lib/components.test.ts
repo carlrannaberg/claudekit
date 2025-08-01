@@ -74,43 +74,29 @@ This is a test command that validates functionality.
       expect(component?.type).toBe('command');
     });
 
-    it('should parse hook files with header comments correctly', async () => {
-      const hookContent = `#!/usr/bin/env bash
-set -euo pipefail
-
-################################################################################
-# Test Hook                                                                    #
-# Description: Validates code quality and standards                           #
-# Category: validation                                                         #
-# Dependencies: eslint, git                                                   #
-# Version: 2.1.0                                                             #
-################################################################################
-
-# This hook validates code quality
-echo "Running validation..."
-
-# Use git status
-git status --short
-
-# Run ESLint
-eslint src/
-`;
-
-      await fs.writeFile(path.join(hooksDir, 'test-validation.sh'), hookContent);
-      await fs.chmod(path.join(hooksDir, 'test-validation.sh'), 0o755);
-
+    it('should include embedded hooks in discovery', async () => {
       const registry = await discoverComponents(tempDir);
-      const component = getComponent('test-validation', registry);
-
-      expect(component).toBeDefined();
-      expect(component?.metadata.name).toBe('test-validation');
-      expect(component?.metadata.description).toMatch(/Validates code quality and standards/);
-      expect(component?.metadata.category).toBe('validation');
-      expect(component?.metadata.dependencies).toContain('git');
-      expect(component?.metadata.dependencies).toContain('eslint');
-      expect(component?.metadata.version).toBe('2.1.0');
-      expect(component?.metadata.shellOptions).toEqual(['-euo', 'pipefail']);
-      expect(component?.type).toBe('hook');
+      
+      // Test that embedded hooks are included
+      const typecheck = getComponent('typecheck', registry);
+      expect(typecheck).toBeDefined();
+      expect(typecheck?.metadata.name).toBe('TypeScript Type Checking');
+      expect(typecheck?.metadata.description).toContain('embedded hook');
+      expect(typecheck?.metadata.category).toBe('validation');
+      expect(typecheck?.type).toBe('hook');
+      expect(typecheck?.path).toBe('embedded:typecheck');
+      
+      // Test another embedded hook
+      const eslint = getComponent('eslint', registry);
+      expect(eslint).toBeDefined();
+      expect(eslint?.metadata.name).toBe('ESLint Validation');
+      expect(eslint?.metadata.category).toBe('validation');
+      
+      // Verify all embedded hooks are present
+      const allHooks = getComponentsByType('hook', registry);
+      const embeddedHookIds = ['typecheck', 'eslint', 'prettier', 'no-any', 'run-related-tests', 'auto-checkpoint', 'validate-todo-completion', 'project-validation'];
+      const foundEmbeddedHooks = allHooks.filter(h => h.path.startsWith('embedded:'));
+      expect(foundEmbeddedHooks.length).toBe(embeddedHookIds.length);
     });
 
     it('should infer category from content when not explicitly provided', async () => {
@@ -125,24 +111,14 @@ Check current git status and show insights.
 Create a git stash if needed.
 `;
 
-      const validationHookContent = `#!/usr/bin/env bash
-set -euo pipefail
-
-# TypeScript validation hook
-# Runs type checking on modified files
-
-tsc --noEmit
-eslint src/
-`;
-
       await fs.writeFile(path.join(commandsDir, 'git-status.md'), gitCommandContent);
-      await fs.writeFile(path.join(hooksDir, 'typecheck.sh'), validationHookContent);
 
       const registry = await discoverComponents(tempDir);
 
       const gitComponent = getComponent('git-status', registry);
       expect(gitComponent?.metadata.category).toBe('git');
 
+      // Test that embedded typecheck hook has correct category
       const validationComponent = getComponent('typecheck', registry);
       expect(validationComponent?.metadata.category).toBe('validation');
     });
@@ -161,18 +137,7 @@ This command uses multiple tools:
 - Integrates with /checkpoint system
 `;
 
-      const hookWithDeps = `#!/usr/bin/env bash
-
-# Hook that depends on various tools
-git status
-npm test
-yarn install
-pnpm build
-.claude/hooks/other-hook.sh
-`;
-
       await fs.writeFile(path.join(commandsDir, 'complex.md'), commandWithDeps);
-      await fs.writeFile(path.join(hooksDir, 'complex.sh'), hookWithDeps);
 
       const registry = await discoverComponents(tempDir);
 
@@ -180,12 +145,16 @@ pnpm build
       // Command should extract basic tools from allowed-tools
       expect(commandComponent?.metadata.dependencies.length).toBeGreaterThan(0);
 
-      const hookComponent = getComponent('complex', registry);
-      expect(hookComponent?.metadata.dependencies).toContain('git');
-      expect(hookComponent?.metadata.dependencies).toContain('npm');
-      expect(hookComponent?.metadata.dependencies).toContain('yarn');
-      expect(hookComponent?.metadata.dependencies).toContain('pnpm');
-      expect(hookComponent?.metadata.dependencies).toContain('other-hook');
+      // Test that embedded hooks have correct dependencies
+      const eslintHook = getComponent('eslint', registry);
+      expect(eslintHook?.metadata.dependencies).toContain('eslint');
+      
+      const typecheckHook = getComponent('typecheck', registry);
+      expect(typecheckHook?.metadata.dependencies).toContain('typescript');
+      expect(typecheckHook?.metadata.dependencies).toContain('tsc');
+      
+      const autoCheckpoint = getComponent('auto-checkpoint', registry);
+      expect(autoCheckpoint?.metadata.dependencies).toContain('git');
     });
   });
 
@@ -206,18 +175,11 @@ description: Git commit command
 # Git Commit`
       );
 
-      await fs.writeFile(
-        path.join(validationDir, 'eslint.sh'),
-        `#!/usr/bin/env bash
-# ESLint validation hook
-eslint src/`
-      );
-
       const registry = await discoverComponents(tempDir);
 
       expect(getComponent('git:commit', registry)).toBeDefined();
-      expect(getComponent('validation:eslint', registry)).toBeDefined();
-      expect(registry.components.size).toBe(2);
+      // Should have 1 nested command + 8 embedded hooks = 9 total
+      expect(registry.components.size).toBe(9);
     });
 
     it('should handle missing directories gracefully', async () => {
@@ -234,7 +196,8 @@ description: Test command
 
       const registry = await discoverComponents(tempDir);
 
-      expect(registry.components.size).toBe(1);
+      // Should have 1 command + 8 embedded hooks = 9 total
+      expect(registry.components.size).toBe(9);
       expect(getComponent('test', registry)).toBeDefined();
     });
 
@@ -258,12 +221,14 @@ enabled: false
       );
 
       const registryAll = await discoverComponents(tempDir, { includeDisabled: true });
-      expect(registryAll.components.size).toBe(2);
+      // Should have 2 commands + 8 embedded hooks = 10 total
+      expect(registryAll.components.size).toBe(10);
 
       // Clear cache before second call
       invalidateCache(tempDir);
       const registryEnabled = await discoverComponents(tempDir, { includeDisabled: false });
-      expect(registryEnabled.components.size).toBe(1);
+      // Should have 1 enabled command + 8 embedded hooks (all enabled by default) = 9 total
+      expect(registryEnabled.components.size).toBe(9);
       expect(getComponent('enabled', registryEnabled)).toBeDefined();
       expect(getComponent('disabled', registryEnabled)).toBeUndefined();
     });
@@ -278,31 +243,33 @@ category: git
 # Git Command`
       );
 
-      await fs.writeFile(
-        path.join(hooksDir, 'validation.sh'),
-        `#!/usr/bin/env bash
-# Validation hook
-# Category: validation
-eslint src/`
-      );
-
       const registry = await discoverComponents(tempDir);
 
+      // Test git category (should have git-cmd command and auto-checkpoint hook)
       const gitComponents = getComponentsByCategory('git', registry);
-      expect(gitComponents).toHaveLength(1);
-      expect(gitComponents[0]?.metadata.name).toBe('git-cmd');
+      const gitCommandComponent = gitComponents.find(c => c.metadata.id === 'git-cmd');
+      expect(gitCommandComponent).toBeDefined();
+      expect(gitCommandComponent?.metadata.name).toBe('git-cmd');
 
       const commands = getComponentsByType('command', registry);
       expect(commands).toHaveLength(1);
 
+      // Test that embedded hooks are included
       const hooks = getComponentsByType('hook', registry);
-      expect(hooks).toHaveLength(1);
+      expect(hooks.length).toBe(8); // All 8 embedded hooks
+      
+      // Test validation category has embedded validation hooks
+      const validationComponents = getComponentsByCategory('validation', registry);
+      const validationHooks = validationComponents.filter(c => c.type === 'hook');
+      expect(validationHooks.length).toBeGreaterThan(0);
+      expect(validationHooks.some(h => h.metadata.id === 'typecheck')).toBe(true);
+      expect(validationHooks.some(h => h.metadata.id === 'eslint')).toBe(true);
     });
   });
 
   describe('Dependency Resolution', () => {
     beforeEach(async () => {
-      // Create components with dependencies
+      // Create command components with dependencies
       await fs.writeFile(
         path.join(commandsDir, 'base.md'),
         `---
@@ -319,36 +286,22 @@ description: Dependent command
 # Dependent
 Uses /base command`
       );
-
-      await fs.writeFile(
-        path.join(hooksDir, 'base-hook.sh'),
-        `#!/usr/bin/env bash
-# Base hook
-echo "base"`
-      );
-
-      await fs.writeFile(
-        path.join(hooksDir, 'dependent-hook.sh'),
-        `#!/usr/bin/env bash
-# Dependent hook
-.claude/hooks/base-hook.sh`
-      );
     });
 
     it('should build dependency graphs correctly', async () => {
       const registry = await discoverComponents(tempDir);
 
       const dependentCmd = getComponent('dependent', registry);
-      const dependentHook = getComponent('dependent-hook', registry);
-
       expect(dependentCmd).toBeDefined();
-      expect(dependentHook).toBeDefined();
 
       const cmdDeps = getDependencies('dependent', registry);
       expect(cmdDeps.some((c) => c.metadata.id === 'base')).toBe(true);
 
-      const hookDeps = getDependencies('dependent-hook', registry);
-      expect(hookDeps.some((c) => c.metadata.id === 'base-hook')).toBe(true);
+      // Test embedded hook dependencies
+      const typecheckDeps = getDependencies('typecheck', registry);
+      // Note: typescript and tsc are external dependencies, so they won't be in the registry
+      expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('typescript');
+      expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('tsc');
     });
 
     it('should resolve dependency order correctly', async () => {
@@ -395,9 +348,6 @@ Uses /circular-a`
 
       const baseDependents = getDependents('base', registry);
       expect(baseDependents.some((c) => c.metadata.id === 'dependent')).toBe(true);
-
-      const baseHookDependents = getDependents('base-hook', registry);
-      expect(baseHookDependents.some((c) => c.metadata.id === 'dependent-hook')).toBe(true);
     });
   });
 
@@ -418,21 +368,16 @@ description: Validate code quality
 ---
 # Validation`
       );
-
-      await fs.writeFile(
-        path.join(hooksDir, 'eslint.sh'),
-        `#!/usr/bin/env bash
-# ESLint validation hook
-eslint src/`
-      );
     });
 
     it('should search by name', async () => {
       const registry = await discoverComponents(tempDir);
 
       const gitResults = searchComponents('git', registry);
-      expect(gitResults).toHaveLength(1);
-      expect(gitResults[0]?.metadata.name).toBe('git-status');
+      // Should find git-status command and possibly embedded hooks with 'git' in name
+      const gitStatusCmd = gitResults.find(r => r.metadata.id === 'git-status');
+      expect(gitStatusCmd).toBeDefined();
+      expect(gitStatusCmd?.metadata.name).toBe('git-status');
     });
 
     it('should search by description when enabled', async () => {
@@ -492,13 +437,13 @@ description: Test command 2
 # Test 2`
       );
 
-      // Should still return cached result
+      // Should still return cached result (1 command + 8 embedded hooks = 9)
       const registry2 = await discoverComponents(tempDir);
-      expect(registry2.components.size).toBe(1);
+      expect(getComponentsByType('command', registry2).length).toBe(1);
 
-      // Force refresh should pick up new file
+      // Force refresh should pick up new file (2 commands + 8 embedded hooks = 10)
       const registry3 = await discoverComponents(tempDir, { forceRefresh: true });
-      expect(registry3.components.size).toBe(2);
+      expect(getComponentsByType('command', registry3).length).toBe(2);
     });
 
     it('should provide accurate performance statistics', async () => {
@@ -520,21 +465,15 @@ category: validation
 # Command 2`
       );
 
-      await fs.writeFile(
-        path.join(hooksDir, 'hook1.sh'),
-        `#!/usr/bin/env bash
-# Hook 1
-echo "hook1"`
-      );
-
       const registry = await discoverComponents(tempDir);
       const stats = getDiscoveryStats(registry);
 
-      expect(stats.totalComponents).toBe(3);
+      // 2 commands + 8 embedded hooks = 10 total
+      expect(stats.totalComponents).toBe(10);
       expect(stats.commandCount).toBe(2);
-      expect(stats.hookCount).toBe(1);
-      expect(stats.categoryCounts.git).toBe(1);
-      expect(stats.categoryCounts.validation).toBe(1);
+      expect(stats.hookCount).toBe(8); // All embedded hooks
+      expect(stats.categoryCounts.git).toBeGreaterThanOrEqual(1); // git command + auto-checkpoint hook
+      expect(stats.categoryCounts.validation).toBeGreaterThanOrEqual(1); // validation command + validation hooks
       expect(stats.cacheStatus).toBe('valid');
     });
   });
@@ -556,21 +495,22 @@ author: Test Author
       const registry = await discoverComponents(tempDir);
       const components = registryToComponents(registry);
 
-      expect(components).toHaveLength(1);
+      // Should have 1 command + 8 embedded hooks
+      expect(components.length).toBe(9);
 
-      const component = components[0];
-      expect(component?.id).toBe('test');
-      expect(component?.type).toBe('command');
-      expect(component?.name).toBe('test');
-      expect(component?.description).toBe('Test command');
-      expect(component?.dependencies).toEqual(['read', 'write']);
-      expect(component?.platforms).toEqual(['all']);
-      expect(component?.version).toBe('1.0.0');
-      expect(component?.author).toBe('Test Author');
-      expect(component?.config?.['allowedTools']).toEqual(['Read', 'Write']);
-      expect(component?.config?.['argumentHint']).toBe('[test]');
-      expect(component?.createdAt).toBeInstanceOf(Date);
-      expect(component?.updatedAt).toBeInstanceOf(Date);
+      const testCommand = components.find(c => c.id === 'test');
+      expect(testCommand).toBeDefined();
+      expect(testCommand?.type).toBe('command');
+      expect(testCommand?.name).toBe('test');
+      expect(testCommand?.description).toBe('Test command');
+      expect(testCommand?.dependencies).toEqual(['read', 'write']);
+      expect(testCommand?.platforms).toEqual(['all']);
+      expect(testCommand?.version).toBe('1.0.0');
+      expect(testCommand?.author).toBe('Test Author');
+      expect(testCommand?.config?.['allowedTools']).toEqual(['Read', 'Write']);
+      expect(testCommand?.config?.['argumentHint']).toBe('[test]');
+      expect(testCommand?.createdAt).toBeInstanceOf(Date);
+      expect(testCommand?.updatedAt).toBeInstanceOf(Date);
     });
   });
 
@@ -632,14 +572,7 @@ category: utility
 # Command ${i}`
         );
 
-        if (i < componentCount / 2) {
-          await fs.writeFile(
-            path.join(hooksDir, `hook${i}.sh`),
-            `#!/usr/bin/env bash
-# Hook ${i}
-echo "hook${i}"`
-          );
-        }
+        // No need to create hook files anymore since we use embedded hooks
       }
 
       const startTime = Date.now();
@@ -647,7 +580,8 @@ echo "hook${i}"`
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(500);
-      expect(registry.components.size).toBe(componentCount + componentCount / 2);
+      // Should have componentCount commands + 8 embedded hooks
+      expect(registry.components.size).toBe(componentCount + 8);
     });
   });
 });

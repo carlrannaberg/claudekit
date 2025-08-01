@@ -7,7 +7,6 @@ import { Colors } from '../utils/colors.js';
 import {
   copyFileWithBackup,
   ensureDirectoryExists,
-  setExecutablePermission,
   checkWritePermission,
   pathExists,
   safeRemove,
@@ -52,7 +51,7 @@ import type {
 
 export interface InstallStep {
   id: string;
-  type: 'create-dir' | 'copy-file' | 'set-permission' | 'install-dependency' | 'configure';
+  type: 'create-dir' | 'copy-file' | 'install-dependency' | 'configure';
   description: string;
   source?: string;
   target: string;
@@ -611,10 +610,6 @@ export async function simulateInstallation(
           }
           break;
 
-        case 'set-permission':
-          logger.debug(`  Would set executable permission: ${step.target}`);
-          break;
-
         case 'install-dependency':
           logger.debug(`  Would check/install dependency: ${step.target}`);
           break;
@@ -859,11 +854,6 @@ async function executeStep(
         }
       );
       transaction.recordFileCreated(step.target);
-      break;
-
-    case 'set-permission':
-      logger.debug(`Setting executable permission: ${step.target}`);
-      await setExecutablePermission(step.target);
       break;
 
     case 'install-dependency': {

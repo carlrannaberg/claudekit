@@ -150,9 +150,9 @@ The command will clearly report these for manual review.
 
 ## Integration with Hooks
 
-Works great with claudekit hooks:
-- `typecheck.sh` - Prevents committing type errors
-- `eslint.sh` - Enforces code style
-- `run-related-tests.sh` - Ensures tests pass
+Works great with claudekit embedded hooks:
+- `claudekit-hooks run typecheck` - Prevents committing type errors
+- `claudekit-hooks run eslint` - Enforces code style
+- `claudekit-hooks run run-related-tests` - Ensures tests pass
 
 Run `/validate-and-fix` before committing to ensure all hooks will pass!

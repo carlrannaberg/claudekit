@@ -13,7 +13,6 @@ export {
   ensureDirectoryExists,
 
   // Permission operations
-  setExecutablePermission,
   checkWritePermission,
 
   // File hashing and comparison

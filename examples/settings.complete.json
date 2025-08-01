@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run no-any"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run eslint"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md,css,scss}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run prettier"}
+        ]
+      },
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"},
+          {"type": "command", "command": "claudekit-hooks run project-validation"}
+        ]
+      }
+    ]
+  }
+}

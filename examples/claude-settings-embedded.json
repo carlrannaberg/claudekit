@@ -10,8 +10,8 @@
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
           // Run typecheck and no-any detection for TypeScript files
-          {"type": "command", "command": "claudekit-hooks typecheck"},
-          {"type": "command", "command": "claudekit-hooks no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run no-any"}
         ]
       },
       {
@@ -20,7 +20,7 @@
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
           // Run ESLint for all JS/TS files
-          {"type": "command", "command": "claudekit-hooks eslint"}
+          {"type": "command", "command": "claudekit-hooks run eslint"}
         ]
       },
       {
@@ -29,7 +29,7 @@
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
           // Run tests related to modified files
-          {"type": "command", "command": "claudekit-hooks run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
         ]
       },
       {
@@ -37,7 +37,7 @@
         "matcher": "tools:Write AND file_paths:**/*.py",
         "hooks": [
           // Example: Run Python-specific hooks
-          {"type": "command", "command": "claudekit-hooks python-lint"}
+          {"type": "command", "command": "claudekit-hooks run python-lint"}
         ]
       }
     ],
@@ -49,11 +49,11 @@
         "matcher": "*",
         "hooks": [
           // Create checkpoint of current work
-          {"type": "command", "command": "claudekit-hooks auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
           // Validate all todos are properly marked
-          {"type": "command", "command": "claudekit-hooks validate-todo-completion"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"},
           // Run project-wide validation
-          {"type": "command", "command": "claudekit-hooks project-validation"}
+          {"type": "command", "command": "claudekit-hooks run project-validation"}
         ]
       }
     ],
@@ -65,7 +65,7 @@
         "matcher": "tools:Bash AND command:rm*",
         "hooks": [
           // Could add safety checks before destructive operations
-          {"type": "command", "command": "claudekit-hooks safety-check"}
+          {"type": "command", "command": "claudekit-hooks run safety-check"}
         ]
       }
     ]

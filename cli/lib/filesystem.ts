@@ -125,32 +125,6 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
 // ============================================================================
 
 /**
- * Sets executable permissions (755) on a file
- *
- * @param filePath - Path to file to make executable
- * @throws Error if file doesn't exist or permissions cannot be set
- */
-export async function setExecutablePermission(filePath: string): Promise<void> {
-  if (!validateProjectPath(filePath)) {
-    throw new Error(`Invalid file path: ${filePath}`);
-  }
-
-  try {
-    // Verify file exists
-    await fs.access(filePath, constants.F_OK);
-
-    // Set permissions to 755 (rwxr-xr-x)
-    await fs.chmod(filePath, 0o755);
-  } catch (error: unknown) {
-    const nodeError = error as NodeJSError;
-    if (nodeError.code !== undefined && nodeError.code === 'ENOENT') {
-      throw new Error(`File not found: ${filePath}`);
-    }
-    throw new Error(`Failed to set executable permission on ${filePath}: ${nodeError.message}`);
-  }
-}
-
-/**
  * Checks if we have write permission to a directory or file's parent directory
  *
  * @param targetPath - Path to check write permissions for

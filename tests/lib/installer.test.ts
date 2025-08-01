@@ -35,7 +35,6 @@ interface ComponentFile {
 vi.mock('../../cli/lib/filesystem', () => ({
   copyFileWithBackup: vi.fn(),
   ensureDirectoryExists: vi.fn(),
-  setExecutablePermission: vi.fn(),
   checkWritePermission: vi.fn().mockResolvedValue(true),
   pathExists: vi.fn().mockResolvedValue(false),
   safeRemove: vi.fn(),
@@ -585,7 +584,7 @@ describe('Installer', () => {
 
   describe('Installer.install', () => {
     it('should execute a complete installation', async () => {
-      const { copyFileWithBackup, ensureDirectoryExists, setExecutablePermission, pathExists } =
+      const { copyFileWithBackup, ensureDirectoryExists, pathExists } =
         await import('../../cli/lib/filesystem');
 
       // Mock pathExists to return true for source files, false for target files
@@ -612,7 +611,6 @@ describe('Installer', () => {
       // Should call file operations
       expect(ensureDirectoryExists).toHaveBeenCalled();
       expect(copyFileWithBackup).toHaveBeenCalled();
-      expect(setExecutablePermission).toHaveBeenCalled();
     });
 
     it('should handle dry run mode', async () => {

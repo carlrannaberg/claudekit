@@ -158,18 +158,18 @@ Claude Code Checkpoints:
 
 ### Automatic Checkpointing on Stop
 
-Add to `~/.claude/settings.json`:
+Claudekit includes an embedded auto-checkpoint hook. Add to `.claude/settings.json`:
 
 ```json
 {
   "hooks": {
     "Stop": [
       {
-        "matcher": "",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/scripts/auto-checkpoint.sh"
+            "command": "claudekit-hooks run auto-checkpoint"
           }
         ]
       }
@@ -178,9 +178,9 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-### Auto-checkpoint Script
+### Custom Auto-checkpoint Script (Alternative)
 
-Create `~/.claude/scripts/auto-checkpoint.sh`:
+If you prefer a custom script, create `~/.claude/scripts/auto-checkpoint.sh`:
 
 ```bash
 #!/bin/bash
@@ -204,9 +204,11 @@ Make it executable:
 chmod +x ~/.claude/scripts/auto-checkpoint.sh
 ```
 
+**Note**: The embedded `claudekit-hooks run auto-checkpoint` is recommended as it includes additional features like checkpoint management and cross-platform compatibility.
+
 ### Optional: Pre-Write Hook for Safety
 
-For additional safety, checkpoint before file writes:
+For additional safety, you can create checkpoints before file writes. While claudekit doesn't include a pre-write checkpoint hook by default, you can create a custom one:
 
 ```json
 {
@@ -217,7 +219,7 @@ For additional safety, checkpoint before file writes:
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/scripts/pre-write-checkpoint.sh"
+            "command": "claudekit-hooks run pre-write-checkpoint"
           }
         ]
       }
@@ -225,6 +227,8 @@ For additional safety, checkpoint before file writes:
   }
 }
 ```
+
+Or use the embedded auto-checkpoint hook in PreToolUse instead of Stop for more frequent checkpoints.
 
 ## Integration with git-commit
 

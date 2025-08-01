@@ -58,7 +58,6 @@ const mockCrypto: {
 import {
   validateProjectPath,
   ensureDirectoryExists,
-  setExecutablePermission,
   checkWritePermission,
   getFileHash,
   needsUpdate,
@@ -199,41 +198,6 @@ describe('filesystem module', () => {
     });
   });
 
-  describe('setExecutablePermission', () => {
-    it('should throw error for invalid paths', async () => {
-      await expect(setExecutablePermission('/usr')).rejects.toThrow('Invalid file path');
-    });
-
-    it('should throw error if file does not exist', async () => {
-      mockFs.access.mockRejectedValue({ code: 'ENOENT' });
-
-      await expect(setExecutablePermission('/Users/testuser/projects/nonexistent')).rejects.toThrow(
-        'File not found'
-      );
-    });
-
-    it('should set executable permissions on existing file', async () => {
-      mockFs.access.mockResolvedValue(undefined);
-      mockFs.chmod.mockResolvedValue(undefined);
-
-      await setExecutablePermission('/Users/testuser/projects/script.sh');
-
-      expect(mockFs.access).toHaveBeenCalledWith(
-        '/Users/testuser/projects/script.sh',
-        constants.F_OK
-      );
-      expect(mockFs.chmod).toHaveBeenCalledWith('/Users/testuser/projects/script.sh', 0o755);
-    });
-
-    it('should throw error if chmod fails', async () => {
-      mockFs.access.mockResolvedValue(undefined);
-      mockFs.chmod.mockRejectedValue(new Error('Permission denied'));
-
-      await expect(setExecutablePermission('/Users/testuser/projects/script.sh')).rejects.toThrow(
-        'Failed to set executable permission'
-      );
-    });
-  });
 
   describe('checkWritePermission', () => {
     it('should return true for writable directory', async () => {

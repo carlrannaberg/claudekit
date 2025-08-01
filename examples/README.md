@@ -1,91 +1,129 @@
-# Claudekit Configuration Examples
+# claudekit Configuration Examples
 
-This directory contains example configuration files for the claudekit embedded hooks system.
+This directory contains example configurations for various project types and scenarios.
 
-## Configuration Files
+## Quick Reference
 
-### Hook Configuration (.claudekit/config.json)
+### Basic Examples
 
-These files customize the behavior of embedded hooks in your project:
+- **`settings.minimal.json`** - Bare minimum configuration with just TypeScript checking
+- **`settings.complete.json`** - Comprehensive setup with all common hooks
+- **`settings.example-with-comments.json`** - Fully documented example explaining each option
 
-- **[config-minimal.json](config-minimal.json)** - Bare minimum configuration to get started
-- **[config-npm.json](config-npm.json)** - Configuration for npm-based projects
-- **[config-yarn.json](config-yarn.json)** - Configuration for Yarn projects with workspace support
-- **[config-custom.json](config-custom.json)** - Advanced configuration with custom scripts and pipelines
+### Language-Specific
 
-### Claude Settings (.claude/settings.json)
+- **`settings.typescript.json`** - TypeScript projects with strict type checking
+- **`settings.javascript.json`** - JavaScript-only projects with ESLint and Prettier
+- **`settings.python.json`** - Python project example (requires Python-specific hooks)
 
-These files configure when hooks are triggered in Claude Code:
+### Special Use Cases
 
-- **[claude-settings-embedded.json](claude-settings-embedded.json)** - Example showing matcher patterns for embedded hooks
-- **[claude-settings-poc.json](claude-settings-poc.json)** - Proof-of-concept settings (legacy)
+- **`settings.ci-cd.json`** - CI/CD pipeline validation (GitHub Actions, Docker, Jenkins)
+- **`settings.user.example.json`** - User-level environment variables (goes in `~/.claude/`)
 
-### Other Examples
+### Legacy Examples
 
-- **[settings.user.example.json](settings.user.example.json)** - User-level settings (environment variables only)
+- **`claude-settings-embedded.json`** - Comprehensive embedded hooks example
+- **`claude-settings-poc.json`** - Proof of concept configuration
 
-## Quick Start
+## How to Use These Examples
 
-1. **Choose a configuration template** based on your project type
-2. **Copy it to your project**:
+1. **Choose an example** that matches your project type
+2. **Copy to your project**:
    ```bash
-   mkdir -p .claudekit
-   cp examples/config-npm.json .claudekit/config.json
+   cp examples/settings.typescript.json .claude/settings.json
    ```
-3. **Customize the settings** for your specific needs
-4. **Update Claude settings** to use embedded hooks:
+3. **Customize as needed** - adjust matchers, add/remove hooks
+4. **Test your configuration**:
    ```bash
-   cp examples/claude-settings-embedded.json .claude/settings.json
+   claudekit list --verbose
    ```
 
-## Configuration Options
+## Configuration Structure
 
-### Hook Configuration
+All settings files follow this structure:
 
-Each hook supports these common options:
-- `command` - Custom command to run (overrides built-in behavior)
-- `timeout` - Maximum execution time in milliseconds
-- `env` - Environment variables for the command
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "matcher-pattern",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run hook-name"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+        ]
+      }
+    ]
+  }
+}
+```
 
-### Matcher Patterns
+## Key Concepts
 
-Claude settings support flexible matching:
-- `"Write"` - Match single tool
-- `"Write,Edit"` - Match multiple tools (OR)
-- `"tools:Write AND file_paths:**/*.ts"` - Conditional matching
-- `"*"` - Match all events
+### Matchers
 
-## Best Practices
+Matchers determine when hooks run:
 
-1. **Start minimal** - Use the minimal configuration and add options as needed
-2. **Set appropriate timeouts** - Balance between giving enough time and avoiding hangs
-3. **Use specific matchers** - Target hooks to relevant file types
-4. **Test incrementally** - Add one hook at a time and verify it works
-5. **Check logs** - Review `.claudekit/hooks.log` for debugging
+- `"tools:Write AND file_paths:**/*.ts"` - TypeScript files only
+- `"Write,Edit,MultiEdit"` - Any file modification
+- `"*"` - Universal (matches everything)
+- `"Notebook.*"` - Regex pattern for Notebook tools
 
-## Hook Types
+### Hook Commands
 
-### Available Hooks
+All hooks use the embedded format:
+```json
+{"type": "command", "command": "claudekit-hooks run <hook-name>"}
+```
 
+Available hooks:
 - `typecheck` - TypeScript type checking
-- `no-any` - Detect TypeScript 'any' usage
-- `eslint` - JavaScript/TypeScript linting
-- `run-related-tests` - Run tests for changed files
-- `auto-checkpoint` - Create git checkpoints
+- `no-any` - Forbid 'any' types
+- `eslint` - ESLint validation
+- `prettier` - Code formatting
+- `auto-checkpoint` - Automatic git checkpoints
+- `run-related-tests` - Run tests for modified files
+- `validate-todo-completion` - Check todo completion
 - `project-validation` - Full project validation
-- `validate-todo-completion` - Check todo list completion
 
-### Custom Hooks
+## Customizing for Your Project
 
-You can create custom hooks by:
-1. Adding a new hook name in your config
-2. Specifying a `command` to run
-3. Configuring when it triggers in Claude settings
+1. **Start with a template** - Pick the closest match
+2. **Adjust file patterns** - Update matchers for your file types
+3. **Add project-specific hooks** - Include additional validations
+4. **Configure hook settings** - Create `.claudekit/config.json` for hook options
 
-## Troubleshooting
+Example `.claudekit/config.json`:
+```json
+{
+  "hooks": {
+    "typecheck": {
+      "timeout": 60000,
+      "tsconfig": "tsconfig.strict.json"
+    },
+    "eslint": {
+      "fix": true,
+      "cache": true
+    }
+  }
+}
+```
 
-If hooks aren't working:
-1. Check that `claudekit-hooks` is in your PATH
-2. Verify your configuration JSON is valid
-3. Look for errors in `.claudekit/hooks.log`
-4. Test hooks manually: `claudekit-hooks <hook-name>`
+## Migration from Old Format
+
+If you have old configuration files using shell scripts, see [MIGRATION_NOTE.md](MIGRATION_NOTE.md) for upgrade instructions.
+
+## Getting Help
+
+- See the [Quick Start Guide](../docs/quick-start.md)
+- Read the [Getting Started Guide](../docs/getting-started.md)
+- Check [Hooks Documentation](../docs/hooks-documentation.md)
+- Review [Hook Reference](../docs/hooks-reference.md)

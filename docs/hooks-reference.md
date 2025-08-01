@@ -1,17 +1,71 @@
-# Hook Configuration Reference
+# Claudekit Hooks Configuration Reference
 
-This document provides detailed configuration options for each hook in the claudekit hooks system.
+This document provides detailed configuration options for the claudekit embedded hooks system.
 
-## Configuration File
+## Configuration Files
 
-Hook configuration is stored in `.claudekit/config.json` in your project root:
+Claudekit uses two configuration files for hooks:
+
+1. **`.claude/settings.json`** - Claude Code hook configuration (which hooks to run and when)
+2. **`.claudekit/config.json`** - Hook-specific configuration options (timeouts, commands, etc.)
+
+## Claude Code Configuration (.claude/settings.json)
+
+This file tells Claude Code which hooks to run and when:
 
 ```json
 {
   "hooks": {
-    "hookName": {
-      "option1": "value1",
-      "option2": "value2"
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run no-any"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Event Types
+
+- **PostToolUse** - Runs after file modifications (Write, Edit, MultiEdit)
+- **Stop** - Runs when Claude Code stops
+- **SubagentStop** - Runs when a subagent completes
+
+### Matcher Patterns
+
+- `"Write"` - Exact tool match
+- `"Write,Edit,MultiEdit"` - Multiple tools (OR logic)
+- `"*"` - All tools/events
+- `"tools:Write AND file_paths:**/*.ts"` - Conditional matching
+- `"Notebook.*"` - Regex patterns
+
+## Hook-Specific Configuration (.claudekit/config.json)
+
+This file contains configuration for individual hooks:
+
+```json
+{
+  "packageManager": "pnpm",
+  "hooks": {
+    "typecheck": {
+      "command": "yarn tsc --noEmit",
+      "timeout": 45000
+    },
+    "eslint": {
+      "fix": true,
+      "timeout": 30000
     }
   }
 }
@@ -23,8 +77,10 @@ Hook configuration is stored in `.claudekit/config.json` in your project root:
 Runs TypeScript compiler to check for type errors.
 
 **Configuration Options:**
-- `command` (string): Custom TypeScript command (default: uses package manager)
+- `command` (string): Custom TypeScript command (default: auto-detected)
 - `timeout` (number): Maximum execution time in ms (default: 30000)
+- `tsconfig` (string): Path to tsconfig.json (default: auto-detected)
+- `incremental` (boolean): Use incremental compilation (default: true)
 
 **Example:**
 ```json
@@ -32,7 +88,8 @@ Runs TypeScript compiler to check for type errors.
   "hooks": {
     "typecheck": {
       "command": "yarn tsc --noEmit",
-      "timeout": 45000
+      "timeout": 45000,
+      "incremental": true
     }
   }
 }
@@ -47,13 +104,15 @@ Forbids the use of 'any' types in TypeScript files.
 
 **Configuration Options:**
 - `timeout` (number): Maximum execution time in ms (default: 5000)
+- `excludePatterns` (string[]): Additional patterns to exclude (default: test files)
 
 **Example:**
 ```json
 {
   "hooks": {
     "no-any": {
-      "timeout": 5000
+      "timeout": 5000,
+      "excludePatterns": ["*.d.ts", "*.generated.ts"]
     }
   }
 }
@@ -67,10 +126,11 @@ Forbids the use of 'any' types in TypeScript files.
 Runs ESLint on JavaScript and TypeScript files.
 
 **Configuration Options:**
-- `command` (string): Custom ESLint command (default: uses package manager)
+- `command` (string): Custom ESLint command (default: auto-detected)
 - `timeout` (number): Maximum execution time in ms (default: 30000)
 - `fix` (boolean): Auto-fix issues (default: false)
 - `extensions` (string[]): File extensions to check
+- `maxWarnings` (number): Maximum warnings allowed (default: 0)
 
 **Example:**
 ```json
@@ -79,7 +139,8 @@ Runs ESLint on JavaScript and TypeScript files.
     "eslint": {
       "command": "pnpm exec eslint",
       "fix": true,
-      "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      "extensions": [".js", ".jsx", ".ts", ".tsx"],
+      "maxWarnings": 0
     }
   }
 }
@@ -96,6 +157,7 @@ Creates git checkpoints automatically on Stop events.
 - `timeout` (number): Maximum execution time in ms (default: 10000)
 - `prefix` (string): Checkpoint message prefix (default: "claude")
 - `maxCheckpoints` (number): Maximum checkpoints to keep (default: 10)
+- `includeUntracked` (boolean): Include untracked files (default: true)
 
 **Example:**
 ```json
@@ -103,31 +165,35 @@ Creates git checkpoints automatically on Stop events.
   "hooks": {
     "auto-checkpoint": {
       "prefix": "ai-session",
-      "maxCheckpoints": 20
+      "maxCheckpoints": 20,
+      "includeUntracked": false
     }
   }
 }
 ```
 
 **Exit Codes:**
-- 0: Checkpoint created successfully
+- 0: Checkpoint created successfully or no changes
 - 1: Failed to create checkpoint
 
 ### run-related-tests
 Runs tests related to changed files.
 
 **Configuration Options:**
-- `command` (string): Custom test command (default: uses package manager)
+- `command` (string): Custom test command (default: auto-detected)
 - `timeout` (number): Maximum execution time in ms (default: 60000)
-- `pattern` (string): Test file pattern (for future use)
+- `testPatterns` (string[]): Additional test file patterns
+- `runInBand` (boolean): Run tests sequentially (default: false)
 
 **Example:**
 ```json
 {
   "hooks": {
     "run-related-tests": {
-      "command": "npm test",
-      "timeout": 90000
+      "command": "npm test --",
+      "timeout": 90000,
+      "testPatterns": ["*.integration.test.js"],
+      "runInBand": true
     }
   }
 }
@@ -145,6 +211,8 @@ Runs comprehensive project validation.
 - `eslintCommand` (string): Custom ESLint validation command  
 - `testCommand` (string): Custom test command
 - `timeout` (number): Maximum execution time in ms (default: 120000)
+- `parallel` (boolean): Run validations in parallel (default: true)
+- `skipTests` (boolean): Skip test validation (default: false)
 
 **Example:**
 ```json
@@ -153,8 +221,9 @@ Runs comprehensive project validation.
     "project-validation": {
       "typescriptCommand": "tsc --noEmit",
       "eslintCommand": "eslint . --ext .ts,.tsx",
-      "testCommand": "npm test",
-      "timeout": 180000
+      "testCommand": "npm test -- --coverage",
+      "timeout": 180000,
+      "parallel": true
     }
   }
 }
@@ -169,19 +238,21 @@ Validates that all todos are completed before stopping.
 
 **Configuration Options:**
 - `timeout` (number): Maximum execution time in ms (default: 5000)
+- `allowPending` (boolean): Allow pending todos (default: false)
+- `requireDescription` (boolean): Require todo descriptions (default: true)
 
 **Example:**
 ```json
 {
   "hooks": {
     "validate-todo-completion": {
-      "timeout": 5000
+      "timeout": 5000,
+      "allowPending": false,
+      "requireDescription": true
     }
   }
 }
 ```
-
-This hook reads the Claude Code transcript to ensure all TodoWrite items are marked as completed.
 
 **Exit Codes:**
 - 0: All todos completed
@@ -194,6 +265,7 @@ In addition to hook-specific configuration, you can set global options:
 ```json
 {
   "packageManager": "pnpm",
+  "debug": false,
   "hooks": {
     // hook configurations
   }
@@ -202,6 +274,7 @@ In addition to hook-specific configuration, you can set global options:
 
 **Global Options:**
 - `packageManager` (string): Preferred package manager (auto-detected if not set)
+- `debug` (boolean): Enable debug logging (default: false)
 
 ## Environment Variables
 
@@ -209,26 +282,120 @@ Hooks can also be configured through environment variables:
 
 - `CLAUDEKIT_PACKAGE_MANAGER`: Override detected package manager
 - `CLAUDEKIT_HOOK_TIMEOUT`: Default timeout for all hooks (in ms)
-- `CLAUDEKIT_DEBUG`: Enable debug logging
+- `CLAUDEKIT_DEBUG`: Enable debug logging (set to "true")
+- `CLAUDEKIT_CONFIG_PATH`: Custom config file path
+
+## Configuration Precedence
+
+Configuration is resolved in the following order (highest to lowest priority):
+
+1. Environment variables
+2. Command-line arguments (for test command)
+3. Hook-specific configuration in `.claudekit/config.json`
+4. Global configuration in `.claudekit/config.json`
+5. Built-in defaults
 
 ## Best Practices
 
 1. **Timeouts**: Set appropriate timeouts based on your project size
+   - Small projects: 15-30 seconds
+   - Medium projects: 30-60 seconds
+   - Large projects: 60-120 seconds
+
 2. **Package Manager**: Let claudekit auto-detect unless you have specific requirements
+
 3. **Custom Commands**: Use custom commands when you need specific flags or configurations
-4. **Fix Mode**: Enable ESLint fix mode for automatic code style corrections
+
+4. **Fix Mode**: Enable ESLint fix mode for automatic code style corrections, but be aware it modifies files
+
+5. **Parallel Execution**: Enable parallel validation for faster feedback on multi-core systems
 
 ## Troubleshooting
 
 ### Hook Not Running
+- Ensure `.claude/settings.json` has correct hook configuration
+- Verify `claudekit-hooks` is in your PATH
+- Check that the hook name is spelled correctly
+
+### Configuration Not Applied
 - Ensure `.claudekit/config.json` exists and is valid JSON
-- Check that the hook is enabled in Claude Code's `.claude/settings.json`
-- Verify the `claudekit-hooks` binary is in your PATH
+- Check for typos in configuration keys
+- Use `claudekit-hooks test` with `--debug` to see loaded configuration
 
 ### Timeout Errors
 - Increase the timeout value for the specific hook
 - Consider optimizing your project configuration (e.g., exclude unnecessary files)
+- Use incremental builds where supported
 
-### Command Not Found
-- Ensure required tools (TypeScript, ESLint, etc.) are installed
-- Specify the full command path if needed
+### Package Manager Issues
+- Remove conflicting lock files
+- Set explicit `packageManager` in config
+- Use environment variable `CLAUDEKIT_PACKAGE_MANAGER` for override
+
+## Examples
+
+### TypeScript-Only Project
+```json
+{
+  "hooks": {
+    "typecheck": {
+      "timeout": 45000,
+      "incremental": true
+    },
+    "no-any": {
+      "excludePatterns": ["*.d.ts"]
+    },
+    "project-validation": {
+      "skipTests": true,
+      "timeout": 60000
+    }
+  }
+}
+```
+
+### Full-Stack Project
+```json
+{
+  "packageManager": "yarn",
+  "hooks": {
+    "typecheck": {
+      "command": "yarn workspaces run typecheck",
+      "timeout": 90000
+    },
+    "eslint": {
+      "fix": true,
+      "extensions": [".js", ".jsx", ".ts", ".tsx", ".vue"],
+      "timeout": 60000
+    },
+    "run-related-tests": {
+      "command": "yarn test --",
+      "runInBand": true
+    },
+    "auto-checkpoint": {
+      "prefix": "dev",
+      "maxCheckpoints": 25
+    }
+  }
+}
+```
+
+### Monorepo Configuration
+```json
+{
+  "packageManager": "pnpm",
+  "hooks": {
+    "typecheck": {
+      "command": "pnpm -r run typecheck",
+      "timeout": 120000
+    },
+    "eslint": {
+      "command": "pnpm -r run lint",
+      "timeout": 90000
+    },
+    "project-validation": {
+      "parallel": true,
+      "timeout": 180000
+    }
+  }
+}
+```

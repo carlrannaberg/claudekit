@@ -1,256 +1,510 @@
-# Claude Code Hooks Documentation
+# Claudekit Embedded Hooks Documentation
 
-This document describes the hooks included in claudekit and their functionality.
+This document describes the embedded hooks system in claudekit and how to use it with Claude Code.
 
-## Package Manager Detection
+## Introduction to Embedded Hooks
 
-All hooks automatically detect and use the appropriate package manager for your project (npm, yarn, or pnpm). The detection logic:
-1. Checks for lock files (pnpm-lock.yaml, yarn.lock, package-lock.json)
-2. Checks the `packageManager` field in package.json
-3. Falls back to npm if no specific manager is detected
+Claudekit provides a powerful embedded hooks system that enhances your Claude Code development workflow. Unlike traditional shell script hooks, embedded hooks are built directly into the `claudekit-hooks` executable, providing:
 
-This ensures hooks work correctly regardless of which package manager you use.
+- **Cross-platform compatibility** - Works on Windows, macOS, and Linux
+- **Automatic package manager detection** - Supports npm, yarn, and pnpm seamlessly
+- **Rich error reporting** - Clear, actionable error messages with fix suggestions
+- **Zero configuration** - Works out of the box with sensible defaults
+- **High performance** - Fast execution with built-in caching
 
-## Shared Validation Library
+## How to Use claudekit-hooks
 
-**Location:** `.claude/validation-lib.sh`
+### Installation
 
-The validation library provides common functions used by multiple hooks:
+The `claudekit-hooks` command is automatically installed when you install claudekit:
 
-**Functions:**
-- `find_project_root()` - Locates the project root directory
-- `has_typescript()` - Checks if TypeScript is configured
-- `has_eslint()` - Checks if ESLint is configured
-- `has_tests()` - Checks if tests are configured
-- `validate_typescript_file()` - Runs TypeScript validation on a specific file
-- `validate_typescript_project()` - Runs TypeScript validation on entire project
-- `validate_eslint_file()` - Runs ESLint validation on a specific file
-- `validate_eslint_project()` - Runs ESLint validation on entire project
-- `validate_tests()` - Runs the project test suite
-- `format_validation_output()` - Formats validation results consistently
-- `parse_json_field()` - Safely parses JSON fields with fallback support
+```bash
+npm install -g claudekit
+# or
+yarn global add claudekit
+# or
+pnpm add -g claudekit
+```
 
-## PostToolUse Hooks
+### Basic Usage
 
-### typecheck.sh
+The `claudekit-hooks` command provides several subcommands:
 
-**Purpose:** Enforces TypeScript type checking and strict typing standards.
+```bash
+# Run a specific hook
+claudekit-hooks run <hook-name>
+
+# Test a hook with a specific file
+claudekit-hooks test <hook-name> --file <path>
+
+# List all available hooks
+claudekit-hooks list
+
+# Show help
+claudekit-hooks --help
+```
+
+### Integration with Claude Code
+
+Hooks are configured in your project's `.claude/settings.json` file. The claudekit init command will set this up for you automatically based on your project type.
+
+## Available Hooks and Their Purposes
+
+### PostToolUse Hooks
+
+These hooks run after Claude Code modifies files:
+
+#### typecheck
+
+**Purpose:** Enforces TypeScript type checking and prevents type errors from being introduced.
 
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript/TSX files only)
 
 **Features:**
-- Blocks usage of `any` types - enforces strict typing
-- Runs TypeScript compiler with incremental builds
-- Detects TypeScript version for optimal performance (uses --changedFiles for TS 5.4+)
-- Provides detailed instructions for fixing type errors
-- Suggests using concurrent agents for multiple errors
+- Runs TypeScript compiler with intelligent caching
+- Detects TypeScript version for optimal performance
+- Provides detailed error messages with fix suggestions
+- Automatically finds tsconfig.json in parent directories
+- Supports monorepo structures
 
-**Requirements:**
-- TypeScript project with tsconfig.json
-- Node.js environment with a package manager (npm/yarn/pnpm)
+**Example output:**
+```
+████ TypeScript Type Error ████
 
-### eslint.sh
+src/index.ts:10:5 - error TS2322: Type 'string' is not assignable to type 'number'.
+
+10     const count: number = "hello";
+       ~~~~~
+
+To fix:
+1. Change the type annotation to match the value
+2. Or change the value to match the type
+```
+
+#### no-any
+
+**Purpose:** Enforces strict typing by preventing the use of `any` types.
+
+**Triggers on:** Write, Edit, MultiEdit tools (TypeScript files only)
+
+**Features:**
+- Detects forbidden `any` types in TypeScript files
+- Ignores test files (*.test.ts, *.spec.ts)
+- Excludes valid test utilities like `expect.any()`
+- Provides specific fix suggestions for each occurrence
+
+#### eslint
 
 **Purpose:** Enforces code style and quality standards using ESLint.
 
 **Triggers on:** Write, Edit, MultiEdit tools (JS/JSX/TS/TSX files)
 
 **Features:**
-- Runs ESLint with caching for performance
-- Enforces zero warnings policy (--max-warnings 0)
-- Provides detailed instructions for fixing issues
-- Suggests using concurrent agents for multiple issues
+- Runs ESLint with automatic caching for performance
+- Detects ESLint configuration automatically
+- Supports all major ESLint config formats
+- Shows clear error messages with line numbers
+- Optionally auto-fixes issues (configurable)
 
-**Requirements:**
-- ESLint configuration file (.eslintrc.js, .eslintrc.json, or eslint.config.js)
-- Node.js environment with a package manager (npm/yarn/pnpm)
-
-### run-related-tests.sh
+#### run-related-tests
 
 **Purpose:** Automatically runs tests related to modified files.
 
-**Triggers on:** Write, Edit, MultiEdit tools (TS/TSX/JS/JSX files)
+**Triggers on:** Write, Edit, MultiEdit tools (source files with test coverage)
 
 **Features:**
-- Finds test files matching common patterns:
-  - `{filename}.test.{ts,tsx,js,jsx}`
-  - `{filename}.spec.{ts,tsx,js,jsx}`
-  - `__tests__/{filename}.{test,spec}.{ts,tsx,js,jsx}`
-- Runs tests and blocks on failure
-- Provides detailed fixing instructions
-- Suggests concurrent agents for multiple test failures
+- Intelligently finds related test files:
+  - `{filename}.test.{ext}`
+  - `{filename}.spec.{ext}`
+  - `__tests__/{filename}.{test,spec}.{ext}`
+  - `tests/{filename}.{test,spec}.{ext}`
+- Runs only affected tests for fast feedback
+- Supports Jest, Vitest, Mocha, and other test runners
+- Shows failing test details
 
-**Requirements:**
-- Test command configured in package.json scripts
-- Test files following standard naming conventions
+### Stop Hooks
 
-## Stop Hooks
+These hooks run when Claude Code stops or completes a task:
 
-### auto-checkpoint.sh
+#### auto-checkpoint
 
-**Purpose:** Automatically creates a git checkpoint when Claude Code stops.
+**Purpose:** Automatically creates git checkpoints to preserve your work.
 
 **Features:**
 - Creates checkpoint only if there are uncommitted changes
-- Uses git stash create/store to preserve working directory
-- Silent operation (suppresses output)
-- Adds timestamp to checkpoint message
+- Uses descriptive messages with timestamps
+- Manages checkpoint count (configurable limit)
+- Silent operation - doesn't interrupt workflow
+- Preserves complete working directory state
 
-**Requirements:**
-- Git repository
-- Write permissions to .git directory
-
-### validate-todo-completion.sh
-
-**Purpose:** Prevents Claude Code from stopping if there are incomplete todos.
-
-**Features:**
-- Reads Claude Code transcript to find TodoWrite entries
-- Checks for incomplete todos (status != "completed")
-- Blocks stop with detailed message listing incomplete items
-- Prevents infinite loops with stop_hook_active check
-- Debug logging to ~/.claude/stop-hook.log (enable with: `touch ~/.claude/hooks-debug`)
-
-**Requirements:**
-- Claude Code with TodoWrite tool
-- jq command (optional, has fallbacks)
-
-### project-validation.sh
-
-**Purpose:** Runs complete project validation when an agent completes work.
-
-**Triggers on:** Stop and SubagentStop events
-
-**Features:**
-- Runs TypeScript validation on entire project
-- Runs ESLint validation on all files
-- Runs test suite if configured
-- Uses shared validation library for consistency
-- Prevents infinite loops with stop_hook_active check
-- Provides consolidated feedback for all validation failures
-
-**Requirements:**
-- Same as individual validation hooks (TypeScript, ESLint, tests)
-- Works for both main agent and subagent contexts
-
-## Configuration
-
-All hooks are configured in `.claude/settings.json`. The setup script handles installation and merging with existing settings.
-
-## Customization
-
-To customize these hooks for your project:
-
-1. Copy the hook files to your project's `.claude/hooks/` directory
-2. Modify the scripts as needed (e.g., different test patterns, linting rules)
-3. Update `.claude/settings.json` with your project-specific configuration
-
-## Troubleshooting
-
-### Hook not running
-- Check that the hook file is executable: `chmod +x .claude/hooks/*.sh`
-- Verify the path in settings.json matches the hook location
-- Run Claude Code with `--debug` flag to see hook execution
-
-### TypeScript version issues
-- typecheck.sh detects TypeScript version and uses appropriate flags
-- For TS < 5.4, incremental compilation covers all files
-- For TS >= 5.4, uses --changedFiles for better performance
-
-### Test discovery issues
-- Ensure test files follow standard naming conventions
-- Modify TEST_PATTERNS array in run-related-tests.sh for custom patterns
-- Check that your test command accepts file arguments
-
-### Stop hook infinite loop
-- validate-todo-completion.sh checks stop_hook_active to prevent loops
-- Enable debug logging: `touch ~/.claude/hooks-debug`
-- Check ~/.claude/stop-hook.log for debugging information (when debug is enabled)
-
-## Manual Command Line Testing
-
-You can test hooks directly from the command line without Claude Code. All hooks expect JSON input via stdin.
-
-### Testing PostToolUse Hooks
-
-#### 1. TypeScript Hook
-```bash
-# Basic test
-echo '{"tool_input": {"file_path": "/absolute/path/to/file.ts"}}' | ~/.claude/hooks/typecheck.sh
-
-# Test with a file containing 'any' type
-echo 'const data: any = {}; export default data;' > test.ts
-echo '{"tool_input": {"file_path": "'$(pwd)'/test.ts"}}' | ~/.claude/hooks/typecheck.sh
-```
-
-#### 2. ESLint Hook
-```bash
-# Basic test
-echo '{"tool_input": {"file_path": "/absolute/path/to/file.js"}}' | ~/.claude/hooks/eslint.sh
-
-# Test with a file containing ESLint issues
-echo 'var x = 1;;' > test.js
-echo '{"tool_input": {"file_path": "'$(pwd)'/test.js"}}' | ~/.claude/hooks/eslint.sh
-```
-
-#### 3. Run Related Tests Hook
-```bash
-# Test with a file that has associated tests
-echo '{"tool_input": {"file_path": "/absolute/path/to/component.tsx"}}' | ~/.claude/hooks/run-related-tests.sh
-
-# Create a test scenario
-echo 'export const add = (a, b) => a + b;' > math.js
-echo 'test("add", () => expect(add(1, 2)).toBe(4));' > math.test.js
-echo '{"tool_input": {"file_path": "'$(pwd)'/math.js"}}' | ~/.claude/hooks/run-related-tests.sh
-```
-
-### Testing Stop Hooks
-
-#### 1. Auto-checkpoint Hook
-```bash
-# This hook doesn't read input, just run it directly
-~/.claude/hooks/auto-checkpoint.sh
-
-# It will only create a checkpoint if there are uncommitted changes
-```
-
-#### 2. Todo Validation Hook
-```bash
-# Test with default payload
-echo '{"transcript_path": "~/.claude/transcripts/current.jsonl", "stop_hook_active": false}' | \
-  ~/.claude/hooks/validate-todo-completion.sh
-
-# The hook will check the transcript file for incomplete todos
-```
-
-### JSON Payload Format
-
-PostToolUse hooks expect:
+**Configuration:**
 ```json
 {
-  "tool_input": {
-    "file_path": "/absolute/path/to/file"
+  "hooks": {
+    "auto-checkpoint": {
+      "prefix": "claude",
+      "maxCheckpoints": 10
+    }
   }
 }
 ```
 
-Stop hooks expect:
+#### validate-todo-completion
+
+**Purpose:** Ensures all todos are completed before Claude Code stops.
+
+**Features:**
+- Reads Claude Code transcript for TodoWrite entries
+- Blocks stop if incomplete todos exist
+- Shows list of incomplete items
+- Prevents accidental task abandonment
+- Smart loop prevention
+
+**Example output:**
+```
+████ Incomplete Todos ████
+
+You have 2 incomplete todo(s):
+
+• [in_progress] Add error handling to API calls
+• [pending] Write unit tests for new features
+
+Please complete these tasks before stopping.
+```
+
+#### project-validation
+
+**Purpose:** Runs comprehensive validation when work is completed.
+
+**Features:**
+- Runs all validation checks (TypeScript, ESLint, tests)
+- Provides consolidated results
+- Ensures code quality before stopping
+- Configurable validation suite
+- Fast execution with parallel checks
+
+## Hook Configuration in settings.json
+
+Hooks are configured in your project's `.claude/settings.json` file. Here's a complete example:
+
 ```json
 {
-  "transcript_path": "~/.claude/transcripts/conversation-id.jsonl",
-  "stop_hook_active": false
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run no-any"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run eslint"}
+        ]
+      },
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run project-validation"}
+        ]
+      }
+    ]
+  }
 }
 ```
 
-### Testing Tips
+### Matcher Patterns
 
-1. **Use absolute paths** - Hooks expect absolute file paths
-2. **Check permissions** - Ensure hooks are executable: `chmod +x ~/.claude/hooks/*.sh`
-3. **Exit codes**:
-   - `0` = Success/allow operation
-   - `2` = Block with error message
-   - Other = Unexpected errors
-4. **Debug output** - Enable hook debug logging: `touch ~/.claude/hooks-debug`
-   - Check logs in `~/.claude/stop-hook.log` (when debug is enabled)
-   - Run Claude Code with `--debug` flag to see hook execution
-5. **Create test files** - Make files with known issues to verify hook behavior
+The matcher field supports various patterns:
+
+- **Exact tool match**: `"Write"` - matches only the Write tool
+- **Multiple tools**: `"Write,Edit,MultiEdit"` - matches any of these tools
+- **Wildcard**: `"*"` - matches all tools/events
+- **Conditional logic**: `"tools:Write AND file_paths:**/*.ts"` - matches Write tool on TypeScript files
+- **Regex patterns**: `"Notebook.*"` - matches all Notebook-related tools
+
+### Hook-Specific Configuration
+
+Some hooks support additional configuration through a `.claudekit/config.json` file:
+
+```json
+{
+  "hooks": {
+    "typecheck": {
+      "command": "yarn tsc --noEmit",
+      "timeout": 45000
+    },
+    "eslint": {
+      "fix": true,
+      "extensions": [".js", ".jsx", ".ts", ".tsx"],
+      "timeout": 30000
+    },
+    "auto-checkpoint": {
+      "prefix": "ai-session",
+      "maxCheckpoints": 20
+    },
+    "run-related-tests": {
+      "command": "npm test",
+      "timeout": 90000
+    }
+  }
+}
+```
+
+## Testing Hooks with the Test Command
+
+The `claudekit-hooks test` command allows you to test hooks outside of Claude Code:
+
+### Basic Testing
+
+```bash
+# Test a specific hook with a file
+claudekit-hooks test typecheck --file src/index.ts
+
+# Test without a specific file (for hooks that don't need one)
+claudekit-hooks test auto-checkpoint
+
+# Test with verbose output
+claudekit-hooks test eslint --file src/app.js --verbose
+```
+
+### Testing PostToolUse Hooks
+
+#### TypeScript Hook
+```bash
+# Test type checking on a TypeScript file
+claudekit-hooks test typecheck --file src/components/Button.tsx
+
+# Test the no-any hook
+claudekit-hooks test no-any --file src/utils/helpers.ts
+```
+
+#### ESLint Hook
+```bash
+# Test ESLint on a JavaScript file
+claudekit-hooks test eslint --file src/index.js
+
+# Test with auto-fix enabled (if configured)
+claudekit-hooks test eslint --file src/app.jsx --fix
+```
+
+#### Test Runner Hook
+```bash
+# Test finding and running related tests
+claudekit-hooks test run-related-tests --file src/utils/math.js
+```
+
+### Testing Stop Hooks
+
+```bash
+# Test auto-checkpoint (will create checkpoint if there are changes)
+claudekit-hooks test auto-checkpoint
+
+# Test todo validation (reads current Claude transcript)
+claudekit-hooks test validate-todo-completion
+
+# Test project validation (runs all checks)
+claudekit-hooks test project-validation
+```
+
+### Advanced Testing Options
+
+```bash
+# Test with custom configuration
+claudekit-hooks test typecheck --file src/index.ts --config .claudekit/test-config.json
+
+# Test with timeout override
+claudekit-hooks test eslint --file src/app.js --timeout 60000
+
+# Dry run (show what would happen without executing)
+claudekit-hooks test run-related-tests --file src/utils.js --dry-run
+```
+
+### Exit Codes
+
+Hooks follow standard exit code conventions:
+- `0` - Success (validation passed or hook completed successfully)
+- `2` - Validation failure (hook blocked due to errors)
+- `1` - Unexpected error or configuration issue
+
+### Debug Mode
+
+Enable debug output for troubleshooting:
+
+```bash
+# Set environment variable
+export CLAUDEKIT_DEBUG=true
+
+# Or use the debug flag
+claudekit-hooks test typecheck --file src/index.ts --debug
+```
+
+## Troubleshooting Guide
+
+### Common Issues and Solutions
+
+#### Hook Not Running
+
+**Problem**: Hook doesn't execute when expected in Claude Code.
+
+**Solutions**:
+1. Verify claudekit-hooks is installed:
+   ```bash
+   which claudekit-hooks
+   claudekit-hooks --version
+   ```
+
+2. Check your .claude/settings.json configuration:
+   ```bash
+   cat .claude/settings.json | jq '.hooks'
+   ```
+
+3. Test the hook directly:
+   ```bash
+   claudekit-hooks test <hook-name> --file <path>
+   ```
+
+4. Run Claude Code with debug flag:
+   ```bash
+   claude-code --debug
+   ```
+
+#### TypeScript Errors Not Detected
+
+**Problem**: TypeScript hook passes but errors exist.
+
+**Solutions**:
+1. Ensure tsconfig.json exists in your project or parent directory
+2. Check TypeScript is installed:
+   ```bash
+   npm list typescript
+   ```
+3. Test TypeScript directly:
+   ```bash
+   npx tsc --noEmit
+   ```
+
+#### ESLint Not Finding Configuration
+
+**Problem**: ESLint hook skips validation.
+
+**Solutions**:
+1. Verify ESLint configuration exists (.eslintrc.*, eslint.config.js)
+2. Check ESLint is installed:
+   ```bash
+   npm list eslint
+   ```
+3. Test ESLint directly:
+   ```bash
+   npx eslint src/
+   ```
+
+#### Package Manager Detection Issues
+
+**Problem**: Wrong package manager detected.
+
+**Solutions**:
+1. Check for conflicting lock files:
+   ```bash
+   ls -la | grep -E "(package-lock|yarn.lock|pnpm-lock)"
+   ```
+2. Set explicit package manager in package.json:
+   ```json
+   {
+     "packageManager": "pnpm@8.0.0"
+   }
+   ```
+3. Configure in .claudekit/config.json:
+   ```json
+   {
+     "packageManager": "yarn"
+   }
+   ```
+
+#### Hook Timeout Errors
+
+**Problem**: Hook times out on large projects.
+
+**Solutions**:
+1. Increase timeout in .claudekit/config.json:
+   ```json
+   {
+     "hooks": {
+       "typecheck": {
+         "timeout": 120000
+       }
+     }
+   }
+   ```
+2. Optimize your project configuration (exclude unnecessary files)
+3. Use incremental builds where possible
+
+#### Checkpoint Not Created
+
+**Problem**: Auto-checkpoint doesn't create checkpoints.
+
+**Solutions**:
+1. Ensure you're in a git repository:
+   ```bash
+   git status
+   ```
+2. Check for uncommitted changes:
+   ```bash
+   git diff --stat
+   ```
+3. Verify git stash works:
+   ```bash
+   git stash create "test"
+   ```
+
+### Getting Help
+
+1. **Check hook status**:
+   ```bash
+   claudekit-hooks list
+   ```
+
+2. **Validate configuration**:
+   ```bash
+   claudekit validate
+   ```
+
+3. **View detailed logs**:
+   ```bash
+   export CLAUDEKIT_DEBUG=true
+   claudekit-hooks test <hook-name> --file <path>
+   ```
+
+4. **Report issues**:
+   - GitHub Issues: https://github.com/claudekit/claudekit/issues
+   - Include output of `claudekit-hooks --version`
+   - Include relevant configuration files
+
+## Migration from Shell Hooks
+
+If you're migrating from shell script hooks, see the [Migration Guide](./migration-from-shell-hooks.md) for detailed instructions on updating your configuration.
+
+## See Also
+
+- [Hooks Reference](./hooks-reference.md) - Detailed configuration options
+- [Migration Guide](./migration-from-shell-hooks.md) - Migrating from shell scripts
+- [Package Manager Support](./package-manager-agnostic.md) - Cross-package manager compatibility

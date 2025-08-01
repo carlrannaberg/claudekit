@@ -791,7 +791,6 @@ export const DEFAULT_VALUES = {
  * File extensions associated with different component types
  */
 export const FILE_EXTENSIONS = {
-  hook: '.sh',
   command: '.md',
 } as const;
 

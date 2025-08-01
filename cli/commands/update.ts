@@ -120,10 +120,5 @@ async function updateFile(type: string, name: string, options: UpdateOptions): P
   // Update the file
   await fs.writeFile(targetPath, newContent, 'utf8');
 
-  // Ensure hooks remain executable
-  if (type === 'hook') {
-    await fs.chmod(targetPath, 0o755);
-  }
-
   logger.debug(`Updated ${type} file at ${targetPath}`);
 }

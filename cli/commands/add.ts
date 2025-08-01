@@ -69,12 +69,6 @@ export async function add(type: string, name: string, options: AddOptions = {}):
     progressReporter.update(`Writing ${type} file...`);
     await fs.writeFile(targetPath, content, 'utf8');
 
-    // Make hooks executable
-    if (type === 'hook') {
-      progressReporter.update('Setting executable permissions...');
-      await fs.chmod(targetPath, 0o755);
-    }
-
     progressReporter.succeed(`Successfully added ${type} "${name}"`);
   } catch (error) {
     progressReporter.fail(`Failed to add ${type} "${name}"`);

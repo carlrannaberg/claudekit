@@ -1,0 +1,83 @@
+{
+  "// Documentation": "This is a comprehensive example of claudekit hooks configuration",
+  "// Learn more": "https://github.com/carlrannaberg/claudekit/docs/hooks-reference.md",
+  
+  "hooks": {
+    "// PostToolUse": "Triggered after file modifications",
+    "PostToolUse": [
+      {
+        "// Description": "TypeScript type checking for .ts files",
+        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run no-any"}
+        ]
+      },
+      {
+        "// Description": "ESLint for all JavaScript/TypeScript files",
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run eslint"}
+        ]
+      },
+      {
+        "// Description": "Prettier formatting for multiple file types",
+        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md,css,scss,html,yml,yaml}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run prettier"}
+        ]
+      },
+      {
+        "// Description": "Run tests related to modified files",
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+        ]
+      },
+      {
+        "// Description": "Example: Python-specific hooks",
+        "matcher": "tools:Write AND file_paths:**/*.py",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run python-lint"}
+        ]
+      },
+      {
+        "// Description": "Example: Regex pattern for Notebook tools",
+        "matcher": "Notebook.*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run notebook-validation"}
+        ]
+      }
+    ],
+    
+    "// Stop": "Triggered when Claude Code session ends",
+    "Stop": [
+      {
+        "// Description": "Universal matcher for all Stop events",
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"},
+          {"type": "command", "command": "claudekit-hooks run project-validation"}
+        ]
+      }
+    ],
+    
+    "// PreToolUse": "Triggered before tool execution (optional)",
+    "PreToolUse": [
+      {
+        "// Description": "Example: Safety check before destructive operations",
+        "matcher": "tools:Bash AND command:rm*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run safety-check"}
+        ]
+      }
+    ]
+  },
+  
+  "// Environment Variables": "Available to all hooks",
+  "env": {
+    "NODE_ENV": "development",
+    "CLAUDEKIT_VERBOSE": "false"
+  }
+}

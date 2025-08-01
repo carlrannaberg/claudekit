@@ -48,7 +48,7 @@ set -euo pipefail
 
 # Get paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_PATH="$SCRIPT_DIR/../../.claude/hooks/your-hook.sh"
+HOOK_PATH="$(which claudekit-hooks)"
 
 # Source test framework
 source "$SCRIPT_DIR/../test-framework.sh"
@@ -59,7 +59,7 @@ test_hook_handles_valid_input() {
     create_test_file "input.json" '{"test": "data"}'
     
     # Execute
-    local output=$(echo '{"tool_input":{"file_path":"test.ts"}}' | "$HOOK_PATH" 2>&1)
+    local output=$(echo '{"tool_input":{"file_path":"test.ts"}}' | "$HOOK_PATH" run typecheck 2>&1)
     local exit_code=$?
     
     # Assert

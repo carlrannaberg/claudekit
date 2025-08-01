@@ -170,13 +170,13 @@ Claudekit includes a comprehensive testing framework in the `tests/` directory:
 Test hooks directly without Claude Code:
 ```bash
 # Test TypeScript hook
-echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | ~/.claude/hooks/typecheck.sh
+echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | claudekit-hooks run typecheck
 
 # Test ESLint hook
-echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | ~/.claude/hooks/eslint.sh
+echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | claudekit-hooks run eslint
 
 # Test auto-checkpoint (no input needed)
-~/.claude/hooks/auto-checkpoint.sh
+claudekit-hooks run auto-checkpoint
 ```
 See `docs/hooks-documentation.md` for detailed testing examples.
 
@@ -243,7 +243,7 @@ src/
 .claude/
 ├── settings.json            # Project-specific hook configuration
 ├── commands/                # Symlinks to src/commands/*
-└── hooks/                   # Symlinks to src/hooks/*
+└── hooks/                   # Legacy - hooks now managed by embedded system
 
 examples/
 └── settings.user.example.json  # Example user-level settings (env vars only)
@@ -257,7 +257,7 @@ examples/
 
 <project>/.claude/            # Project-level
 ├── settings.json            # Hook configuration for this project
-└── hooks/                   # Copied hooks from src/hooks/
+└── hooks/                   # Legacy - hooks now managed by embedded system
 ```
 
 **Key principles:**
@@ -319,23 +319,23 @@ Edit `.claude/settings.json` using the new matcher format:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
       },
       {
         "matcher": "Write,Edit,MultiEdit",
-        "hooks": [{"type": "command", "command": ".claude/hooks/run-related-tests.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run run-related-tests"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
-          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
         ]
       }
     ]
@@ -364,7 +364,7 @@ The `.claude` directory contains configuration with specific version control rul
 #### Version Controlled Files (commit these):
 - `.claude/settings.json` - Shared team settings for hooks, tools, and environment
 - `.claude/commands/*.md` - Custom slash commands available to all team members
-- `.claude/hooks/*.sh` - Hook scripts for automated validations and actions
+- Hooks are managed via embedded system: `claudekit-hooks run <hook-name>`
 
 #### Ignored Files (do NOT commit):
 - `.claude/settings.local.json` - Personal preferences and local overrides
@@ -374,7 +374,7 @@ The `.claude` directory contains configuration with specific version control rul
 - Claude Code automatically adds `.claude/settings.local.json` to `.gitignore`
 - The shared `settings.json` should contain team-wide standards (linting, type checking, etc.)
 - Personal preferences or experimental settings belong in `settings.local.json`
-- Hook scripts in `.claude/hooks/` should be executable (`chmod +x`)
+- Hooks are managed via the embedded system (`claudekit-hooks run <hook-name>`)
 - User-level settings (`~/.claude/settings.json`) should only contain environment variables, not hooks
 
 ### Development Guidelines
@@ -434,7 +434,7 @@ When environment changes, the purpose comment helps determine:
 ### Project Structure
 - `cli/` - TypeScript CLI source code
 - `.claude/commands/` - Slash command definitions
-- `.claude/hooks/` - Event-triggered scripts
+- Hooks managed via embedded system - Event-triggered validations
 - `docs/` - Detailed documentation
 
 ### Hook System
@@ -448,7 +448,7 @@ When environment changes, the purpose comment helps determine:
 Each hook script MUST be completely self-contained:
 - Include all required functions directly in the script
 - Do NOT source external libraries or validation files
-- Do NOT depend on other scripts in the hooks directory
+- Do NOT depend on external scripts
 - Copy common functions into each hook that needs them
 - This ensures hooks work reliably regardless of installation method or directory structure
 

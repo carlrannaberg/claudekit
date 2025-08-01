@@ -338,7 +338,7 @@ function parseFrontmatter(content: string): Record<string, unknown> {
 }
 
 /**
- * Parse shell script header comments for hook metadata
+ * Parse shell script header comments (legacy function, kept for backward compatibility)
  */
 function parseShellHeader(content: string): Record<string, unknown> {
   const lines = content.split('\n').slice(0, 50); // Check first 50 lines
@@ -478,7 +478,7 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
     const hookRefs = content.match(/\.claude\/hooks\/([^.\s]+)/g);
     if (hookRefs) {
       hookRefs.forEach((ref) => {
-        const hookName = ref.split('/').pop()?.replace('.sh', '');
+        const hookName = ref.split('/').pop();
         if (hookName !== undefined && hookName !== '' && hookName !== componentId) {
           dependencies.add(hookName);
         }
@@ -574,11 +574,11 @@ function inferCategory(
 /**
  * Create component ID from file path
  */
-function createComponentId(filePath: string, type: ComponentType): string {
-  const fileName = path.basename(filePath, type === 'command' ? '.md' : '.sh');
+function createComponentId(filePath: string, _type: ComponentType): string {
+  const fileName = path.basename(filePath, '.md');
   const parentDir = path.basename(path.dirname(filePath));
 
-  if (parentDir === 'commands' || parentDir === 'hooks') {
+  if (parentDir === 'commands') {
     return fileName;
   }
 
@@ -610,7 +610,7 @@ async function parseComponentFile(
     const dependencies = extractDependencies(content, type, id);
     const metadata: ComponentMetadata = {
       id,
-      name: rawMetadata['name'] as string || path.basename(filePath, type === 'command' ? '.md' : '.sh'),
+      name: rawMetadata['name'] as string || path.basename(filePath, '.md'),
       description: rawMetadata['description'] as string || 'No description available',
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
@@ -668,7 +668,11 @@ async function scanDirectory(dirPath: string, type: ComponentType): Promise<Comp
     return components;
   }
 
-  const extension = type === 'command' ? '.md' : '.sh';
+  // Only scan for command files since hooks are embedded
+  if (type !== 'command') {
+    return [];
+  }
+  const extension = '.md';
 
   async function scanRecursive(currentPath: string): Promise<void> {
     try {

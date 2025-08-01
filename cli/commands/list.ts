@@ -4,6 +4,7 @@ import { progress } from '../utils/progress.js';
 import path from 'path';
 import fs from 'fs-extra';
 import { Colors } from '../utils/colors.js';
+import { HOOK_REGISTRY } from '../hooks/registry.js';
 
 interface ListOptions {
   format?: 'table' | 'json';
@@ -111,36 +112,23 @@ interface HookInfo {
 }
 
 async function listHooks(options: ListOptions): Promise<HookInfo[]> {
-  const hooksDir = '.claude/hooks';
   const hooks: HookInfo[] = [];
-
-  if (!(await fs.pathExists(hooksDir))) {
-    return hooks;
-  }
-
-  const files = await fs.readdir(hooksDir);
   const pattern =
     options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
 
-  for (const file of files) {
-    if (!file.endsWith('.sh')) {
+  // List embedded hooks from the registry
+  for (const [name] of Object.entries(HOOK_REGISTRY)) {
+    if (pattern !== null && !pattern.test(name)) {
       continue;
     }
-    if (pattern !== null && !pattern.test(file)) {
-      continue;
-    }
-
-    const name = path.basename(file, '.sh');
-    const filePath = path.join(hooksDir, file);
-    const stats = await fs.stat(filePath);
 
     hooks.push({
       name,
-      type: 'hook',
-      path: filePath,
-      executable: (stats.mode & 0o111) !== 0,
-      size: stats.size,
-      modified: stats.mtime,
+      type: 'embedded-hook',
+      path: `embedded:${name}`,
+      executable: true, // Embedded hooks are always executable
+      size: 0, // Size not applicable for embedded hooks
+      modified: new Date(), // Use current date for embedded hooks
     });
   }
 
