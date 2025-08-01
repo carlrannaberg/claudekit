@@ -27,18 +27,17 @@ This lack of clarity leads to:
 
 - Establish a clear, consistent naming convention that indicates hook scope
 - Split `project-validation` into three focused, single-purpose hooks
-- Maintain backward compatibility through migration support
 - Improve user understanding of hook behavior through descriptive names
 - Enable granular configuration of validation steps
-- Preserve all existing functionality while improving organization
+- Create a clean, maintainable hook system without legacy baggage
 
 ## Non-Goals
 
 - Changing hook functionality or behavior (only renaming and reorganizing)
 - Modifying the hook execution architecture or base classes
 - Altering the settings.json structure or matcher patterns
-- Breaking existing configurations without migration path
 - Adding new validation types or tools
+- Maintaining backward compatibility with old hook names
 
 ## Technical Dependencies
 
@@ -199,24 +198,15 @@ export const HOOK_REGISTRY = {
   // Action hooks
   'create-checkpoint': CreateCheckpointHook,
   'check-todos': CheckTodosHook,
-  
-  // Legacy names for backward compatibility
-  'typecheck': TypecheckChangedHook,
-  'no-any': CheckAnyChangedHook,
-  'eslint': LintChangedHook,
-  'run-related-tests': TestRelatedHook,
-  'auto-checkpoint': CreateCheckpointHook,
-  'validate-todo-completion': CheckTodosHook,
-  'project-validation': ProjectValidationHook, // Deprecated, will warn
 };
 ```
 
-#### 3.3 Migration Support
+#### 3.3 Clean Implementation
 
-1. **Backward Compatibility**: Keep old names in registry pointing to new implementations
-2. **Deprecation Warnings**: Log warnings when old names are used
-3. **Migration Path**: Users should reinstall claudekit to get updated configurations
-4. **Grace Period**: Support old names for 3 months with deprecation notices
+1. **No Legacy Support**: Old hook names are completely removed
+2. **Fresh Start**: New installations get only the new hook names
+3. **Clear Documentation**: All docs use only the new naming convention
+4. **No Migration Needed**: Users reinstall to get the new system
 
 ### 4. File Renaming
 
@@ -295,40 +285,41 @@ Project-Wide Validations:
   □ test-project      - Run entire test suite
 ```
 
-### Migration Experience
+### Installation Experience
 
-Users with existing configurations will see:
+New installations will show clear, descriptive hook names:
 ```
-████ Hook Name Migration Available ████
+Select validation hooks:
 
-claudekit has updated hook names for clarity. Your hooks still work but 
-we recommend updating to the new names.
+On File Changes:
+  □ typecheck-changed   - TypeScript checking on modified files
+  □ lint-changed       - ESLint validation on modified files  
+  □ check-any-changed  - Check for 'any' types in modified TypeScript files
+  □ test-related       - Run tests related to modified files
 
-To update: claudekit init
-
-This will reinstall claudekit with the new hook names.
-Your hooks will continue to function identically.
-
-Old → New name mappings:
-  eslint → lint-changed
-  typecheck → typecheck-changed
-  no-any → check-any-changed
-  ...
+On Stop/Save:
+  □ create-checkpoint  - Create git checkpoint of changes
+  □ check-todos       - Ensure all todos are completed
+  □ typecheck-project  - Full project TypeScript validation
+  □ lint-project      - Full project ESLint validation
+  □ test-project      - Run entire test suite
 ```
 
 ## Testing Strategy
 
 ### Unit Tests
 
-**Hook Renaming Tests**
+**New Hook Tests**
 ```typescript
-// Purpose: Verify renamed hooks maintain identical functionality
-// This ensures the renaming doesn't break existing behavior
-describe('Hook renaming compatibility', () => {
-  it('should execute same logic for old and new hook names', async () => {
-    const oldResult = await runHook('eslint', payload);
-    const newResult = await runHook('lint-changed', payload);
-    expect(oldResult).toEqual(newResult);
+// Purpose: Verify new hooks work correctly with clear names
+// This ensures the new naming provides expected functionality
+describe('New hook functionality', () => {
+  it('should run lint-changed only on modified files', async () => {
+    const result = await runHook('lint-changed', payload);
+    expect(mockExecCommand).toHaveBeenCalledWith(
+      expect.stringContaining('eslint'),
+      expect.arrayContaining(modifiedFiles)
+    );
   });
 });
 ```
@@ -349,19 +340,19 @@ describe('Split project validation hooks', () => {
 ### Integration Tests
 
 - Test complete setup flow with new hook names
-- Verify reinstallation updates settings correctly
-- Test backward compatibility with old names
+- Verify fresh installation creates correct settings
 - Ensure split hooks can be configured independently
-- Verify error formatting matches current behavior
+- Verify error formatting is clear and actionable
+- Test all hook combinations work correctly
 
 ### Manual Testing Checklist
 
 1. Run setup wizard and verify new hook descriptions
-2. Test each renamed hook functions identically
-3. Test reinstallation on existing project
-4. Verify deprecation warnings appear for old names
-5. Test granular configuration of project validations
-6. Ensure error messages are clear and actionable
+2. Test each new hook functions correctly
+3. Test fresh installation creates proper configuration
+4. Test granular configuration of project validations
+5. Ensure error messages are clear and actionable
+6. Verify all hook combinations work as expected
 
 ## Performance Considerations
 
@@ -372,10 +363,10 @@ describe('Split project validation hooks', () => {
 
 ## Security Considerations
 
-- **No New Attack Surface**: Only renaming and reorganizing
+- **No New Attack Surface**: Clean implementation without legacy code
 - **Command Injection**: Names are hardcoded, no user input
-- **Backward Compatibility**: Old names don't bypass validation
-- **Configuration Safety**: Migration preserves existing security
+- **Clear Boundaries**: Each hook has single responsibility
+- **Configuration Safety**: Simple, predictable hook behavior
 
 ## Documentation
 
@@ -387,11 +378,12 @@ describe('Split project validation hooks', () => {
 4. **Migration Guide**: Document upgrade process
 5. **API Documentation**: Update hook name references
 
-### New Documentation
+### Documentation Structure
 
 1. **Hook Naming Convention**: Document the `-changed`, `-project`, `-related` pattern
 2. **Hook Scope Guide**: Explain when to use each type
 3. **Performance Guide**: Document impact of project-wide hooks
+4. **Hook Reference**: Complete list with descriptions and examples
 
 ## Implementation Phases
 
@@ -403,12 +395,12 @@ describe('Split project validation hooks', () => {
 4. Implement deprecation warnings
 5. Update component metadata
 
-### Phase 2: Migration Support (1 day)
+### Phase 2: Documentation and UI (1 day)
 
-1. Add backward compatibility aliases
-2. Create migration documentation
-3. Update setup wizard UI
-4. Update init command to handle migration
+1. Update all documentation to use new names
+2. Update setup wizard UI with clear descriptions
+3. Create comprehensive hook reference guide
+4. Update example configurations
 
 ### Phase 3: Testing and Polish (1 day)
 
@@ -417,16 +409,16 @@ describe('Split project validation hooks', () => {
 3. Test migration scenarios
 4. Performance validation
 
-## Open Questions
+## Decisions Made
 
-1. Should we keep the old `project-validation` hook as a meta-hook that runs all three?
-2. How long should we maintain backward compatibility (suggested: 3 months)?
-3. Should we add a `--force-old-names` flag for compatibility?
-4. Should the init command detect old hook names and prompt for update?
+1. **No meta-hook**: Each validation runs independently for maximum flexibility
+2. **No backward compatibility**: Clean implementation without legacy support
+3. **No compatibility flags**: Single, clear implementation path
+4. **No migration detection**: Fresh installations only
 
 ## References
 
 - [Embedded Hooks System](feat-embedded-hooks-system.md)
-- [Migration to Embedded Hooks](feat-migrate-to-embedded-hooks.md)
+- [Embedded Hooks Implementation](feat-embedded-hooks-system.md)
 - [Claude Code Hooks Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks)
 - [Setup Command Modernization](feat-modernize-setup-installer.md)
