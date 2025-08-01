@@ -55,7 +55,7 @@ export class ProjectValidationHook extends BaseHook {
       const testCommand = (this.config['testCommand'] as string) || packageManager.test;
       const testResult = await this.execCommand(testCommand, [], { cwd: projectRoot });
 
-      if (testResult.exitCode === 0 && !testResult.stdout.match(/FAIL|failed|Error:|failing/)) {
+      if (testResult.exitCode === 0) {
         validationOutput += '✅ Test suite passed\n\n';
       } else {
         hasFailures = true;

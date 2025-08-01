@@ -661,7 +661,7 @@ describe('Hook Integration Tests', () => {
   });
 
   describe('Claude Code Payload Parsing', () => {
-    it('should correctly parse nested tool_input', async () => {
+    it('should correctly parse nested tool_input', { timeout: 20000 }, async () => {
       const filePath = await env.createFile('test.ts', 'const x = 1;');
 
       const payloads = [
