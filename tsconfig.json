@@ -53,6 +53,6 @@
     // Skip Lib Check  
     "skipLibCheck": true
   },
-  "include": ["cli/**/*", "tests/**/*", "vitest.config.ts"],
-  "exclude": ["node_modules", "dist", "tests/commands/init.test.ts", "tests/commands/validate.test.ts", "tests/integration/workflow.test.ts", "tests/lib/validation.test.ts"]
+  "include": ["cli/**/*", "tests/**/*", "vitest.config.ts", "build.config.ts"],
+  "exclude": ["node_modules", "dist", "temp/**/*"]
 }

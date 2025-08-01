@@ -8,7 +8,7 @@ const commonOptions: BuildOptions = {
   external: ['node:*'],
   packages: 'external' as const,
   sourcemap: true,
-  minify: process.env.NODE_ENV === 'production',
+  minify: process.env['NODE_ENV'] === 'production',
   logLevel: 'info',
 };
 

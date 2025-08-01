@@ -25,9 +25,8 @@
   "ignorePatterns": [
     "node_modules/",
     "dist/",
-    "tests/commands/init.test.ts",
-    "tests/commands/validate.test.ts", 
-    "tests/integration/workflow.test.ts",
-    "tests/lib/validation.test.ts"
+    "build.config.ts",
+    "vitest.config.ts",
+    "temp/"
   ]
 }
