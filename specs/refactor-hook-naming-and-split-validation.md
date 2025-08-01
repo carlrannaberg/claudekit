@@ -56,7 +56,6 @@ This lack of clarity leads to:
 |--------|---------|---------|
 | `-changed` | Operates on created/modified files only | `lint-changed` |
 | `-project` | Operates on entire project | `lint-project` |
-| `-related` | Finds and operates on related files | `test-related` |
 | Action verbs | Non-validation actions | `create-checkpoint` |
 
 ### 2. Hook Renaming Map
@@ -66,7 +65,7 @@ This lack of clarity leads to:
 | `eslint` | `lint-changed` | Modified files | Runs ESLint on created/modified files |
 | `no-any` | `check-any-changed` | Modified files | Checks for 'any' in created/modified TypeScript files |
 | `typecheck` | `typecheck-changed` | Modified files | Runs TypeScript checking on created/modified files |
-| `run-related-tests` | `test-related` | Related files | Runs tests related to created/modified files |
+| `run-related-tests` | `test-changed` | Modified files | Runs tests for created/modified files |
 | `auto-checkpoint` | `create-checkpoint` | N/A | Creates git checkpoint |
 | `validate-todo-completion` | `check-todos` | N/A | Validates todo completion |
 | `project-validation` | Split into 3 hooks: | | |
@@ -188,7 +187,7 @@ export const HOOK_REGISTRY = {
   'typecheck-changed': TypecheckChangedHook,
   'check-any-changed': CheckAnyChangedHook,
   'lint-changed': LintChangedHook,
-  'test-related': TestRelatedHook,
+  'test-changed': TestChangedHook,
   
   // Project-wide hooks
   'typecheck-project': TypecheckProjectHook,
@@ -215,7 +214,7 @@ Rename hook implementation files to match new names:
 cli/hooks/eslint.ts → cli/hooks/lint-changed.ts
 cli/hooks/no-any.ts → cli/hooks/check-any-changed.ts
 cli/hooks/typecheck.ts → cli/hooks/typecheck-changed.ts
-cli/hooks/run-related-tests.ts → cli/hooks/test-related.ts
+cli/hooks/run-related-tests.ts → cli/hooks/test-changed.ts
 cli/hooks/auto-checkpoint.ts → cli/hooks/create-checkpoint.ts
 cli/hooks/validate-todo.ts → cli/hooks/check-todos.ts
 # New files:
@@ -273,7 +272,7 @@ On File Changes:
   □ typecheck-changed   - TypeScript checking on modified files
   □ lint-changed       - ESLint validation on modified files  
   □ check-any-changed  - Check for 'any' types in modified TypeScript files
-  □ test-related       - Run tests related to modified files
+  □ test-changed       - Run tests for modified files
 
 On Stop/Save Session:
   □ create-checkpoint  - Create git checkpoint of changes
@@ -295,7 +294,7 @@ On File Changes:
   □ typecheck-changed   - TypeScript checking on modified files
   □ lint-changed       - ESLint validation on modified files  
   □ check-any-changed  - Check for 'any' types in modified TypeScript files
-  □ test-related       - Run tests related to modified files
+  □ test-changed       - Run tests for modified files
 
 On Stop/Save:
   □ create-checkpoint  - Create git checkpoint of changes
@@ -380,7 +379,7 @@ describe('Split project validation hooks', () => {
 
 ### Documentation Structure
 
-1. **Hook Naming Convention**: Document the `-changed`, `-project`, `-related` pattern
+1. **Hook Naming Convention**: Document the `-changed` and `-project` suffixes
 2. **Hook Scope Guide**: Explain when to use each type
 3. **Performance Guide**: Document impact of project-wide hooks
 4. **Hook Reference**: Complete list with descriptions and examples
