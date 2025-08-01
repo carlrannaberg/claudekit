@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/typecheck.sh"
+            "command": "claudekit-hooks run typecheck"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/eslint.sh"
+            "command": "claudekit-hooks run eslint"
           }
         ]
       }
@@ -26,11 +26,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/auto-checkpoint.sh"
+            "command": "claudekit-hooks run auto-checkpoint"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/validate-todo-completion.sh"
+            "command": "claudekit-hooks run validate-todo-completion"
           }
         ]
       }

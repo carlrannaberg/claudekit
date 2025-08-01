@@ -74,6 +74,137 @@ interface ScanOptions {
 }
 
 // ============================================================================
+// Embedded Hook Definitions
+// ============================================================================
+
+/**
+ * Embedded hook component definitions
+ * These hooks are built into the claudekit-hooks command
+ */
+const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
+  {
+    path: 'embedded:typecheck',
+    type: 'hook',
+    metadata: {
+      id: 'typecheck',
+      name: 'TypeScript Type Checking',
+      description: 'Run TypeScript type checking on file changes (embedded hook)',
+      category: 'validation',
+      dependencies: ['typescript', 'tsc'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-typecheck',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:eslint',
+    type: 'hook',
+    metadata: {
+      id: 'eslint',
+      name: 'ESLint Validation',
+      description: 'Run ESLint validation on JavaScript/TypeScript files (embedded hook)',
+      category: 'validation',
+      dependencies: ['eslint'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-eslint',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:prettier',
+    type: 'hook',
+    metadata: {
+      id: 'prettier',
+      name: 'Prettier Formatting',
+      description: 'Format code with Prettier on file changes (embedded hook)',
+      category: 'validation',
+      dependencies: ['prettier'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-prettier',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:no-any',
+    type: 'hook',
+    metadata: {
+      id: 'no-any',
+      name: 'TypeScript Any Detector',
+      description: 'Detect forbidden any types in TypeScript files (embedded hook)',
+      category: 'validation',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-no-any',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:run-related-tests',
+    type: 'hook',
+    metadata: {
+      id: 'run-related-tests',
+      name: 'Run Related Tests',
+      description: 'Automatically run tests related to changed files (embedded hook)',
+      category: 'testing',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-run-related-tests',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:auto-checkpoint',
+    type: 'hook',
+    metadata: {
+      id: 'auto-checkpoint',
+      name: 'Auto Checkpoint',
+      description: 'Automatically create git checkpoints on Claude Code stop (embedded hook)',
+      category: 'git',
+      dependencies: ['git'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-auto-checkpoint',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:validate-todo-completion',
+    type: 'hook',
+    metadata: {
+      id: 'validate-todo-completion',
+      name: 'Validate Todo Completion',
+      description: 'Ensure all in-progress todos are completed or updated (embedded hook)',
+      category: 'project-management',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-validate-todo-completion',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:project-validation',
+    type: 'hook',
+    metadata: {
+      id: 'project-validation',
+      name: 'Project Validation',
+      description: 'Run comprehensive project validation checks (embedded hook)',
+      category: 'validation',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-project-validation',
+    lastModified: new Date('2024-01-01'),
+  },
+];
+
+// ============================================================================
 // Dependency Definitions
 // ============================================================================
 
@@ -971,15 +1102,12 @@ export async function discoverComponents(
   registry.categories.clear();
 
   const commandsDir = path.join(baseDir, 'commands');
-  const hooksDir = path.join(baseDir, 'hooks');
 
-  // Scan for components
-  const [commandFiles, hookFiles] = await Promise.all([
-    scanDirectory(commandsDir, 'command'),
-    scanDirectory(hooksDir, 'hook'),
-  ]);
+  // Scan for command components only
+  const commandFiles = await scanDirectory(commandsDir, 'command');
 
-  const allComponents = [...commandFiles, ...hookFiles];
+  // Use predefined embedded hooks instead of scanning for hook files
+  const allComponents = [...commandFiles, ...EMBEDDED_HOOK_COMPONENTS];
 
   // Filter components based on options
   let filteredComponents = allComponents;

@@ -9,9 +9,10 @@ A toolkit of custom commands, hooks, and utilities for Claude Code. This project
 
 ## Build & Commands
 
-This is a bash-based toolkit with no traditional build process. Key commands:
+This is a TypeScript-based toolkit. Key commands:
 
-- **Install**: `./setup.sh` - Installs claudekit to user and project directories
+- **Install**: `npm install -g claudekit` - Install claudekit globally
+- **Setup**: `claudekit init` - Initialize claudekit in your project
 - **Test hooks**: Manually trigger by editing files or using Claude Code
 - **Check shell syntax**: `bash -n script.sh`
 - **Validate JSON**: `jq . settings.json`
@@ -431,7 +432,7 @@ When environment changes, the purpose comment helps determine:
 ## Architecture
 
 ### Project Structure
-- `setup.sh` - Installation script
+- `cli/` - TypeScript CLI source code
 - `.claude/commands/` - Slash command definitions
 - `.claude/hooks/` - Event-triggered scripts
 - `docs/` - Detailed documentation

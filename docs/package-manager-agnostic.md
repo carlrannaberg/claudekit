@@ -189,8 +189,8 @@ cd your-project
 
 **Solution**: Re-run the claudekit setup to install updated hooks:
 ```bash
-cd /path/to/claudekit
-./setup.sh
+npm install -g claudekit
+claudekit init
 ```
 
 ## Migration Guide

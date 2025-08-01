@@ -1,1 +1,0 @@
-../../src/hooks/validate-todo-completion.sh

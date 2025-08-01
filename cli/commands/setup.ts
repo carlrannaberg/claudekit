@@ -801,16 +801,20 @@ async function createProjectSettings(claudeDir: string, components: Component[],
   }
 
   // Helper function to check if a hook is already configured
-  const isHookConfigured = (hookPath: string): boolean => {
+  const isHookConfigured = (hookId: string): boolean => {
+    // Create both old and new command formats to check
+    const oldCommand = `.claude/hooks/${hookId}.sh`;
+    const newCommand = `claudekit-hooks run ${hookId}`;
+    
     // Check PostToolUse hooks
     for (const entry of settings.hooks.PostToolUse) {
-      if (entry.hooks.some(h => h.command === hookPath)) {
+      if (entry.hooks.some(h => h.command === oldCommand || h.command === newCommand)) {
         return true;
       }
     }
     // Check Stop hooks
     for (const entry of settings.hooks.Stop) {
-      if (entry.hooks.some(h => h.command === hookPath)) {
+      if (entry.hooks.some(h => h.command === oldCommand || h.command === newCommand)) {
         return true;
       }
     }
@@ -820,10 +824,11 @@ async function createProjectSettings(claudeDir: string, components: Component[],
   // Add hooks based on installed components and options
   for (const component of components) {
     if (component.type === 'hook') {
-      const hookPath = `.claude/hooks/${path.basename(component.path)}`;
+      // Use embedded hook command format
+      const hookCommand = `claudekit-hooks run ${component.id}`;
       
       // Skip if this hook is already configured
-      if (isHookConfigured(hookPath)) {
+      if (isHookConfigured(component.id)) {
         continue;
       }
 
@@ -831,39 +836,46 @@ async function createProjectSettings(claudeDir: string, components: Component[],
         case 'typecheck':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.ts',
-            hooks: [{ type: 'command', command: hookPath }],
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'eslint':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-            hooks: [{ type: 'command', command: hookPath }],
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'prettier':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
-            hooks: [{ type: 'command', command: hookPath }],
+            hooks: [{ type: 'command', command: hookCommand }],
+          });
+          break;
+
+        case 'no-any':
+          settings.hooks.PostToolUse.push({
+            matcher: 'tools:Write AND file_paths:**/*.{ts,tsx}',
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'run-related-tests':
           settings.hooks.PostToolUse.push({
             matcher: 'Write,Edit,MultiEdit',
-            hooks: [{ type: 'command', command: hookPath }],
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'auto-checkpoint': {
           const stopEntry = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntry !== undefined) {
-            stopEntry.hooks.push({ type: 'command', command: hookPath });
+            stopEntry.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;
@@ -872,11 +884,11 @@ async function createProjectSettings(claudeDir: string, components: Component[],
         case 'validate-todo-completion': {
           const stopEntryTodo = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryTodo !== undefined) {
-            stopEntryTodo.hooks.push({ type: 'command', command: hookPath });
+            stopEntryTodo.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;
@@ -886,11 +898,11 @@ async function createProjectSettings(claudeDir: string, components: Component[],
           // Add project-validation to Stop hooks
           const stopEntryValidation = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryValidation !== undefined) {
-            stopEntryValidation.hooks.push({ type: 'command', command: hookPath });
+            stopEntryValidation.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;

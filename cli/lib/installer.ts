@@ -294,13 +294,13 @@ export async function createInstallPlan(
   if (installation.target === 'user' || installation.target === 'both') {
     directories.add(userDir);
     directories.add(path.join(userDir, 'commands'));
-    directories.add(path.join(userDir, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   if (installation.target === 'project' || installation.target === 'both') {
     directories.add(projectDir);
     directories.add(path.join(projectDir, 'commands'));
-    directories.add(path.join(projectDir, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   // Add custom path if specified
@@ -308,13 +308,18 @@ export async function createInstallPlan(
     const customPath = normalizePath(options.customPath);
     directories.add(customPath);
     directories.add(path.join(customPath, 'commands'));
-    directories.add(path.join(customPath, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   // First pass: collect all directories needed by analyzing components
   for (const component of orderedComponents) {
+    // Skip hook components - they are now embedded
+    if (component.type === 'hook') {
+      continue;
+    }
+    
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
+    const componentTypeDir = 'commands'; // Only commands are copied now
     
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
@@ -377,10 +382,15 @@ export async function createInstallPlan(
 
   // Second pass: create file copy and permission steps
   for (const component of orderedComponents) {
+    // Skip hook components - they are now embedded
+    if (component.type === 'hook') {
+      continue;
+    }
+    
     const targets: string[] = [];
 
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
+    const componentTypeDir = 'commands'; // Only commands are copied now
     
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
@@ -423,17 +433,6 @@ export async function createInstallPlan(
         target,
         component,
       });
-
-      // Add permission step for hooks
-      if (component.type === 'hook') {
-        steps.push({
-          id: `chmod-${component.id}-at-${target}`,
-          type: 'set-permission',
-          description: `Set executable permission on ${path.relative(path.dirname(target), target)}`,
-          target,
-          component,
-        });
-      }
     }
 
     // Plan dependency installation if enabled
@@ -921,7 +920,7 @@ async function createConfiguration(
   if (projectInfo?.hasTypeScript === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.ts',
-      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
+      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
     });
   }
 
@@ -929,7 +928,7 @@ async function createConfiguration(
   if (projectInfo?.hasESLint === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-      hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }],
+      hooks: [{ type: 'command', command: 'claudekit-hooks run eslint' }],
     });
   }
 
@@ -937,8 +936,8 @@ async function createConfiguration(
   config.hooks.Stop.push({
     matcher: '*',
     hooks: [
-      { type: 'command', command: '.claude/hooks/auto-checkpoint.sh' },
-      { type: 'command', command: '.claude/hooks/validate-todo-completion.sh' },
+      { type: 'command', command: 'claudekit-hooks run auto-checkpoint' },
+      { type: 'command', command: 'claudekit-hooks run validate-todo-completion' },
     ],
   });
 

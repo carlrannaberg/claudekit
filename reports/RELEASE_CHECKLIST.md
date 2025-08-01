@@ -52,9 +52,8 @@ This document provides a comprehensive checklist for releasing new versions of c
 Update version references throughout the project:
 
 ```bash
-# Update version in key files (if version is tracked)
-# Currently claudekit doesn't have a version file, but if added:
-# - setup.sh header comment
+# Update version in key files
+# - package.json version field
 # - README.md installation instructions
 # - Any version constant files
 ```
@@ -89,8 +88,8 @@ Add new version entry with release date:
 # Run comprehensive tests
 ./tests/run-tests.sh
 
-# Verify setup script
-./setup.sh --test  # If test mode exists
+# Verify CLI installation
+npm run test
 
 # Check all scripts for syntax
 find . -name "*.sh" -type f -exec bash -n {} \;
@@ -125,9 +124,8 @@ git push origin vX.Y.Z
 6. Add installation instructions:
    ```bash
    # Install claudekit
-   git clone https://github.com/[username]/claudekit.git
-   cd claudekit
-   ./setup.sh
+   npm install -g claudekit
+   claudekit init
    ```
 7. Attach any binary artifacts if applicable
 8. Mark as pre-release if beta/rc
@@ -139,7 +137,8 @@ git push origin vX.Y.Z
 cd /tmp
 git clone https://github.com/[username]/claudekit.git test-install
 cd test-install
-./setup.sh
+npm install -g claudekit
+claudekit init
 
 # Verify installation
 ls ~/.claude/commands/

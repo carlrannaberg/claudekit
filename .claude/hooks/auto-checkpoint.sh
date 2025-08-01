@@ -1,1 +1,0 @@
-../../src/hooks/auto-checkpoint.sh

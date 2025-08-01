@@ -1,1 +1,0 @@
-../../src/hooks/eslint.sh
