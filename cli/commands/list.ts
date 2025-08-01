@@ -158,10 +158,10 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
   // Recursively find all .md files in commands directory
   async function findCommandFiles(dir: string, prefix: string = ''): Promise<void> {
     const entries = await fs.readdir(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
-      
+
       if (entry.isDirectory()) {
         // Recurse into subdirectories
         const newPrefix = prefix ? `${prefix}:${entry.name}` : entry.name;
@@ -169,11 +169,11 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
       } else if (entry.isFile() && entry.name.endsWith('.md')) {
         const baseName = path.basename(entry.name, '.md');
         const commandName = prefix ? `${prefix}:${baseName}` : baseName;
-        
+
         if (pattern !== null && !pattern.test(commandName)) {
           continue;
         }
-        
+
         const stats = await fs.stat(fullPath);
 
         // Try to extract description from frontmatter

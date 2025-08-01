@@ -102,7 +102,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     const commandsDir = path.join(claudeDir, 'commands');
     try {
       await fs.access(commandsDir);
-      
+
       // Count commands recursively
       let commandCount = 0;
       async function countCommands(dir: string): Promise<void> {
@@ -115,7 +115,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
           }
         }
       }
-      
+
       await countCommands(commandsDir);
       legacyResults.push({
         passed: true,
@@ -197,7 +197,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
           console.log(Colors.dim('• Development prerequisites'));
         }
       }
-      
+
       // Show helpful suggestions for empty installations
       const suggestions: string[] = [];
       if (legacyResults.some((r) => r.message === 'No hooks installed')) {
@@ -206,10 +206,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
       if (legacyResults.some((r) => r.message === 'No commands installed')) {
         suggestions.push('• Run "claudekit setup" to install commands');
       }
-      
+
       if (suggestions.length > 0) {
         console.log(Colors.dim('\nTo get started:'));
-        suggestions.forEach(s => console.log(Colors.dim(s)));
+        suggestions.forEach((s) => console.log(Colors.dim(s)));
       }
     } else {
       console.log(Colors.bold(Colors.error('Some validation checks failed.')));

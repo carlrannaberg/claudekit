@@ -1,7 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { pathExists, getFileStats } from './filesystem.js';
-import type { Component, ComponentType, ComponentCategory, ProjectInfo, Platform } from '../types/config.js';
+import type {
+  Component,
+  ComponentType,
+  ComponentCategory,
+  ProjectInfo,
+  Platform,
+} from '../types/config.js';
 
 /**
  * Component Discovery System
@@ -394,7 +400,11 @@ function parseShellHeader(content: string): Record<string, unknown> {
     }
 
     // Accumulate description (exclude padding symbols)
-    if (metadata['description'] === undefined && !lineContent.includes(':') && !lineContent.match(/^#+$/)) {
+    if (
+      metadata['description'] === undefined &&
+      !lineContent.includes(':') &&
+      !lineContent.match(/^#+$/)
+    ) {
       const cleanContent = lineContent.replace(/#+\s*$/, '').trim();
       if (cleanContent !== '') {
         description += (description ? ' ' : '') + cleanContent;
@@ -432,7 +442,11 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
         if (match) {
           const toolName = match[1]?.toLowerCase();
           // Only add non-standard tools as dependencies
-          if (toolName !== undefined && toolName !== '' && !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)) {
+          if (
+            toolName !== undefined &&
+            toolName !== '' &&
+            !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)
+          ) {
             dependencies.add(toolName);
           } else if (toolName === 'read' || toolName === 'write') {
             dependencies.add(toolName);
@@ -467,7 +481,12 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
     if (bashCommands) {
       bashCommands.forEach((cmd) => {
         // Skip self-reference
-        if (componentId !== null && componentId !== undefined && componentId !== '' && cmd === componentId) {
+        if (
+          componentId !== null &&
+          componentId !== undefined &&
+          componentId !== '' &&
+          cmd === componentId
+        ) {
           return;
         }
         dependencies.add(cmd);
@@ -499,7 +518,9 @@ function inferCategory(
 ): ComponentCategory {
   // Use explicit category if provided
   if (metadata['category'] !== undefined) {
-    const normalizedCategory = String(metadata['category']).toLowerCase().replace(/[-_\s]/g, '-');
+    const normalizedCategory = String(metadata['category'])
+      .toLowerCase()
+      .replace(/[-_\s]/g, '-');
     const validCategories: ComponentCategory[] = [
       'git',
       'validation',
@@ -610,31 +631,52 @@ async function parseComponentFile(
     const dependencies = extractDependencies(content, type, id);
     const metadata: ComponentMetadata = {
       id,
-      name: rawMetadata['name'] as string || path.basename(filePath, '.md'),
-      description: rawMetadata['description'] as string || 'No description available',
+      name: (rawMetadata['name'] as string) || path.basename(filePath, '.md'),
+      description: (rawMetadata['description'] as string) || 'No description available',
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
-      platforms: rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
-        ? (rawMetadata['platforms'] as string).split(',').map((p: string) => p.trim()).filter((p): p is Platform => 
-            ['darwin', 'linux', 'win32', 'all'].includes(p as Platform))
-        : ['all'] as Platform[],
+      platforms:
+        rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
+          ? (rawMetadata['platforms'] as string)
+              .split(',')
+              .map((p: string) => p.trim())
+              .filter((p): p is Platform =>
+                ['darwin', 'linux', 'win32', 'all'].includes(p as Platform)
+              )
+          : (['all'] as Platform[]),
       enabled:
         rawMetadata['enabled'] === undefined
           ? true
           : rawMetadata['enabled'] !== 'false' && rawMetadata['enabled'] !== false,
-      ...(rawMetadata['allowed-tools'] !== undefined && rawMetadata['allowed-tools'] !== null && {
-        allowedTools: (rawMetadata['allowed-tools'] as string).split(',').map((t: string) => t.trim()),
-      }),
-      ...(rawMetadata['argument-hint'] !== undefined && rawMetadata['argument-hint'] !== null && { argumentHint: rawMetadata['argument-hint'] as string }),
-      ...(rawMetadata['version'] !== undefined && rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
-      ...(rawMetadata['author'] !== undefined && rawMetadata['author'] !== null && { author: rawMetadata['author'] as string }),
-      ...(rawMetadata['shellOptions'] !== undefined && rawMetadata['shellOptions'] !== null && { 
-        shellOptions: typeof rawMetadata['shellOptions'] === 'string' 
-          ? (rawMetadata['shellOptions'] as string).split(',').map((opt: string) => opt.trim())
-          : rawMetadata['shellOptions'] as string[]
-      }),
-      ...(rawMetadata['timeout'] !== undefined && rawMetadata['timeout'] !== null && { timeout: parseInt(rawMetadata['timeout'] as string, 10) }),
-      ...(rawMetadata['retries'] !== undefined && rawMetadata['retries'] !== null && { retries: parseInt(rawMetadata['retries'] as string, 10) }),
+      ...(rawMetadata['allowed-tools'] !== undefined &&
+        rawMetadata['allowed-tools'] !== null && {
+          allowedTools: (rawMetadata['allowed-tools'] as string)
+            .split(',')
+            .map((t: string) => t.trim()),
+        }),
+      ...(rawMetadata['argument-hint'] !== undefined &&
+        rawMetadata['argument-hint'] !== null && {
+          argumentHint: rawMetadata['argument-hint'] as string,
+        }),
+      ...(rawMetadata['version'] !== undefined &&
+        rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
+      ...(rawMetadata['author'] !== undefined &&
+        rawMetadata['author'] !== null && { author: rawMetadata['author'] as string }),
+      ...(rawMetadata['shellOptions'] !== undefined &&
+        rawMetadata['shellOptions'] !== null && {
+          shellOptions:
+            typeof rawMetadata['shellOptions'] === 'string'
+              ? (rawMetadata['shellOptions'] as string).split(',').map((opt: string) => opt.trim())
+              : (rawMetadata['shellOptions'] as string[]),
+        }),
+      ...(rawMetadata['timeout'] !== undefined &&
+        rawMetadata['timeout'] !== null && {
+          timeout: parseInt(rawMetadata['timeout'] as string, 10),
+        }),
+      ...(rawMetadata['retries'] !== undefined &&
+        rawMetadata['retries'] !== null && {
+          retries: parseInt(rawMetadata['retries'] as string, 10),
+        }),
     };
 
     // Calculate content hash for change detection
@@ -860,7 +902,7 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
         dfs(node);
       }
     }
-    
+
     return cycles;
   };
 
@@ -903,7 +945,7 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
     for (const node of nodes.keys()) {
       getDepth(node);
     }
-    
+
     return depths;
   };
 
@@ -946,10 +988,10 @@ export function resolveAllDependencies(
 
     visiting.add(id);
 
-    // Add static dependencies
+    // Add static dependencies (skip external dependencies for recursion)
     const staticDeps = COMPONENT_DEPENDENCIES[id] || [];
     for (const dep of staticDeps) {
-      if (!resolved.has(dep)) {
+      if (!resolved.has(dep) && !EXTERNAL_DEPENDENCIES.has(dep)) {
         addDependencies(dep, depth + 1);
       }
     }
@@ -1033,9 +1075,9 @@ export function resolveDependencyOrder(
       component.metadata.dependencies.forEach((dep) => allDeps.add(dep));
     }
 
-    // Visit dependencies first
+    // Visit dependencies first (skip external dependencies)
     for (const dep of allDeps) {
-      if (componentIds.includes(dep) && !cycles.has(dep)) {
+      if (componentIds.includes(dep) && !cycles.has(dep) && !EXTERNAL_DEPENDENCIES.has(dep)) {
         visit(dep, [...path]);
       }
     }
@@ -1121,12 +1163,14 @@ export async function discoverComponents(
   }
 
   if (options.filterByType !== undefined && options.filterByType.length > 0) {
-    filteredComponents = filteredComponents.filter((c) => options.filterByType?.includes(c.type) ?? false);
+    filteredComponents = filteredComponents.filter(
+      (c) => options.filterByType?.includes(c.type) ?? false
+    );
   }
 
   if (options.filterByCategory !== undefined && options.filterByCategory.length > 0) {
-    filteredComponents = filteredComponents.filter((c) =>
-      options.filterByCategory?.includes(c.metadata.category) ?? false
+    filteredComponents = filteredComponents.filter(
+      (c) => options.filterByCategory?.includes(c.metadata.category) ?? false
     );
   }
 

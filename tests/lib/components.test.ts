@@ -76,7 +76,7 @@ This is a test command that validates functionality.
 
     it('should include embedded hooks in discovery', async () => {
       const registry = await discoverComponents(tempDir);
-      
+
       // Test that embedded hooks are included
       const typecheck = getComponent('typecheck', registry);
       expect(typecheck).toBeDefined();
@@ -85,17 +85,26 @@ This is a test command that validates functionality.
       expect(typecheck?.metadata.category).toBe('validation');
       expect(typecheck?.type).toBe('hook');
       expect(typecheck?.path).toBe('embedded:typecheck');
-      
+
       // Test another embedded hook
       const eslint = getComponent('eslint', registry);
       expect(eslint).toBeDefined();
       expect(eslint?.metadata.name).toBe('ESLint Validation');
       expect(eslint?.metadata.category).toBe('validation');
-      
+
       // Verify all embedded hooks are present
       const allHooks = getComponentsByType('hook', registry);
-      const embeddedHookIds = ['typecheck', 'eslint', 'prettier', 'no-any', 'run-related-tests', 'auto-checkpoint', 'validate-todo-completion', 'project-validation'];
-      const foundEmbeddedHooks = allHooks.filter(h => h.path.startsWith('embedded:'));
+      const embeddedHookIds = [
+        'typecheck',
+        'eslint',
+        'prettier',
+        'no-any',
+        'run-related-tests',
+        'auto-checkpoint',
+        'validate-todo-completion',
+        'project-validation',
+      ];
+      const foundEmbeddedHooks = allHooks.filter((h) => h.path.startsWith('embedded:'));
       expect(foundEmbeddedHooks.length).toBe(embeddedHookIds.length);
     });
 
@@ -148,11 +157,11 @@ This command uses multiple tools:
       // Test that embedded hooks have correct dependencies
       const eslintHook = getComponent('eslint', registry);
       expect(eslintHook?.metadata.dependencies).toContain('eslint');
-      
+
       const typecheckHook = getComponent('typecheck', registry);
       expect(typecheckHook?.metadata.dependencies).toContain('typescript');
       expect(typecheckHook?.metadata.dependencies).toContain('tsc');
-      
+
       const autoCheckpoint = getComponent('auto-checkpoint', registry);
       expect(autoCheckpoint?.metadata.dependencies).toContain('git');
     });
@@ -247,7 +256,7 @@ category: git
 
       // Test git category (should have git-cmd command and auto-checkpoint hook)
       const gitComponents = getComponentsByCategory('git', registry);
-      const gitCommandComponent = gitComponents.find(c => c.metadata.id === 'git-cmd');
+      const gitCommandComponent = gitComponents.find((c) => c.metadata.id === 'git-cmd');
       expect(gitCommandComponent).toBeDefined();
       expect(gitCommandComponent?.metadata.name).toBe('git-cmd');
 
@@ -257,13 +266,13 @@ category: git
       // Test that embedded hooks are included
       const hooks = getComponentsByType('hook', registry);
       expect(hooks.length).toBe(8); // All 8 embedded hooks
-      
+
       // Test validation category has embedded validation hooks
       const validationComponents = getComponentsByCategory('validation', registry);
-      const validationHooks = validationComponents.filter(c => c.type === 'hook');
+      const validationHooks = validationComponents.filter((c) => c.type === 'hook');
       expect(validationHooks.length).toBeGreaterThan(0);
-      expect(validationHooks.some(h => h.metadata.id === 'typecheck')).toBe(true);
-      expect(validationHooks.some(h => h.metadata.id === 'eslint')).toBe(true);
+      expect(validationHooks.some((h) => h.metadata.id === 'typecheck')).toBe(true);
+      expect(validationHooks.some((h) => h.metadata.id === 'eslint')).toBe(true);
     });
   });
 
@@ -298,7 +307,7 @@ Uses /base command`
       expect(cmdDeps.some((c) => c.metadata.id === 'base')).toBe(true);
 
       // Test embedded hook dependencies
-      const typecheckDeps = getDependencies('typecheck', registry);
+      getDependencies('typecheck', registry);
       // Note: typescript and tsc are external dependencies, so they won't be in the registry
       expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('typescript');
       expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('tsc');
@@ -375,7 +384,7 @@ description: Validate code quality
 
       const gitResults = searchComponents('git', registry);
       // Should find git-status command and possibly embedded hooks with 'git' in name
-      const gitStatusCmd = gitResults.find(r => r.metadata.id === 'git-status');
+      const gitStatusCmd = gitResults.find((r) => r.metadata.id === 'git-status');
       expect(gitStatusCmd).toBeDefined();
       expect(gitStatusCmd?.metadata.name).toBe('git-status');
     });
@@ -498,7 +507,7 @@ author: Test Author
       // Should have 1 command + 8 embedded hooks
       expect(components.length).toBe(9);
 
-      const testCommand = components.find(c => c.id === 'test');
+      const testCommand = components.find((c) => c.id === 'test');
       expect(testCommand).toBeDefined();
       expect(testCommand?.type).toBe('command');
       expect(testCommand?.name).toBe('test');

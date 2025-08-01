@@ -10,10 +10,10 @@ import { z } from 'zod';
  */
 export interface HookPayload {
   tool?: string;
-  tool_input?: Record<string, any>;
-  tool_output?: any;
+  tool_input?: Record<string, unknown>;
+  tool_output?: unknown;
   timestamp?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface HookPayload {
  */
 export interface HookResult {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   timestamp: string;
   hook?: string;
@@ -37,7 +37,7 @@ export interface HookContext {
   timestamp: string;
   user?: string;
   project?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface HookConfig {
   description: string;
   enabled: boolean;
   triggers?: HookTrigger[];
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 }
 
 /**
@@ -67,7 +67,7 @@ export interface HookTrigger {
 export enum HookEvent {
   PostToolUse = 'PostToolUse',
   Stop = 'Stop',
-  PreToolUse = 'PreToolUse'
+  PreToolUse = 'PreToolUse',
 }
 
 /**
@@ -78,7 +78,7 @@ export interface HookCondition {
   conditions: Array<{
     field: string;
     operator: 'equals' | 'contains' | 'matches' | 'exists';
-    value?: any;
+    value?: unknown;
   }>;
 }
 
@@ -124,10 +124,12 @@ export interface HookMetadata {
 }
 
 // Base hook configuration that all hooks share
-export const BaseHookConfigSchema = z.object({
-  command: z.string().optional(),
-  timeout: z.number().optional().default(30000),
-}).passthrough(); // Allow hook-specific fields like 'pattern', 'prefix', etc.
+export const BaseHookConfigSchema = z
+  .object({
+    command: z.string().optional(),
+    timeout: z.number().optional().default(30000),
+  })
+  .passthrough(); // Allow hook-specific fields like 'pattern', 'prefix', etc.
 
 // Complete configuration schema
 export const ClaudekitConfigSchema = z.object({

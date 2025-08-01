@@ -261,7 +261,7 @@ export async function copyFileWithBackup(
     // Check if files are different
     const sourceHash = await getFileHash(source);
     const targetHash = await getFileHash(target);
-    
+
     if (sourceHash !== targetHash) {
       // Files are different - potential conflict
       if (onConflict) {
@@ -271,7 +271,7 @@ export async function copyFileWithBackup(
           return;
         }
       }
-      
+
       // Create backup if requested
       if (backup) {
         // Create timestamped backup

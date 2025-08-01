@@ -17,7 +17,7 @@ const execAsync = promisify(exec);
 export async function readStdin(): Promise<string> {
   return new Promise((resolve) => {
     let data = '';
-    process.stdin.on('data', chunk => data += chunk);
+    process.stdin.on('data', (chunk) => (data += chunk));
     process.stdin.on('end', () => resolve(data));
     setTimeout(() => resolve(''), 1000); // Timeout fallback
   });
@@ -51,14 +51,21 @@ export async function detectPackageManager(dir: string): Promise<PackageManager>
   if (await fs.pathExists(path.join(dir, 'package.json'))) {
     // Check packageManager field
     try {
-      const pkg = await fs.readJson(path.join(dir, 'package.json'));
-      if (pkg.packageManager?.startsWith('pnpm')) {
-        return { name: 'pnpm', exec: 'pnpm dlx', run: 'pnpm run', test: 'pnpm test' };
+      const pkg = (await fs.readJson(path.join(dir, 'package.json'))) as {
+        packageManager?: string;
+      };
+      if (pkg.packageManager !== undefined && typeof pkg.packageManager === 'string') {
+        if (pkg.packageManager.startsWith('pnpm') === true) {
+          return { name: 'pnpm', exec: 'pnpm dlx', run: 'pnpm run', test: 'pnpm test' };
+        }
+        if (pkg.packageManager.startsWith('yarn') === true) {
+          return { name: 'yarn', exec: 'yarn dlx', run: 'yarn', test: 'yarn test' };
+        }
       }
-      if (pkg.packageManager?.startsWith('yarn')) {
-        return { name: 'yarn', exec: 'yarn dlx', run: 'yarn', test: 'yarn test' };
-      }
-    } catch {}
+    } catch {
+      // Ignore errors reading package.json
+      // This is expected when package.json doesn't exist or is malformed
+    }
   }
   return { name: 'npm', exec: 'npx', run: 'npm run', test: 'npm test' };
 }
@@ -75,33 +82,28 @@ export async function execCommand(
   args: string[] = [],
   options: { cwd?: string; timeout?: number } = {}
 ): Promise<ExecResult> {
-  const fullCommand = command + ' ' + args.join(' ');
+  const fullCommand = `${command} ${args.join(' ')}`;
   try {
     const { stdout, stderr } = await execAsync(fullCommand, {
-      cwd: options.cwd || process.cwd(),
-      timeout: options.timeout || 30000,
-      maxBuffer: 1024 * 1024 * 10 // 10MB
+      cwd: options.cwd ?? process.cwd(),
+      timeout: options.timeout ?? 30000,
+      maxBuffer: 1024 * 1024 * 10, // 10MB
     });
     return { stdout, stderr, exitCode: 0 };
-  } catch (error: any) {
+  } catch (error) {
+    const execError = error as { stdout?: string; stderr?: string; code?: number };
     return {
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-      exitCode: error.code || 1
+      stdout: execError.stdout ?? '',
+      stderr: execError.stderr ?? '',
+      exitCode: execError.code ?? 1,
     };
   }
 }
 
 // Error formatting
-export function formatError(
-  title: string,
-  details: string,
-  instructions: string[]
-): string {
-  const instructionsList = instructions
-    .map((inst, i) => `${i + 1}. ${inst}`)
-    .join('\n');
-    
+export function formatError(title: string, details: string, instructions: string[]): string {
+  const instructionsList = instructions.map((inst, i) => `${i + 1}. ${inst}`).join('\n');
+
   return `BLOCKED: ${title}\n\n${details}\n\nMANDATORY INSTRUCTIONS:\n${instructionsList}`;
 }
 
@@ -112,28 +114,31 @@ export async function checkToolAvailable(
   projectRoot: string
 ): Promise<boolean> {
   // Check config file exists
-  if (!await fs.pathExists(path.join(projectRoot, configFile))) {
+  if (!(await fs.pathExists(path.join(projectRoot, configFile)))) {
     return false;
   }
-  
+
   // Check tool is executable
   const pm = await detectPackageManager(projectRoot);
   const result = await execCommand(pm.exec, [tool, '--version'], {
     cwd: projectRoot,
-    timeout: 10000
+    timeout: 10000,
   });
-  
+
   return result.exitCode === 0;
 }
 
 /**
  * Execute a shell command and return the output
  */
-export async function executeCommand(command: string, cwd?: string): Promise<{ stdout: string; stderr: string }> {
+export async function executeCommand(
+  command: string,
+  cwd?: string
+): Promise<{ stdout: string; stderr: string }> {
   try {
     const result = await execAsync(command, { cwd });
     return result;
-  } catch (error: any) {
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(`Command failed: ${command}`));
     throw error;
   }
@@ -153,14 +158,14 @@ export async function fileExists(filePath: string): Promise<boolean> {
 /**
  * Read JSON file
  */
-export async function readJsonFile<T = any>(filePath: string): Promise<T> {
+export async function readJsonFile<T = unknown>(filePath: string): Promise<T> {
   return await fs.readJson(filePath);
 }
 
 /**
  * Write JSON file
  */
-export async function writeJsonFile(filePath: string, data: any): Promise<void> {
+export async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
   await fs.writeJson(filePath, data, { spaces: 2 });
 }
 
@@ -172,7 +177,7 @@ export async function findFiles(pattern: string, directory: string): Promise<str
   return stdout
     .split('\n')
     .filter(Boolean)
-    .map(file => path.join(directory, file));
+    .map((file) => path.join(directory, file));
 }
 
 /**
@@ -193,23 +198,23 @@ export async function ensureDirectory(dirPath: string): Promise<void> {
 /**
  * Parse hook payload from stdin
  */
-export async function parseStdinPayload(): Promise<any> {
+export async function parseStdinPayload(): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let data = '';
-    
-    process.stdin.on('data', chunk => {
+
+    process.stdin.on('data', (chunk) => {
       data += chunk;
     });
-    
+
     process.stdin.on('end', () => {
       try {
         const payload = JSON.parse(data);
         resolve(payload);
-      } catch (error) {
+      } catch {
         reject(new Error('Invalid JSON payload'));
       }
     });
-    
+
     process.stdin.on('error', reject);
   });
 }
@@ -217,26 +222,42 @@ export async function parseStdinPayload(): Promise<any> {
 /**
  * Extract file paths from hook payload
  */
-export function extractFilePaths(payload: any): string[] {
+export function extractFilePaths(payload: unknown): string[] {
   const paths: string[] = [];
-  
+
+  if (payload === null || payload === undefined || typeof payload !== 'object') {
+    return paths;
+  }
+
+  const obj = payload as Record<string, unknown>;
+
   // Check common payload structures
-  if (payload.file_path) {
-    paths.push(payload.file_path);
+  if (typeof obj['file_path'] === 'string') {
+    paths.push(obj['file_path']);
   }
-  
-  if (payload.tool_input?.file_path) {
-    paths.push(payload.tool_input.file_path);
+
+  if (
+    obj['tool_input'] !== null &&
+    obj['tool_input'] !== undefined &&
+    typeof obj['tool_input'] === 'object'
+  ) {
+    const toolInput = obj['tool_input'] as Record<string, unknown>;
+    if (typeof toolInput['file_path'] === 'string') {
+      paths.push(toolInput['file_path']);
+    }
   }
-  
-  if (payload.edits && Array.isArray(payload.edits)) {
-    payload.edits.forEach((edit: any) => {
-      if (edit.file_path) {
-        paths.push(edit.file_path);
+
+  if (obj['edits'] !== null && obj['edits'] !== undefined && Array.isArray(obj['edits'])) {
+    obj['edits'].forEach((edit: unknown) => {
+      if (edit !== null && edit !== undefined && typeof edit === 'object') {
+        const editObj = edit as Record<string, unknown>;
+        if (typeof editObj['file_path'] === 'string') {
+          paths.push(editObj['file_path']);
+        }
       }
     });
   }
-  
+
   return [...new Set(paths)]; // Remove duplicates
 }
 
@@ -247,12 +268,12 @@ export function formatDuration(ms: number): string {
   if (ms < 1000) {
     return `${ms}ms`;
   }
-  
+
   const seconds = Math.floor(ms / 1000);
   if (seconds < 60) {
     return `${seconds}s`;
   }
-  
+
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;

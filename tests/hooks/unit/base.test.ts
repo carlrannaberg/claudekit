@@ -1,20 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as path from 'path';
-import { BaseHook, HookContext, HookResult, ClaudePayload } from '../../../cli/hooks/base.js';
+import type { HookContext, HookResult, ClaudePayload } from '../../../cli/hooks/base.js';
+import { BaseHook } from '../../../cli/hooks/base.js';
 import * as utils from '../../../cli/hooks/utils.js';
 
 // Mock fs-extra
 vi.mock('fs-extra', () => {
   const pathExistsMock = vi.fn();
   const readFileMock = vi.fn();
-  
+
   return {
     default: {
       pathExists: pathExistsMock,
-      readFile: readFileMock
+      readFile: readFileMock,
     },
     pathExists: pathExistsMock,
-    readFile: readFileMock
+    readFile: readFileMock,
   };
 });
 
@@ -48,7 +49,7 @@ describe('BaseHook', () => {
     it('should handle infinite loop prevention with stop_hook_active', async () => {
       const payload: ClaudePayload = { stop_hook_active: true };
       const result = await testHook.run(payload);
-      
+
       expect(result.exitCode).toBe(0);
       expect(testHook.executeCallCount).toBe(0); // execute should not be called
     });
@@ -56,7 +57,7 @@ describe('BaseHook', () => {
     it('should extract file path from tool_input.file_path', async () => {
       const filePath = '/test/path/file.ts';
       const payload: ClaudePayload = {
-        tool_input: { file_path: filePath }
+        tool_input: { file_path: filePath },
       };
 
       // Mock findProjectRoot and detectPackageManager
@@ -65,7 +66,7 @@ describe('BaseHook', () => {
         name: 'npm',
         exec: 'npx',
         run: 'npm run',
-        test: 'npm test'
+        test: 'npm test',
       });
 
       await testHook.run(payload);
@@ -81,7 +82,7 @@ describe('BaseHook', () => {
         name: 'pnpm' as const,
         exec: 'pnpm dlx',
         run: 'pnpm run',
-        test: 'pnpm test'
+        test: 'pnpm test',
       };
 
       vi.spyOn(utils, 'findProjectRoot').mockResolvedValue(expectedProjectRoot);
@@ -93,7 +94,7 @@ describe('BaseHook', () => {
         filePath: undefined,
         projectRoot: expectedProjectRoot,
         payload,
-        packageManager: expectedPackageManager
+        packageManager: expectedPackageManager,
       });
     });
 
@@ -106,7 +107,7 @@ describe('BaseHook', () => {
         name: 'npm',
         exec: 'npx',
         run: 'npm run',
-        test: 'npm test'
+        test: 'npm test',
       });
 
       await testHook.run(payload);
@@ -118,7 +119,7 @@ describe('BaseHook', () => {
       const expectedResult: HookResult = {
         exitCode: 2,
         suppressOutput: true,
-        jsonResponse: { test: 'data' }
+        jsonResponse: { test: 'data' },
       };
       testHook.mockResult = expectedResult;
 
@@ -127,7 +128,7 @@ describe('BaseHook', () => {
         name: 'npm',
         exec: 'npx',
         run: 'npm run',
-        test: 'npm test'
+        test: 'npm test',
       });
 
       const result = await testHook.run({});
@@ -139,35 +140,41 @@ describe('BaseHook', () => {
     it('should accept and store configuration', () => {
       const config = { timeout: 60000, customOption: 'test' };
       const hook = new TestHook(config);
-      
-      expect((hook as any).config).toEqual(config);
+
+      expect((hook as unknown as BaseHook & { config: typeof config }).config).toEqual(config);
     });
 
     it('should have default empty configuration', () => {
       const hook = new TestHook();
-      expect((hook as any).config).toEqual({});
+      expect((hook as unknown as BaseHook & { config: object }).config).toEqual({});
     });
   });
 
   describe('utility methods', () => {
-    let consoleErrorSpy: any;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     it('should output progress message to stderr', () => {
-      (testHook as any).progress('Processing files...');
+      (testHook as unknown as BaseHook & { progress: (message: string) => void }).progress(
+        'Processing files...'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith('Processing files...');
     });
 
     it('should output success message with checkmark to stderr', () => {
-      (testHook as any).success('All tests passed');
+      (testHook as unknown as BaseHook & { success: (message: string) => void }).success(
+        'All tests passed'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith('✅ All tests passed');
     });
 
     it('should output warning message with warning icon to stderr', () => {
-      (testHook as any).warning('Some tests skipped');
+      (testHook as unknown as BaseHook & { warning: (message: string) => void }).warning(
+        'Some tests skipped'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Some tests skipped');
     });
 
@@ -177,9 +184,13 @@ describe('BaseHook', () => {
       const instructions = ['Fix the type error', 'Run typecheck again'];
 
       vi.spyOn(utils, 'formatError').mockReturnValue('BLOCKED: TypeScript Error\n...');
-      
-      (testHook as any).error(title, details, instructions);
-      
+
+      (
+        testHook as unknown as BaseHook & {
+          error: (title: string, details: string, instructions: string[]) => void;
+        }
+      ).error(title, details, instructions);
+
       expect(utils.formatError).toHaveBeenCalledWith(title, details, instructions);
       expect(consoleErrorSpy).toHaveBeenCalledWith('BLOCKED: TypeScript Error\n...');
     });
@@ -188,7 +199,7 @@ describe('BaseHook', () => {
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const data = { result: 'success', count: 42 };
 
-      (testHook as any).jsonOutput(data);
+      (testHook as unknown as BaseHook & { jsonOutput: (data: object) => void }).jsonOutput(data);
 
       expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify(data));
       consoleLogSpy.mockRestore();
@@ -198,7 +209,10 @@ describe('BaseHook', () => {
   describe('file operations', () => {
     beforeEach(async () => {
       const fsModule = await import('fs-extra');
-      const fsMock = fsModule.default as any;
+      const fsMock = fsModule.default as unknown as {
+        pathExists: ReturnType<typeof vi.fn>;
+        readFile: ReturnType<typeof vi.fn>;
+      };
       fsMock.pathExists.mockClear();
       fsMock.readFile.mockClear();
     });
@@ -206,12 +220,17 @@ describe('BaseHook', () => {
     it('should check if file exists', async () => {
       const filePath = '/test/file.ts';
       const fsModule = await import('fs-extra');
-      const fsMock = fsModule.default as any;
-      
+      const fsMock = fsModule.default as unknown as {
+        pathExists: ReturnType<typeof vi.fn>;
+        readFile: ReturnType<typeof vi.fn>;
+      };
+
       // Configure the mock
       fsMock.pathExists.mockResolvedValue(true);
 
-      const exists = await (testHook as any).fileExists(filePath);
+      const exists = await (
+        testHook as unknown as BaseHook & { fileExists: (path: string) => Promise<boolean> }
+      ).fileExists(filePath);
 
       expect(exists).toBe(true);
       expect(fsMock.pathExists).toHaveBeenCalledWith(filePath);
@@ -221,12 +240,17 @@ describe('BaseHook', () => {
       const filePath = '/test/file.ts';
       const contents = 'console.log("test");';
       const fsModule = await import('fs-extra');
-      const fsMock = fsModule.default as any;
-      
+      const fsMock = fsModule.default as unknown as {
+        pathExists: ReturnType<typeof vi.fn>;
+        readFile: ReturnType<typeof vi.fn>;
+      };
+
       // Configure the mock
       fsMock.readFile.mockResolvedValue(contents);
 
-      const result = await (testHook as any).readFile(filePath);
+      const result = await (
+        testHook as unknown as BaseHook & { readFile: (path: string) => Promise<string> }
+      ).readFile(filePath);
 
       expect(result).toBe(contents);
       expect(fsMock.readFile).toHaveBeenCalledWith(filePath, 'utf-8');
@@ -235,24 +259,54 @@ describe('BaseHook', () => {
 
   describe('shouldSkipFile', () => {
     it('should skip when file path is undefined', () => {
-      const result = (testHook as any).shouldSkipFile(undefined, ['.ts', '.tsx']);
+      const result = (
+        testHook as unknown as BaseHook & {
+          shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+        }
+      ).shouldSkipFile(undefined, ['.ts', '.tsx']);
       expect(result).toBe(true);
     });
 
     it('should skip when file extension does not match', () => {
-      const result = (testHook as any).shouldSkipFile('/test/file.js', ['.ts', '.tsx']);
+      const result = (
+        testHook as unknown as BaseHook & {
+          shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+        }
+      ).shouldSkipFile('/test/file.js', ['.ts', '.tsx']);
       expect(result).toBe(true);
     });
 
     it('should not skip when file extension matches', () => {
-      const result = (testHook as any).shouldSkipFile('/test/file.ts', ['.ts', '.tsx']);
+      const result = (
+        testHook as unknown as BaseHook & {
+          shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+        }
+      ).shouldSkipFile('/test/file.ts', ['.ts', '.tsx']);
       expect(result).toBe(false);
     });
 
     it('should match any of the provided extensions', () => {
-      expect((testHook as any).shouldSkipFile('/test/file.tsx', ['.ts', '.tsx'])).toBe(false);
-      expect((testHook as any).shouldSkipFile('/test/file.ts', ['.ts', '.tsx'])).toBe(false);
-      expect((testHook as any).shouldSkipFile('/test/file.jsx', ['.ts', '.tsx'])).toBe(true);
+      expect(
+        (
+          testHook as unknown as BaseHook & {
+            shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+          }
+        ).shouldSkipFile('/test/file.tsx', ['.ts', '.tsx'])
+      ).toBe(false);
+      expect(
+        (
+          testHook as unknown as BaseHook & {
+            shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+          }
+        ).shouldSkipFile('/test/file.ts', ['.ts', '.tsx'])
+      ).toBe(false);
+      expect(
+        (
+          testHook as unknown as BaseHook & {
+            shouldSkipFile: (filePath: string | undefined, extensions: string[]) => boolean;
+          }
+        ).shouldSkipFile('/test/file.jsx', ['.ts', '.tsx'])
+      ).toBe(true);
     });
   });
 
@@ -262,10 +316,18 @@ describe('BaseHook', () => {
       const mockResult = { stdout: 'success', stderr: '', exitCode: 0 };
       vi.spyOn(utils, 'execCommand').mockResolvedValue(mockResult);
 
-      const result = await (hook as any).execCommand('npm', ['test']);
+      const result = await (
+        hook as unknown as BaseHook & {
+          execCommand: (
+            cmd: string,
+            args: string[],
+            options?: { timeout?: number; cwd?: string }
+          ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+        }
+      ).execCommand('npm', ['test']);
 
       expect(utils.execCommand).toHaveBeenCalledWith('npm', ['test'], {
-        timeout: 45000
+        timeout: 45000,
       });
       expect(result).toEqual(mockResult);
     });
@@ -275,14 +337,22 @@ describe('BaseHook', () => {
       const mockResult = { stdout: 'success', stderr: '', exitCode: 0 };
       vi.spyOn(utils, 'execCommand').mockResolvedValue(mockResult);
 
-      const result = await (hook as any).execCommand('npm', ['test'], {
+      const result = await (
+        hook as unknown as BaseHook & {
+          execCommand: (
+            cmd: string,
+            args: string[],
+            options?: { timeout?: number; cwd?: string }
+          ) => Promise<{ stdout: string; stderr: string; exitCode: number }>;
+        }
+      ).execCommand('npm', ['test'], {
         timeout: 10000,
-        cwd: '/custom/dir'
+        cwd: '/custom/dir',
       });
 
       expect(utils.execCommand).toHaveBeenCalledWith('npm', ['test'], {
         timeout: 10000,
-        cwd: '/custom/dir'
+        cwd: '/custom/dir',
       });
       expect(result).toEqual(mockResult);
     });

@@ -142,7 +142,12 @@ vi.mock('../../cli/lib/index', () => ({
   }),
   recommendComponents: vi.fn().mockImplementation((_projectInfo, registry) => {
     // Handle case where registry might be undefined in tests
-    if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
+    if (
+      registry === null ||
+      registry === undefined ||
+      registry.components === null ||
+      registry.components === undefined
+    ) {
       return {
         essential: [],
         recommended: [],
@@ -158,29 +163,41 @@ vi.mock('../../cli/lib/index', () => ({
     return {
       essential: [],
       recommended: [
-        ...(typecheckComponent !== undefined ? [{
-          component: typecheckComponent,
-          score: 85,
-          reasons: ['TypeScript detected'],
-          dependencies: ['tsc'],
-          isRequired: false,
-        }] : []),
-        ...(eslintComponent !== undefined ? [{
-          component: eslintComponent,
-          score: 80,
-          reasons: ['ESLint detected'],
-          dependencies: ['eslint'],
-          isRequired: false,
-        }] : []),
+        ...(typecheckComponent !== undefined
+          ? [
+              {
+                component: typecheckComponent,
+                score: 85,
+                reasons: ['TypeScript detected'],
+                dependencies: ['tsc'],
+                isRequired: false,
+              },
+            ]
+          : []),
+        ...(eslintComponent !== undefined
+          ? [
+              {
+                component: eslintComponent,
+                score: 80,
+                reasons: ['ESLint detected'],
+                dependencies: ['eslint'],
+                isRequired: false,
+              },
+            ]
+          : []),
       ],
       optional: [
-        ...(checkpointCreateComponent !== undefined ? [{
-          component: checkpointCreateComponent,
-          score: 60,
-          reasons: ['Git repository'],
-          dependencies: [],
-          isRequired: false,
-        }] : []),
+        ...(checkpointCreateComponent !== undefined
+          ? [
+              {
+                component: checkpointCreateComponent,
+                score: 60,
+                reasons: ['Git repository'],
+                dependencies: [],
+                isRequired: false,
+              },
+            ]
+          : []),
       ],
       totalScore: 100,
     };
@@ -211,23 +228,26 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Re-apply logger mock after clearing
     const logger = await import('../../cli/utils/logger');
-    vi.mocked(logger.Logger).mockImplementation(() => ({
-      info: vi.fn(),
-      warn: vi.fn(), 
-      error: vi.fn(),
-      debug: vi.fn(),
-      success: vi.fn(),
-      setLevel: vi.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any));
-    
+    vi.mocked(logger.Logger).mockImplementation(
+      () =>
+        ({
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn(),
+          debug: vi.fn(),
+          success: vi.fn(),
+          setLevel: vi.fn(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any
+    );
+
     // Mock console methods to prevent error output during tests
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock fs.writeFile for settings creation
     vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
     vi.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
@@ -238,7 +258,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       }
       return Promise.resolve('{}');
     });
-    
+
     // Re-apply filesystem mocks after clearing
     const filesystem = await import('../../cli/lib/filesystem');
     vi.mocked(filesystem.ensureDirectoryExists).mockResolvedValue(undefined);
@@ -249,7 +269,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       }
       return Promise.resolve(true);
     });
-    
+
     // Re-apply mocks after clearing
     const libIndex = await import('../../cli/lib/index');
     vi.mocked(libIndex.detectProjectContext).mockResolvedValue({
@@ -263,7 +283,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       packageManager: 'npm',
       projectPath: process.cwd(),
     });
-    
+
     vi.mocked(libIndex.discoverComponents).mockResolvedValue({
       components: new Map([
         [
@@ -354,10 +374,15 @@ describe('Setup Command - Non-Interactive Flags', () => {
         cycles: [],
       },
     });
-    
+
     vi.mocked(libIndex.recommendComponents).mockImplementation(async (_projectInfo, registry) => {
       // Handle case where registry might be undefined in tests
-      if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
+      if (
+        registry === null ||
+        registry === undefined ||
+        registry.components === null ||
+        registry.components === undefined
+      ) {
         return Promise.resolve({
           essential: [],
           recommended: [],
@@ -374,41 +399,57 @@ describe('Setup Command - Non-Interactive Flags', () => {
       return Promise.resolve({
         essential: [],
         recommended: [
-          ...(typecheckComponent !== undefined ? [{
-            component: typecheckComponent,
-            score: 85,
-            reasons: ['TypeScript detected'],
-            dependencies: ['tsc'],
-            isRequired: false,
-          }] : []),
-          ...(eslintComponent !== undefined ? [{
-            component: eslintComponent,
-            score: 80,
-            reasons: ['ESLint detected'],
-            dependencies: ['eslint'],
-            isRequired: false,
-          }] : []),
+          ...(typecheckComponent !== undefined
+            ? [
+                {
+                  component: typecheckComponent,
+                  score: 85,
+                  reasons: ['TypeScript detected'],
+                  dependencies: ['tsc'],
+                  isRequired: false,
+                },
+              ]
+            : []),
+          ...(eslintComponent !== undefined
+            ? [
+                {
+                  component: eslintComponent,
+                  score: 80,
+                  reasons: ['ESLint detected'],
+                  dependencies: ['eslint'],
+                  isRequired: false,
+                },
+              ]
+            : []),
         ],
         optional: [
-          ...(checkpointCreateComponent !== undefined ? [{
-            component: checkpointCreateComponent,
-            score: 60,
-            reasons: ['Version control workflow'],
-            dependencies: [],
-            isRequired: false,
-          }] : []),
-          ...(gitCommitComponent !== undefined ? [{
-            component: gitCommitComponent,
-            score: 55,
-            reasons: ['Git workflow enhancement'],
-            dependencies: [],
-            isRequired: false,
-          }] : []),
+          ...(checkpointCreateComponent !== undefined
+            ? [
+                {
+                  component: checkpointCreateComponent,
+                  score: 60,
+                  reasons: ['Version control workflow'],
+                  dependencies: [],
+                  isRequired: false,
+                },
+              ]
+            : []),
+          ...(gitCommitComponent !== undefined
+            ? [
+                {
+                  component: gitCommitComponent,
+                  score: 55,
+                  reasons: ['Git workflow enhancement'],
+                  dependencies: [],
+                  isRequired: false,
+                },
+              ]
+            : []),
         ],
         totalScore: 100,
       });
     });
-    
+
     vi.mocked(libIndex.installComponents).mockResolvedValue({
       success: true,
       installedComponents: [],
@@ -473,7 +514,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       // The setup should complete without throwing an error
       await expect(setup(options)).resolves.not.toThrow();
-      
+
       // Note: Due to complex mocking requirements in integration tests,
       // we verify the command completes successfully rather than testing
       // internal implementation details. The actual component installation

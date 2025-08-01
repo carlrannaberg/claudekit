@@ -25,17 +25,28 @@ vi.mock('ora', () => ({
 vi.mock('chalk', () => {
   const createChainableInstance = (): Record<string, unknown> => {
     const chainable = ((text: string) => text) as unknown as Record<string, unknown>;
-    const props = ['bold', 'dim', 'italic', 'underline', 'green', 'red', 'yellow', 'blue', 'gray', 'cyan'];
-    
-    props.forEach(prop => {
+    const props = [
+      'bold',
+      'dim',
+      'italic',
+      'underline',
+      'green',
+      'red',
+      'yellow',
+      'blue',
+      'gray',
+      'cyan',
+    ];
+
+    props.forEach((prop) => {
       chainable[prop] = chainable;
     });
-    
+
     return chainable;
   };
 
   const chalkInstance = createChainableInstance();
-  
+
   return {
     default: chalkInstance,
   };
@@ -232,7 +243,9 @@ describe('CLI workflow integration', () => {
       await init({ force: true });
 
       // Settings file should be recreated
-      await expect(fs.access(path.join(tempDir, '.claude', 'settings.json'))).resolves.not.toThrow();
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'settings.json'))
+      ).resolves.not.toThrow();
 
       // Validation should pass
       processExit.exit.mockClear();

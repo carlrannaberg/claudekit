@@ -316,10 +316,10 @@ export async function createInstallPlan(
     if (component.type === 'hook') {
       continue;
     }
-    
+
     // Calculate relative path from source base to preserve directory structure
     const componentTypeDir = 'commands'; // Only commands are copied now
-    
+
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
     if (sourceDir) {
@@ -333,7 +333,7 @@ export async function createInstallPlan(
     // Collect directories for each target
     if (installation.target === 'user' || installation.target === 'both') {
       const targetPath = path.join(userDir, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(userDir, componentTypeDir);
@@ -345,7 +345,7 @@ export async function createInstallPlan(
 
     if (installation.target === 'project' || installation.target === 'both') {
       const targetPath = path.join(projectDir, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(projectDir, componentTypeDir);
@@ -358,7 +358,7 @@ export async function createInstallPlan(
     if (options.customPath !== undefined) {
       const customPath = normalizePath(options.customPath);
       const targetPath = path.join(customPath, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(customPath, componentTypeDir);
@@ -385,12 +385,12 @@ export async function createInstallPlan(
     if (component.type === 'hook') {
       continue;
     }
-    
+
     const targets: string[] = [];
 
     // Calculate relative path from source base to preserve directory structure
     const componentTypeDir = 'commands'; // Only commands are copied now
-    
+
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
     if (sourceDir) {
@@ -475,7 +475,10 @@ export async function createInstallPlan(
     warnings.push('TypeScript detected but typecheck hook not selected');
   }
 
-  if (installation.projectInfo?.hasESLint === true && !orderedComponents.some((c) => c.id === 'eslint')) {
+  if (
+    installation.projectInfo?.hasESLint === true &&
+    !orderedComponents.some((c) => c.id === 'eslint')
+  ) {
     warnings.push('ESLint detected but eslint hook not selected');
   }
 
@@ -813,45 +816,47 @@ async function executeStep(
       }
 
       await copyFileWithBackup(
-        step.source, 
-        step.target, 
+        step.source,
+        step.target,
         options.backup !== false,
-        options.force === true ? undefined : async (_source: string, target: string): Promise<boolean> => {
-          // Check if we're in non-interactive mode
-          if (options.interactive === false) {
-            throw new Error(
-              `\nFile conflict detected: ${target} already exists with different content.\n` +
-              `To overwrite existing files, run with --force flag.`
-            );
-          }
-          
-          // Interactive conflict resolution (skip if force is true)
-          // Notify that we're starting a prompt (to pause progress)
-          if (options.onPromptStart) {
-            options.onPromptStart();
-          }
-          
-          // Clear the spinner and show conflict info
-          process.stdout.write('\x1B[2K\r');
-          console.log(`\n${Colors.warn('━━━ File Conflict Detected ━━━')}`);
-          console.log(`Target file: ${Colors.accent(target)}`);
-          console.log(`This file already exists with different content.`);
-          console.log('');
-          
-          const shouldOverwrite = await confirm({
-            message: 'Do you want to overwrite the existing file?',
-            default: false
-          });
-          
-          console.log(''); // Add spacing after prompt
-          
-          // Notify that prompt is done (to resume progress)
-          if (options.onPromptEnd) {
-            options.onPromptEnd();
-          }
-          
-          return shouldOverwrite;
-        }
+        options.force === true
+          ? undefined
+          : async (_source: string, target: string): Promise<boolean> => {
+              // Check if we're in non-interactive mode
+              if (options.interactive === false) {
+                throw new Error(
+                  `\nFile conflict detected: ${target} already exists with different content.\n` +
+                    `To overwrite existing files, run with --force flag.`
+                );
+              }
+
+              // Interactive conflict resolution (skip if force is true)
+              // Notify that we're starting a prompt (to pause progress)
+              if (options.onPromptStart) {
+                options.onPromptStart();
+              }
+
+              // Clear the spinner and show conflict info
+              process.stdout.write('\x1B[2K\r');
+              console.log(`\n${Colors.warn('━━━ File Conflict Detected ━━━')}`);
+              console.log(`Target file: ${Colors.accent(target)}`);
+              console.log(`This file already exists with different content.`);
+              console.log('');
+
+              const shouldOverwrite = await confirm({
+                message: 'Do you want to overwrite the existing file?',
+                default: false,
+              });
+
+              console.log(''); // Add spacing after prompt
+
+              // Notify that prompt is done (to resume progress)
+              if (options.onPromptEnd) {
+                options.onPromptEnd();
+              }
+
+              return shouldOverwrite;
+            }
       );
       transaction.recordFileCreated(step.target);
       break;
@@ -859,7 +864,7 @@ async function executeStep(
     case 'install-dependency': {
       // For now, just check if dependency exists
       // Future: implement actual dependency installation
-      const depName = step.metadata?.['dependency'] as string ?? step.target;
+      const depName = (step.metadata?.['dependency'] as string) ?? step.target;
       logger.debug(`Checking dependency: ${depName}`);
       break;
     }

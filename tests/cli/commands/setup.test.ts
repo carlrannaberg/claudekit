@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { Component, ComponentType, ComponentCategory, Platform, InstallOptions } from '../../../cli/types/index';
+import type {
+  Component,
+  ComponentType,
+  ComponentCategory,
+  Platform,
+  InstallOptions,
+} from '../../../cli/types/index';
 
 // Mock the filesystem module
 vi.mock('../../../cli/lib/filesystem', () => ({
@@ -44,17 +50,31 @@ import { confirm } from '@inquirer/prompts';
 // Since it's not exported, we need to test it through the setup function
 // For this test, we'll create a test-only version that matches the implementation
 
+interface HookCommand {
+  type: string;
+  command: string;
+}
+
+interface HookEntry {
+  matcher: string;
+  hooks: HookCommand[];
+}
+
 interface HookSettings {
   hooks: {
-    PostToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
-    Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+    PostToolUse: HookEntry[];
+    Stop: HookEntry[];
   };
 }
 
-async function createProjectSettings(claudeDir: string, components: Component[], options: InstallOptions): Promise<string | null> {
+async function createProjectSettings(
+  claudeDir: string,
+  components: Component[],
+  options: InstallOptions
+): Promise<string | null> {
   const settingsPath = path.join(claudeDir, 'settings.json');
   let backupPath: string | null = null;
-  
+
   // Read existing settings if present
   let existingSettings: HookSettings | null = null;
   try {
@@ -71,7 +91,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       Stop: [],
     },
   };
-  
+
   // Ensure required structure exists
   if (settings.hooks === null || settings.hooks === undefined) {
     settings.hooks = {
@@ -91,16 +111,20 @@ async function createProjectSettings(claudeDir: string, components: Component[],
     // Create both old and new command formats to check
     const oldCommand = `.claude/hooks/${hookId}.sh`;
     const newCommand = `claudekit-hooks run ${hookId}`;
-    
+
     // Check PostToolUse hooks
     for (const entry of settings.hooks.PostToolUse) {
-      if (entry.hooks.some(h => h.command === oldCommand || h.command === newCommand)) {
+      if (
+        entry.hooks.some((h: HookCommand) => h.command === oldCommand || h.command === newCommand)
+      ) {
         return true;
       }
     }
     // Check Stop hooks
     for (const entry of settings.hooks.Stop) {
-      if (entry.hooks.some(h => h.command === oldCommand || h.command === newCommand)) {
+      if (
+        entry.hooks.some((h: HookCommand) => h.command === oldCommand || h.command === newCommand)
+      ) {
         return true;
       }
     }
@@ -112,7 +136,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
     if (component.type === 'hook') {
       // Use embedded hook command format
       const hookCommand = `claudekit-hooks run ${component.id}`;
-      
+
       // Skip if this hook is already configured
       if (isHookConfigured(component.id)) {
         continue;
@@ -199,7 +223,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
 
   // Write settings.json with conflict detection
   const newContent = JSON.stringify(settings, null, 2);
-  
+
   // Check if file exists and has different content
   if (await pathExists(settingsPath)) {
     const existingContent = await fs.readFile(settingsPath, 'utf-8');
@@ -208,17 +232,17 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       if (options.interactive === false && options.force !== true) {
         throw new Error(
           `\nFile conflict detected: ${settingsPath} already exists with different content.\n` +
-          `To overwrite existing files, run with --force flag.`
+            `To overwrite existing files, run with --force flag.`
         );
       }
-      
+
       // In interactive mode, prompt for confirmation
       if (options.force !== true) {
         // Interactive conflict resolution
         if (options.onPromptStart) {
           options.onPromptStart();
         }
-        
+
         // Clear the spinner and show conflict info
         process.stdout.write('\x1B[2K\r');
         console.log(`\n━━━ Settings Conflict Detected ━━━`);
@@ -226,24 +250,24 @@ async function createProjectSettings(claudeDir: string, components: Component[],
         console.log(`This file already exists with different content.`);
         console.log(`The setup wants to add new hook configurations.`);
         console.log('');
-        
+
         const shouldOverwrite = await confirm({
           message: 'Do you want to update the settings file?',
-          default: true
+          default: true,
         });
-        
+
         console.log(''); // Add spacing after prompt
-        
+
         // Notify that prompt is done
         if (options.onPromptEnd) {
           options.onPromptEnd();
         }
-        
+
         if (!shouldOverwrite) {
           console.log('Skipping settings.json update');
           return null;
         }
-        
+
         // Create backup if requested
         if (options.backup !== false) {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -257,10 +281,10 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       return null;
     }
   }
-  
+
   // Write the new content
   await fs.writeFile(settingsPath, newContent);
-  
+
   // Return backup path for cleanup
   return backupPath;
 }
@@ -268,6 +292,16 @@ async function createProjectSettings(claudeDir: string, components: Component[],
 describe('createProjectSettings - Embedded Hook Settings Generation', () => {
   const mockClaudeDir = '/test/project/.claude';
   const mockSettingsPath = '/test/project/.claude/settings.json';
+
+  // Helper to safely get written content from mock
+  const getWrittenContent = (): unknown => {
+    const writeFileMock = fs.writeFile as ReturnType<typeof vi.fn>;
+    const firstCall = writeFileMock.mock.calls[0];
+    if (firstCall === undefined || firstCall[1] === undefined) {
+      return null;
+    }
+    return JSON.parse(firstCall[1] as string);
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -296,15 +330,11 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     author: 'ClaudeKit',
     enabled: true,
     config: {},
-    metadata: {} as any,
   });
 
   describe('Hook Command Format', () => {
     it('should generate hook commands in embedded format (claudekit-hooks run <hook>)', async () => {
-      const components = [
-        createMockComponent('typecheck'),
-        createMockComponent('eslint'),
-      ];
+      const components = [createMockComponent('typecheck'), createMockComponent('eslint')];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
@@ -319,14 +349,12 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     });
 
     it('should NOT generate old format commands (.claude/hooks/<hook>.sh)', async () => {
-      const components = [
-        createMockComponent('typecheck'),
-        createMockComponent('eslint'),
-      ];
+      const components = [createMockComponent('typecheck'), createMockComponent('eslint')];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = (fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      const writeFileMock = fs.writeFile as ReturnType<typeof vi.fn>;
+      const writtenContent = writeFileMock.mock.calls[0]?.[1] ?? '';
       expect(writtenContent).not.toContain('.claude/hooks/');
       expect(writtenContent).not.toContain('.sh');
     });
@@ -338,12 +366,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const typecheckEntry = writtenContent.hooks.PostToolUse.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('typecheck'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const typecheckEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('typecheck'))
       );
 
       expect(typecheckEntry).toBeDefined();
+      if (!typecheckEntry) {
+        throw new Error('typecheckEntry not found');
+      }
       expect(typecheckEntry.matcher).toBe('tools:Write AND file_paths:**/*.ts');
       expect(typecheckEntry.hooks[0]).toEqual({
         type: 'command',
@@ -356,12 +388,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const eslintEntry = writtenContent.hooks.PostToolUse.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('eslint'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const eslintEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('eslint'))
       );
 
       expect(eslintEntry).toBeDefined();
+      if (!eslintEntry) {
+        throw new Error('eslintEntry not found');
+      }
       expect(eslintEntry.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
       expect(eslintEntry.hooks[0]).toEqual({
         type: 'command',
@@ -374,13 +410,19 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const prettierEntry = writtenContent.hooks.PostToolUse.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('prettier'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const prettierEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('prettier'))
       );
 
       expect(prettierEntry).toBeDefined();
-      expect(prettierEntry.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}');
+      if (!prettierEntry) {
+        throw new Error('prettierEntry not found');
+      }
+      expect(prettierEntry.matcher).toBe(
+        'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}'
+      );
       expect(prettierEntry.hooks[0]).toEqual({
         type: 'command',
         command: 'claudekit-hooks run prettier',
@@ -392,12 +434,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const noAnyEntry = writtenContent.hooks.PostToolUse.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('no-any'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const noAnyEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('no-any'))
       );
 
       expect(noAnyEntry).toBeDefined();
+      if (!noAnyEntry) {
+        throw new Error('noAnyEntry not found');
+      }
       expect(noAnyEntry.matcher).toBe('tools:Write AND file_paths:**/*.{ts,tsx}');
       expect(noAnyEntry.hooks[0]).toEqual({
         type: 'command',
@@ -410,12 +456,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const testsEntry = writtenContent.hooks.PostToolUse.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('run-related-tests'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const testsEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('run-related-tests'))
       );
 
       expect(testsEntry).toBeDefined();
+      if (!testsEntry) {
+        throw new Error('testsEntry not found');
+      }
       expect(testsEntry.matcher).toBe('Write,Edit,MultiEdit');
       expect(testsEntry.hooks[0]).toEqual({
         type: 'command',
@@ -428,12 +478,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const stopEntry = writtenContent.hooks.Stop.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('auto-checkpoint'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const stopEntry = writtenContent.hooks.Stop.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('auto-checkpoint'))
       );
 
       expect(stopEntry).toBeDefined();
+      if (!stopEntry) {
+        throw new Error('stopEntry not found');
+      }
       expect(stopEntry.matcher).toBe('*');
       expect(stopEntry.hooks).toContainEqual({
         type: 'command',
@@ -446,12 +500,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const stopEntry = writtenContent.hooks.Stop.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('validate-todo-completion'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const stopEntry = writtenContent.hooks.Stop.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('validate-todo-completion'))
       );
 
       expect(stopEntry).toBeDefined();
+      if (!stopEntry) {
+        throw new Error('stopEntry not found');
+      }
       expect(stopEntry.matcher).toBe('*');
       expect(stopEntry.hooks).toContainEqual({
         type: 'command',
@@ -464,12 +522,16 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const stopEntry = writtenContent.hooks.Stop.find(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('project-validation'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const stopEntry = writtenContent.hooks.Stop.find((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('project-validation'))
       );
 
       expect(stopEntry).toBeDefined();
+      if (!stopEntry) {
+        throw new Error('stopEntry not found');
+      }
       expect(stopEntry.matcher).toBe('*');
       expect(stopEntry.hooks).toContainEqual({
         type: 'command',
@@ -494,7 +556,9 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       (pathExists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
       // Format with 2 spaces to match the output of JSON.stringify(settings, null, 2)
-      (fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(JSON.stringify(existingSettings, null, 2));
+      (fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+        JSON.stringify(existingSettings, null, 2)
+      );
 
       const components = [createMockComponent('typecheck')];
 
@@ -525,13 +589,18 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       await createProjectSettings(mockClaudeDir, components, {});
 
       // Should not add the hook again since it's already configured (old format)
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      const typecheckEntries = writtenContent.hooks.PostToolUse.filter(
-        (e: any) => e.hooks.some((h: any) => h.command.includes('typecheck'))
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+      const typecheckEntries = writtenContent.hooks.PostToolUse.filter((e: HookEntry) =>
+        e.hooks.some((h: HookCommand) => h.command.includes('typecheck'))
       );
-      
+
       expect(typecheckEntries).toHaveLength(1);
-      expect(typecheckEntries[0].hooks[0].command).toBe('.claude/hooks/typecheck.sh');
+      const firstEntry = typecheckEntries[0];
+      if (!firstEntry || !firstEntry.hooks[0]) {
+        throw new Error('typecheck entry or hook not found');
+      }
+      expect(firstEntry.hooks[0].command).toBe('.claude/hooks/typecheck.sh');
     });
 
     it('should combine multiple Stop hooks in same entry', async () => {
@@ -543,23 +612,28 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+
       // Should have only one Stop entry with matcher '*'
       expect(writtenContent.hooks.Stop).toHaveLength(1);
-      expect(writtenContent.hooks.Stop[0].matcher).toBe('*');
-      
+      const stopEntry = writtenContent.hooks.Stop[0];
+      if (!stopEntry) {
+        throw new Error('Stop entry not found');
+      }
+      expect(stopEntry.matcher).toBe('*');
+
       // Should have all three hooks in the same entry
-      expect(writtenContent.hooks.Stop[0].hooks).toHaveLength(3);
-      expect(writtenContent.hooks.Stop[0].hooks).toContainEqual({
+      expect(stopEntry.hooks).toHaveLength(3);
+      expect(stopEntry.hooks).toContainEqual({
         type: 'command',
         command: 'claudekit-hooks run auto-checkpoint',
       });
-      expect(writtenContent.hooks.Stop[0].hooks).toContainEqual({
+      expect(stopEntry.hooks).toContainEqual({
         type: 'command',
         command: 'claudekit-hooks run validate-todo-completion',
       });
-      expect(writtenContent.hooks.Stop[0].hooks).toContainEqual({
+      expect(stopEntry.hooks).toContainEqual({
         type: 'command',
         command: 'claudekit-hooks run project-validation',
       });
@@ -587,14 +661,15 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+
       // Should preserve existing custom entry
       expect(writtenContent.hooks.PostToolUse).toContainEqual({
         matcher: 'custom-matcher',
         hooks: [{ type: 'command', command: 'custom-command' }],
       });
-      
+
       // Should add new typecheck entry
       expect(writtenContent.hooks.PostToolUse).toContainEqual({
         matcher: 'tools:Write AND file_paths:**/*.ts',
@@ -609,19 +684,22 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       };
 
       (pathExists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
-      (fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(JSON.stringify(malformedSettings));
+      (fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+        JSON.stringify(malformedSettings)
+      );
 
       const components = [createMockComponent('typecheck')];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      
+      const writtenContent = getWrittenContent() as HookSettings & { someOtherProperty?: string };
+      expect(writtenContent).not.toBeNull();
+
       // Should create proper structure
       expect(writtenContent.hooks).toBeDefined();
       expect(writtenContent.hooks.PostToolUse).toBeDefined();
       expect(writtenContent.hooks.Stop).toBeDefined();
-      
+
       // Should preserve other properties
       expect(writtenContent.someOtherProperty).toBe('value');
     });
@@ -633,12 +711,10 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        mockSettingsPath,
-        expect.any(String)
-      );
+      expect(fs.writeFile).toHaveBeenCalledWith(mockSettingsPath, expect.any(String));
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
       expect(writtenContent.hooks.PostToolUse).toHaveLength(1);
       expect(writtenContent.hooks.Stop).toHaveLength(0);
     });
@@ -675,7 +751,9 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck')];
 
-      const backupPath = await createProjectSettings(mockClaudeDir, components, { interactive: true });
+      const backupPath = await createProjectSettings(mockClaudeDir, components, {
+        interactive: true,
+      });
 
       expect(fs.copyFile).toHaveBeenCalled();
       expect(backupPath).toMatch(/settings\.json\.backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}/);
@@ -718,18 +796,29 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
-      
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
+
       // Should only have typecheck hook
       expect(writtenContent.hooks.PostToolUse).toHaveLength(1);
-      expect(writtenContent.hooks.PostToolUse[0].hooks[0].command).toBe('claudekit-hooks run typecheck');
-      
+      const postToolUseEntry = writtenContent.hooks.PostToolUse[0];
+      if (!postToolUseEntry || !postToolUseEntry.hooks[0]) {
+        throw new Error('PostToolUse entry or hook not found');
+      }
+      expect(postToolUseEntry.hooks[0].command).toBe(
+        'claudekit-hooks run typecheck'
+      );
+
       // Should not have any command components
       const allCommands = [
-        ...writtenContent.hooks.PostToolUse.flatMap((e: any) => e.hooks.map((h: any) => h.command)),
-        ...writtenContent.hooks.Stop.flatMap((e: any) => e.hooks.map((h: any) => h.command)),
+        ...writtenContent.hooks.PostToolUse.flatMap((e: HookEntry) =>
+          e.hooks.map((h: HookCommand) => h.command)
+        ),
+        ...writtenContent.hooks.Stop.flatMap((e: HookEntry) =>
+          e.hooks.map((h: HookCommand) => h.command)
+        ),
       ];
-      
+
       expect(allCommands).not.toContain('claudekit-hooks run git:commit');
       expect(allCommands).not.toContain('claudekit-hooks run validate-and-fix');
     });
@@ -739,19 +828,19 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle empty component list', async () => {
       await createProjectSettings(mockClaudeDir, [], {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
       expect(writtenContent.hooks.PostToolUse).toHaveLength(0);
       expect(writtenContent.hooks.Stop).toHaveLength(0);
     });
 
     it('should handle unknown hook types gracefully', async () => {
-      const components = [
-        createMockComponent('unknown-hook-type'),
-      ];
+      const components = [createMockComponent('unknown-hook-type')];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
       // Unknown hooks should not be added
       expect(writtenContent.hooks.PostToolUse).toHaveLength(0);
       expect(writtenContent.hooks.Stop).toHaveLength(0);
@@ -767,7 +856,8 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       // Should still create valid settings
       expect(fs.writeFile).toHaveBeenCalled();
-      const writtenContent = JSON.parse((fs.writeFile as ReturnType<typeof vi.fn>).mock.calls[0][1]);
+      const writtenContent = getWrittenContent() as HookSettings;
+      expect(writtenContent).not.toBeNull();
       expect(writtenContent.hooks.PostToolUse).toHaveLength(1);
     });
   });

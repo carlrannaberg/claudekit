@@ -19,7 +19,7 @@ const createChalkFunction = (): ChalkFunction => {
     strikethrough: vi.fn((text: string) => text),
     inverse: vi.fn((text: string) => text),
   }) as unknown as ChalkFunction;
-  
+
   return mockChalk;
 };
 

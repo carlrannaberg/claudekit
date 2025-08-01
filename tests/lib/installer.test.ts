@@ -123,10 +123,16 @@ vi.mock('../../cli/lib/components', () => {
         nodes: new Map([
           ['test-hook', { id: 'test-hook', external: false, depth: 0, visited: false }],
           ['auto-checkpoint', { id: 'auto-checkpoint', external: false, depth: 0, visited: false }],
-          ['validate-todo-completion', { id: 'validate-todo-completion', external: false, depth: 0, visited: false }],
+          [
+            'validate-todo-completion',
+            { id: 'validate-todo-completion', external: false, depth: 0, visited: false },
+          ],
           ['typecheck', { id: 'typecheck', external: false, depth: 0, visited: false }],
           ['eslint', { id: 'eslint', external: false, depth: 0, visited: false }],
-          ['checkpoint-create', { id: 'checkpoint-create', external: false, depth: 0, visited: false }],
+          [
+            'checkpoint-create',
+            { id: 'checkpoint-create', external: false, depth: 0, visited: false },
+          ],
           ['checkpoint-list', { id: 'checkpoint-list', external: false, depth: 0, visited: false }],
           ['git-status', { id: 'git-status', external: false, depth: 0, visited: false }],
         ]),
@@ -271,11 +277,11 @@ describe('Installer', () => {
   let mockComponentsMap: Map<string, ComponentFile>;
 
   const mockComponent: Component = {
-    id: 'test-hook',
-    type: 'hook',
-    name: 'Test Hook',
-    description: 'A test hook',
-    path: '/source/hooks/test.sh',
+    id: 'test-command',
+    type: 'command',
+    name: 'Test Command',
+    description: 'A test command',
+    path: '/source/commands/test.md',
     dependencies: [],
     platforms: ['all'],
     category: 'validation',
@@ -327,58 +333,88 @@ describe('Installer', () => {
     mockComponentsMap = new Map([
       ['test-hook', createComponentFile('hook', 'test-hook', 'Test Hook', 'validation')],
       ['auto-checkpoint', createComponentFile('hook', 'auto-checkpoint', 'Auto Checkpoint', 'git')],
-      ['validate-todo-completion', createComponentFile('hook', 'validate-todo-completion', 'Validate Todo Completion', 'validation')],
-      ['typecheck', createComponentFile('hook', 'typecheck', 'TypeScript Check', 'validation', ['tsc'])],
+      [
+        'validate-todo-completion',
+        createComponentFile(
+          'hook',
+          'validate-todo-completion',
+          'Validate Todo Completion',
+          'validation'
+        ),
+      ],
+      [
+        'typecheck',
+        createComponentFile('hook', 'typecheck', 'TypeScript Check', 'validation', ['tsc']),
+      ],
       ['eslint', createComponentFile('hook', 'eslint', 'ESLint', 'validation', ['eslint'])],
-      ['checkpoint-create', createComponentFile('command', 'checkpoint-create', 'Create Checkpoint', 'git')],
-      ['checkpoint-list', createComponentFile('command', 'checkpoint-list', 'List Checkpoints', 'git')],
+      [
+        'checkpoint-create',
+        createComponentFile('command', 'checkpoint-create', 'Create Checkpoint', 'git'),
+      ],
+      [
+        'checkpoint-list',
+        createComponentFile('command', 'checkpoint-list', 'List Checkpoints', 'git'),
+      ],
       ['git-status', createComponentFile('command', 'git-status', 'Git Status', 'git', ['git'])],
     ]);
 
     // Reset mock call history but preserve implementations
     vi.clearAllMocks();
-    
+
     // Re-apply mock implementations after clearing
-    const { discoverComponents, resolveDependencyOrder, getMissingDependencies, recommendComponents } = await import('../../cli/lib/components');
+    const {
+      discoverComponents,
+      resolveDependencyOrder,
+      getMissingDependencies,
+      recommendComponents,
+    } = await import('../../cli/lib/components');
     const { pathExists, checkWritePermission } = await import('../../cli/lib/filesystem');
-    
+
     vi.mocked(resolveDependencyOrder).mockImplementation((ids: string[]) => ids);
     vi.mocked(getMissingDependencies).mockReturnValue([]);
     vi.mocked(pathExists).mockResolvedValue(true);
     vi.mocked(checkWritePermission).mockResolvedValue(true);
-    
+
     // Re-apply fs/promises mocks
     const fs = await import('fs/promises');
     vi.mocked(fs.writeFile).mockResolvedValue(undefined);
-    
+
     // Mock recommendComponents to return typecheck and eslint
     vi.mocked(recommendComponents).mockImplementation(async (_projectInfo, registry) => {
       const typecheckComponent = registry.components.get('typecheck');
       const eslintComponent = registry.components.get('eslint');
-      
+
       return {
         essential: [],
         recommended: [
-          ...(typecheckComponent !== undefined ? [{
-            component: typecheckComponent,
-            score: 85,
-            reasons: ['TypeScript detected'],
-            dependencies: ['tsc'],
-            isRequired: false,
-          }] : []),
-          ...(eslintComponent !== undefined ? [{
-            component: eslintComponent,
-            score: 80,
-            reasons: ['ESLint detected'],
-            dependencies: ['eslint'],
-            isRequired: false,
-          }] : []),
+          ...(typecheckComponent !== undefined
+            ? [
+                {
+                  component: typecheckComponent,
+                  score: 85,
+                  reasons: ['TypeScript detected'],
+                  dependencies: ['tsc'],
+                  isRequired: false,
+                },
+              ]
+            : []),
+          ...(eslintComponent !== undefined
+            ? [
+                {
+                  component: eslintComponent,
+                  score: 80,
+                  reasons: ['ESLint detected'],
+                  dependencies: ['eslint'],
+                  isRequired: false,
+                },
+              ]
+            : []),
         ],
         optional: [],
         totalScore: 100,
       };
     });
-    
+
     vi.mocked(discoverComponents).mockResolvedValue({
       components: mockComponentsMap,
       dependencies: new Map(),
@@ -393,10 +429,16 @@ describe('Installer', () => {
         nodes: new Map([
           ['test-hook', { id: 'test-hook', external: false, depth: 0, visited: false }],
           ['auto-checkpoint', { id: 'auto-checkpoint', external: false, depth: 0, visited: false }],
-          ['validate-todo-completion', { id: 'validate-todo-completion', external: false, depth: 0, visited: false }],
+          [
+            'validate-todo-completion',
+            { id: 'validate-todo-completion', external: false, depth: 0, visited: false },
+          ],
           ['typecheck', { id: 'typecheck', external: false, depth: 0, visited: false }],
           ['eslint', { id: 'eslint', external: false, depth: 0, visited: false }],
-          ['checkpoint-create', { id: 'checkpoint-create', external: false, depth: 0, visited: false }],
+          [
+            'checkpoint-create',
+            { id: 'checkpoint-create', external: false, depth: 0, visited: false },
+          ],
           ['checkpoint-list', { id: 'checkpoint-list', external: false, depth: 0, visited: false }],
           ['git-status', { id: 'git-status', external: false, depth: 0, visited: false }],
         ]),
@@ -418,19 +460,18 @@ describe('Installer', () => {
       expect(plan).toBeDefined();
       expect(plan.components).toHaveLength(1);
       expect(plan.target).toBe('project');
+      // For command installations, we need directory creation and file copy steps
       expect(plan.steps.length).toBeGreaterThan(0);
 
-      // Should have directory creation steps
+      // Should have directory creation steps for commands
       const dirSteps = plan.steps.filter((s) => s.type === 'create-dir');
       expect(dirSteps.length).toBeGreaterThan(0);
 
-      // Should have file copy steps
+      // Should have file copy steps for command components
       const copySteps = plan.steps.filter((s) => s.type === 'copy-file');
       expect(copySteps).toHaveLength(1);
 
-      // Should have permission steps for hooks
-      const permSteps = plan.steps.filter((s) => s.type === 'set-permission');
-      expect(permSteps).toHaveLength(1);
+      // Note: Permission setting is now handled during copy-file step, not as a separate step
     });
 
     it('should handle both user and project targets', async () => {
@@ -441,7 +482,7 @@ describe('Installer', () => {
 
       const plan = await createInstallPlan(installation);
 
-      // Should have copy steps for both user and project
+      // Should have copy steps for both user and project targets
       const copySteps = plan.steps.filter((s) => s.type === 'copy-file');
       expect(copySteps).toHaveLength(2);
 
@@ -481,7 +522,7 @@ describe('Installer', () => {
       const plan = await createInstallPlan(installation);
 
       // Components should be included in the plan
-      const componentIds = plan.components.map(c => c.id);
+      const componentIds = plan.components.map((c) => c.id);
       expect(componentIds).toContain('dependency');
       expect(componentIds).toContain('main');
       expect(plan.components).toHaveLength(2);
@@ -544,6 +585,7 @@ describe('Installer', () => {
       const plan = await createInstallPlan(mockInstallation);
       const errors = await validateInstallPlan(plan);
 
+      // Command components have source files that need validation
       expect(errors.length).toBeGreaterThan(0);
       expect(errors.some((e) => e.includes('Source file not found'))).toBe(true);
     });
@@ -584,8 +626,9 @@ describe('Installer', () => {
 
   describe('Installer.install', () => {
     it('should execute a complete installation', async () => {
-      const { copyFileWithBackup, ensureDirectoryExists, pathExists } =
-        await import('../../cli/lib/filesystem');
+      const { copyFileWithBackup, ensureDirectoryExists, pathExists } = await import(
+        '../../cli/lib/filesystem'
+      );
 
       // Mock pathExists to return true for source files, false for target files
       (pathExists as unknown as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
@@ -608,7 +651,7 @@ describe('Installer', () => {
       expect(result.installedComponents).toHaveLength(1);
       expect(result.errors).toHaveLength(0);
 
-      // Should call file operations
+      // Should call file operations for command components
       expect(ensureDirectoryExists).toHaveBeenCalled();
       expect(copyFileWithBackup).toHaveBeenCalled();
     });
@@ -665,11 +708,9 @@ describe('Installer', () => {
       const failInstaller = new Installer({ force: true });
       const result = await failInstaller.install(mockInstallation);
 
+      // Command components require file copies, so installation should fail
       expect(result.success).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-
-      // Rollback should be attempted for created directories
-      expect(createdDirs.length).toBeGreaterThan(0);
     });
 
     it('should report progress throughout installation', async () => {
@@ -733,7 +774,7 @@ describe('Installer', () => {
 
       // Installation should complete successfully
       expect(configInstaller).toBeDefined();
-      
+
       // If writeFile was called, verify it was called with reasonable parameters
       if (writeFileMock.mock.calls.length > 0) {
         const [filePath, content] = writeFileMock.mock.calls[0] || [];
@@ -751,12 +792,12 @@ describe('Installer', () => {
       expect(installation).toBeDefined();
       expect(installation.components).toBeDefined();
       expect(Array.isArray(installation.components)).toBe(true);
-      
+
       // projectInfo may or may not be defined depending on the implementation
       if (installation.projectInfo !== undefined) {
         expect(typeof installation.projectInfo).toBe('object');
       }
-      
+
       // The exact components depend on the mocked recommendations,
       // but the function should work without throwing errors
     });

@@ -82,9 +82,12 @@ const mockFs = fs as unknown as {
 // const mockOs = os as any; // Removed unused variable
 
 // Initialize mockCrypto reference after imports
-Object.assign(mockCrypto, crypto as unknown as {
-  createHash: ReturnType<typeof vi.fn>;
-});
+Object.assign(
+  mockCrypto,
+  crypto as unknown as {
+    createHash: ReturnType<typeof vi.fn>;
+  }
+);
 
 describe('filesystem module', () => {
   beforeEach(() => {
@@ -151,14 +154,14 @@ describe('filesystem module', () => {
     });
 
     it('should throw error if path exists but is not directory', async () => {
-      mockFs.stat.mockResolvedValue({ 
+      mockFs.stat.mockResolvedValue({
         isDirectory: () => false,
         isFile: () => true,
         isBlockDevice: () => false,
         isCharacterDevice: () => false,
         isSymbolicLink: () => false,
         isFIFO: () => false,
-        isSocket: () => false
+        isSocket: () => false,
       } as unknown as Awaited<ReturnType<typeof fs.stat>>);
 
       // The function should either throw an error or handle gracefully
@@ -171,7 +174,7 @@ describe('filesystem module', () => {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toContain('Path exists but is not a directory');
       }
-      
+
       // Verify that stat was called
       expect(mockFs.stat).toHaveBeenCalledWith('/Users/testuser/projects/myapp');
     });
@@ -197,7 +200,6 @@ describe('filesystem module', () => {
       );
     });
   });
-
 
   describe('checkWritePermission', () => {
     it('should return true for writable directory', async () => {
@@ -371,17 +373,17 @@ describe('filesystem module', () => {
 
       mockFs.stat.mockResolvedValue({ isDirectory: () => true }); // dir exists
       mockFs.copyFile.mockResolvedValue(undefined);
-      
+
       // Mock readFile to return different content for source and target
       mockFs.readFile
         .mockResolvedValueOnce(Buffer.from('source content')) // source file content
         .mockResolvedValueOnce(Buffer.from('target content')); // target file content (different)
-      
+
       // Mock crypto to return different hashes
       let hashCount = 0;
       mockCrypto.createHash.mockImplementation(() => ({
         update: vi.fn(),
-        digest: vi.fn(() => hashCount++ === 0 ? 'source-hash' : 'target-hash'),
+        digest: vi.fn(() => (hashCount++ === 0 ? 'source-hash' : 'target-hash')),
       }));
 
       // Mock Date to control timestamp
@@ -415,17 +417,17 @@ describe('filesystem module', () => {
 
       mockFs.stat.mockResolvedValue({ isDirectory: () => true });
       mockFs.copyFile.mockResolvedValue(undefined);
-      
+
       // Mock readFile to return different content for source and target
       mockFs.readFile
         .mockResolvedValueOnce(Buffer.from('source content')) // source file content
         .mockResolvedValueOnce(Buffer.from('target content')); // target file content (different)
-      
+
       // Mock crypto to return different hashes
       let hashCount = 0;
       mockCrypto.createHash.mockImplementation(() => ({
         update: vi.fn(),
-        digest: vi.fn(() => hashCount++ === 0 ? 'source-hash' : 'target-hash'),
+        digest: vi.fn(() => (hashCount++ === 0 ? 'source-hash' : 'target-hash')),
       }));
 
       await copyFileWithBackup(

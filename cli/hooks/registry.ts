@@ -7,9 +7,9 @@ import { ProjectValidationHook } from './project-validation.js';
 import { ValidateTodoCompletionHook } from './validate-todo.js';
 
 export const HOOK_REGISTRY = {
-  'typecheck': TypecheckHook,
+  typecheck: TypecheckHook,
   'no-any': NoAnyHook,
-  'eslint': EslintHook,
+  eslint: EslintHook,
   'auto-checkpoint': AutoCheckpointHook,
   'run-related-tests': RunRelatedTestsHook,
   'project-validation': ProjectValidationHook,

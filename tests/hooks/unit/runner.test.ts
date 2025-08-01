@@ -4,9 +4,9 @@ import * as path from 'path';
 // Mock all dependencies before imports
 vi.mock('fs-extra', () => ({
   default: {
-    readJson: vi.fn()
+    readJson: vi.fn(),
   },
-  readJson: vi.fn()
+  readJson: vi.fn(),
 }));
 
 vi.mock('../../../cli/hooks/utils.js', () => ({
@@ -14,7 +14,7 @@ vi.mock('../../../cli/hooks/utils.js', () => ({
   findProjectRoot: vi.fn(),
   detectPackageManager: vi.fn(),
   execCommand: vi.fn(),
-  formatError: vi.fn()
+  formatError: vi.fn(),
 }));
 
 vi.mock('../../../cli/hooks/base.js');
@@ -35,8 +35,8 @@ import * as fs from 'fs-extra';
 
 describe('HookRunner', () => {
   let runner: HookRunner;
-  let consoleErrorSpy: any;
-  let consoleLogSpy: any;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     runner = new HookRunner();
@@ -50,7 +50,7 @@ describe('HookRunner', () => {
       name: 'npm',
       exec: 'npx',
       run: 'npm run',
-      test: 'npm test'
+      test: 'npm test',
     });
   });
 
@@ -73,7 +73,7 @@ describe('HookRunner', () => {
     it('should register all built-in hooks', () => {
       const runner = new HookRunner();
       const hooks = runner['hooks'];
-      
+
       expect(hooks.has('typecheck')).toBe(true);
       expect(hooks.has('no-any')).toBe(true);
       expect(hooks.has('eslint')).toBe(true);
@@ -87,7 +87,7 @@ describe('HookRunner', () => {
   describe('run', () => {
     it('should return error for unknown hook', async () => {
       const exitCode = await runner.run('unknown-hook');
-      
+
       expect(exitCode).toBe(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Unknown hook: unknown-hook');
     });
@@ -98,15 +98,18 @@ describe('HookRunner', () => {
 
       // Create a mock hook instance
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
-      
+
       // Mock the hook constructor
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('test-hook', MockHook as any);
+      runner['hooks'].set(
+        'test-hook',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       await runner.run('test-hook');
-      
+
       expect(utils.readStdin).toHaveBeenCalled();
       expect(mockHookInstance.run).toHaveBeenCalledWith(testPayload);
     });
@@ -115,13 +118,16 @@ describe('HookRunner', () => {
       vi.mocked(utils.readStdin).mockResolvedValue('');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('test-hook', MockHook as any);
+      runner['hooks'].set(
+        'test-hook',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('test-hook');
-      
+
       expect(exitCode).toBe(0);
       expect(mockHookInstance.run).toHaveBeenCalledWith({});
     });
@@ -130,13 +136,16 @@ describe('HookRunner', () => {
       vi.mocked(utils.readStdin).mockResolvedValue('invalid json');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('test-hook', MockHook as any);
+      runner['hooks'].set(
+        'test-hook',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('test-hook');
-      
+
       expect(exitCode).toBe(0);
       expect(mockHookInstance.run).toHaveBeenCalledWith({});
     });
@@ -144,20 +153,23 @@ describe('HookRunner', () => {
     it('should load hook configuration from config file', async () => {
       const config = {
         hooks: {
-          typecheck: { timeout: 60000, customOption: 'test' }
-        }
+          typecheck: { timeout: 60000, customOption: 'test' },
+        },
       };
       vi.mocked(fs.readJson).mockResolvedValue(config);
       vi.mocked(utils.readStdin).mockResolvedValue('{}');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('typecheck', MockHook as any);
+      runner['hooks'].set(
+        'typecheck',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       await runner.run('typecheck');
-      
+
       expect(fs.readJson).toHaveBeenCalledWith(path.resolve('.claudekit/config.json'));
       expect(MockHook).toHaveBeenCalledWith(config.hooks.typecheck);
     });
@@ -167,13 +179,16 @@ describe('HookRunner', () => {
       vi.mocked(utils.readStdin).mockResolvedValue('{}');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('typecheck', MockHook as any);
+      runner['hooks'].set(
+        'typecheck',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('typecheck');
-      
+
       expect(exitCode).toBe(0);
       expect(MockHook).toHaveBeenCalledWith({});
     });
@@ -183,16 +198,19 @@ describe('HookRunner', () => {
 
       const jsonResponse = { result: 'success', data: 42 };
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ 
+        run: vi.fn().mockResolvedValue({
           exitCode: 0,
-          jsonResponse 
-        })
+          jsonResponse,
+        }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('test-hook', MockHook as any);
+      runner['hooks'].set(
+        'test-hook',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       await runner.run('test-hook');
-      
+
       expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify(jsonResponse));
     });
 
@@ -200,31 +218,37 @@ describe('HookRunner', () => {
       vi.mocked(utils.readStdin).mockResolvedValue('{}');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 2 })
+        run: vi.fn().mockResolvedValue({ exitCode: 2 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('failing', MockHook as any);
+      runner['hooks'].set(
+        'failing',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('failing');
-      
+
       expect(exitCode).toBe(2);
     });
 
     it('should pass payload to hook', async () => {
       const testPayload = {
         tool_input: { file_path: '/test/file.ts' },
-        custom_field: 'value'
+        custom_field: 'value',
       };
       vi.mocked(utils.readStdin).mockResolvedValue(JSON.stringify(testPayload));
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('test-hook', MockHook as any);
-      
+      runner['hooks'].set(
+        'test-hook',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
+
       await runner.run('test-hook');
-      
+
       expect(mockHookInstance.run).toHaveBeenCalledWith(testPayload);
     });
 
@@ -232,19 +256,22 @@ describe('HookRunner', () => {
       const hookConfig = { timeout: 45000, strictMode: true };
       vi.mocked(fs.readJson).mockResolvedValue({
         hooks: {
-          'config-test': hookConfig
-        }
+          'config-test': hookConfig,
+        },
       });
       vi.mocked(utils.readStdin).mockResolvedValue('{}');
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('config-test', MockHook as any);
-      
+      runner['hooks'].set(
+        'config-test',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
+
       await runner.run('config-test');
-      
+
       expect(MockHook).toHaveBeenCalledWith(hookConfig);
     });
   });
@@ -254,19 +281,19 @@ describe('HookRunner', () => {
       const testConfig = {
         hooks: {
           typecheck: { timeout: 60000 },
-          eslint: { fix: true }
-        }
+          eslint: { fix: true },
+        },
       };
       vi.mocked(fs.readJson).mockResolvedValue(testConfig);
 
       const config = await runner['loadConfig']();
-      
+
       // The schema adds default timeout
       expect(config).toEqual({
         hooks: {
           typecheck: { timeout: 60000 },
-          eslint: { fix: true, timeout: 30000 }
-        }
+          eslint: { fix: true, timeout: 30000 },
+        },
       });
       expect(fs.readJson).toHaveBeenCalledWith(path.resolve('.claudekit/config.json'));
     });
@@ -275,7 +302,7 @@ describe('HookRunner', () => {
       vi.mocked(fs.readJson).mockRejectedValue(new Error('ENOENT: no such file'));
 
       const config = await runner['loadConfig']();
-      
+
       expect(config).toEqual({ hooks: {} });
     });
 
@@ -283,7 +310,7 @@ describe('HookRunner', () => {
       vi.mocked(fs.readJson).mockRejectedValue(new Error('Unexpected token'));
 
       const config = await runner['loadConfig']();
-      
+
       expect(config).toEqual({ hooks: {} });
     });
 
@@ -291,7 +318,7 @@ describe('HookRunner', () => {
       vi.mocked(fs.readJson).mockResolvedValue({});
 
       const config = await runner['loadConfig']();
-      
+
       expect(config).toEqual({ hooks: {} });
     });
 
@@ -299,15 +326,15 @@ describe('HookRunner', () => {
       const invalidConfig = {
         hooks: {
           typecheck: {
-            timeout: 'not a number' // Invalid type - but zod will coerce
-          }
-        }
+            timeout: 'not a number', // Invalid type - but zod will coerce
+          },
+        },
       };
       vi.mocked(fs.readJson).mockResolvedValue(invalidConfig);
 
       // Should handle schema validation errors gracefully
       const config = await runner['loadConfig']();
-      
+
       // Zod will try to parse, if it fails completely it returns default
       expect(config.hooks).toBeDefined();
     });
@@ -318,18 +345,18 @@ describe('HookRunner', () => {
           typecheck: {
             timeout: 30000,
             customOption: 'value',
-            anotherOption: true
-          }
-        }
+            anotherOption: true,
+          },
+        },
       };
       vi.mocked(fs.readJson).mockResolvedValue(configWithExtras);
 
       const config = await runner['loadConfig']();
-      
+
       expect(config.hooks['typecheck']).toEqual({
         timeout: 30000,
         customOption: 'value',
-        anotherOption: true
+        anotherOption: true,
       });
     });
   });
@@ -339,21 +366,24 @@ describe('HookRunner', () => {
       const payload = { tool_input: { file_path: '/test/app.ts' } };
       const config = {
         hooks: {
-          typecheck: { timeout: 45000 }
-        }
+          typecheck: { timeout: 45000 },
+        },
       };
 
       vi.mocked(utils.readStdin).mockResolvedValue(JSON.stringify(payload));
       vi.mocked(fs.readJson).mockResolvedValue(config);
 
       const mockHookInstance = {
-        run: vi.fn().mockResolvedValue({ exitCode: 0 })
+        run: vi.fn().mockResolvedValue({ exitCode: 0 }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('typecheck', MockHook as any);
+      runner['hooks'].set(
+        'typecheck',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('typecheck');
-      
+
       expect(exitCode).toBe(0);
       expect(utils.readStdin).toHaveBeenCalled();
       expect(fs.readJson).toHaveBeenCalled();
@@ -367,14 +397,17 @@ describe('HookRunner', () => {
       const mockHookInstance = {
         run: vi.fn().mockResolvedValue({
           exitCode: 0,
-          suppressOutput: true
-        })
+          suppressOutput: true,
+        }),
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-      runner['hooks'].set('silent', MockHook as any);
+      runner['hooks'].set(
+        'silent',
+        MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+      );
 
       const exitCode = await runner.run('silent');
-      
+
       expect(exitCode).toBe(0);
       expect(consoleLogSpy).not.toHaveBeenCalled();
     });
@@ -382,14 +415,17 @@ describe('HookRunner', () => {
     it('should handle concurrent hook registrations', () => {
       // Register multiple hooks at once
       const hookNames = ['hook1', 'hook2', 'hook3'];
-      
-      hookNames.forEach(name => {
+
+      hookNames.forEach((name) => {
         const mockHookInstance = { run: vi.fn() };
         const MockHook = vi.fn().mockReturnValue(mockHookInstance);
-        runner['hooks'].set(name, MockHook as any);
+        runner['hooks'].set(
+          name,
+          MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
+        );
       });
 
-      hookNames.forEach(name => {
+      hookNames.forEach((name) => {
         expect(runner['hooks'].has(name)).toBe(true);
       });
     });

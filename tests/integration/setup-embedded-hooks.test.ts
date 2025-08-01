@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
 import * as path from 'path';
 import type { Stats } from 'fs';
 import { setup } from '../../cli/commands/setup';
 import type { SetupOptions } from '../../cli/commands/setup';
+import type { Component } from '../../cli/types/index';
+
+// Type for hook settings
+interface HookCommand {
+  type: string;
+  command: string;
+}
+
+interface HookEntry {
+  matcher: string;
+  hooks: HookCommand[];
+}
 
 // Mock all the external dependencies
 vi.mock('@inquirer/prompts', () => ({
@@ -40,7 +51,7 @@ vi.mock('../../cli/utils/logger', () => {
     success: vi.fn(),
     setLevel: vi.fn(),
   };
-  
+
   return {
     Logger: vi.fn(() => mockLogger),
     createLogger: vi.fn(() => mockLogger),
@@ -61,14 +72,15 @@ vi.mock('fs', () => ({
 }));
 
 // Mock library functions with vi.hoisted to ensure they're available during module loading
-const { mockPathExists, mockEnsureDirectoryExists, mockExpandHomePath, mockNormalizePath } = vi.hoisted(() => {
-  return {
-    mockPathExists: vi.fn(),
-    mockEnsureDirectoryExists: vi.fn().mockResolvedValue(undefined),
-    mockExpandHomePath: vi.fn((path: string) => path.replace('~', '/home/testuser')),
-    mockNormalizePath: vi.fn((path: string) => path),
-  };
-});
+const { mockPathExists, mockEnsureDirectoryExists, mockExpandHomePath, mockNormalizePath } =
+  vi.hoisted(() => {
+    return {
+      mockPathExists: vi.fn(),
+      mockEnsureDirectoryExists: vi.fn().mockResolvedValue(undefined),
+      mockExpandHomePath: vi.fn((path: string) => path.replace('~', '/home/testuser')),
+      mockNormalizePath: vi.fn((path: string) => path),
+    };
+  });
 
 vi.mock('../../cli/lib/filesystem', () => ({
   pathExists: mockPathExists,
@@ -85,7 +97,12 @@ vi.mock('../../cli/lib/paths', () => ({
   findComponentsDirectory: mockFindComponentsDirectory,
 }));
 
-const { mockDetectProjectContext, mockDiscoverComponents, mockRecommendComponents, mockInstallComponents } = vi.hoisted(() => ({
+const {
+  mockDetectProjectContext,
+  mockDiscoverComponents,
+  mockRecommendComponents,
+  mockInstallComponents,
+} = vi.hoisted(() => ({
   mockDetectProjectContext: vi.fn(),
   mockDiscoverComponents: vi.fn(),
   mockRecommendComponents: vi.fn(),
@@ -101,23 +118,32 @@ vi.mock('../../cli/lib/index', () => ({
 
 describe('Setup Command - Embedded Hooks Integration', () => {
   const testProjectPath = '/test/project';
-  const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
-  const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-  
-  let mockFS: any;
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  let mockFS: {
+    readFile: ReturnType<typeof vi.fn>;
+    writeFile: ReturnType<typeof vi.fn>;
+    stat: ReturnType<typeof vi.fn>;
+    access: ReturnType<typeof vi.fn>;
+    mkdir: ReturnType<typeof vi.fn>;
+    readdir: ReturnType<typeof vi.fn>;
+    chmod: ReturnType<typeof vi.fn>;
+    rm: ReturnType<typeof vi.fn>;
+  };
   let originalCwd: typeof process.cwd;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Mock process.cwd to return test directory
     originalCwd = process.cwd;
     process.cwd = vi.fn(() => testProjectPath);
-    
+
     // Get mocked fs module
     const fs = await import('fs');
-    mockFS = fs.promises as any;
-    
+    mockFS = fs.promises as unknown as typeof mockFS;
+
     // Default mock implementations
     mockFS.readFile.mockImplementation((path: string) => {
       if (typeof path === 'string' && path.endsWith('settings.json')) {
@@ -125,13 +151,13 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       }
       return Promise.resolve('{}');
     });
-    
+
     mockFS.stat.mockResolvedValue({
       isDirectory: () => true,
     } as Stats);
-    
+
     mockFS.access.mockResolvedValue(undefined);
-    
+
     mockPathExists.mockImplementation((path: string) => {
       // Return false for settings.json to avoid conflict detection
       if (path.endsWith('settings.json')) {
@@ -139,7 +165,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       }
       return Promise.resolve(true);
     });
-    
+
     // Mock project context detection
     mockDetectProjectContext.mockResolvedValue({
       projectRoot: testProjectPath,
@@ -153,86 +179,101 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       frameworks: ['react'],
       packageManager: 'npm',
     });
-    
+
     // Mock component discovery
     const mockComponents = new Map([
-      ['typecheck', {
-        type: 'hook',
-        path: '/mock/src/hooks/typecheck.sh',
-        hash: 'abc123',
-        lastModified: new Date(),
-        metadata: {
-          id: 'typecheck',
-          name: 'TypeScript Check',
-          description: 'Type checking',
-          category: 'validation',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      [
+        'typecheck',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/typecheck.sh',
+          hash: 'abc123',
+          lastModified: new Date(),
+          metadata: {
+            id: 'typecheck',
+            name: 'TypeScript Check',
+            description: 'Type checking',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['eslint', {
-        type: 'hook',
-        path: '/mock/src/hooks/eslint.sh',
-        hash: 'def456',
-        lastModified: new Date(),
-        metadata: {
-          id: 'eslint',
-          name: 'ESLint',
-          description: 'ESLint validation',
-          category: 'validation',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'eslint',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/eslint.sh',
+          hash: 'def456',
+          lastModified: new Date(),
+          metadata: {
+            id: 'eslint',
+            name: 'ESLint',
+            description: 'ESLint validation',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['auto-checkpoint', {
-        type: 'hook',
-        path: '/mock/src/hooks/auto-checkpoint.sh',
-        hash: 'ghi789',
-        lastModified: new Date(),
-        metadata: {
-          id: 'auto-checkpoint',
-          name: 'Auto Checkpoint',
-          description: 'Automatic git checkpoints',
-          category: 'git',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'auto-checkpoint',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/auto-checkpoint.sh',
+          hash: 'ghi789',
+          lastModified: new Date(),
+          metadata: {
+            id: 'auto-checkpoint',
+            name: 'Auto Checkpoint',
+            description: 'Automatic git checkpoints',
+            category: 'git',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['validate-todo-completion', {
-        type: 'hook',
-        path: '/mock/src/hooks/validate-todo-completion.sh',
-        hash: 'jkl012',
-        lastModified: new Date(),
-        metadata: {
-          id: 'validate-todo-completion',
-          name: 'Validate Todo Completion',
-          description: 'Ensure todos are completed',
-          category: 'validation',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'validate-todo-completion',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/validate-todo-completion.sh',
+          hash: 'jkl012',
+          lastModified: new Date(),
+          metadata: {
+            id: 'validate-todo-completion',
+            name: 'Validate Todo Completion',
+            description: 'Ensure todos are completed',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
-      ['git:commit', {
-        type: 'command',
-        path: '/mock/src/commands/git/commit.md',
-        hash: 'mno345',
-        lastModified: new Date(),
-        metadata: {
-          id: 'git:commit',
-          name: 'Git Commit',
-          description: 'Smart git commit',
-          category: 'git',
-          platforms: ['darwin', 'linux'],
-          dependencies: [],
-          enabled: true,
+      ],
+      [
+        'git:commit',
+        {
+          type: 'command',
+          path: '/mock/src/commands/git/commit.md',
+          hash: 'mno345',
+          lastModified: new Date(),
+          metadata: {
+            id: 'git:commit',
+            name: 'Git Commit',
+            description: 'Smart git commit',
+            category: 'git',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
         },
-      }],
+      ],
     ]);
-    
+
     mockDiscoverComponents.mockResolvedValue({
       components: mockComponents,
       dependencies: new Map(),
@@ -250,7 +291,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         cycles: [],
       },
     });
-    
+
     mockRecommendComponents.mockResolvedValue({
       essential: [],
       recommended: [
@@ -272,7 +313,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       optional: [],
       totalScore: 100,
     });
-    
+
     mockInstallComponents.mockResolvedValue({
       success: true,
       installedComponents: [],
@@ -302,35 +343,35 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Check that settings.json was written
       expect(mockFS.writeFile).toHaveBeenCalled();
-      
+
       // Find the settings.json write call
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       expect(settingsCall).toBeDefined();
       if (settingsCall) {
         const [filePath, content] = settingsCall;
         expect(filePath).toContain('.claude/settings.json');
-        
+
         const settings = JSON.parse(content as string);
-        
+
         // Verify embedded hook commands are used
         expect(settings.hooks).toBeDefined();
         expect(settings.hooks.PostToolUse).toBeDefined();
         expect(settings.hooks.Stop).toBeDefined();
-        
+
         // Check TypeScript hook
-        const typecheckHook = settings.hooks.PostToolUse.find(
-          (h: any) => h.hooks.some((hook: any) => hook.command.includes('typecheck'))
+        const typecheckHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
+          h.hooks.some((hook: HookCommand) => hook.command.includes('typecheck'))
         );
         expect(typecheckHook).toBeDefined();
         expect(typecheckHook.hooks[0].command).toBe('claudekit-hooks run typecheck');
         expect(typecheckHook.matcher).toBe('tools:Write AND file_paths:**/*.ts');
-        
+
         // Check ESLint hook
-        const eslintHook = settings.hooks.PostToolUse.find(
-          (h: any) => h.hooks.some((hook: any) => hook.command.includes('eslint'))
+        const eslintHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
+          h.hooks.some((hook: HookCommand) => hook.command.includes('eslint'))
         );
         expect(eslintHook).toBeDefined();
         expect(eslintHook.hooks[0].command).toBe('claudekit-hooks run eslint');
@@ -348,9 +389,9 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Verify no bash files were written
       const bashWrites = mockFS.writeFile.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('.sh')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('.sh')
       );
-      
+
       expect(bashWrites).toHaveLength(0);
     });
   });
@@ -360,21 +401,27 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       // Mock existing settings file
       mockFS.readFile.mockImplementation((path: string) => {
         if (typeof path === 'string' && path.endsWith('settings.json')) {
-          return Promise.resolve(JSON.stringify({
-            hooks: {
-              PostToolUse: [
-                {
-                  matcher: 'tools:Write AND file_paths:**/*.ts',
-                  hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
+          return Promise.resolve(
+            JSON.stringify(
+              {
+                hooks: {
+                  PostToolUse: [
+                    {
+                      matcher: 'tools:Write AND file_paths:**/*.ts',
+                      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
+                    },
+                  ],
+                  Stop: [],
                 },
-              ],
-              Stop: [],
-            },
-          }, null, 2));
+              },
+              null,
+              2
+            )
+          );
         }
         return Promise.resolve('{}');
       });
-      
+
       mockPathExists.mockImplementation((path: string) => {
         // Return true for settings.json (it exists)
         if (path.endsWith('settings.json')) {
@@ -387,7 +434,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
     it('should preserve existing hooks while adding new ones', async () => {
       // The setup command detects existing settings and marks as interactive
       // when it needs to prompt for confirmation
-      
+
       const options: SetupOptions = {
         hooks: 'auto-checkpoint',
         quiet: false, // This is required for interactive conflict resolution
@@ -399,25 +446,29 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Find the settings.json write call
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       expect(settingsCall).toBeDefined();
       if (settingsCall) {
         const [, content] = settingsCall;
         const settings = JSON.parse(content as string);
-        
+
         // Verify existing typecheck hook is preserved
-        const typecheckHooks = settings.hooks.PostToolUse.filter(
-          (h: any) => h.hooks.some((hook: any) => 
-            hook.command.includes('typecheck') || hook.command.includes('.claude/hooks/typecheck.sh')
+        const typecheckHooks = settings.hooks.PostToolUse.filter((h: HookEntry) =>
+          h.hooks.some(
+            (hook: HookCommand) =>
+              hook.command.includes('typecheck') ||
+              hook.command.includes('.claude/hooks/typecheck.sh')
           )
         );
         expect(typecheckHooks).toHaveLength(1);
-        
+
         // Verify new auto-checkpoint hook is added with embedded format
-        const autoCheckpointHook = settings.hooks.Stop.find(
-          (h: any) => h.hooks.some((hook: any) => hook.command === 'claudekit-hooks run auto-checkpoint')
+        const autoCheckpointHook = settings.hooks.Stop.find((h: HookEntry) =>
+          h.hooks.some(
+            (hook: HookCommand) => hook.command === 'claudekit-hooks run auto-checkpoint'
+          )
         );
         expect(autoCheckpointHook).toBeDefined();
         expect(autoCheckpointHook.matcher).toBe('*');
@@ -428,17 +479,23 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       // Mock existing settings with embedded hook already configured
       mockFS.readFile.mockImplementation((path: string) => {
         if (typeof path === 'string' && path.endsWith('settings.json')) {
-          return Promise.resolve(JSON.stringify({
-            hooks: {
-              PostToolUse: [
-                {
-                  matcher: 'tools:Write AND file_paths:**/*.ts',
-                  hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+          return Promise.resolve(
+            JSON.stringify(
+              {
+                hooks: {
+                  PostToolUse: [
+                    {
+                      matcher: 'tools:Write AND file_paths:**/*.ts',
+                      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+                    },
+                  ],
+                  Stop: [],
                 },
-              ],
-              Stop: [],
-            },
-          }, null, 2));
+              },
+              null,
+              2
+            )
+          );
         }
         return Promise.resolve('{}');
       });
@@ -452,16 +509,16 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       await setup(options);
 
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       if (settingsCall) {
         const [, content] = settingsCall;
         const settings = JSON.parse(content as string);
-        
+
         // Verify only one typecheck hook exists
-        const typecheckHooks = settings.hooks.PostToolUse.filter(
-          (h: any) => h.hooks.some((hook: any) => hook.command.includes('typecheck'))
+        const typecheckHooks = settings.hooks.PostToolUse.filter((h: HookEntry) =>
+          h.hooks.some((hook: HookCommand) => hook.command.includes('typecheck'))
         );
         expect(typecheckHooks).toHaveLength(1);
       }
@@ -499,7 +556,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Should not write settings.json
       const settingsWrites = mockFS.writeFile.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
       expect(settingsWrites).toHaveLength(0);
     });
@@ -534,7 +591,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Should write settings.json
       const settingsWrites = mockFS.writeFile.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
       expect(settingsWrites).toHaveLength(1);
     });
@@ -549,14 +606,14 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Should call installComponents twice
       expect(mockInstallComponents).toHaveBeenCalledTimes(2);
-      
+
       const calls = mockInstallComponents.mock.calls;
-      expect(calls[0][1]).toBe('user');
-      expect(calls[1][1]).toBe('project');
-      
+      expect(calls[0]?.[1]).toBe('user');
+      expect(calls[1]?.[1]).toBe('project');
+
       // Should write settings.json for project
       const settingsWrites = mockFS.writeFile.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
       expect(settingsWrites).toHaveLength(1);
     });
@@ -574,12 +631,14 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Verify installation was called
       expect(mockInstallComponents).toHaveBeenCalled();
-      
+
       // Verify only git:commit was included
       if (mockInstallComponents.mock.calls.length > 0) {
-        const componentsArg = mockInstallComponents.mock.calls[0][0];
-        expect(componentsArg).toHaveLength(1);
-        expect(componentsArg[0].id).toBe('git:commit');
+        const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
+        if (componentsArg !== undefined) {
+          expect(componentsArg).toHaveLength(1);
+          expect(componentsArg[0]?.id).toBe('git:commit');
+        }
       }
     });
 
@@ -594,29 +653,31 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Verify installation was called
       expect(mockInstallComponents).toHaveBeenCalled();
-      
+
       // Verify only specified hooks were included
       if (mockInstallComponents.mock.calls.length > 0) {
-        const componentsArg = mockInstallComponents.mock.calls[0][0];
-        expect(componentsArg).toHaveLength(2);
-        expect(componentsArg.map((c: any) => c.id).sort()).toEqual(['eslint', 'typecheck']);
+        const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
+        if (componentsArg !== undefined) {
+          expect(componentsArg).toHaveLength(2);
+          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual(['eslint', 'typecheck']);
+        }
       }
-      
+
       // Verify settings.json contains embedded hook commands
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       if (settingsCall) {
         const [, content] = settingsCall;
         const settings = JSON.parse(content as string);
-        
+
         // Check both hooks use embedded format
         const postToolUseHooks = settings.hooks.PostToolUse;
         expect(postToolUseHooks).toHaveLength(2);
-        
-        postToolUseHooks.forEach((entry: any) => {
-          expect(entry.hooks[0].command).toMatch(/^claudekit-hooks run (typecheck|eslint)$/);
+
+        postToolUseHooks.forEach((entry: HookEntry) => {
+          expect(entry.hooks[0]?.command).toMatch(/^claudekit-hooks run (typecheck|eslint)$/);
         });
       }
     });
@@ -633,11 +694,16 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Verify installation was called
       expect(mockInstallComponents).toHaveBeenCalled();
-      
+
       if (mockInstallComponents.mock.calls.length > 0) {
-        const componentsArg = mockInstallComponents.mock.calls[0][0];
-        expect(componentsArg).toHaveLength(2);
-        expect(componentsArg.map((c: any) => c.id).sort()).toEqual(['auto-checkpoint', 'git:commit']);
+        const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
+        if (componentsArg !== undefined) {
+          expect(componentsArg).toHaveLength(2);
+          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual([
+            'auto-checkpoint',
+            'git:commit',
+          ]);
+        }
       }
     });
   });
@@ -672,9 +738,11 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       await setup(options);
 
       // Should install recommended components
-      const componentsArg = mockInstallComponents.mock.calls[0][0];
-      expect(componentsArg.map((c: any) => c.id)).toContain('typecheck');
-      expect(componentsArg.map((c: any) => c.id)).toContain('eslint');
+      const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
+      if (componentsArg !== undefined) {
+        expect(componentsArg.map((c: Component) => c.id)).toContain('typecheck');
+        expect(componentsArg.map((c: Component) => c.id)).toContain('eslint');
+      }
     });
   });
 
@@ -719,7 +787,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         }
         return Promise.resolve(true);
       });
-      
+
       mockFS.readFile.mockImplementation((path: string) => {
         if (typeof path === 'string' && path.endsWith('settings.json')) {
           return Promise.resolve('{"hooks":{}}');
@@ -743,17 +811,17 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       // the setup will still write the file but not create a backup.
       // The test expectation is incorrect. Let's just verify the settings were written correctly.
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       expect(settingsCall).toBeDefined();
       if (settingsCall) {
         const [, content] = settingsCall;
         const settings = JSON.parse(content as string);
         // Verify the typecheck hook was added
         expect(settings.hooks.PostToolUse).toBeDefined();
-        const typecheckHook = settings.hooks.PostToolUse.find(
-          (h: any) => h.hooks.some((hook: any) => hook.command === 'claudekit-hooks run typecheck')
+        const typecheckHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
+          h.hooks.some((hook: HookCommand) => hook.command === 'claudekit-hooks run typecheck')
         );
         expect(typecheckHook).toBeDefined();
       }
@@ -771,35 +839,35 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       await setup(options);
 
       const settingsCall = mockFS.writeFile.mock.calls.find(
-        (call: any[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      
+
       expect(settingsCall).toBeDefined();
       if (settingsCall) {
         const [, content] = settingsCall;
         const settings = JSON.parse(content as string);
-        
+
         // Verify PostToolUse hooks
         const postToolUseHooks = settings.hooks.PostToolUse;
         expect(postToolUseHooks).toHaveLength(2);
-        
+
         const typecheckEntry = postToolUseHooks.find(
-          (h: any) => h.hooks[0].command === 'claudekit-hooks run typecheck'
+          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run typecheck'
         );
-        expect(typecheckEntry.matcher).toBe('tools:Write AND file_paths:**/*.ts');
-        
+        expect(typecheckEntry?.matcher).toBe('tools:Write AND file_paths:**/*.ts');
+
         const eslintEntry = postToolUseHooks.find(
-          (h: any) => h.hooks[0].command === 'claudekit-hooks run eslint'
+          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run eslint'
         );
-        expect(eslintEntry.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
-        
+        expect(eslintEntry?.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
+
         // Verify Stop hooks
         const stopHooks = settings.hooks.Stop;
         expect(stopHooks).toHaveLength(1);
-        expect(stopHooks[0].matcher).toBe('*');
-        
+        expect(stopHooks[0]?.matcher).toBe('*');
+
         // Both Stop hooks should be in the same entry
-        const stopCommands = stopHooks[0].hooks.map((h: any) => h.command);
+        const stopCommands = stopHooks[0]?.hooks.map((h: HookCommand) => h.command) ?? [];
         expect(stopCommands).toContain('claudekit-hooks run auto-checkpoint');
         expect(stopCommands).toContain('claudekit-hooks run validate-todo-completion');
       }
@@ -815,16 +883,16 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       // Verify no files were written to .claude/hooks/
       const hookFileWrites = mockFS.writeFile.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].includes('.claude/hooks/')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].includes('.claude/hooks/')
       );
-      
+
       expect(hookFileWrites).toHaveLength(0);
-      
+
       // Verify no mkdir calls for .claude/hooks/
       const hookDirCreates = mockEnsureDirectoryExists.mock.calls.filter(
-        (call: any[]) => typeof call[0] === 'string' && call[0].includes('.claude/hooks')
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].includes('.claude/hooks')
       );
-      
+
       expect(hookDirCreates).toHaveLength(0);
     });
   });

@@ -159,7 +159,9 @@ describe('init command', () => {
       expect(settings).toHaveProperty('hooks');
       expect(settings['hooks']).toHaveProperty('PostToolUse');
       expect(settings['hooks']).toHaveProperty('Stop');
-      expect(Array.isArray((settings['hooks'] as Record<string, unknown>)['PostToolUse'])).toBe(true);
+      expect(Array.isArray((settings['hooks'] as Record<string, unknown>)['PostToolUse'])).toBe(
+        true
+      );
       expect(Array.isArray((settings['hooks'] as Record<string, unknown>)['Stop'])).toBe(true);
     });
 
@@ -169,14 +171,18 @@ describe('init command', () => {
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
       const settings = (await testFs.readJson(settingsPath)) as Record<string, unknown>;
 
-      const postToolUseHooks = (settings['hooks'] as Record<string, unknown>)['PostToolUse'] as unknown[];
+      const postToolUseHooks = (settings['hooks'] as Record<string, unknown>)[
+        'PostToolUse'
+      ] as unknown[];
 
       // Check for TypeScript hook
-      const tsHook = postToolUseHooks.find((hook: unknown) => (hook as { matcher: string }).matcher.includes('**/*.ts'));
+      const tsHook = postToolUseHooks.find((hook: unknown) =>
+        (hook as { matcher: string }).matcher.includes('**/*.ts')
+      );
       expect(tsHook).toBeDefined();
       if (tsHook !== undefined) {
         const typedTsHook = tsHook as { hooks: Array<{ command: string }> };
-        expect(typedTsHook.hooks[0]?.command).toBe('.claude/hooks/typecheck.sh');
+        expect(typedTsHook.hooks[0]?.command).toBe('claudekit-hooks run typecheck');
       }
 
       // Check for ESLint hook
@@ -186,7 +192,7 @@ describe('init command', () => {
       expect(eslintHook).toBeDefined();
       if (eslintHook !== undefined) {
         const typedEslintHook = eslintHook as { hooks: Array<{ command: string }> };
-        expect(typedEslintHook.hooks[0]?.command).toBe('.claude/hooks/eslint.sh');
+        expect(typedEslintHook.hooks[0]?.command).toBe('claudekit-hooks run eslint');
       }
     });
 
@@ -204,8 +210,8 @@ describe('init command', () => {
       expect(stopHook.hooks).toHaveLength(2);
 
       const commands = stopHook.hooks.map((h) => h.command);
-      expect(commands).toContain('.claude/hooks/auto-checkpoint.sh');
-      expect(commands).toContain('.claude/hooks/validate-todo-completion.sh');
+      expect(commands).toContain('claudekit-hooks run auto-checkpoint');
+      expect(commands).toContain('claudekit-hooks run validate-todo-completion');
     });
 
     it('should format settings.json with proper indentation', async () => {

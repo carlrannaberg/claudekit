@@ -13,6 +13,15 @@
     "@typescript-eslint/recommended-requiring-type-checking"
   ],
   "rules": {},
+  "overrides": [
+    {
+      "files": ["tests/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/strict-boolean-expressions": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     "dist/",

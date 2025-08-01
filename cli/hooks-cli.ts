@@ -14,7 +14,7 @@ export function createHooksCLI(): Command {
     .version('1.0.0')
     .option('--config <path>', 'Path to config file', '.claudekit/config.json')
     .option('--list', 'List available hooks');
-    
+
   // Add list command
   program
     .command('list')
@@ -29,7 +29,7 @@ export function createHooksCLI(): Command {
       console.log('  project-validation - Full project validation');
       console.log('  validate-todo-completion - Validate todo completions');
     });
-    
+
   // Add run command (default)
   program
     .command('run <hook>')
@@ -39,10 +39,10 @@ export function createHooksCLI(): Command {
       const exitCode = await hookRunner.run(hookName);
       process.exit(exitCode);
     });
-    
+
   // Handle --list option
   program.hook('preAction', (thisCommand) => {
-    if (thisCommand.opts()['list']) {
+    if (thisCommand.opts()['list'] === true) {
       console.log('Available hooks:');
       console.log('  typecheck      - TypeScript type checking');
       console.log('  no-any         - Forbid any types in TypeScript');
@@ -54,7 +54,7 @@ export function createHooksCLI(): Command {
       process.exit(0);
     }
   });
-    
+
   return program;
 }
 
