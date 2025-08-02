@@ -78,10 +78,6 @@ describe('utils', () => {
   });
 
   describe('readStdin', () => {
-    it.skip('should wait indefinitely for input (no timeout)', async () => {
-      // This test is skipped because readStdin now waits indefinitely
-      // for input to match Claude Code's expectations
-    });
 
     it('should read data from stdin', async () => {
       const testData = '{"test": "data"}';
