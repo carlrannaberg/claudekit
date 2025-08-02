@@ -3,6 +3,7 @@ import * as path from 'path';
 import { z } from 'zod';
 import { readStdin } from './utils.js';
 import type { BaseHook, HookConfig } from './base.js';
+import { appendHookExecution, getHookStats } from './logging.js';
 
 // Import all hooks
 import { TypecheckChangedHook } from './typecheck-changed.js';
@@ -49,6 +50,8 @@ export class HookRunner {
   }
 
   async run(hookName: string): Promise<number> {
+    const startTime = Date.now();
+    
     // Get hook class
     const HookClass = this.hooks.get(hookName);
     if (!HookClass) {
@@ -98,8 +101,33 @@ export class HookRunner {
       delete process.env['CLAUDEKIT_DEBUG'];
     }
     
+    // Log hook execution
+    const executionTime = Date.now() - startTime;
+    await appendHookExecution({
+      hookName,
+      timestamp: new Date().toISOString(),
+      executionTime,
+      exitCode: result.exitCode,
+      payload: this.debug ? payload : undefined,
+      result: this.debug ? result : undefined
+    });
+    
     if (this.debug) {
       console.error('[DEBUG] Hook result:', JSON.stringify(result, null, 2));
+      console.error('[DEBUG] Execution time:', executionTime, 'ms');
+      
+      // Show hook stats
+      const stats = await getHookStats();
+      const hookStats = stats[hookName];
+      if (hookStats) {
+        console.error('[DEBUG] Hook stats:', {
+          totalExecutions: hookStats.totalExecutions,
+          successCount: hookStats.successCount,
+          failureCount: hookStats.failureCount,
+          avgExecutionTime: Math.round(hookStats.avgExecutionTime),
+          lastExecution: hookStats.lastExecution
+        });
+      }
     }
 
     // Handle different result types

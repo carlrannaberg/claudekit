@@ -110,7 +110,6 @@ export {
   // Component recommendation
   recommendComponents,
   formatRecommendationSummary,
-  learnFromUserChoice,
   type ComponentRecommendation,
   type RecommendationResult,
 } from './components.js';

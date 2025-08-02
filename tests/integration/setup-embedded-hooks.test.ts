@@ -668,7 +668,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       expect(settingsWrites).toHaveLength(1);
     });
 
-    it('should handle both user and project installation', async () => {
+    it('should handle project installation with --yes flag', async () => {
       const options: SetupOptions = {
         yes: true,
         quiet: true,
@@ -676,12 +676,11 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
       await setup(options);
 
-      // Should call installComponents twice
-      expect(mockInstallComponents).toHaveBeenCalledTimes(2);
+      // Should call installComponents once for project
+      expect(mockInstallComponents).toHaveBeenCalledTimes(1);
 
       const calls = mockInstallComponents.mock.calls;
-      expect(calls[0]?.[1]).toBe('user');
-      expect(calls[1]?.[1]).toBe('project');
+      expect(calls[0]?.[1]).toBe('project');
 
       // Should write settings.json for project
       const settingsWrites = mockFS.writeFile.mock.calls.filter(

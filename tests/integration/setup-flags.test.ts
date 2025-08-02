@@ -519,7 +519,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       expect(installComponents).toHaveBeenCalled();
     });
 
-    it('should install both user and project by default', async () => {
+    it('should install project only by default', async () => {
       const options: SetupOptions = {
         yes: true,
         quiet: true,
@@ -528,12 +528,11 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index');
-      expect(installComponents).toHaveBeenCalledTimes(2);
+      expect(installComponents).toHaveBeenCalledTimes(1);
 
-      // Check that both user and project installations happened
+      // Check that only project installation happened
       const calls = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls;
-      expect(calls[0]?.[1]).toBe('user');
-      expect(calls[1]?.[1]).toBe('project');
+      expect(calls[0]?.[1]).toBe('project');
     });
   });
 
@@ -705,7 +704,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index');
-      expect(installComponents).toHaveBeenCalledTimes(2);
+      expect(installComponents).toHaveBeenCalledTimes(1);
 
       const projectCall = (
         installComponents as unknown as ReturnType<typeof vi.fn>

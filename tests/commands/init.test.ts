@@ -300,7 +300,7 @@ describe('init command', () => {
 
       await init({});
 
-      expect(ora.default).toHaveBeenCalledWith('Initializing ClaudeKit...');
+      expect(ora.default).toHaveBeenCalledWith('Initializing claudekit...');
       expect(mockSpinner.start).toHaveBeenCalled();
       expect(mockSpinner.succeed).toHaveBeenCalled();
       expect(mockSpinner.fail).not.toHaveBeenCalled();
@@ -321,7 +321,7 @@ describe('init command', () => {
       await expect(init({})).rejects.toThrow();
 
       expect(mockSpinner.start).toHaveBeenCalled();
-      expect(mockSpinner.fail).toHaveBeenCalledWith('Failed to initialize ClaudeKit');
+      expect(mockSpinner.fail).toHaveBeenCalledWith('Failed to initialize claudekit');
       expect(mockSpinner.succeed).not.toHaveBeenCalled();
 
       mkdirSpy.mockRestore();

@@ -33,6 +33,36 @@ export function createHooksCLI(): Command {
       console.log('  test-project          - Run full test suite');
     });
 
+  // Add stats command
+  program
+    .command('stats')
+    .description('Show hook execution statistics')
+    .action(async () => {
+      const { printHookReport } = await import('./hooks/logging.js');
+      await printHookReport();
+    });
+
+  // Add recent command
+  program
+    .command('recent [limit]')
+    .description('Show recent hook executions')
+    .action(async (limit?: string) => {
+      const { getRecentExecutions } = await import('./hooks/logging.js');
+      const executions = await getRecentExecutions(limit ? parseInt(limit) : 20);
+      
+      if (executions.length === 0) {
+        console.log('No recent hook executions found.');
+        return;
+      }
+
+      console.log('\n=== Recent Hook Executions ===\n');
+      for (const exec of executions) {
+        const status = exec.exitCode === 0 ? '✓' : '✗';
+        const time = new Date(exec.timestamp).toLocaleString();
+        console.log(`${status} ${exec.hookName} - ${time} (${exec.executionTime}ms)`);
+      }
+    });
+
   // Add run command (default)
   program
     .command('run <hook>')

@@ -1882,32 +1882,3 @@ export function formatRecommendationSummary(result: RecommendationResult): strin
   return lines.join('\n');
 }
 
-/**
- * Learn from user choices (future enhancement placeholder)
- * This would store user preferences and adjust recommendations over time
- */
-export async function learnFromUserChoice(
-  projectInfo: ProjectInfo,
-  acceptedComponents: string[],
-  rejectedComponents: string[],
-  _userPreferencesPath?: string
-): Promise<void> {
-  // TODO: Implement machine learning or preference tracking
-  // For now, this is a placeholder for future enhancement
-
-  // Potential implementation:
-  // 1. Store project type patterns
-  // 2. Track component acceptance/rejection rates
-  // 3. Adjust recommendation scores based on history
-  // 4. Save preferences to user config file
-
-  console.debug('User choice recorded:', {
-    projectType: {
-      hasTypeScript: projectInfo.hasTypeScript,
-      hasESLint: projectInfo.hasESLint,
-      frameworks: projectInfo.frameworks,
-    },
-    accepted: acceptedComponents,
-    rejected: rejectedComponents,
-  });
-}
