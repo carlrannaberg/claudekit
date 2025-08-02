@@ -45,7 +45,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     validationResults.push(projectValidation);
 
     // Check for .claude directory
-    progressReporter.update('Checking ClaudeKit installation...');
+    progressReporter.update('Checking claudekit installation...');
     const claudeDir = path.join(projectRoot, '.claude');
     try {
       await fs.access(claudeDir);
@@ -292,9 +292,9 @@ export async function validate(options: ValidateOptions): Promise<void> {
       // Show summary of what was checked
       if (options.detailed === true) {
         console.log(Colors.dim('\nChecked:'));
-        console.log(Colors.dim('• ClaudeKit directory structure'));
+        console.log(Colors.dim('• claudekit directory structure'));
         console.log(Colors.dim('• Configuration file validity'));
-        console.log(Colors.dim('• ClaudeKit config (.claudekit/config.json)'));
+        console.log(Colors.dim('• claudekit config (.claudekit/config.json)'));
         console.log(Colors.dim('• Hook installation'));
         console.log(Colors.dim('• Command installation'));
         console.log(Colors.dim('• Project path security'));

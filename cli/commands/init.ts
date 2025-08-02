@@ -16,7 +16,7 @@ interface InitOptions {
 }
 
 export async function init(options: InitOptions): Promise<void> {
-  const spinner = ora('Initializing ClaudeKit...').start();
+  const spinner = ora('Initializing claudekit...').start();
 
   try {
     const projectRoot = process.cwd();
@@ -147,7 +147,7 @@ export async function init(options: InitOptions): Promise<void> {
     await fs.mkdir(path.join(claudeDir, 'hooks'), { recursive: true });
     await fs.mkdir(path.join(claudeDir, 'commands'), { recursive: true });
 
-    spinner.succeed(chalk.green('ClaudeKit initialized successfully!'));
+    spinner.succeed(chalk.green('claudekit initialized successfully!'));
 
     // Show recommendations if we generated them
     if (
@@ -196,7 +196,7 @@ export async function init(options: InitOptions): Promise<void> {
       }
     }
   } catch (error) {
-    spinner.fail('Failed to initialize ClaudeKit');
+    spinner.fail('Failed to initialize claudekit');
     throw error;
   }
 }

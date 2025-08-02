@@ -302,7 +302,7 @@ interface SetupConfig {
 }
 
 /**
- * Setup wizard for ClaudeKit with interactive and non-interactive modes
+ * Setup wizard for claudekit with interactive and non-interactive modes
  */
 export async function setup(options: SetupOptions = {}): Promise<void> {
   const logger = new Logger();
@@ -322,13 +322,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Show welcome message (unless in non-interactive mode)
     if (!isNonInteractive || options.quiet !== true) {
-      console.log(Colors.bold(Colors.accent('\nClaudeKit Setup Wizard')));
+      console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
       console.log(Colors.dim('─'.repeat(40)));
 
       if (!isNonInteractive) {
         console.log(
-          '\nWelcome to ClaudeKit! This wizard will help you configure ClaudeKit\n' +
-            'for your development workflow. ClaudeKit provides:\n\n' +
+          '\nWelcome to claudekit! This wizard will help you configure claudekit\n' +
+            'for your development workflow. claudekit provides:\n\n' +
             '  • Automated code quality checks (TypeScript, ESLint, Prettier)\n' +
             '  • Git workflow integration (checkpoints, smart commits)\n' +
             '  • AI assistant configuration management\n' +
@@ -344,7 +344,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       installationType = options.commandsOnly === true ? 'user' : 'project';
     } else {
       installationType = await select({
-        message: 'How would you like to install ClaudeKit?',
+        message: 'How would you like to install claudekit?',
         choices: [
           {
             value: 'project',
@@ -793,7 +793,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
       // Show next steps unless quiet mode
       if (options.quiet !== true) {
-        console.log(`\n${Colors.bold(Colors.success('ClaudeKit setup complete!'))}`);
+        console.log(`\n${Colors.bold(Colors.success('claudekit setup complete!'))}`);
         console.log(Colors.dim('─'.repeat(40)));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
