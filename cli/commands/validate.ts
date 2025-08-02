@@ -8,6 +8,7 @@ import {
   formatValidationErrors,
   type ValidationResult,
 } from '../lib/validation.js';
+import { validateClaudekitConfig } from '../types/claudekit-config.js';
 
 interface ValidateOptions {
   type?: string;
@@ -87,20 +88,20 @@ export async function validate(options: ValidateOptions): Promise<void> {
       
       // Count configured hooks
       let hookCount = 0;
-      if (settings.hooks) {
+      if (settings.hooks !== null && settings.hooks !== undefined) {
         // Count hooks in PostToolUse
-        if (settings.hooks.PostToolUse && Array.isArray(settings.hooks.PostToolUse)) {
+        if (settings.hooks.PostToolUse !== null && settings.hooks.PostToolUse !== undefined && Array.isArray(settings.hooks.PostToolUse)) {
           for (const config of settings.hooks.PostToolUse) {
-            if (config.hooks && Array.isArray(config.hooks)) {
+            if (config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
               hookCount += config.hooks.length;
             }
           }
         }
         
         // Count hooks in Stop
-        if (settings.hooks.Stop && Array.isArray(settings.hooks.Stop)) {
+        if (settings.hooks.Stop !== null && settings.hooks.Stop !== undefined && Array.isArray(settings.hooks.Stop)) {
           for (const config of settings.hooks.Stop) {
-            if (config.hooks && Array.isArray(config.hooks)) {
+            if (config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
               hookCount += config.hooks.length;
             }
           }
@@ -109,8 +110,8 @@ export async function validate(options: ValidateOptions): Promise<void> {
         // Count hooks in other events (PreToolUse, etc.)
         for (const [event, configs] of Object.entries(settings.hooks)) {
           if (event !== 'PostToolUse' && event !== 'Stop' && Array.isArray(configs)) {
-            for (const config of configs as any[]) {
-              if (config.hooks && Array.isArray(config.hooks)) {
+            for (const config of configs as unknown[]) {
+              if (config !== null && config !== undefined && typeof config === 'object' && 'hooks' in config && config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
                 hookCount += config.hooks.length;
               }
             }
@@ -121,20 +122,83 @@ export async function validate(options: ValidateOptions): Promise<void> {
       if (hookCount > 0) {
         legacyResults.push({
           passed: true,
-          message: `Found ${hookCount} configured hook(s)`,
+          message: `Found ${hookCount} hook(s)`,
         });
       } else {
         legacyResults.push({
           passed: true,
-          message: 'No hooks configured',
+          message: 'Found 0 hook(s)',
         });
       }
     } catch {
       // No settings.json or invalid JSON - report no hooks
       legacyResults.push({
         passed: true,
-        message: 'No hooks configured',
+        message: 'Found 0 hook(s)',
       });
+    }
+
+    // Check for .claudekit/config.json
+    progressReporter.update('Checking claudekit configuration...');
+    const claudekitDir = path.join(projectRoot, '.claudekit');
+    const configPath = path.join(claudekitDir, 'config.json');
+    try {
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      const configData = JSON.parse(configContent);
+      
+      // Validate the configuration schema
+      const validation = validateClaudekitConfig(configData);
+      
+      if (validation.valid) {
+        legacyResults.push({
+          passed: true,
+          message: '.claudekit/config.json is valid',
+        });
+      } else {
+        // Schema validation failed
+        const errorCount = validation.errors?.length ?? 0;
+        const firstError = validation.errors?.[0] ?? 'Invalid configuration';
+        legacyResults.push({
+          passed: false,
+          message: `.claudekit/config.json has ${errorCount} validation error${errorCount > 1 ? 's' : ''}: ${firstError}`,
+        });
+        
+        // Add additional errors as warnings
+        if (validation.errors && validation.errors.length > 1) {
+          for (let i = 1; i < Math.min(validation.errors.length, 3); i++) {
+            legacyResults.push({
+              passed: false,
+              message: `  - ${validation.errors[i]}`,
+            });
+          }
+          if (validation.errors.length > 3) {
+            legacyResults.push({
+              passed: false,
+              message: `  - ... and ${validation.errors.length - 3} more errors`,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+        // File doesn't exist - this is OK, claudekit can work without it
+        legacyResults.push({
+          passed: true,
+          message: '.claudekit/config.json not found (optional)',
+        });
+      } else if (error instanceof SyntaxError) {
+        // Invalid JSON
+        legacyResults.push({
+          passed: false,
+          message: '.claudekit/config.json contains invalid JSON',
+        });
+      } else {
+        // Other errors (permissions, etc.)
+        legacyResults.push({
+          passed: false,
+          message: `.claudekit/config.json error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        });
+      }
     }
 
     // Check for commands directory
@@ -230,6 +294,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
         console.log(Colors.dim('\nChecked:'));
         console.log(Colors.dim('• ClaudeKit directory structure'));
         console.log(Colors.dim('• Configuration file validity'));
+        console.log(Colors.dim('• ClaudeKit config (.claudekit/config.json)'));
         console.log(Colors.dim('• Hook installation'));
         console.log(Colors.dim('• Command installation'));
         console.log(Colors.dim('• Project path security'));
