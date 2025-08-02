@@ -319,16 +319,16 @@ describe('Setup Command - Non-Interactive Flags', () => {
     vi.mocked(libIndex.discoverComponents).mockResolvedValue({
       components: new Map([
         [
-          'typecheck',
+          'typecheck-changed',
           {
             type: 'hook',
-            path: '/path/to/typecheck.sh',
+            path: '/path/to/typecheck-changed.sh',
             hash: 'abc123',
             lastModified: new Date(),
             metadata: {
-              id: 'typecheck',
-              name: 'TypeScript Check',
-              description: 'Type checking',
+              id: 'typecheck-changed',
+              name: 'TypeScript Check (Changed Files)',
+              description: 'Type checking for changed files only',
               category: 'validation',
               platforms: ['darwin', 'linux'],
               dependencies: [],
@@ -337,16 +337,16 @@ describe('Setup Command - Non-Interactive Flags', () => {
           },
         ],
         [
-          'eslint',
+          'lint-changed',
           {
             type: 'hook',
-            path: '/path/to/eslint.sh',
+            path: '/path/to/lint-changed.sh',
             hash: 'def456',
             lastModified: new Date(),
             metadata: {
-              id: 'eslint',
-              name: 'ESLint',
-              description: 'ESLint validation',
+              id: 'lint-changed',
+              name: 'ESLint (Changed Files)',
+              description: 'ESLint validation for changed files only',
               category: 'validation',
               platforms: ['darwin', 'linux'],
               dependencies: [],

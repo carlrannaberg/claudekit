@@ -20,7 +20,7 @@ describe('LintProjectHook', () => {
     vi.spyOn(utils, 'formatESLintErrors').mockReturnValue('Formatted ESLint errors');
     
     // Mock the execCommand method on the hook instance
-    vi.spyOn(hook as any, 'execCommand').mockImplementation(mockExecCommand);
+    vi.spyOn(hook as unknown as { execCommand: typeof mockExecCommand }, 'execCommand').mockImplementation(mockExecCommand);
   });
 
   afterEach(() => {
@@ -114,7 +114,7 @@ describe('LintProjectHook', () => {
     it('should respect custom eslintCommand', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
       mockExecCommand.mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' });
-      (hook as any).config = { eslintCommand: 'pnpm eslint . --fix' };
+      (hook as unknown as { config: { eslintCommand: string } }).config = { eslintCommand: 'pnpm eslint . --fix' };
       const context = createMockContext();
 
       await hook.execute(context);

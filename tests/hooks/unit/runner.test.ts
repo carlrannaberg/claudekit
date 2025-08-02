@@ -79,8 +79,10 @@ describe('HookRunner', () => {
       expect(hooks.has('lint-changed')).toBe(true);
       expect(hooks.has('create-checkpoint')).toBe(true);
       expect(hooks.has('test-changed')).toBe(true);
-      expect(hooks.has('project-validation')).toBe(true);
       expect(hooks.has('check-todos')).toBe(true);
+      expect(hooks.has('typecheck-project')).toBe(true);
+      expect(hooks.has('lint-project')).toBe(true);
+      expect(hooks.has('test-project')).toBe(true);
     });
   });
 

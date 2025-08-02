@@ -291,16 +291,16 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         },
       ],
       [
-        'auto-checkpoint',
+        'create-checkpoint',
         {
           type: 'hook',
-          path: '/mock/src/hooks/auto-checkpoint.sh',
+          path: '/mock/src/hooks/create-checkpoint.sh',
           hash: 'ghi789',
           lastModified: new Date(),
           metadata: {
-            id: 'auto-checkpoint',
-            name: 'Auto Checkpoint',
-            description: 'Automatic git checkpoints',
+            id: 'create-checkpoint',
+            name: 'Create Checkpoint',
+            description: 'Create git checkpoints',
             category: 'git',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -309,15 +309,15 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         },
       ],
       [
-        'validate-todo-completion',
+        'check-todos',
         {
           type: 'hook',
-          path: '/mock/src/hooks/validate-todo-completion.sh',
+          path: '/mock/src/hooks/check-todos.sh',
           hash: 'jkl012',
           lastModified: new Date(),
           metadata: {
-            id: 'validate-todo-completion',
-            name: 'Validate Todo Completion',
+            id: 'check-todos',
+            name: 'Check Todo Completion', 
             description: 'Ensure todos are completed',
             category: 'validation',
             platforms: ['darwin', 'linux'],
@@ -351,8 +351,8 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project', 'test-changed', 'test-project', 'validate-todo-completion'])],
-        ['git', new Set(['auto-checkpoint', 'git:commit'])],
+        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project', 'test-changed', 'test-project', 'check-todos'])],
+        ['git', new Set(['create-checkpoint', 'git:commit'])],
       ]),
       lastScan: new Date(),
       cacheValid: true,
@@ -480,7 +480,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
                   PostToolUse: [
                     {
                       matcher: 'tools:Write AND file_paths:**/*.ts',
-                      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
+                      hooks: [{ type: 'command', command: '.claude/hooks/typecheck-changed.sh' }],
                     },
                   ],
                   Stop: [],
@@ -508,7 +508,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       // when it needs to prompt for confirmation
 
       const options: SetupOptions = {
-        hooks: 'auto-checkpoint',
+        hooks: 'create-checkpoint',
         quiet: false, // This is required for interactive conflict resolution
         yes: true, // Use yes to get project installation by default
         force: true, // Force overwrite since we're testing preservation logic
@@ -531,15 +531,15 @@ describe('Setup Command - Embedded Hooks Integration', () => {
           h.hooks.some(
             (hook: HookCommand) =>
               hook.command.includes('typecheck') ||
-              hook.command.includes('.claude/hooks/typecheck.sh')
+              hook.command.includes('.claude/hooks/typecheck-changed.sh')
           )
         );
         expect(typecheckHooks).toHaveLength(1);
 
-        // Verify new auto-checkpoint hook is added with embedded format
+        // Verify new create-checkpoint hook is added with embedded format
         const autoCheckpointHook = settings.hooks.Stop.find((h: HookEntry) =>
           h.hooks.some(
-            (hook: HookCommand) => hook.command === 'claudekit-hooks run auto-checkpoint'
+            (hook: HookCommand) => hook.command === 'claudekit-hooks run create-checkpoint'
           )
         );
         expect(autoCheckpointHook).toBeDefined();
@@ -757,7 +757,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
     it('should combine commands and hooks flags', async () => {
       const options: SetupOptions = {
         commands: 'git:commit',
-        hooks: 'auto-checkpoint',
+        hooks: 'create-checkpoint',
         quiet: true,
         yes: true, // This defaults to both installation
       };
@@ -772,7 +772,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         if (componentsArg !== undefined) {
           expect(componentsArg).toHaveLength(2);
           expect(componentsArg.map((c: Component) => c.id).sort()).toEqual([
-            'auto-checkpoint',
+            'create-checkpoint',
             'git:commit',
           ]);
         }
@@ -903,7 +903,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
   describe('Hook configuration patterns', () => {
     it('should use correct matchers for different hook types', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck-changed,lint-changed,auto-checkpoint,validate-todo-completion',
+        hooks: 'typecheck-changed,lint-changed,create-checkpoint,check-todos',
         quiet: true,
         yes: true, // This will default to both installation which includes project
       };
@@ -940,8 +940,8 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
         // Both Stop hooks should be in the same entry
         const stopCommands = stopHooks[0]?.hooks.map((h: HookCommand) => h.command) ?? [];
-        expect(stopCommands).toContain('claudekit-hooks run auto-checkpoint');
-        expect(stopCommands).toContain('claudekit-hooks run validate-todo-completion');
+        expect(stopCommands).toContain('claudekit-hooks run create-checkpoint');
+        expect(stopCommands).toContain('claudekit-hooks run check-todos');
       }
     });
 

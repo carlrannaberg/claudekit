@@ -21,13 +21,15 @@ export function createHooksCLI(): Command {
     .description('List available hooks')
     .action(() => {
       console.log('Available hooks:');
-      console.log('  typecheck      - TypeScript type checking');
-      console.log('  no-any         - Forbid any types in TypeScript');
-      console.log('  eslint         - ESLint code validation');
-      console.log('  auto-checkpoint - Git auto-checkpoint on stop');
-      console.log('  run-related-tests - Run tests for changed files');
-      console.log('  project-validation - Full project validation');
-      console.log('  validate-todo-completion - Validate todo completions');
+      console.log('  typecheck-changed     - TypeScript type checking on changed files');
+      console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
+      console.log('  lint-changed          - ESLint validation on changed files');
+      console.log('  test-changed          - Run tests for changed files');
+      console.log('  create-checkpoint     - Git auto-checkpoint on stop');
+      console.log('  check-todos           - Validate todo completions');
+      console.log('  typecheck-project     - TypeScript validation on entire project');
+      console.log('  lint-project          - ESLint validation on entire project');
+      console.log('  test-project          - Run full test suite');
     });
 
   // Add run command (default)
@@ -44,13 +46,15 @@ export function createHooksCLI(): Command {
   program.hook('preAction', (thisCommand) => {
     if (thisCommand.opts()['list'] === true) {
       console.log('Available hooks:');
-      console.log('  typecheck      - TypeScript type checking');
-      console.log('  no-any         - Forbid any types in TypeScript');
-      console.log('  eslint         - ESLint code validation');
-      console.log('  auto-checkpoint - Git auto-checkpoint on stop');
-      console.log('  run-related-tests - Run tests for changed files');
-      console.log('  project-validation - Full project validation');
-      console.log('  validate-todo-completion - Validate todo completions');
+      console.log('  typecheck-changed     - TypeScript type checking on changed files');
+      console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
+      console.log('  lint-changed          - ESLint validation on changed files');
+      console.log('  test-changed          - Run tests for changed files');
+      console.log('  create-checkpoint     - Git auto-checkpoint on stop');
+      console.log('  check-todos           - Validate todo completions');
+      console.log('  typecheck-project     - TypeScript validation on entire project');
+      console.log('  lint-project          - ESLint validation on entire project');
+      console.log('  test-project          - Run full test suite');
       process.exit(0);
     }
   });

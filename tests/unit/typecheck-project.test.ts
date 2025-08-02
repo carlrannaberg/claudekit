@@ -20,7 +20,7 @@ describe('TypecheckProjectHook', () => {
     vi.spyOn(utils, 'formatTypeScriptErrors').mockReturnValue('Formatted TypeScript errors');
     
     // Mock the execCommand method on the hook instance
-    vi.spyOn(hook as any, 'execCommand').mockImplementation(mockExecCommand);
+    vi.spyOn(hook as unknown as { execCommand: typeof mockExecCommand }, 'execCommand').mockImplementation(mockExecCommand);
   });
 
   afterEach(() => {
@@ -114,7 +114,7 @@ describe('TypecheckProjectHook', () => {
     it('should respect custom typescriptCommand', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
       mockExecCommand.mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' });
-      (hook as any).config = { typescriptCommand: 'pnpm tsc --noEmit --strict' };
+      (hook as unknown as { config: { typescriptCommand: string } }).config = { typescriptCommand: 'pnpm tsc --noEmit --strict' };
       const context = createMockContext();
 
       await hook.execute(context);

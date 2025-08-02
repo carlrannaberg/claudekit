@@ -12,14 +12,14 @@ describe('Component Recommendation Engine', () => {
   const mockRegistry = {
     components: new Map([
       [
-        'typecheck',
+        'typecheck-changed',
         {
-          path: '../cli/hooks/typecheck.sh',
+          path: '../cli/hooks/typecheck-changed.sh',
           type: 'hook' as const,
           metadata: {
-            id: 'typecheck',
-            name: 'TypeScript Type Checker',
-            description: 'Validates TypeScript types',
+            id: 'typecheck-changed',
+            name: 'TypeScript Type Checker (Changed Files)',
+            description: 'Validates TypeScript types for changed files only',
             category: 'validation' as const,
             dependencies: ['validation-lib'],
             platforms: ['all'] as Platform[],
@@ -30,14 +30,14 @@ describe('Component Recommendation Engine', () => {
         },
       ],
       [
-        'eslint',
+        'lint-changed',
         {
-          path: '../cli/hooks/eslint.sh',
+          path: '../cli/hooks/lint-changed.sh',
           type: 'hook' as const,
           metadata: {
-            id: 'eslint',
-            name: 'ESLint Validator',
-            description: 'Runs ESLint on JavaScript/TypeScript files',
+            id: 'lint-changed',
+            name: 'ESLint Validator (Changed Files)',
+            description: 'Runs ESLint on changed JavaScript/TypeScript files only',
             category: 'validation' as const,
             dependencies: ['validation-lib'],
             platforms: ['all'] as Platform[],
@@ -66,14 +66,14 @@ describe('Component Recommendation Engine', () => {
         },
       ],
       [
-        'auto-checkpoint',
+        'create-checkpoint',
         {
-          path: '../cli/hooks/auto-checkpoint.sh',
+          path: '../cli/hooks/create-checkpoint.sh',
           type: 'hook' as const,
           metadata: {
-            id: 'auto-checkpoint',
-            name: 'Auto Checkpoint',
-            description: 'Automatically creates git checkpoints',
+            id: 'create-checkpoint',
+            name: 'Create Checkpoint',
+            description: 'Creates git checkpoints',
             category: 'git' as const,
             dependencies: [],
             platforms: ['all'] as Platform[],
@@ -84,12 +84,12 @@ describe('Component Recommendation Engine', () => {
         },
       ],
       [
-        'run-related-tests',
+        'test-changed',
         {
-          path: '../cli/hooks/run-related-tests.sh',
+          path: '../cli/hooks/test-changed.sh',
           type: 'hook' as const,
           metadata: {
-            id: 'run-related-tests',
+            id: 'test-changed',
             name: 'Run Related Tests',
             description: 'Runs tests related to changed files',
             category: 'testing' as const,
@@ -176,12 +176,12 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       expect(result.essential).toHaveLength(2); // typecheck + auto-checkpoint
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true
       );
 
-      const typecheckRec = result.essential.find((r) => r.component.metadata.id === 'typecheck');
+      const typecheckRec = result.essential.find((r) => r.component.metadata.id === 'typecheck-changed');
       expect(typecheckRec?.reasons).toContain('TypeScript detected - type checking recommended');
       expect(typecheckRec?.dependencies).toContain('validation-lib');
     });
@@ -218,9 +218,9 @@ describe('Component Recommendation Engine', () => {
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some((r) => r.component.metadata.id === 'eslint')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'lint-changed')).toBe(true);
 
-      const eslintRec = result.essential.find((r) => r.component.metadata.id === 'eslint');
+      const eslintRec = result.essential.find((r) => r.component.metadata.id === 'lint-changed');
       expect(eslintRec?.reasons).toContain(
         'ESLint configuration found - linting automation recommended'
       );
@@ -240,11 +240,11 @@ describe('Component Recommendation Engine', () => {
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some((r) => r.component.metadata.id === 'run-related-tests')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(
         true
       );
 
-      const testRec = result.essential.find((r) => r.component.metadata.id === 'run-related-tests');
+      const testRec = result.essential.find((r) => r.component.metadata.id === 'test-changed');
       expect(testRec?.reasons).toContain('Jest detected - automated test running recommended');
     });
 
@@ -260,7 +260,7 @@ describe('Component Recommendation Engine', () => {
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      const testRec = result.essential.find((r) => r.component.metadata.id === 'run-related-tests');
+      const testRec = result.essential.find((r) => r.component.metadata.id === 'test-changed');
       expect(testRec?.reasons).toContain('Vitest detected - automated test running recommended');
     });
   });
@@ -277,12 +277,12 @@ describe('Component Recommendation Engine', () => {
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true
       );
 
       const checkpointRec = result.essential.find(
-        (r) => r.component.metadata.id === 'auto-checkpoint'
+        (r) => r.component.metadata.id === 'create-checkpoint'
       );
       expect(checkpointRec?.reasons).toContain(
         'Git repository - automatic checkpointing highly recommended'
@@ -366,7 +366,7 @@ describe('Component Recommendation Engine', () => {
       expect(formatted).toContain('Essential Components:');
       expect(formatted).toContain('TypeScript Type Checker');
       expect(formatted).toContain('ESLint Validator');
-      expect(formatted).toContain('Auto Checkpoint');
+      expect(formatted).toContain('Create Checkpoint');
       expect(formatted).toContain('Dependencies:');
     });
 
@@ -397,7 +397,7 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Should still get TypeScript recommendations
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
     });
   });
 
@@ -439,13 +439,13 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Should recommend all relevant hooks
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'eslint')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'lint-changed')).toBe(true);
       expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'run-related-tests')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(
         true
       );
-      expect(result.essential.some((r) => r.component.metadata.id === 'auto-checkpoint')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true
       );
 

@@ -78,31 +78,33 @@ This is a test command that validates functionality.
       const registry = await discoverComponents(tempDir);
 
       // Test that embedded hooks are included
-      const typecheck = getComponent('typecheck', registry);
+      const typecheck = getComponent('typecheck-changed', registry);
       expect(typecheck).toBeDefined();
-      expect(typecheck?.metadata.name).toBe('TypeScript Type Checking');
+      expect(typecheck?.metadata.name).toBe('TypeScript Type Checking (Changed Files)');
       expect(typecheck?.metadata.description).toContain('embedded hook');
       expect(typecheck?.metadata.category).toBe('validation');
       expect(typecheck?.type).toBe('hook');
-      expect(typecheck?.path).toBe('embedded:typecheck');
+      expect(typecheck?.path).toBe('embedded:typecheck-changed');
 
       // Test another embedded hook
-      const eslint = getComponent('eslint', registry);
+      const eslint = getComponent('lint-changed', registry);
       expect(eslint).toBeDefined();
-      expect(eslint?.metadata.name).toBe('ESLint Validation');
+      expect(eslint?.metadata.name).toBe('ESLint Validation (Changed Files)');
       expect(eslint?.metadata.category).toBe('validation');
 
       // Verify all embedded hooks are present
       const allHooks = getComponentsByType('hook', registry);
       const embeddedHookIds = [
-        'typecheck',
-        'eslint',
+        'typecheck-changed',
+        'lint-changed',
         'prettier',
-        'no-any',
-        'run-related-tests',
-        'auto-checkpoint',
-        'validate-todo-completion',
-        'project-validation',
+        'check-any-changed',
+        'test-changed',
+        'create-checkpoint',
+        'check-todos',
+        'typecheck-project',
+        'lint-project',
+        'test-project',
       ];
       const foundEmbeddedHooks = allHooks.filter((h) => h.path.startsWith('embedded:'));
       expect(foundEmbeddedHooks.length).toBe(embeddedHookIds.length);
@@ -128,7 +130,7 @@ Create a git stash if needed.
       expect(gitComponent?.metadata.category).toBe('git');
 
       // Test that embedded typecheck hook has correct category
-      const validationComponent = getComponent('typecheck', registry);
+      const validationComponent = getComponent('typecheck-changed', registry);
       expect(validationComponent?.metadata.category).toBe('validation');
     });
 
@@ -155,14 +157,14 @@ This command uses multiple tools:
       expect(commandComponent?.metadata.dependencies.length).toBeGreaterThan(0);
 
       // Test that embedded hooks have correct dependencies
-      const eslintHook = getComponent('eslint', registry);
+      const eslintHook = getComponent('lint-changed', registry);
       expect(eslintHook?.metadata.dependencies).toContain('eslint');
 
-      const typecheckHook = getComponent('typecheck', registry);
+      const typecheckHook = getComponent('typecheck-changed', registry);
       expect(typecheckHook?.metadata.dependencies).toContain('typescript');
       expect(typecheckHook?.metadata.dependencies).toContain('tsc');
 
-      const autoCheckpoint = getComponent('auto-checkpoint', registry);
+      const autoCheckpoint = getComponent('create-checkpoint', registry);
       expect(autoCheckpoint?.metadata.dependencies).toContain('git');
     });
   });
@@ -187,8 +189,8 @@ description: Git commit command
       const registry = await discoverComponents(tempDir);
 
       expect(getComponent('git:commit', registry)).toBeDefined();
-      // Should have 1 nested command + 8 embedded hooks = 9 total
-      expect(registry.components.size).toBe(9);
+      // Should have 1 nested command + 10 embedded hooks = 11 total
+      expect(registry.components.size).toBe(11);
     });
 
     it('should handle missing directories gracefully', async () => {
@@ -205,8 +207,8 @@ description: Test command
 
       const registry = await discoverComponents(tempDir);
 
-      // Should have 1 command + 8 embedded hooks = 9 total
-      expect(registry.components.size).toBe(9);
+      // Should have 1 command + 10 embedded hooks = 11 total
+      expect(registry.components.size).toBe(11);
       expect(getComponent('test', registry)).toBeDefined();
     });
 
@@ -230,14 +232,14 @@ enabled: false
       );
 
       const registryAll = await discoverComponents(tempDir, { includeDisabled: true });
-      // Should have 2 commands + 8 embedded hooks = 10 total
-      expect(registryAll.components.size).toBe(10);
+      // Should have 2 commands + 10 embedded hooks = 12 total
+      expect(registryAll.components.size).toBe(12);
 
       // Clear cache before second call
       invalidateCache(tempDir);
       const registryEnabled = await discoverComponents(tempDir, { includeDisabled: false });
-      // Should have 1 enabled command + 8 embedded hooks (all enabled by default) = 9 total
-      expect(registryEnabled.components.size).toBe(9);
+      // Should have 1 enabled command + 10 embedded hooks (all enabled by default) = 11 total
+      expect(registryEnabled.components.size).toBe(11);
       expect(getComponent('enabled', registryEnabled)).toBeDefined();
       expect(getComponent('disabled', registryEnabled)).toBeUndefined();
     });
@@ -254,7 +256,7 @@ category: git
 
       const registry = await discoverComponents(tempDir);
 
-      // Test git category (should have git-cmd command and auto-checkpoint hook)
+      // Test git category (should have git-cmd command and create-checkpoint hook)
       const gitComponents = getComponentsByCategory('git', registry);
       const gitCommandComponent = gitComponents.find((c) => c.metadata.id === 'git-cmd');
       expect(gitCommandComponent).toBeDefined();
@@ -265,14 +267,14 @@ category: git
 
       // Test that embedded hooks are included
       const hooks = getComponentsByType('hook', registry);
-      expect(hooks.length).toBe(8); // All 8 embedded hooks
+      expect(hooks.length).toBe(10); // All 10 embedded hooks
 
       // Test validation category has embedded validation hooks
       const validationComponents = getComponentsByCategory('validation', registry);
       const validationHooks = validationComponents.filter((c) => c.type === 'hook');
       expect(validationHooks.length).toBeGreaterThan(0);
-      expect(validationHooks.some((h) => h.metadata.id === 'typecheck')).toBe(true);
-      expect(validationHooks.some((h) => h.metadata.id === 'eslint')).toBe(true);
+      expect(validationHooks.some((h) => h.metadata.id === 'typecheck-changed')).toBe(true);
+      expect(validationHooks.some((h) => h.metadata.id === 'lint-changed')).toBe(true);
     });
   });
 
@@ -307,10 +309,10 @@ Uses /base command`
       expect(cmdDeps.some((c) => c.metadata.id === 'base')).toBe(true);
 
       // Test embedded hook dependencies
-      getDependencies('typecheck', registry);
+      getDependencies('typecheck-changed', registry);
       // Note: typescript and tsc are external dependencies, so they won't be in the registry
-      expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('typescript');
-      expect(getComponent('typecheck', registry)?.metadata.dependencies).toContain('tsc');
+      expect(getComponent('typecheck-changed', registry)?.metadata.dependencies).toContain('typescript');
+      expect(getComponent('typecheck-changed', registry)?.metadata.dependencies).toContain('tsc');
     });
 
     it('should resolve dependency order correctly', async () => {
@@ -446,11 +448,11 @@ description: Test command 2
 # Test 2`
       );
 
-      // Should still return cached result (1 command + 8 embedded hooks = 9)
+      // Should still return cached result (1 command + 10 embedded hooks = 11)
       const registry2 = await discoverComponents(tempDir);
       expect(getComponentsByType('command', registry2).length).toBe(1);
 
-      // Force refresh should pick up new file (2 commands + 8 embedded hooks = 10)
+      // Force refresh should pick up new file (2 commands + 10 embedded hooks = 12)
       const registry3 = await discoverComponents(tempDir, { forceRefresh: true });
       expect(getComponentsByType('command', registry3).length).toBe(2);
     });
@@ -477,11 +479,11 @@ category: validation
       const registry = await discoverComponents(tempDir);
       const stats = getDiscoveryStats(registry);
 
-      // 2 commands + 8 embedded hooks = 10 total
-      expect(stats.totalComponents).toBe(10);
+      // 2 commands + 10 embedded hooks = 12 total
+      expect(stats.totalComponents).toBe(12);
       expect(stats.commandCount).toBe(2);
-      expect(stats.hookCount).toBe(8); // All embedded hooks
-      expect(stats.categoryCounts.git).toBeGreaterThanOrEqual(1); // git command + auto-checkpoint hook
+      expect(stats.hookCount).toBe(10); // All embedded hooks
+      expect(stats.categoryCounts.git).toBeGreaterThanOrEqual(1); // git command + create-checkpoint hook
       expect(stats.categoryCounts.validation).toBeGreaterThanOrEqual(1); // validation command + validation hooks
       expect(stats.cacheStatus).toBe('valid');
     });
@@ -504,8 +506,8 @@ author: Test Author
       const registry = await discoverComponents(tempDir);
       const components = registryToComponents(registry);
 
-      // Should have 1 command + 8 embedded hooks
-      expect(components.length).toBe(9);
+      // Should have 1 command + 10 embedded hooks
+      expect(components.length).toBe(11);
 
       const testCommand = components.find((c) => c.id === 'test');
       expect(testCommand).toBeDefined();
@@ -589,8 +591,8 @@ category: utility
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(500);
-      // Should have componentCount commands + 8 embedded hooks
-      expect(registry.components.size).toBe(componentCount + 8);
+      // Should have componentCount commands + 10 embedded hooks
+      expect(registry.components.size).toBe(componentCount + 10);
     });
   });
 });

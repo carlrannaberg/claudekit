@@ -83,7 +83,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',
-    hooks: ['eslint', 'typecheck', 'run-related-tests'],
+    hooks: ['lint-changed', 'typecheck-changed', 'test-changed'],
     recommended: true,
     triggerEvent: 'PostToolUse',
   },
@@ -91,7 +91,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'completion-validation',
     name: '✅ Completion Validation (Stop)',
     description: 'Ensure quality and task completion before stopping',
-    hooks: ['project-validation', 'validate-todo-completion'],
+    hooks: ['typecheck-project', 'lint-project', 'test-project', 'check-todos'],
     recommended: true,
     triggerEvent: 'Stop',
   },
@@ -99,7 +99,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'safety-checkpoint',
     name: '💾 Safety Checkpoint (Stop)',
     description: 'Automatically save work when Claude Code stops',
-    hooks: ['auto-checkpoint'],
+    hooks: ['create-checkpoint'],
     recommended: false,
     triggerEvent: 'Stop',
   },
@@ -903,14 +903,14 @@ async function createProjectSettings(
       }
 
       switch (component.id) {
-        case 'typecheck':
+        case 'typecheck-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.ts',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'eslint':
+        case 'lint-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
             hooks: [{ type: 'command', command: hookCommand }],
@@ -924,21 +924,21 @@ async function createProjectSettings(
           });
           break;
 
-        case 'no-any':
+        case 'check-any-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'tools:Write AND file_paths:**/*.{ts,tsx}',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'run-related-tests':
+        case 'test-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'Write,Edit,MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'auto-checkpoint': {
+        case 'create-checkpoint': {
           const stopEntry = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntry !== undefined) {
             stopEntry.hooks.push({ type: 'command', command: hookCommand });
@@ -951,7 +951,7 @@ async function createProjectSettings(
           break;
         }
 
-        case 'validate-todo-completion': {
+        case 'check-todos': {
           const stopEntryTodo = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryTodo !== undefined) {
             stopEntryTodo.hooks.push({ type: 'command', command: hookCommand });
@@ -964,8 +964,10 @@ async function createProjectSettings(
           break;
         }
 
-        case 'project-validation': {
-          // Add project-validation to Stop hooks
+        case 'typecheck-project':
+        case 'lint-project':
+        case 'test-project': {
+          // Add project-wide hooks to Stop hooks
           const stopEntryValidation = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryValidation !== undefined) {
             stopEntryValidation.hooks.push({ type: 'command', command: hookCommand });
