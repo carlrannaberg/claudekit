@@ -64,6 +64,7 @@
     "@inquirer/prompts": "^7.6.0",
     "commander": "^14.0.0",
     "fs-extra": "^11.3.0",
+    "oh-my-logo": "^0.2.1",
     "ora": "^8.2.0",
     "picocolors": "^1.1.0",
     "zod": "^3.24.1"

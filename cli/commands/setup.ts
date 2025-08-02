@@ -4,6 +4,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter, ComponentProgressReporter } from '../utils/progress.js';
+import { renderFilled } from 'oh-my-logo';
 import {
   pathExists,
   ensureDirectoryExists,
@@ -322,10 +323,18 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Show welcome message (unless in non-interactive mode)
     if (!isNonInteractive || options.quiet !== true) {
-      console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
-      console.log(Colors.dim('─'.repeat(40)));
-
+      // Display logo for interactive mode
       if (!isNonInteractive) {
+        try {
+          console.log(); // Add spacing before logo
+          await renderFilled('claudekit', { palette: 'sunset' });
+          console.log(); // Add spacing after logo
+        } catch {
+          // Fallback to text if logo fails
+          console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
+        }
+        console.log(Colors.dim('─'.repeat(60)));
+        
         console.log(
           '\nWelcome to claudekit! This wizard will help you configure claudekit\n' +
             'for your development workflow. claudekit provides:\n\n' +
@@ -334,6 +343,10 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             '  • AI assistant configuration management\n' +
             '  • Custom commands and hooks for Claude Code\n'
         );
+      } else {
+        // Simple text for non-interactive mode
+        console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
+        console.log(Colors.dim('─'.repeat(40)));
       }
     }
 

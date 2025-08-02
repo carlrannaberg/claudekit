@@ -1,3 +1,5 @@
+![claudekit banner](assets/banner.png)
+
 # claudekit
 
 A powerful CLI toolkit for enhancing Claude Code with custom commands, hooks, and development workflow utilities.
