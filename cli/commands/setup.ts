@@ -290,7 +290,7 @@ export interface SetupOptions {
 }
 
 interface SetupConfig {
-  installationType: 'user' | 'project' | 'both';
+  installationType: 'user' | 'project';
   projectPath: string;
   selectedComponents: string[];
   options: {
@@ -340,8 +340,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // Step 1: Installation type
     let installationType: string;
     if (options.yes === true || options.commandsOnly === true) {
-      // Default to both for --yes, commands only for --commands-only
-      installationType = options.commandsOnly === true ? 'user' : 'both';
+      // Default to project for --yes, user only for --commands-only
+      installationType = options.commandsOnly === true ? 'user' : 'project';
     } else {
       installationType = await select({
         message: 'How would you like to install ClaudeKit?',
@@ -354,17 +354,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             value: 'user',
             name: 'User only - Install globally for all projects (~/.claude)',
           },
-          {
-            value: 'both',
-            name: 'Both user and project - Install globally and configure for current project',
-          },
         ],
       });
     }
 
     // Step 2: Project path (if project installation)
     let projectPath = process.cwd();
-    if (installationType === 'project' || installationType === 'both') {
+    if (installationType === 'project') {
       if (options.project !== undefined && options.project !== '') {
         // Use provided project path
         const expanded = expandHomePath(options.project);
@@ -566,7 +562,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 6: Confirmation
     const config: SetupConfig = {
-      installationType: installationType as 'user' | 'project' | 'both',
+      installationType: installationType as 'user' | 'project',
       projectPath,
       selectedComponents,
       options: {
@@ -714,7 +710,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         },
       };
 
-      if (config.installationType === 'user' || config.installationType === 'both') {
+      if (config.installationType === 'user') {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
         const userResult = await installComponents(
@@ -734,7 +730,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         }
       }
 
-      if (config.installationType === 'project' || config.installationType === 'both') {
+      if (config.installationType === 'project') {
         progressReporter.update('Installing project-level components...');
 
         // Create .claude directory
