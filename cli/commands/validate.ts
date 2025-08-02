@@ -56,7 +56,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     } catch {
       legacyResults.push({
         passed: false,
-        message: '.claude directory not found - run "claudekit init" first',
+        message: '.claude directory not found - run "claudekit setup" first',
       });
     }
 
@@ -322,7 +322,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
       // Provide helpful suggestions
       console.log(Colors.warn('\nNext steps:'));
       if (legacyResults.some((r) => !r.passed && r.message.includes('.claude directory'))) {
-        console.log(Colors.warn('• Run "claudekit init" to set up ClaudeKit'));
+        console.log(Colors.warn('• Run "claudekit setup" to set up ClaudeKit'));
       }
       if (legacyResults.some((r) => !r.passed && r.message.includes('settings.json'))) {
         console.log(Colors.warn('• Check your .claude/settings.json file for syntax errors'));

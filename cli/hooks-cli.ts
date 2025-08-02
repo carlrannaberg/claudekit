@@ -48,7 +48,7 @@ export function createHooksCLI(): Command {
     .description('Show recent hook executions')
     .action(async (limit?: string) => {
       const { getRecentExecutions } = await import('./hooks/logging.js');
-      const executions = await getRecentExecutions(limit ? parseInt(limit) : 20);
+      const executions = await getRecentExecutions(limit !== undefined ? parseInt(limit) : 20);
       
       if (executions.length === 0) {
         console.log('No recent hook executions found.');

@@ -1,5 +1,4 @@
 // Main library exports
-export { init } from './commands/init.js';
 export { validate } from './commands/validate.js';
 export { setup } from './commands/setup.js';
 export { add } from './commands/add.js';

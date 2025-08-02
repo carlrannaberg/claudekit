@@ -145,26 +145,7 @@ program
     }
   });
 
-// Legacy commands for backward compatibility
-program
-  .command('init')
-  .description('Initialize claudekit in the current directory (alias for setup)')
-  .option('-f, --force', 'overwrite existing configuration')
-  .action(async (options) => {
-    try {
-      const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun === true) {
-        logger.info('Dry run mode: Would initialize claudekit configuration');
-        return;
-      }
-      // Use the existing init command or redirect to setup
-      const { init } = await import('./commands/init.js');
-      await init(mergedOptions);
-    } catch (error) {
-      logger.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
-      process.exit(1);
-    }
-  });
+// Legacy commands for backward compatibility - removed init command
 
 program
   .command('validate')

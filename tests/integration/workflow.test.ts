@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { init } from '../../cli/commands/init';
+import { setup } from '../../cli/commands/setup';
 import { validate } from '../../cli/commands/validate';
 import { loadConfig, saveConfig, configExists } from '../../cli/utils/config';
 import { TestFileSystem, CommandTestHelper, ConsoleTestHelper } from '../utils/test-helpers';
@@ -76,7 +76,7 @@ describe('CLI workflow integration', () => {
   });
 
   describe('complete initialization workflow', () => {
-    it('should complete full init -> validate -> config modification cycle', async () => {
+    it('should complete full setup -> validate -> config modification cycle', async () => {
       // Step 1: Fresh directory should fail validation
       await validate({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
@@ -84,8 +84,8 @@ describe('CLI workflow integration', () => {
       // Reset mocks for next steps
       processExit.exit.mockClear();
 
-      // Step 2: Initialize ClaudeKit
-      await init({});
+      // Step 2: Initialize ClaudeKit with setup (auto-yes to avoid prompts)
+      await setup({ yes: true });
       expect(processExit.exit).not.toHaveBeenCalled();
 
       // Step 3: Validation should now pass
@@ -104,7 +104,7 @@ describe('CLI workflow integration', () => {
 
     it('should handle config modification workflow', async () => {
       // Initialize
-      await init({});
+      await setup({ yes: true });
 
       // Load initial config
       const initialConfig = await loadConfig(tempDir);
@@ -159,7 +159,7 @@ describe('CLI workflow integration', () => {
 
     it('should handle force reinitialize workflow', async () => {
       // Initial setup
-      await init({});
+      await setup({ yes: true });
       const originalConfig = await loadConfig(tempDir);
 
       // Add a custom hook file
@@ -177,7 +177,7 @@ describe('CLI workflow integration', () => {
       ).resolves.not.toThrow();
 
       // Force reinitialize
-      await init({ force: true });
+      await setup({ force: true, yes: true });
 
       // Original structure should be recreated
       const newConfig = await loadConfig(tempDir);
@@ -198,7 +198,7 @@ describe('CLI workflow integration', () => {
   describe('error recovery workflows', () => {
     it('should handle corrupted config recovery', async () => {
       // Initialize normally
-      await init({});
+      await setup({ yes: true });
 
       // Corrupt the config file
       await fs.writeFile(
@@ -215,7 +215,7 @@ describe('CLI workflow integration', () => {
       await expect(loadConfig(tempDir)).rejects.toThrow();
 
       // Force reinitialize to recover
-      await init({ force: true });
+      await setup({ force: true, yes: true });
 
       // Should be recovered
       const config = await loadConfig(tempDir);
@@ -229,7 +229,7 @@ describe('CLI workflow integration', () => {
 
     it('should handle missing settings.json recovery', async () => {
       // Initialize normally
-      await init({});
+      await setup({ yes: true });
 
       // Remove settings.json to cause validation failure
       await fs.rm(path.join(tempDir, '.claude', 'settings.json'));
@@ -240,7 +240,7 @@ describe('CLI workflow integration', () => {
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
       // Force reinitialize to recover
-      await init({ force: true });
+      await setup({ force: true, yes: true });
 
       // Settings file should be recreated
       await expect(
@@ -257,7 +257,7 @@ describe('CLI workflow integration', () => {
   describe('config validation edge cases', () => {
     it('should handle config with valid JSON but invalid structure', async () => {
       // Initialize normally
-      await init({});
+      await setup({ yes: true });
 
       // Create config with valid JSON but wrong structure
       const invalidStructureConfig = {
@@ -280,7 +280,7 @@ describe('CLI workflow integration', () => {
 
     it('should handle empty hooks in config', async () => {
       // Initialize normally
-      await init({});
+      await setup({ yes: true });
 
       // Create config with empty hooks
       const emptyHooksConfig: Config = {
@@ -320,7 +320,7 @@ describe('CLI workflow integration', () => {
 
       try {
         // Initialize in deep directory
-        await init({});
+        await setup({ yes: true });
 
         // Verify structure was created
         await expect(
@@ -343,7 +343,7 @@ describe('CLI workflow integration', () => {
       const restoreSpecialCwd = CommandTestHelper.mockProcessCwd(specialDir);
 
       try {
-        await init({});
+        await setup({ yes: true });
 
         // Should work normally
         const exists = await configExists(specialDir);

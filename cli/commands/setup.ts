@@ -914,28 +914,28 @@ async function createProjectSettings(
       switch (component.id) {
         case 'typecheck-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.ts',
+            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.ts',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'lint-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
+            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx}',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'prettier':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
+            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'check-any-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{ts,tsx}',
+            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{ts,tsx}',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;

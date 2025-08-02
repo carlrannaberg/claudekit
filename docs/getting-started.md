@@ -37,7 +37,7 @@ npm install --save-dev claudekit
 
 Then use with `npx`:
 ```bash
-npx claudekit init
+npx claudekit setup
 ```
 
 ## Setting Up Your First Project
@@ -47,7 +47,7 @@ npx claudekit init
 Navigate to your project and run:
 
 ```bash
-claudekit init
+claudekit setup
 ```
 
 This command will:
@@ -67,7 +67,7 @@ Example output:
   ✓ Git repository initialized
 
 📝 Created .claude/settings.json with recommended configuration
-✅ claudekit initialized successfully!
+✅ claudekit setupialized successfully!
 ```
 
 ### Step 2: Review the Configuration

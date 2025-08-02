@@ -2,7 +2,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
           {
             "type": "command",
@@ -11,7 +11,7 @@
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "tools:(Write|Edit|MultiEdit) AND file_paths:**/*.ts",
         "hooks": [
           {
             "type": "command",

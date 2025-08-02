@@ -20,7 +20,7 @@ pnpm add -g claudekit
 
 ```bash
 cd your-project
-claudekit init
+claudekit setup
 ```
 
 This will:

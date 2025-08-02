@@ -7,8 +7,8 @@ interface HookExecution {
   timestamp: string;
   executionTime: number;
   exitCode: number;
-  payload?: any;
-  result?: any;
+  payload?: unknown;
+  result?: unknown;
 }
 
 interface HookStats {
@@ -29,18 +29,33 @@ const EXECUTIONS_LOG = path.join(LOG_DIR, 'hook-executions.jsonl');
 const STATS_FILE = path.join(LOG_DIR, 'hook-stats.json');
 
 export async function appendHookExecution(execution: HookExecution): Promise<void> {
+  console.error('[LOGGING] appendHookExecution called for:', execution.hookName);
   try {
+    // Debug logging
+    if (process.env['CLAUDEKIT_DEBUG']) {
+      console.error('[DEBUG] Logging hook execution:', {
+        hookName: execution.hookName,
+        timestamp: execution.timestamp,
+        logDir: LOG_DIR,
+        executionsLog: EXECUTIONS_LOG
+      });
+    }
+
     // Ensure log directory exists
     await fs.ensureDir(LOG_DIR);
 
     // Append to JSONL log file
-    const logEntry = JSON.stringify(execution) + '\n';
+    const logEntry = `${JSON.stringify(execution)}\n`;
     await fs.appendFile(EXECUTIONS_LOG, logEntry);
 
     // Update stats
     await updateHookStats(execution);
+    
+    if (process.env['CLAUDEKIT_DEBUG']) {
+      console.error('[DEBUG] Hook execution logged successfully');
+    }
   } catch (error) {
-    // Silently fail to avoid disrupting hook execution
+    // Log errors when debug is enabled
     if (process.env['CLAUDEKIT_DEBUG']) {
       console.error('[DEBUG] Failed to log hook execution:', error);
     }
@@ -72,7 +87,12 @@ async function updateHookStats(execution: HookExecution): Promise<void> {
     };
   }
 
-  const hookStats = stats[execution.hookName]!; // We know it exists from initialization above
+  const hookStats = stats[execution.hookName];
+  
+  // This should never happen given the initialization above, but satisfy TypeScript
+  if (!hookStats) {
+    return;
+  }
 
   // Update counts
   hookStats.totalExecutions++;

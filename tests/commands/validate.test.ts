@@ -171,7 +171,7 @@ describe('validate command', () => {
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✗');
       expect(output).toContain('.claude directory not found');
-      expect(output).toContain('run "claudekit init" first');
+      expect(output).toContain('run "claudekit setup" first');
       expect(output).toContain('Some validation checks failed.');
     });
 

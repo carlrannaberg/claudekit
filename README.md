@@ -20,7 +20,7 @@ pnpm add -g claudekit
 
 ```bash
 # Initialize claudekit in your project
-claudekit init
+claudekit setup
 
 # Install recommended hooks and commands
 claudekit install
@@ -31,18 +31,18 @@ claudekit list
 
 ## CLI Commands
 
-### `claudekit init`
+### `claudekit setup`
 Initialize claudekit in your project by creating a `.claude` directory with recommended settings.
 
 ```bash
-claudekit init [options]
+claudekit setup [options]
 
 Options:
   -f, --force               Overwrite existing .claude directory
   --skip-recommendations    Skip project analysis and recommendations
 ```
 
-The init command:
+The setup command:
 - Analyzes your project to detect TypeScript, ESLint, testing frameworks, etc.
 - Creates `.claude/settings.json` with recommended hooks configuration
 - Sets up directories for hooks and commands
