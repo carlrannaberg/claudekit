@@ -125,7 +125,7 @@ git push origin vX.Y.Z
    ```bash
    # Install claudekit
    npm install -g claudekit
-   claudekit init
+   claudekit setup
    ```
 7. Attach any binary artifacts if applicable
 8. Mark as pre-release if beta/rc
@@ -138,7 +138,7 @@ cd /tmp
 git clone https://github.com/[username]/claudekit.git test-install
 cd test-install
 npm install -g claudekit
-claudekit init
+claudekit setup
 
 # Verify installation
 ls ~/.claude/commands/

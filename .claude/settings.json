@@ -2,29 +2,20 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run lint-changed --debug"
+            "command": "claudekit-hooks run typecheck-changed"
           }
         ]
       },
       {
-        "matcher": "tools:(Write|Edit|MultiEdit) AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run typecheck-changed --debug"
-          }
-        ]
-      },
-      {
-        "matcher": "Write,Edit,MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claudekit-hooks run test-changed --debug"
+            "command": "claudekit-hooks run lint-changed"
           }
         ]
       }
@@ -35,23 +26,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run create-checkpoint --debug"
+            "command": "claudekit-hooks run create-checkpoint"
           },
           {
             "type": "command",
-            "command": "claudekit-hooks run check-todos --debug"
-          },
-          {
-            "type": "command",
-            "command": "claudekit-hooks run typecheck-project --debug"
-          },
-          {
-            "type": "command",
-            "command": "claudekit-hooks run lint-project --debug"
-          },
-          {
-            "type": "command",
-            "command": "claudekit-hooks run test-project --debug"
+            "command": "claudekit-hooks run check-todos"
           }
         ]
       }

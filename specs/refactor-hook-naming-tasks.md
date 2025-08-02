@@ -500,7 +500,7 @@ describe('TypecheckProjectHook', () => {
 **Can run parallel with**: Task 3.1, 3.2
 
 **Testing Steps**:
-1. Run `claudekit init` and verify new hook descriptions
+1. Run `claudekit setup` and verify new hook descriptions
 2. Test each new hook functions correctly:
    - `claudekit-hooks run typecheck-changed` on TS file
    - `claudekit-hooks run lint-changed` on JS file

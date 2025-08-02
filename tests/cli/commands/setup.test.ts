@@ -145,28 +145,28 @@ async function createProjectSettings(
       switch (component.id) {
         case 'typecheck-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.ts',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'lint-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'prettier':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'check-any-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{ts,tsx}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
@@ -378,7 +378,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       if (!typecheckEntry) {
         throw new Error('typecheckEntry not found');
       }
-      expect(typecheckEntry.matcher).toBe('tools:Write AND file_paths:**/*.ts');
+      expect(typecheckEntry.matcher).toBe('Write|Edit|MultiEdit');
       expect(typecheckEntry.hooks[0]).toEqual({
         type: 'command',
         command: 'claudekit-hooks run typecheck-changed',
@@ -400,7 +400,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       if (!eslintEntry) {
         throw new Error('eslintEntry not found');
       }
-      expect(eslintEntry.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
+      expect(eslintEntry.matcher).toBe('Write|Edit|MultiEdit');
       expect(eslintEntry.hooks[0]).toEqual({
         type: 'command',
         command: 'claudekit-hooks run lint-changed',
@@ -423,7 +423,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         throw new Error('prettierEntry not found');
       }
       expect(prettierEntry.matcher).toBe(
-        'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}'
+        'Write|Edit|MultiEdit'
       );
       expect(prettierEntry.hooks[0]).toEqual({
         type: 'command',
@@ -446,7 +446,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       if (!noAnyEntry) {
         throw new Error('noAnyEntry not found');
       }
-      expect(noAnyEntry.matcher).toBe('tools:Write AND file_paths:**/*.{ts,tsx}');
+      expect(noAnyEntry.matcher).toBe('Write|Edit|MultiEdit');
       expect(noAnyEntry.hooks[0]).toEqual({
         type: 'command',
         command: 'claudekit-hooks run check-any-changed',
@@ -548,7 +548,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         hooks: {
           PostToolUse: [
             {
-              matcher: 'tools:Write AND file_paths:**/*.ts',
+              matcher: 'Write|Edit|MultiEdit',
               hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
             },
           ],
@@ -575,7 +575,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         hooks: {
           PostToolUse: [
             {
-              matcher: 'tools:Write AND file_paths:**/*.ts',
+              matcher: 'Write|Edit|MultiEdit',
               hooks: [{ type: 'command', command: '.claude/hooks/typecheck-changed.sh' }],
             },
           ],
@@ -766,7 +766,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         hooks: {
           PostToolUse: [
             {
-              matcher: 'tools:Write AND file_paths:**/*.ts',
+              matcher: 'Write|Edit|MultiEdit',
               hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
             },
           ],

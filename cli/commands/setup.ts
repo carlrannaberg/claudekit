@@ -84,7 +84,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',
-    hooks: ['lint-changed', 'typecheck-changed', 'test-changed'],
+    hooks: ['lint-changed', 'typecheck-changed', 'check-any-changed', 'test-changed'],
     recommended: true,
     triggerEvent: 'PostToolUse',
   },
@@ -914,28 +914,28 @@ async function createProjectSettings(
       switch (component.id) {
         case 'typecheck-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.ts',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'lint-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'prettier':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'check-any-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:(Write|Edit|MultiEdit) AND file_paths:**/*.{ts,tsx}',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [{ type: 'command', command: hookCommand }],
           });
           break;

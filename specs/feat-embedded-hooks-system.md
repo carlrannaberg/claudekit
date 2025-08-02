@@ -1514,7 +1514,7 @@ Update `.claude/settings.json` to use claudekit-hooks:
 
 ### Setup Flow
 1. Install claudekit: `npm install -g claudekit`
-2. Initialize project: `claudekit init`
+2. Initialize project: `claudekit setup`
 3. Configure hooks in `.claudekit/config.json`
 4. Update `.claude/settings.json` to use `claudekit-hooks [name]`
 

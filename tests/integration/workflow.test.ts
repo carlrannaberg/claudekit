@@ -326,7 +326,7 @@ describe('CLI workflow integration', () => {
         await expect(
           fs.access(path.join(deepDir, '.claude', 'settings.json'))
         ).resolves.not.toThrow();
-        await expect(fs.access(path.join(deepDir, '.claude', 'hooks'))).resolves.not.toThrow();
+        // Note: .claude/hooks directory is not created by setup since hooks are embedded
 
         // Validation should work
         processExit.exit.mockClear();

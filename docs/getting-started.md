@@ -67,7 +67,7 @@ Example output:
   ✓ Git repository initialized
 
 📝 Created .claude/settings.json with recommended configuration
-✅ claudekit setupialized successfully!
+✅ claudekit setup complete!
 ```
 
 ### Step 2: Review the Configuration

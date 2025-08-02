@@ -439,7 +439,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         );
         expect(typecheckHook).toBeDefined();
         expect(typecheckHook.hooks[0].command).toBe('claudekit-hooks run typecheck-changed');
-        expect(typecheckHook.matcher).toBe('tools:Write AND file_paths:**/*.ts');
+        expect(typecheckHook.matcher).toBe('Write|Edit|MultiEdit');
 
         // Check ESLint hook (changed files)  
         const eslintHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
@@ -447,7 +447,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         );
         expect(eslintHook).toBeDefined();
         expect(eslintHook.hooks[0].command).toBe('claudekit-hooks run lint-changed');
-        expect(eslintHook.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
+        expect(eslintHook.matcher).toBe('Write|Edit|MultiEdit');
       }
     });
 
@@ -925,12 +925,12 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         const typecheckEntry = postToolUseHooks.find(
           (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run typecheck-changed'
         );
-        expect(typecheckEntry?.matcher).toBe('tools:Write AND file_paths:**/*.ts');
+        expect(typecheckEntry?.matcher).toBe('Write|Edit|MultiEdit');
 
         const eslintEntry = postToolUseHooks.find(
           (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run lint-changed'
         );
-        expect(eslintEntry?.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
+        expect(eslintEntry?.matcher).toBe('Write|Edit|MultiEdit');
 
         // Verify Stop hooks
         const stopHooks = settings.hooks.Stop;

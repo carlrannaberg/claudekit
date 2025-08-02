@@ -53,7 +53,7 @@ claudekit-hooks --help
 
 ### Integration with Claude Code
 
-Hooks are configured in your project's `.claude/settings.json` file. The claudekit init command will set this up for you automatically based on your project type.
+Hooks are configured in your project's `.claude/settings.json` file. The claudekit setup command will set this up for you automatically based on your project type.
 
 ## Available Hooks and Their Purposes
 
