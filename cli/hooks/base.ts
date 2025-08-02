@@ -40,9 +40,11 @@ export interface HookConfig {
 export abstract class BaseHook {
   abstract name: string;
   protected config: HookConfig;
+  protected debug: boolean;
 
   constructor(config: HookConfig = {}) {
     this.config = config;
+    this.debug = process.env['CLAUDEKIT_DEBUG'] === 'true' || false;
   }
 
   // Main execution method - implements common flow
@@ -95,8 +97,24 @@ export abstract class BaseHook {
     if (options?.timeout !== undefined) {
       mergedOptions.timeout = options.timeout;
     }
-
-    return execCommand(command, args, mergedOptions);
+    
+    if (this.debug) {
+      console.error(`[DEBUG] Executing command: ${command} ${args.join(' ')}`);
+      console.error(`[DEBUG] Command options:`, mergedOptions);
+    }
+    
+    const result = await execCommand(command, args, mergedOptions);
+    
+    if (this.debug) {
+      console.error(`[DEBUG] Command exit code: ${result.exitCode}`);
+      console.error(`[DEBUG] Command stdout length: ${result.stdout.length}`);
+      console.error(`[DEBUG] Command stderr length: ${result.stderr.length}`);
+      if (result.exitCode !== 0) {
+        console.error(`[DEBUG] Command stderr:`, result.stderr);
+      }
+    }
+    
+    return result;
   }
 
   // Progress message to stderr

@@ -13,7 +13,8 @@ export function createHooksCLI(): Command {
     .description('Claude Code hooks execution system')
     .version('1.0.0')
     .option('--config <path>', 'Path to config file', '.claudekit/config.json')
-    .option('--list', 'List available hooks');
+    .option('--list', 'List available hooks')
+    .option('--debug', 'Enable debug logging');
 
   // Add list command
   program
@@ -36,8 +37,13 @@ export function createHooksCLI(): Command {
   program
     .command('run <hook>')
     .description('Run a specific hook')
-    .action(async (hookName: string) => {
-      const hookRunner = new HookRunner(program.opts()['config']);
+    .option('--debug', 'Enable debug logging')
+    .action(async (hookName: string, options) => {
+      const globalOpts = program.opts();
+      const hookRunner = new HookRunner(
+        globalOpts['config'] as string | undefined, 
+        globalOpts['debug'] === true || options.debug === true
+      );
       const exitCode = await hookRunner.run(hookName);
       process.exit(exitCode);
     });

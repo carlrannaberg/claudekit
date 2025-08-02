@@ -19,7 +19,7 @@ export async function readStdin(): Promise<string> {
     let data = '';
     process.stdin.on('data', (chunk) => (data += chunk));
     process.stdin.on('end', () => resolve(data));
-    setTimeout(() => resolve(''), 1000); // Timeout fallback
+    // No timeout - wait indefinitely for input
   });
 }
 

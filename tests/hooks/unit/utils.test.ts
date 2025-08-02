@@ -78,34 +78,9 @@ describe('utils', () => {
   });
 
   describe('readStdin', () => {
-    it('should timeout after 1 second when no input', async () => {
-      // Mock stdin that never sends data
-      const originalStdin = process.stdin;
-      const mockStdin = {
-        on: vi.fn((event, _callback) => {
-          if (event === 'data') {
-            // Don't call callback - simulate no data
-          } else if (event === 'end') {
-            // Don't call callback - simulate no end
-          }
-        }),
-      };
-      Object.defineProperty(process, 'stdin', {
-        value: mockStdin,
-        writable: true,
-        configurable: true,
-      });
-
-      const start = Date.now();
-      const result = await readStdin();
-      const duration = Date.now() - start;
-
-      expect(result).toBe('');
-      expect(duration).toBeGreaterThanOrEqual(1000);
-      expect(duration).toBeLessThan(1100);
-
-      // Restore original stdin
-      process.stdin = originalStdin;
+    it.skip('should wait indefinitely for input (no timeout)', async () => {
+      // This test is skipped because readStdin now waits indefinitely
+      // for input to match Claude Code's expectations
     });
 
     it('should read data from stdin', async () => {

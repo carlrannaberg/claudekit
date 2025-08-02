@@ -30,9 +30,11 @@ const ConfigSchema = z.object({
 export class HookRunner {
   private hooks: Map<string, new (config: HookConfig) => BaseHook> = new Map();
   private configPath: string;
+  private debug: boolean;
 
-  constructor(configPath: string = '.claudekit/config.json') {
+  constructor(configPath: string = '.claudekit/config.json', debug: boolean = false) {
     this.configPath = configPath;
+    this.debug = debug;
 
     // Register all hooks
     this.hooks.set('typecheck-changed', TypecheckChangedHook);
@@ -60,16 +62,45 @@ export class HookRunner {
 
     // Read Claude payload from stdin
     const input = await readStdin();
+    
+    if (this.debug) {
+      console.error('[DEBUG] Raw stdin input:', JSON.stringify(input));
+      console.error('[DEBUG] Input length:', input.length);
+    }
+    
     let payload;
     try {
       payload = JSON.parse(input || '{}');
-    } catch {
+      if (this.debug) {
+        console.error('[DEBUG] Parsed payload:', JSON.stringify(payload, null, 2));
+      }
+    } catch (error) {
+      if (this.debug) {
+        console.error('[DEBUG] Failed to parse JSON:', error);
+      }
       payload = {};
     }
 
     // Create and run hook
     const hook = new HookClass(hookConfig);
+    
+    if (this.debug) {
+      console.error('[DEBUG] Running hook:', hookName);
+      console.error('[DEBUG] Hook config:', JSON.stringify(hookConfig, null, 2));
+      // Set environment variable for the hook to detect debug mode
+      process.env['CLAUDEKIT_DEBUG'] = 'true';
+    }
+    
     const result = await hook.run(payload);
+    
+    // Clean up environment variable
+    if (this.debug) {
+      delete process.env['CLAUDEKIT_DEBUG'];
+    }
+    
+    if (this.debug) {
+      console.error('[DEBUG] Hook result:', JSON.stringify(result, null, 2));
+    }
 
     // Handle different result types
     if (result.jsonResponse !== undefined) {
