@@ -83,14 +83,14 @@ Update your `.claude/settings.json` to use the embedded hooks commands:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run eslint"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       }
     ],
@@ -98,7 +98,7 @@ Update your `.claude/settings.json` to use the embedded hooks commands:
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"}
         ]
       }
     ]
@@ -113,14 +113,14 @@ If you need custom configuration, create `.claudekit/config.json`:
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "timeout": 30000
     },
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "timeout": 30000
     },
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "claude",
       "maxCheckpoints": 10
     }
@@ -146,14 +146,14 @@ Test that hooks work correctly:
 claudekit-hooks list
 
 # Test individual hooks
-claudekit-hooks test typecheck --file src/index.ts
-claudekit-hooks test eslint --file src/app.js
-claudekit-hooks test auto-checkpoint
+claudekit-hooks test typecheck-changed --file src/index.ts
+claudekit-hooks test lint-changed --file src/app.js
+claudekit-hooks test create-checkpoint
 ```
 
 ## Hook Mapping Guide
 
-### typecheck.sh → claudekit-hooks run typecheck
+### typecheck.sh → claudekit-hooks run typecheck-changed
 
 **Shell Script Features:**
 - Runs `tsc --noEmit`
@@ -166,7 +166,7 @@ Simply replace the command in settings.json. Configuration via `.claudekit/confi
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "tsc --noEmit",
       "timeout": 30000,
       "incremental": true
@@ -175,7 +175,7 @@ Simply replace the command in settings.json. Configuration via `.claudekit/confi
 }
 ```
 
-### eslint.sh → claudekit-hooks run eslint
+### eslint.sh → claudekit-hooks run lint-changed
 
 **Shell Script Features:**
 - Runs ESLint on files
@@ -188,7 +188,7 @@ Replace command and configure as needed:
 ```json
 {
   "hooks": {
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "extensions": [".js", ".jsx", ".ts", ".tsx"],
       "maxWarnings": 0,
@@ -198,7 +198,7 @@ Replace command and configure as needed:
 }
 ```
 
-### auto-checkpoint.sh → claudekit-hooks run auto-checkpoint
+### auto-checkpoint.sh → claudekit-hooks run create-checkpoint
 
 **Shell Script Features:**
 - Creates git stash checkpoints
@@ -210,7 +210,7 @@ Replace command and configure as needed:
 ```json
 {
   "hooks": {
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "claude",
       "maxCheckpoints": 10,
       "includeUntracked": true,
@@ -220,7 +220,7 @@ Replace command and configure as needed:
 }
 ```
 
-### validate-todo-completion.sh → claudekit-hooks run validate-todo-completion
+### validate-todo-completion.sh → claudekit-hooks run check-todos
 
 **Shell Script Features:**
 - Reads Claude transcript
@@ -232,7 +232,7 @@ Replace command and configure as needed:
 ```json
 {
   "hooks": {
-    "validate-todo-completion": {
+    "check-todos": {
       "timeout": 5000,
       "allowPending": false
     }
@@ -240,7 +240,7 @@ Replace command and configure as needed:
 }
 ```
 
-### run-related-tests.sh → claudekit-hooks run run-related-tests
+### run-related-tests.sh → claudekit-hooks run test-changed
 
 **Shell Script Features:**
 - Finds related test files
@@ -252,7 +252,7 @@ Replace command and configure as needed:
 ```json
 {
   "hooks": {
-    "run-related-tests": {
+    "test-changed": {
       "command": "npm test --",
       "testPatterns": ["*.test.js", "*.spec.js"],
       "timeout": 60000
@@ -261,7 +261,7 @@ Replace command and configure as needed:
 }
 ```
 
-### project-validation.sh → claudekit-hooks run project-validation
+### project-validation.sh → split into typecheck-project, lint-project, test-project
 
 **Shell Script Features:**
 - Runs TypeScript validation
@@ -273,7 +273,7 @@ Replace command and configure as needed:
 ```json
 {
   "hooks": {
-    "project-validation": {
+    "typecheck-project": {
       "parallel": true,
       "timeout": 120000,
       "skipTests": false
@@ -286,7 +286,7 @@ Replace command and configure as needed:
 
 The embedded system includes an additional hook not in shell scripts:
 
-### no-any
+### check-any-changed
 
 Prevents the use of `any` types in TypeScript files:
 
@@ -297,8 +297,8 @@ Prevents the use of `any` types in TypeScript files:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       }
     ]
@@ -320,7 +320,7 @@ You can use custom shell scripts alongside embedded hooks:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": ".claude/hooks/custom-check.sh"}
         ]
       }
@@ -338,7 +338,7 @@ Configure embedded hooks to run custom commands:
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "./scripts/my-custom-typecheck.sh"
     }
   }
@@ -366,7 +366,7 @@ Configure embedded hooks to run custom commands:
 
 3. **Test Hooks Directly:**
    ```bash
-   claudekit-hooks test typecheck --file test.ts --debug
+   claudekit-hooks test typecheck-changed --file test.ts --debug
    ```
 
 ### Different Behavior
@@ -415,13 +415,13 @@ Unlike shell scripts, embedded hooks don't require:
 
 | Shell Script | Embedded Hook | Notes |
 |-------------|---------------|-------|
-| `.claude/hooks/typecheck.sh` | `claudekit-hooks run typecheck` | Automatic TS version detection |
-| `.claude/hooks/eslint.sh` | `claudekit-hooks run eslint` | Supports auto-fix |
-| `.claude/hooks/auto-checkpoint.sh` | `claudekit-hooks run auto-checkpoint` | Configurable prefix |
-| `.claude/hooks/validate-todo-completion.sh` | `claudekit-hooks run validate-todo-completion` | Smart loop prevention |
-| `.claude/hooks/run-related-tests.sh` | `claudekit-hooks run run-related-tests` | Multiple test patterns |
-| `.claude/hooks/project-validation.sh` | `claudekit-hooks run project-validation` | Parallel execution |
-| N/A | `claudekit-hooks run no-any` | New hook for strict typing |
+| `.claude/hooks/typecheck.sh` | `claudekit-hooks run typecheck-changed` | Automatic TS version detection |
+| `.claude/hooks/eslint.sh` | `claudekit-hooks run lint-changed` | Supports auto-fix |
+| `.claude/hooks/auto-checkpoint.sh` | `claudekit-hooks run create-checkpoint` | Configurable prefix |
+| `.claude/hooks/validate-todo-completion.sh` | `claudekit-hooks run check-todos` | Smart loop prevention |
+| `.claude/hooks/run-related-tests.sh` | `claudekit-hooks run test-changed` | Multiple test patterns |
+| `.claude/hooks/project-validation.sh` | Split into `typecheck-project`, `lint-project`, `test-project` | Parallel execution |
+| N/A | `claudekit-hooks run check-any-changed` | New hook for strict typing |
 
 ## Getting Help
 

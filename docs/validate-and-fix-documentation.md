@@ -151,8 +151,8 @@ The command will clearly report these for manual review.
 ## Integration with Hooks
 
 Works great with claudekit embedded hooks:
-- `claudekit-hooks run typecheck` - Prevents committing type errors
-- `claudekit-hooks run eslint` - Enforces code style
-- `claudekit-hooks run run-related-tests` - Ensures tests pass
+- `claudekit-hooks run typecheck-changed` - Prevents committing type errors
+- `claudekit-hooks run lint-changed` - Enforces code style
+- `claudekit-hooks run test-changed` - Ensures tests pass
 
 Run `/validate-and-fix` before committing to ensure all hooks will pass!

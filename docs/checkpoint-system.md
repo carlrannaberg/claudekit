@@ -169,7 +169,7 @@ Claudekit includes an embedded auto-checkpoint hook. Add to `.claude/settings.js
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run auto-checkpoint"
+            "command": "claudekit-hooks run create-checkpoint"
           }
         ]
       }
@@ -204,7 +204,7 @@ Make it executable:
 chmod +x ~/.claude/scripts/auto-checkpoint.sh
 ```
 
-**Note**: The embedded `claudekit-hooks run auto-checkpoint` is recommended as it includes additional features like checkpoint management and cross-platform compatibility.
+**Note**: The embedded `claudekit-hooks run create-checkpoint` is recommended as it includes additional features like checkpoint management and cross-platform compatibility.
 
 ### Optional: Pre-Write Hook for Safety
 
@@ -228,7 +228,7 @@ For additional safety, you can create checkpoints before file writes. While clau
 }
 ```
 
-Or use the embedded auto-checkpoint hook in PreToolUse instead of Stop for more frequent checkpoints.
+Or use the embedded create-checkpoint hook in PreToolUse instead of Stop for more frequent checkpoints.
 
 ## Integration with git-commit
 

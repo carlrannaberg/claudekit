@@ -20,8 +20,8 @@ This file tells Claude Code which hooks to run and when:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       }
     ],
@@ -29,7 +29,7 @@ This file tells Claude Code which hooks to run and when:
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"}
         ]
       }
     ]
@@ -59,11 +59,11 @@ This file contains configuration for individual hooks:
 {
   "packageManager": "pnpm",
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "yarn tsc --noEmit",
       "timeout": 45000
     },
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "timeout": 30000
     }
@@ -73,7 +73,7 @@ This file contains configuration for individual hooks:
 
 ## Available Hooks
 
-### typecheck
+### typecheck-changed
 Runs TypeScript compiler to check for type errors.
 
 **Configuration Options:**
@@ -86,7 +86,7 @@ Runs TypeScript compiler to check for type errors.
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "yarn tsc --noEmit",
       "timeout": 45000,
       "incremental": true
@@ -99,7 +99,7 @@ Runs TypeScript compiler to check for type errors.
 - 0: Success or skipped (no tsconfig.json)
 - 2: TypeScript compilation errors found
 
-### no-any
+### check-any-changed
 Forbids the use of 'any' types in TypeScript files.
 
 **Configuration Options:**
@@ -110,7 +110,7 @@ Forbids the use of 'any' types in TypeScript files.
 ```json
 {
   "hooks": {
-    "no-any": {
+    "check-any-changed": {
       "timeout": 5000,
       "excludePatterns": ["*.d.ts", "*.generated.ts"]
     }
@@ -122,7 +122,7 @@ Forbids the use of 'any' types in TypeScript files.
 - 0: No 'any' types found
 - 2: Forbidden 'any' types detected
 
-### eslint
+### lint-changed
 Runs ESLint on JavaScript and TypeScript files.
 
 **Configuration Options:**
@@ -136,7 +136,7 @@ Runs ESLint on JavaScript and TypeScript files.
 ```json
 {
   "hooks": {
-    "eslint": {
+    "lint-changed": {
       "command": "pnpm exec eslint",
       "fix": true,
       "extensions": [".js", ".jsx", ".ts", ".tsx"],
@@ -150,7 +150,7 @@ Runs ESLint on JavaScript and TypeScript files.
 - 0: Success or skipped (no ESLint config)
 - 2: ESLint errors found
 
-### auto-checkpoint
+### create-checkpoint
 Creates git checkpoints automatically on Stop events.
 
 **Configuration Options:**
@@ -163,7 +163,7 @@ Creates git checkpoints automatically on Stop events.
 ```json
 {
   "hooks": {
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "ai-session",
       "maxCheckpoints": 20,
       "includeUntracked": false
@@ -176,7 +176,7 @@ Creates git checkpoints automatically on Stop events.
 - 0: Checkpoint created successfully or no changes
 - 1: Failed to create checkpoint
 
-### run-related-tests
+### test-changed
 Runs tests related to changed files.
 
 **Configuration Options:**
@@ -189,7 +189,7 @@ Runs tests related to changed files.
 ```json
 {
   "hooks": {
-    "run-related-tests": {
+    "test-changed": {
       "command": "npm test --",
       "timeout": 90000,
       "testPatterns": ["*.integration.test.js"],
@@ -203,7 +203,7 @@ Runs tests related to changed files.
 - 0: Tests passed or no related tests found
 - 1: Test failures
 
-### project-validation
+### typecheck-project, lint-project, test-project (split from project-validation)
 Runs comprehensive project validation.
 
 **Configuration Options:**
@@ -218,7 +218,7 @@ Runs comprehensive project validation.
 ```json
 {
   "hooks": {
-    "project-validation": {
+    "typecheck-project": {
       "typescriptCommand": "tsc --noEmit",
       "eslintCommand": "eslint . --ext .ts,.tsx",
       "testCommand": "npm test -- --coverage",
@@ -233,7 +233,7 @@ Runs comprehensive project validation.
 - 0: All validations passed
 - 2: One or more validations failed
 
-### validate-todo-completion
+### check-todos
 Validates that all todos are completed before stopping.
 
 **Configuration Options:**
@@ -245,7 +245,7 @@ Validates that all todos are completed before stopping.
 ```json
 {
   "hooks": {
-    "validate-todo-completion": {
+    "check-todos": {
       "timeout": 5000,
       "allowPending": false,
       "requireDescription": true
@@ -338,14 +338,14 @@ Configuration is resolved in the following order (highest to lowest priority):
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "timeout": 45000,
       "incremental": true
     },
-    "no-any": {
+    "check-any-changed": {
       "excludePatterns": ["*.d.ts"]
     },
-    "project-validation": {
+    "typecheck-project": {
       "skipTests": true,
       "timeout": 60000
     }
@@ -358,20 +358,20 @@ Configuration is resolved in the following order (highest to lowest priority):
 {
   "packageManager": "yarn",
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "yarn workspaces run typecheck",
       "timeout": 90000
     },
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".vue"],
       "timeout": 60000
     },
-    "run-related-tests": {
+    "test-changed": {
       "command": "yarn test --",
       "runInBand": true
     },
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "dev",
       "maxCheckpoints": 25
     }
@@ -384,15 +384,15 @@ Configuration is resolved in the following order (highest to lowest priority):
 {
   "packageManager": "pnpm",
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "command": "pnpm -r run typecheck",
       "timeout": 120000
     },
-    "eslint": {
+    "lint-changed": {
       "command": "pnpm -r run lint",
       "timeout": 90000
     },
-    "project-validation": {
+    "typecheck-project": {
       "parallel": true,
       "timeout": 180000
     }

@@ -61,19 +61,19 @@ The shared `settings.json` contains team-wide standards and should be committed 
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -223,7 +223,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "tools:Write AND file_paths:**/*.ts",
-  "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
 }
 ```
 
@@ -231,7 +231,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-  "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
 }
 ```
 
@@ -239,7 +239,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "*",
-  "hooks": [{"type": "command", "command": "claudekit-hooks run auto-checkpoint"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
 }
 ```
 
@@ -247,7 +247,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "Write,Edit,MultiEdit",
-  "hooks": [{"type": "command", "command": "claudekit-hooks run run-related-tests"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run test-changed"}]
 }
 ```
 
@@ -325,7 +325,7 @@ Hooks are managed via the embedded system:
 claudekit-hooks list
 
 # Test a hook
-claudekit-hooks test typecheck --file test.ts
+claudekit-hooks test typecheck-changed --file test.ts
 ```
 
 Include shebang and error handling:
@@ -383,17 +383,17 @@ Make hooks self-contained:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{ts,tsx}",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run auto-checkpoint"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
       }
     ]
   },
@@ -475,8 +475,8 @@ Make hooks self-contained:
 
 **Test embedded hooks:**
 ```bash
-claudekit-hooks test typecheck --file test.ts
-claudekit-hooks test eslint --file app.js
+claudekit-hooks test typecheck-changed --file test.ts
+claudekit-hooks test lint-changed --file app.js
 ```
 
 **Test embedded hooks:**

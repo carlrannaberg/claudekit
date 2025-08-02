@@ -289,13 +289,13 @@ The `claudekit-hooks test` command allows you to test hooks outside of Claude Co
 
 ```bash
 # Test a specific hook with a file
-claudekit-hooks test typecheck --file src/index.ts
+claudekit-hooks test typecheck-changed --file src/index.ts
 
 # Test without a specific file (for hooks that don't need one)
 claudekit-hooks test auto-checkpoint
 
 # Test with verbose output
-claudekit-hooks test eslint --file src/app.js --verbose
+claudekit-hooks test lint-changed --file src/app.js --verbose
 ```
 
 ### Testing PostToolUse Hooks
@@ -303,25 +303,25 @@ claudekit-hooks test eslint --file src/app.js --verbose
 #### TypeScript Hook
 ```bash
 # Test type checking on a TypeScript file
-claudekit-hooks test typecheck --file src/components/Button.tsx
+claudekit-hooks test typecheck-changed --file src/components/Button.tsx
 
 # Test the no-any hook
-claudekit-hooks test no-any --file src/utils/helpers.ts
+claudekit-hooks test check-any-changed --file src/utils/helpers.ts
 ```
 
 #### ESLint Hook
 ```bash
 # Test ESLint on a JavaScript file
-claudekit-hooks test eslint --file src/index.js
+claudekit-hooks test lint-changed --file src/index.js
 
 # Test with auto-fix enabled (if configured)
-claudekit-hooks test eslint --file src/app.jsx --fix
+claudekit-hooks test lint-changed --file src/app.jsx --fix
 ```
 
 #### Test Runner Hook
 ```bash
 # Test finding and running related tests
-claudekit-hooks test run-related-tests --file src/utils/math.js
+claudekit-hooks test test-changed --file src/utils/math.js
 ```
 
 ### Testing Stop Hooks
@@ -341,13 +341,13 @@ claudekit-hooks test project-validation
 
 ```bash
 # Test with custom configuration
-claudekit-hooks test typecheck --file src/index.ts --config .claudekit/test-config.json
+claudekit-hooks test typecheck-changed --file src/index.ts --config .claudekit/test-config.json
 
 # Test with timeout override
-claudekit-hooks test eslint --file src/app.js --timeout 60000
+claudekit-hooks test lint-changed --file src/app.js --timeout 60000
 
 # Dry run (show what would happen without executing)
-claudekit-hooks test run-related-tests --file src/utils.js --dry-run
+claudekit-hooks test test-changed --file src/utils.js --dry-run
 ```
 
 ### Exit Codes
@@ -366,7 +366,7 @@ Enable debug output for troubleshooting:
 export CLAUDEKIT_DEBUG=true
 
 # Or use the debug flag
-claudekit-hooks test typecheck --file src/index.ts --debug
+claudekit-hooks test typecheck-changed --file src/index.ts --debug
 ```
 
 ## Troubleshooting Guide

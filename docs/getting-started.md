@@ -81,7 +81,7 @@ Open `.claude/settings.json` to see your configuration:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
         ]
       }
     ]
@@ -98,7 +98,7 @@ Test that hooks are working:
 claudekit list
 
 # Test a specific hook
-claudekit-hooks test typecheck --file src/index.ts
+claudekit-hooks test typecheck-changed --file src/index.ts
 ```
 
 ## Understanding Hooks
@@ -114,16 +114,16 @@ Hooks are automated checks that run when you interact with files in Claude Code:
 ### Available Hooks
 
 #### Code Quality Hooks
-- `typecheck` - TypeScript type checking
-- `no-any` - Forbid 'any' types
-- `eslint` - ESLint validation
+- `typecheck-changed` - TypeScript type checking on changed files
+- `check-any-changed` - Forbid 'any' types in changed files
+- `lint-changed` - ESLint validation on changed files
 - `prettier` - Code formatting
 
 #### Workflow Hooks
-- `auto-checkpoint` - Save work automatically
-- `run-related-tests` - Run affected tests
-- `validate-todo-completion` - Check todo status
-- `project-validation` - Full project checks
+- `create-checkpoint` - Save work automatically
+- `test-changed` - Run tests related to changed files
+- `check-todos` - Check todo completion status
+- Split into `typecheck-project`, `lint-project`, `test-project` - Full project checks
 
 ### Hook Matchers
 
@@ -219,7 +219,7 @@ Slash commands are typed directly in Claude Code:
 
 2. **Run specific validations**
    ```bash
-   claudekit-hooks test eslint --file src/auth.js
+   claudekit-hooks test lint-changed --file src/auth.js
    ```
 
 3. **View logs**
@@ -238,8 +238,8 @@ Slash commands are typed directly in Claude Code:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       }
     ]
@@ -256,7 +256,7 @@ Slash commands are typed directly in Claude Code:
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,jsx}",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run eslint"},
+          {"type": "command", "command": "claudekit-hooks run lint-changed"},
           {"type": "command", "command": "claudekit-hooks run prettier"}
         ]
       }
@@ -276,18 +276,18 @@ Customize hook behavior in `.claudekit/config.json`:
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "timeout": 60000,
       "tsconfig": "tsconfig.strict.json",
       "incremental": true
     },
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "cache": true,
       "extensions": [".js", ".jsx", ".ts", ".tsx"],
       "quiet": false
     },
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "my-project",
       "maxCheckpoints": 20,
       "includeUntracked": true
@@ -332,7 +332,7 @@ npx tsc --init
 
 ## Best Practices
 
-1. **Start Simple** - Begin with typecheck and auto-checkpoint
+1. **Start Simple** - Begin with typecheck-changed and create-checkpoint
 2. **Test Incrementally** - Add one hook at a time
 3. **Use Checkpoints** - Create checkpoints before major changes
 4. **Configure Timeouts** - Adjust timeouts for large projects

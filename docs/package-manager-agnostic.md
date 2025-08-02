@@ -39,7 +39,7 @@ Each hook includes detection functions that map commands appropriately:
 The embedded hooks system automatically detects your package manager. When you use:
 
 ```bash
-claudekit-hooks run typecheck
+claudekit-hooks run typecheck-changed
 ```
 
 The embedded hook internally:
@@ -118,8 +118,8 @@ To test package manager detection with embedded hooks:
 2. **Verify embedded hooks work correctly**:
    ```bash
    # Test that hooks use the correct package manager
-   claudekit-hooks test typecheck --file test.ts
-   claudekit-hooks test eslint --file test.js
+   claudekit-hooks test typecheck-changed --file test.ts
+   claudekit-hooks test lint-changed --file test.js
    
    # The hooks should automatically use npm, yarn, or pnpm
    # based on which lock file is present
@@ -198,7 +198,7 @@ If you're migrating from shell script hooks to embedded hooks:
    {"type": "command", "command": ".claude/hooks/typecheck.sh"}
    
    // New: Embedded hook
-   {"type": "command", "command": "claudekit-hooks run typecheck"}
+   {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
    ```
 
 2. **Remove old shell scripts** (after testing):

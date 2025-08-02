@@ -799,7 +799,6 @@ export const FILE_EXTENSIONS = {
  */
 export const DIRECTORIES = {
   CLAUDE: '.claude',
-  HOOKS: '.claude/hooks',
   COMMANDS: '.claude/commands',
   USER_HOME: '~/.claude',
   TEMP: 'temp',

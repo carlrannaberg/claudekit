@@ -470,16 +470,16 @@ export async function createInstallPlan(
   // Check for warnings
   if (
     installation.projectInfo?.hasTypeScript === true &&
-    !orderedComponents.some((c) => c.id === 'typecheck')
+    !orderedComponents.some((c) => c.id === 'typecheck-changed')
   ) {
-    warnings.push('TypeScript detected but typecheck hook not selected');
+    warnings.push('TypeScript detected but typecheck-changed hook not selected');
   }
 
   if (
     installation.projectInfo?.hasESLint === true &&
-    !orderedComponents.some((c) => c.id === 'eslint')
+    !orderedComponents.some((c) => c.id === 'lint-changed')
   ) {
-    warnings.push('ESLint detected but eslint hook not selected');
+    warnings.push('ESLint detected but lint-changed hook not selected');
   }
 
   // Warn about circular dependencies if any were detected
@@ -915,7 +915,7 @@ async function createConfiguration(
   if (projectInfo?.hasTypeScript === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.ts',
-      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
     });
   }
 
@@ -923,7 +923,7 @@ async function createConfiguration(
   if (projectInfo?.hasESLint === true) {
     config.hooks.PostToolUse.push({
       matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-      hooks: [{ type: 'command', command: 'claudekit-hooks run eslint' }],
+      hooks: [{ type: 'command', command: 'claudekit-hooks run lint-changed' }],
     });
   }
 
@@ -931,8 +931,8 @@ async function createConfiguration(
   config.hooks.Stop.push({
     matcher: '*',
     hooks: [
-      { type: 'command', command: 'claudekit-hooks run auto-checkpoint' },
-      { type: 'command', command: 'claudekit-hooks run validate-todo-completion' },
+      { type: 'command', command: 'claudekit-hooks run create-checkpoint' },
+      { type: 'command', command: 'claudekit-hooks run check-todos' },
     ],
   });
 
@@ -1046,7 +1046,7 @@ export class Installer {
     const selectedComponents: Component[] = [];
 
     // Always include base hooks
-    const baseHooks = ['auto-checkpoint', 'validate-todo-completion'];
+    const baseHooks = ['create-checkpoint', 'check-todos'];
     for (const hookId of baseHooks) {
       const hook = allComponents.find((c) => c.id === hookId && c.type === 'hook');
       if (hook) {
@@ -1056,7 +1056,7 @@ export class Installer {
 
     // Add TypeScript hook if TypeScript detected
     if (projectInfo?.hasTypeScript) {
-      const tsHook = allComponents.find((c) => c.id === 'typecheck' && c.type === 'hook');
+      const tsHook = allComponents.find((c) => c.id === 'typecheck-changed' && c.type === 'hook');
       if (tsHook) {
         selectedComponents.push(tsHook);
       }
@@ -1064,7 +1064,7 @@ export class Installer {
 
     // Add ESLint hook if ESLint detected
     if (projectInfo?.hasESLint) {
-      const eslintHook = allComponents.find((c) => c.id === 'eslint' && c.type === 'hook');
+      const eslintHook = allComponents.find((c) => c.id === 'lint-changed' && c.type === 'hook');
       if (eslintHook) {
         selectedComponents.push(eslintHook);
       }

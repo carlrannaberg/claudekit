@@ -36,7 +36,7 @@ This will:
 claudekit-hooks list
 
 # Test a hook manually
-claudekit-hooks test typecheck --file src/index.ts
+claudekit-hooks test typecheck-changed --file src/index.ts
 ```
 
 ## Basic Configuration
@@ -52,7 +52,7 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
         ]
       }
     ],
@@ -60,7 +60,7 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"}
         ]
       }
     ]
@@ -79,20 +79,20 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run eslint"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       },
       {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
         ]
       }
     ],
@@ -100,8 +100,8 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -171,7 +171,7 @@ claudekit provides powerful slash commands for Claude Code:
 
 ```bash
 # Test hooks outside Claude Code
-claudekit-hooks test eslint --file src/problematic.js
+claudekit-hooks test lint-changed --file src/problematic.js
 
 # Check hook configuration
 claudekit list --verbose
@@ -184,15 +184,15 @@ You can configure hooks in `.claudekit/config.json`:
 ```json
 {
   "hooks": {
-    "typecheck": {
+    "typecheck-changed": {
       "timeout": 60000,
       "tsconfig": "tsconfig.strict.json"
     },
-    "eslint": {
+    "lint-changed": {
       "fix": true,
       "cache": true
     },
-    "auto-checkpoint": {
+    "create-checkpoint": {
       "prefix": "my-project",
       "maxCheckpoints": 20
     }
@@ -212,13 +212,13 @@ You can configure hooks in `.claudekit/config.json`:
 
 1. Ensure TypeScript is installed in your project
 2. Check for `tsconfig.json`
-3. Test with: `claudekit-hooks test typecheck`
+3. Test with: `claudekit-hooks test typecheck-changed`
 
 ### ESLint Issues
 
 1. Verify ESLint configuration exists
 2. Check supported file extensions
-3. Test with: `claudekit-hooks test eslint`
+3. Test with: `claudekit-hooks test lint-changed`
 
 ## Next Steps
 

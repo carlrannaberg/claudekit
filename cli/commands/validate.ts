@@ -79,21 +79,61 @@ export async function validate(options: ValidateOptions): Promise<void> {
       });
     }
 
-    // Check for hooks directory
-    progressReporter.update('Checking hooks installation...');
-    const hooksDir = path.join(claudeDir, 'hooks');
+    // Check for hooks in settings.json (embedded hooks system)
+    progressReporter.update('Checking hooks configuration...');
     try {
-      await fs.access(hooksDir);
-      const hooks = await fs.readdir(hooksDir);
-      legacyResults.push({
-        passed: true,
-        message: `Found ${hooks.length} hook(s)`,
-      });
+      const settingsContent = await fs.readFile(settingsPath, 'utf-8');
+      const settings = JSON.parse(settingsContent);
+      
+      // Count configured hooks
+      let hookCount = 0;
+      if (settings.hooks) {
+        // Count hooks in PostToolUse
+        if (settings.hooks.PostToolUse && Array.isArray(settings.hooks.PostToolUse)) {
+          for (const config of settings.hooks.PostToolUse) {
+            if (config.hooks && Array.isArray(config.hooks)) {
+              hookCount += config.hooks.length;
+            }
+          }
+        }
+        
+        // Count hooks in Stop
+        if (settings.hooks.Stop && Array.isArray(settings.hooks.Stop)) {
+          for (const config of settings.hooks.Stop) {
+            if (config.hooks && Array.isArray(config.hooks)) {
+              hookCount += config.hooks.length;
+            }
+          }
+        }
+        
+        // Count hooks in other events (PreToolUse, etc.)
+        for (const [event, configs] of Object.entries(settings.hooks)) {
+          if (event !== 'PostToolUse' && event !== 'Stop' && Array.isArray(configs)) {
+            for (const config of configs as any[]) {
+              if (config.hooks && Array.isArray(config.hooks)) {
+                hookCount += config.hooks.length;
+              }
+            }
+          }
+        }
+      }
+      
+      if (hookCount > 0) {
+        legacyResults.push({
+          passed: true,
+          message: `Found ${hookCount} configured hook(s)`,
+        });
+      } else {
+        legacyResults.push({
+          passed: true,
+          message: 'No hooks configured',
+        });
+      }
     } catch {
-      // Hooks directory doesn't exist - this is valid, just means no hooks installed
+      // No settings.json or invalid JSON - report no hooks
       legacyResults.push({
         passed: true,
-        message: 'No hooks installed',
+        message: 'No hooks configured',
       });
     }
 
@@ -200,8 +240,8 @@ export async function validate(options: ValidateOptions): Promise<void> {
 
       // Show helpful suggestions for empty installations
       const suggestions: string[] = [];
-      if (legacyResults.some((r) => r.message === 'No hooks installed')) {
-        suggestions.push('• Run "claudekit setup" to install hooks');
+      if (legacyResults.some((r) => r.message === 'No hooks configured')) {
+        suggestions.push('• Run "claudekit setup" to configure hooks');
       }
       if (legacyResults.some((r) => r.message === 'No commands installed')) {
         suggestions.push('• Run "claudekit setup" to install commands');
