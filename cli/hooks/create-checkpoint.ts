@@ -1,8 +1,8 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 
-export class AutoCheckpointHook extends BaseHook {
-  name = 'auto-checkpoint';
+export class CreateCheckpointHook extends BaseHook {
+  name = 'create-checkpoint';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;

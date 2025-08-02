@@ -765,7 +765,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
           PostToolUse: [
             {
               matcher: 'tools:Write AND file_paths:**/*.ts',
-              hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+              hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
             },
           ],
           Stop: [],
@@ -777,7 +777,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         JSON.stringify(existingSettings, null, 2)
       );
 
-      const components = [createMockComponent('typecheck')];
+      const components = [createMockComponent('typecheck-changed')];
 
       const result = await createProjectSettings(mockClaudeDir, components, {});
 
@@ -789,7 +789,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
   describe('Component Type Filtering', () => {
     it('should only process hook components, not commands', async () => {
       const components = [
-        createMockComponent('typecheck', 'hook'),
+        createMockComponent('typecheck-changed', 'hook'),
         createMockComponent('git:commit', 'command'),
         createMockComponent('validate-and-fix', 'command'),
       ];
@@ -806,7 +806,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         throw new Error('PostToolUse entry or hook not found');
       }
       expect(postToolUseEntry.hooks[0].command).toBe(
-        'claudekit-hooks run typecheck'
+        'claudekit-hooks run typecheck-changed'
       );
 
       // Should not have any command components

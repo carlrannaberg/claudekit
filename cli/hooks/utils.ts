@@ -278,3 +278,69 @@ export function formatDuration(ms: number): string {
   const remainingSeconds = seconds % 60;
   return `${minutes}m ${remainingSeconds}s`;
 }
+
+/**
+ * Format TypeScript errors with proper indentation
+ */
+export function formatTypeScriptErrors(result: ExecResult): string {
+  const header = '████ TypeScript Validation Failed ████\n\n';
+  const message = 'TypeScript compilation errors must be fixed:\n\n';
+  const output = result.stderr || result.stdout;
+  const indentedOutput = output
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+  
+  const actions = 
+    '\n\nREQUIRED ACTIONS:\n' +
+    '1. Fix all TypeScript errors shown above\n' +
+    '2. Run type checking command to verify fixes\n' +
+    '3. Make necessary corrections\n' +
+    '4. The validation will run again automatically';
+
+  return header + message + indentedOutput + actions;
+}
+
+/**
+ * Format ESLint errors with proper indentation
+ */
+export function formatESLintErrors(result: ExecResult): string {
+  const header = '████ ESLint Validation Failed ████\n\n';
+  const message = 'ESLint errors must be fixed:\n\n';
+  const output = result.stdout || result.stderr;
+  const indentedOutput = output
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+  
+  const actions = 
+    '\n\nREQUIRED ACTIONS:\n' +
+    '1. Fix all ESLint errors shown above\n' +
+    '2. Run lint command to verify fixes\n' +
+    '3. Make necessary corrections\n' +
+    '4. The validation will run again automatically';
+
+  return header + message + indentedOutput + actions;
+}
+
+/**
+ * Format test errors with proper indentation
+ */
+export function formatTestErrors(result: ExecResult): string {
+  const header = '████ Test Suite Failed ████\n\n';
+  const message = 'Test failures must be fixed:\n\n';
+  const output = result.stdout + result.stderr;
+  const indentedOutput = output
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+  
+  const actions = 
+    '\n\nREQUIRED ACTIONS:\n' +
+    '1. Fix all test failures shown above\n' +
+    '2. Run test command to verify fixes\n' +
+    '3. Make necessary corrections\n' +
+    '4. The validation will run again automatically';
+
+  return header + message + indentedOutput + actions;
+}

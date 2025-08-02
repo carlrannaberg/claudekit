@@ -1,19 +1,28 @@
-import { TypecheckHook } from './typecheck.js';
-import { NoAnyHook } from './no-any.js';
-import { EslintHook } from './eslint.js';
-import { AutoCheckpointHook } from './auto-checkpoint.js';
-import { RunRelatedTestsHook } from './run-related-tests.js';
-import { ProjectValidationHook } from './project-validation.js';
-import { ValidateTodoCompletionHook } from './validate-todo.js';
+import { TypecheckChangedHook } from './typecheck-changed.js';
+import { CheckAnyChangedHook } from './check-any-changed.js';
+import { LintChangedHook } from './lint-changed.js';
+import { CreateCheckpointHook } from './create-checkpoint.js';
+import { TestChangedHook } from './test-changed.js';
+import { CheckTodosHook } from './check-todos.js';
+import { TypecheckProjectHook } from './typecheck-project.js';
+import { LintProjectHook } from './lint-project.js';
+import { TestProjectHook } from './test-project.js';
 
 export const HOOK_REGISTRY = {
-  typecheck: TypecheckHook,
-  'no-any': NoAnyHook,
-  eslint: EslintHook,
-  'auto-checkpoint': AutoCheckpointHook,
-  'run-related-tests': RunRelatedTestsHook,
-  'project-validation': ProjectValidationHook,
-  'validate-todo-completion': ValidateTodoCompletionHook,
+  // Changed file hooks
+  'typecheck-changed': TypecheckChangedHook,
+  'check-any-changed': CheckAnyChangedHook,
+  'lint-changed': LintChangedHook,
+  'test-changed': TestChangedHook,
+  
+  // Project-wide hooks
+  'typecheck-project': TypecheckProjectHook,
+  'lint-project': LintProjectHook,
+  'test-project': TestProjectHook,
+  
+  // Action hooks
+  'create-checkpoint': CreateCheckpointHook,
+  'check-todos': CheckTodosHook,
 };
 
 export type HookName = keyof typeof HOOK_REGISTRY;

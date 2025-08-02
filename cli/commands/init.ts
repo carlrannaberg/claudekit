@@ -78,17 +78,17 @@ export async function init(options: InitOptions): Promise<void> {
         if (rec.component.type === 'hook') {
           const hookCommand = `claudekit-hooks run ${rec.component.metadata.id}`;
 
-          if (rec.component.metadata.id === 'typecheck') {
+          if (rec.component.metadata.id === 'typecheck-changed') {
             defaultSettings.hooks.PostToolUse.push({
               matcher: 'tools:Write AND file_paths:**/*.ts',
               hooks: [{ type: 'command', command: hookCommand }],
             });
-          } else if (rec.component.metadata.id === 'eslint') {
+          } else if (rec.component.metadata.id === 'lint-changed') {
             defaultSettings.hooks.PostToolUse.push({
               matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
               hooks: [{ type: 'command', command: hookCommand }],
             });
-          } else if (rec.component.metadata.id === 'auto-checkpoint') {
+          } else if (rec.component.metadata.id === 'create-checkpoint') {
             defaultSettings.hooks.Stop.push({
               matcher: '*',
               hooks: [{ type: 'command', command: hookCommand }],
@@ -102,7 +102,7 @@ export async function init(options: InitOptions): Promise<void> {
         if (rec.component.type === 'hook' && rec.component.metadata.category === 'validation') {
           const hookCommand = `claudekit-hooks run ${rec.component.metadata.id}`;
 
-          if (rec.component.metadata.id === 'validate-todo-completion') {
+          if (rec.component.metadata.id === 'check-todos') {
             const stopEntry = defaultSettings.hooks.Stop.find((e) => e.matcher === '*');
             if (stopEntry !== undefined) {
               stopEntry.hooks.push({ type: 'command', command: hookCommand });
@@ -120,19 +120,19 @@ export async function init(options: InitOptions): Promise<void> {
       defaultSettings.hooks.PostToolUse = [
         {
           matcher: 'tools:Write AND file_paths:**/*.ts',
-          hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+          hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
         },
         {
           matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-          hooks: [{ type: 'command', command: 'claudekit-hooks run eslint' }],
+          hooks: [{ type: 'command', command: 'claudekit-hooks run lint-changed' }],
         },
       ];
       defaultSettings.hooks.Stop = [
         {
           matcher: '*',
           hooks: [
-            { type: 'command', command: 'claudekit-hooks run auto-checkpoint' },
-            { type: 'command', command: 'claudekit-hooks run validate-todo-completion' },
+            { type: 'command', command: 'claudekit-hooks run create-checkpoint' },
+            { type: 'command', command: 'claudekit-hooks run check-todos' },
           ],
         },
       ];

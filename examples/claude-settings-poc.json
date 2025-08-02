@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run auto-checkpoint"
+            "command": "claudekit-hooks run create-checkpoint"
           }
         ]
       }

@@ -75,14 +75,14 @@ vi.mock('../../cli/lib/index', () => ({
   discoverComponents: vi.fn().mockResolvedValue({
     components: new Map([
       [
-        'typecheck',
+        'typecheck-changed',
         {
           type: 'hook',
-          path: '/path/to/typecheck.sh',
+          path: '/path/to/typecheck-changed.sh',
           metadata: {
-            id: 'typecheck',
-            name: 'TypeScript Check',
-            description: 'Type checking',
+            id: 'typecheck-changed',
+            name: 'TypeScript Check (Changed Files)',
+            description: 'Type checking for changed files only',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -91,14 +91,46 @@ vi.mock('../../cli/lib/index', () => ({
         },
       ],
       [
-        'eslint',
+        'typecheck-project',
         {
           type: 'hook',
-          path: '/path/to/eslint.sh',
+          path: '/path/to/typecheck-project.sh',
           metadata: {
-            id: 'eslint',
-            name: 'ESLint',
-            description: 'ESLint validation',
+            id: 'typecheck-project',
+            name: 'TypeScript Check (Project-wide)',
+            description: 'Type checking for entire project',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-changed',
+        {
+          type: 'hook',
+          path: '/path/to/lint-changed.sh',
+          metadata: {
+            id: 'lint-changed',
+            name: 'ESLint (Changed Files)',
+            description: 'ESLint validation for changed files only',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-project',
+        {
+          type: 'hook',
+          path: '/path/to/lint-project.sh',
+          metadata: {
+            id: 'lint-project',
+            name: 'ESLint (Project-wide)',
+            description: 'ESLint validation for entire project',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -156,8 +188,8 @@ vi.mock('../../cli/lib/index', () => ({
       };
     }
 
-    const typecheckComponent = registry.components.get('typecheck');
-    const eslintComponent = registry.components.get('eslint');
+    const typecheckComponent = registry.components.get('typecheck-changed');
+    const eslintComponent = registry.components.get('lint-changed');
     const checkpointCreateComponent = registry.components.get('checkpoint-create');
 
     return {
@@ -362,7 +394,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck', 'eslint'])],
+        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project'])],
         ['git', new Set(['checkpoint-create', 'git-commit'])],
       ]),
       lastScan: new Date(),
@@ -391,8 +423,8 @@ describe('Setup Command - Non-Interactive Flags', () => {
         });
       }
 
-      const typecheckComponent = registry.components.get('typecheck');
-      const eslintComponent = registry.components.get('eslint');
+      const typecheckComponent = registry.components.get('typecheck-changed');
+      const eslintComponent = registry.components.get('lint-changed');
       const checkpointCreateComponent = registry.components.get('checkpoint-create');
       const gitCommitComponent = registry.components.get('git-commit');
 
@@ -534,7 +566,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('--hooks flag', () => {
     it('should install only specified hooks', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck,eslint',
+        hooks: 'typecheck-changed,lint-changed',
         quiet: true,
       };
 
@@ -544,7 +576,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
     it('should handle whitespace in comma-separated list', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck, eslint',
+        hooks: 'typecheck-changed, lint-changed',
         quiet: true,
       };
 
@@ -687,7 +719,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
     it('should work with --commands --hooks combination', async () => {
       const options: SetupOptions = {
         commands: 'checkpoint-create',
-        hooks: 'typecheck',
+        hooks: 'typecheck-changed',
         quiet: true,
       };
 

@@ -25,7 +25,7 @@
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
           {"type": "command", "command": "claudekit-hooks run ci-config-validation"}
         ]
       }

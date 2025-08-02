@@ -102,13 +102,27 @@ The embedded hooks system allows you to run validation and automation hooks with
 
 ### Available Embedded Hooks
 
-- **typecheck** - TypeScript type checking with automatic project detection
-- **no-any** - Forbid `any` types in TypeScript files (excludes test files)
-- **eslint** - ESLint validation with automatic config detection
-- **auto-checkpoint** - Automatically create git checkpoints when Claude Code stops
-- **run-related-tests** - Run tests related to modified files
-- **project-validation** - Comprehensive project validation checks
-- **validate-todo-completion** - Ensure all todos are completed before stopping
+#### Hook Naming Convention
+
+Claudekit uses clear suffixes to indicate hook scope:
+- `-changed`: Operates only on files that were created or modified
+- `-project`: Operates on the entire project
+- Action verbs (e.g., `create-checkpoint`): Perform specific actions
+
+#### File-Scoped Hooks (operate on changed files only)
+- **typecheck-changed** - TypeScript type checking on modified files
+- **check-any-changed** - Forbid `any` types in modified TypeScript files
+- **lint-changed** - ESLint validation on modified JavaScript/TypeScript files
+- **test-changed** - Run tests related to modified files
+
+#### Project-Wide Hooks (operate on entire project)
+- **typecheck-project** - TypeScript type checking on entire project
+- **lint-project** - ESLint validation on entire project
+- **test-project** - Run complete test suite
+
+#### Action Hooks
+- **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
+- **check-todos** - Ensure all todos are completed before stopping
 
 ### Hook Configuration
 
@@ -120,19 +134,19 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -146,10 +160,10 @@ You can test hooks outside of Claude Code using the `claudekit-hooks test` comma
 
 ```bash
 # Test a specific hook with a file
-claudekit-hooks test typecheck --file src/index.ts
+claudekit-hooks test typecheck-changed --file src/index.ts
 
 # Test a hook without file context
-claudekit-hooks test auto-checkpoint
+claudekit-hooks test create-checkpoint
 
 # List all available hooks
 claudekit-hooks list
@@ -160,11 +174,11 @@ claudekit-hooks list
 ### 🛡️ Development Hooks
 Automatically enforce code quality and run tests with embedded hooks:
 
-- **typecheck** - TypeScript type checking with automatic project detection
-- **eslint** - ESLint code style and quality validation
-- **run-related-tests** - Auto-run tests for modified files
-- **validate-todo-completion** - Prevent stopping with incomplete todos
-- **auto-checkpoint** - Save work automatically when Claude Code stops
+- **typecheck-changed** - TypeScript type checking on modified files
+- **lint-changed** - ESLint code style and quality validation on modified files
+- **test-changed** - Auto-run tests for modified files
+- **check-todos** - Prevent stopping with incomplete todos
+- **create-checkpoint** - Save work automatically when Claude Code stops
 
 ### 📝 Slash Commands
 
@@ -209,15 +223,15 @@ claudekit uses a two-level configuration system:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]

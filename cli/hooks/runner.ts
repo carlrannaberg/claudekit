@@ -5,13 +5,15 @@ import { readStdin } from './utils.js';
 import type { BaseHook, HookConfig } from './base.js';
 
 // Import all hooks
-import { TypecheckHook } from './typecheck.js';
-import { NoAnyHook } from './no-any.js';
-import { EslintHook } from './eslint.js';
-import { AutoCheckpointHook } from './auto-checkpoint.js';
-import { RunRelatedTestsHook } from './run-related-tests.js';
-import { ProjectValidationHook } from './project-validation.js';
-import { ValidateTodoCompletionHook } from './validate-todo.js';
+import { TypecheckChangedHook } from './typecheck-changed.js';
+import { CheckAnyChangedHook } from './check-any-changed.js';
+import { LintChangedHook } from './lint-changed.js';
+import { CreateCheckpointHook } from './create-checkpoint.js';
+import { TestChangedHook } from './test-changed.js';
+import { CheckTodosHook } from './check-todos.js';
+import { TypecheckProjectHook } from './typecheck-project.js';
+import { LintProjectHook } from './lint-project.js';
+import { TestProjectHook } from './test-project.js';
 
 // Configuration schema
 const HookConfigSchema = z
@@ -33,13 +35,15 @@ export class HookRunner {
     this.configPath = configPath;
 
     // Register all hooks
-    this.hooks.set('typecheck', TypecheckHook);
-    this.hooks.set('no-any', NoAnyHook);
-    this.hooks.set('eslint', EslintHook);
-    this.hooks.set('auto-checkpoint', AutoCheckpointHook);
-    this.hooks.set('run-related-tests', RunRelatedTestsHook);
-    this.hooks.set('project-validation', ProjectValidationHook);
-    this.hooks.set('validate-todo-completion', ValidateTodoCompletionHook);
+    this.hooks.set('typecheck-changed', TypecheckChangedHook);
+    this.hooks.set('check-any-changed', CheckAnyChangedHook);
+    this.hooks.set('lint-changed', LintChangedHook);
+    this.hooks.set('create-checkpoint', CreateCheckpointHook);
+    this.hooks.set('test-changed', TestChangedHook);
+    this.hooks.set('check-todos', CheckTodosHook);
+    this.hooks.set('typecheck-project', TypecheckProjectHook);
+    this.hooks.set('lint-project', LintProjectHook);
+    this.hooks.set('test-project', TestProjectHook);
   }
 
   async run(hookName: string): Promise<number> {

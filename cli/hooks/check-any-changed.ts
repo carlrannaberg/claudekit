@@ -1,8 +1,8 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 
-export class NoAnyHook extends BaseHook {
-  name = 'no-any';
+export class CheckAnyChangedHook extends BaseHook {
+  name = 'check-any-changed';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath } = context;

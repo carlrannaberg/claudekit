@@ -20,13 +20,13 @@ vi.mock('../../../cli/hooks/utils.js', () => ({
 vi.mock('../../../cli/hooks/base.js');
 
 // Mock all hook modules
-vi.mock('../../../cli/hooks/typecheck.js', () => ({ TypecheckHook: vi.fn() }));
-vi.mock('../../../cli/hooks/no-any.js', () => ({ NoAnyHook: vi.fn() }));
-vi.mock('../../../cli/hooks/eslint.js', () => ({ EslintHook: vi.fn() }));
-vi.mock('../../../cli/hooks/auto-checkpoint.js', () => ({ AutoCheckpointHook: vi.fn() }));
-vi.mock('../../../cli/hooks/run-related-tests.js', () => ({ RunRelatedTestsHook: vi.fn() }));
+vi.mock('../../../cli/hooks/typecheck-changed.js', () => ({ TypecheckChangedHook: vi.fn() }));
+vi.mock('../../../cli/hooks/check-any-changed.js', () => ({ CheckAnyChangedHook: vi.fn() }));
+vi.mock('../../../cli/hooks/lint-changed.js', () => ({ LintChangedHook: vi.fn() }));
+vi.mock('../../../cli/hooks/create-checkpoint.js', () => ({ CreateCheckpointHook: vi.fn() }));
+vi.mock('../../../cli/hooks/test-changed.js', () => ({ TestChangedHook: vi.fn() }));
 vi.mock('../../../cli/hooks/project-validation.js', () => ({ ProjectValidationHook: vi.fn() }));
-vi.mock('../../../cli/hooks/validate-todo.js', () => ({ ValidateTodoCompletionHook: vi.fn() }));
+vi.mock('../../../cli/hooks/check-todos.js', () => ({ CheckTodosHook: vi.fn() }));
 
 // Now import after mocks
 import { HookRunner } from '../../../cli/hooks/runner.js';
@@ -74,13 +74,13 @@ describe('HookRunner', () => {
       const runner = new HookRunner();
       const hooks = runner['hooks'];
 
-      expect(hooks.has('typecheck')).toBe(true);
-      expect(hooks.has('no-any')).toBe(true);
-      expect(hooks.has('eslint')).toBe(true);
-      expect(hooks.has('auto-checkpoint')).toBe(true);
-      expect(hooks.has('run-related-tests')).toBe(true);
+      expect(hooks.has('typecheck-changed')).toBe(true);
+      expect(hooks.has('check-any-changed')).toBe(true);
+      expect(hooks.has('lint-changed')).toBe(true);
+      expect(hooks.has('create-checkpoint')).toBe(true);
+      expect(hooks.has('test-changed')).toBe(true);
       expect(hooks.has('project-validation')).toBe(true);
-      expect(hooks.has('validate-todo-completion')).toBe(true);
+      expect(hooks.has('check-todos')).toBe(true);
     });
   });
 
@@ -153,7 +153,7 @@ describe('HookRunner', () => {
     it('should load hook configuration from config file', async () => {
       const config = {
         hooks: {
-          typecheck: { timeout: 60000, customOption: 'test' },
+          'typecheck-changed': { timeout: 60000, customOption: 'test' },
         },
       };
       vi.mocked(fs.readJson).mockResolvedValue(config);
@@ -164,14 +164,14 @@ describe('HookRunner', () => {
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
       runner['hooks'].set(
-        'typecheck',
+        'typecheck-changed',
         MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
       );
 
-      await runner.run('typecheck');
+      await runner.run('typecheck-changed');
 
       expect(fs.readJson).toHaveBeenCalledWith(path.resolve('.claudekit/config.json'));
-      expect(MockHook).toHaveBeenCalledWith(config.hooks.typecheck);
+      expect(MockHook).toHaveBeenCalledWith(config.hooks['typecheck-changed']);
     });
 
     it('should use empty config when hook not configured', async () => {
@@ -183,11 +183,11 @@ describe('HookRunner', () => {
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
       runner['hooks'].set(
-        'typecheck',
+        'typecheck-changed',
         MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
       );
 
-      const exitCode = await runner.run('typecheck');
+      const exitCode = await runner.run('typecheck-changed');
 
       expect(exitCode).toBe(0);
       expect(MockHook).toHaveBeenCalledWith({});
@@ -280,8 +280,8 @@ describe('HookRunner', () => {
     it('should load and parse configuration file', async () => {
       const testConfig = {
         hooks: {
-          typecheck: { timeout: 60000 },
-          eslint: { fix: true },
+          'typecheck-changed': { timeout: 60000 },
+          'lint-changed': { fix: true },
         },
       };
       vi.mocked(fs.readJson).mockResolvedValue(testConfig);
@@ -291,8 +291,8 @@ describe('HookRunner', () => {
       // The schema adds default timeout
       expect(config).toEqual({
         hooks: {
-          typecheck: { timeout: 60000 },
-          eslint: { fix: true, timeout: 30000 },
+          'typecheck-changed': { timeout: 60000 },
+          'lint-changed': { fix: true, timeout: 30000 },
         },
       });
       expect(fs.readJson).toHaveBeenCalledWith(path.resolve('.claudekit/config.json'));
@@ -342,7 +342,7 @@ describe('HookRunner', () => {
     it('should preserve extra properties in hook config', async () => {
       const configWithExtras = {
         hooks: {
-          typecheck: {
+          'typecheck-changed': {
             timeout: 30000,
             customOption: 'value',
             anotherOption: true,
@@ -353,7 +353,7 @@ describe('HookRunner', () => {
 
       const config = await runner['loadConfig']();
 
-      expect(config.hooks['typecheck']).toEqual({
+      expect(config.hooks['typecheck-changed']).toEqual({
         timeout: 30000,
         customOption: 'value',
         anotherOption: true,
@@ -366,7 +366,7 @@ describe('HookRunner', () => {
       const payload = { tool_input: { file_path: '/test/app.ts' } };
       const config = {
         hooks: {
-          typecheck: { timeout: 45000 },
+          'typecheck-changed': { timeout: 45000 },
         },
       };
 
@@ -378,16 +378,16 @@ describe('HookRunner', () => {
       };
       const MockHook = vi.fn().mockReturnValue(mockHookInstance);
       runner['hooks'].set(
-        'typecheck',
+        'typecheck-changed',
         MockHook as unknown as (typeof runner)['hooks'] extends Map<string, infer V> ? V : never
       );
 
-      const exitCode = await runner.run('typecheck');
+      const exitCode = await runner.run('typecheck-changed');
 
       expect(exitCode).toBe(0);
       expect(utils.readStdin).toHaveBeenCalled();
       expect(fs.readJson).toHaveBeenCalled();
-      expect(MockHook).toHaveBeenCalledWith(config.hooks.typecheck);
+      expect(MockHook).toHaveBeenCalledWith(config.hooks['typecheck-changed']);
       expect(mockHookInstance.run).toHaveBeenCalledWith(payload);
     });
 

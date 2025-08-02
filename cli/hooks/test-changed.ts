@@ -2,8 +2,8 @@ import * as path from 'path';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 
-export class RunRelatedTestsHook extends BaseHook {
-  name = 'run-related-tests';
+export class TestChangedHook extends BaseHook {
+  name = 'test-changed';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;

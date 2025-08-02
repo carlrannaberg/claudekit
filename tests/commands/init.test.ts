@@ -91,21 +91,21 @@ vi.mock('../../cli/lib/components', () => ({
         component: {
           type: 'hook',
           path: '/path/to/typecheck.sh',
-          metadata: { id: 'typecheck' },
+          metadata: { id: 'typecheck-changed' },
         },
       },
       {
         component: {
           type: 'hook',
           path: '/path/to/eslint.sh',
-          metadata: { id: 'eslint' },
+          metadata: { id: 'lint-changed' },
         },
       },
       {
         component: {
           type: 'hook',
           path: '/path/to/auto-checkpoint.sh',
-          metadata: { id: 'auto-checkpoint' },
+          metadata: { id: 'create-checkpoint' },
         },
       },
     ],
@@ -114,7 +114,7 @@ vi.mock('../../cli/lib/components', () => ({
         component: {
           type: 'hook',
           path: '/path/to/validate-todo-completion.sh',
-          metadata: { id: 'validate-todo-completion', category: 'validation' },
+          metadata: { id: 'check-todos', category: 'validation' },
         },
       },
     ],
@@ -182,7 +182,7 @@ describe('init command', () => {
       expect(tsHook).toBeDefined();
       if (tsHook !== undefined) {
         const typedTsHook = tsHook as { hooks: Array<{ command: string }> };
-        expect(typedTsHook.hooks[0]?.command).toBe('claudekit-hooks run typecheck');
+        expect(typedTsHook.hooks[0]?.command).toBe('claudekit-hooks run typecheck-changed');
       }
 
       // Check for ESLint hook
@@ -192,7 +192,7 @@ describe('init command', () => {
       expect(eslintHook).toBeDefined();
       if (eslintHook !== undefined) {
         const typedEslintHook = eslintHook as { hooks: Array<{ command: string }> };
-        expect(typedEslintHook.hooks[0]?.command).toBe('claudekit-hooks run eslint');
+        expect(typedEslintHook.hooks[0]?.command).toBe('claudekit-hooks run lint-changed');
       }
     });
 
@@ -210,8 +210,8 @@ describe('init command', () => {
       expect(stopHook.hooks).toHaveLength(2);
 
       const commands = stopHook.hooks.map((h) => h.command);
-      expect(commands).toContain('claudekit-hooks run auto-checkpoint');
-      expect(commands).toContain('claudekit-hooks run validate-todo-completion');
+      expect(commands).toContain('claudekit-hooks run create-checkpoint');
+      expect(commands).toContain('claudekit-hooks run check-todos');
     });
 
     it('should format settings.json with proper indentation', async () => {

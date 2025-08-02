@@ -4,14 +4,14 @@
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run eslint"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       },
       {
@@ -23,7 +23,7 @@
       {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
         ]
       }
     ],
@@ -31,9 +31,11 @@
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"},
-          {"type": "command", "command": "claudekit-hooks run project-validation"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"},
+          {"type": "command", "command": "claudekit-hooks run typecheck-project"},
+          {"type": "command", "command": "claudekit-hooks run lint-project"},
+          {"type": "command", "command": "claudekit-hooks run test-project"}
         ]
       }
     ]

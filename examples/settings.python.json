@@ -17,7 +17,7 @@
       {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
         ]
       }
     ],
@@ -25,8 +25,8 @@
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]

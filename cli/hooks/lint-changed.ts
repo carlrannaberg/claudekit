@@ -3,8 +3,8 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import type { ExecResult, PackageManager } from './utils.js';
 
-export class EslintHook extends BaseHook {
-  name = 'eslint';
+export class LintChangedHook extends BaseHook {
+  name = 'lint-changed';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;

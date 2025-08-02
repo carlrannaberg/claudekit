@@ -6,8 +6,8 @@ interface Todo {
   status: 'pending' | 'in_progress' | 'completed';
 }
 
-export class ValidateTodoCompletionHook extends BaseHook {
-  name = 'validate-todo-completion';
+export class CheckTodosHook extends BaseHook {
+  name = 'check-todos';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { payload } = context;

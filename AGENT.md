@@ -173,13 +173,13 @@ Claudekit includes a comprehensive testing framework in the `tests/` directory:
 Test hooks directly without Claude Code:
 ```bash
 # Test TypeScript hook
-echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | claudekit-hooks run typecheck
+echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | claudekit-hooks run typecheck-changed
 
 # Test ESLint hook
-echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | claudekit-hooks run eslint
+echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | claudekit-hooks run lint-changed
 
 # Test auto-checkpoint (no input needed)
-claudekit-hooks run auto-checkpoint
+claudekit-hooks run create-checkpoint
 ```
 See `docs/hooks-documentation.md` for detailed testing examples.
 
@@ -322,23 +322,23 @@ Edit `.claude/settings.json` using the new matcher format:
     "PostToolUse": [
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run eslint"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       },
       {
         "matcher": "Write,Edit,MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run run-related-tests"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run test-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]

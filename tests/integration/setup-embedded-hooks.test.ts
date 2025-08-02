@@ -183,16 +183,16 @@ describe('Setup Command - Embedded Hooks Integration', () => {
     // Mock component discovery
     const mockComponents = new Map([
       [
-        'typecheck',
+        'typecheck-changed',
         {
           type: 'hook',
-          path: '/mock/src/hooks/typecheck.sh',
+          path: '/mock/src/hooks/typecheck-changed.sh',
           hash: 'abc123',
           lastModified: new Date(),
           metadata: {
-            id: 'typecheck',
-            name: 'TypeScript Check',
-            description: 'Type checking',
+            id: 'typecheck-changed',
+            name: 'TypeScript Check (Changed Files)',
+            description: 'Type checking for changed files only',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -201,16 +201,88 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         },
       ],
       [
-        'eslint',
+        'typecheck-project',
         {
           type: 'hook',
-          path: '/mock/src/hooks/eslint.sh',
+          path: '/mock/src/hooks/typecheck-project.sh',
+          hash: 'abc124',
+          lastModified: new Date(),
+          metadata: {
+            id: 'typecheck-project',
+            name: 'TypeScript Check (Project-wide)',
+            description: 'Type checking for entire project',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-changed',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/lint-changed.sh',
           hash: 'def456',
           lastModified: new Date(),
           metadata: {
-            id: 'eslint',
-            name: 'ESLint',
-            description: 'ESLint validation',
+            id: 'lint-changed',
+            name: 'ESLint (Changed Files)',
+            description: 'ESLint validation for changed files only',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-project',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/lint-project.sh',
+          hash: 'def457',
+          lastModified: new Date(),
+          metadata: {
+            id: 'lint-project',
+            name: 'ESLint (Project-wide)',
+            description: 'ESLint validation for entire project',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'test-changed',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/test-changed.sh',
+          hash: 'test123',
+          lastModified: new Date(),
+          metadata: {
+            id: 'test-changed',
+            name: 'Test (Related to Changes)',
+            description: 'Run tests related to changed files',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'test-project',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/test-project.sh',
+          hash: 'test124',
+          lastModified: new Date(),
+          metadata: {
+            id: 'test-project',
+            name: 'Test (Full Suite)',
+            description: 'Run full test suite',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -279,7 +351,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck', 'eslint', 'validate-todo-completion'])],
+        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project', 'test-changed', 'test-project', 'validate-todo-completion'])],
         ['git', new Set(['auto-checkpoint', 'git:commit'])],
       ]),
       lastScan: new Date(),
@@ -296,14 +368,14 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       essential: [],
       recommended: [
         {
-          component: mockComponents.get('typecheck'),
+          component: mockComponents.get('typecheck-changed'),
           score: 85,
           reasons: ['TypeScript detected'],
           dependencies: [],
           isRequired: false,
         },
         {
-          component: mockComponents.get('eslint'),
+          component: mockComponents.get('lint-changed'),
           score: 80,
           reasons: ['ESLint detected'],
           dependencies: [],
@@ -361,20 +433,20 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         expect(settings.hooks.PostToolUse).toBeDefined();
         expect(settings.hooks.Stop).toBeDefined();
 
-        // Check TypeScript hook
+        // Check TypeScript hook (changed files)
         const typecheckHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
-          h.hooks.some((hook: HookCommand) => hook.command.includes('typecheck'))
+          h.hooks.some((hook: HookCommand) => hook.command.includes('typecheck-changed'))
         );
         expect(typecheckHook).toBeDefined();
-        expect(typecheckHook.hooks[0].command).toBe('claudekit-hooks run typecheck');
+        expect(typecheckHook.hooks[0].command).toBe('claudekit-hooks run typecheck-changed');
         expect(typecheckHook.matcher).toBe('tools:Write AND file_paths:**/*.ts');
 
-        // Check ESLint hook
+        // Check ESLint hook (changed files)  
         const eslintHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
-          h.hooks.some((hook: HookCommand) => hook.command.includes('eslint'))
+          h.hooks.some((hook: HookCommand) => hook.command.includes('lint-changed'))
         );
         expect(eslintHook).toBeDefined();
-        expect(eslintHook.hooks[0].command).toBe('claudekit-hooks run eslint');
+        expect(eslintHook.hooks[0].command).toBe('claudekit-hooks run lint-changed');
         expect(eslintHook.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
       }
     });
@@ -486,7 +558,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
                   PostToolUse: [
                     {
                       matcher: 'tools:Write AND file_paths:**/*.ts',
-                      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck' }],
+                      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
                     },
                   ],
                   Stop: [],
@@ -501,7 +573,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       });
 
       const options: SetupOptions = {
-        hooks: 'typecheck',
+        hooks: 'typecheck-changed',
         quiet: true,
         force: true, // Force to avoid interactive prompt
       };
@@ -644,7 +716,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
 
     it('should install only specified hooks', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck,eslint',
+        hooks: 'typecheck-changed,lint-changed',
         quiet: true,
         yes: true, // This defaults to both installation
       };
@@ -659,7 +731,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
         if (componentsArg !== undefined) {
           expect(componentsArg).toHaveLength(2);
-          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual(['eslint', 'typecheck']);
+          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual(['lint-changed', 'typecheck-changed']);
         }
       }
 
@@ -677,7 +749,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         expect(postToolUseHooks).toHaveLength(2);
 
         postToolUseHooks.forEach((entry: HookEntry) => {
-          expect(entry.hooks[0]?.command).toMatch(/^claudekit-hooks run (typecheck|eslint)$/);
+          expect(entry.hooks[0]?.command).toMatch(/^claudekit-hooks run (typecheck-changed|lint-changed)$/);
         });
       }
     });
@@ -740,8 +812,8 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       // Should install recommended components
       const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
       if (componentsArg !== undefined) {
-        expect(componentsArg.map((c: Component) => c.id)).toContain('typecheck');
-        expect(componentsArg.map((c: Component) => c.id)).toContain('eslint');
+        expect(componentsArg.map((c: Component) => c.id)).toContain('typecheck-changed');
+        expect(componentsArg.map((c: Component) => c.id)).toContain('lint-changed');
       }
     });
   });
@@ -799,7 +871,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       vi.mocked(confirm).mockResolvedValue(true);
 
       const options: SetupOptions = {
-        hooks: 'typecheck',
+        hooks: 'typecheck-changed',
         quiet: false,
         yes: true, // Use non-interactive mode to avoid additional prompts
         force: true, // Need force to overwrite existing file in non-interactive mode
@@ -821,7 +893,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         // Verify the typecheck hook was added
         expect(settings.hooks.PostToolUse).toBeDefined();
         const typecheckHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
-          h.hooks.some((hook: HookCommand) => hook.command === 'claudekit-hooks run typecheck')
+          h.hooks.some((hook: HookCommand) => hook.command === 'claudekit-hooks run typecheck-changed')
         );
         expect(typecheckHook).toBeDefined();
       }
@@ -831,7 +903,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
   describe('Hook configuration patterns', () => {
     it('should use correct matchers for different hook types', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck,eslint,auto-checkpoint,validate-todo-completion',
+        hooks: 'typecheck-changed,lint-changed,auto-checkpoint,validate-todo-completion',
         quiet: true,
         yes: true, // This will default to both installation which includes project
       };
@@ -852,12 +924,12 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         expect(postToolUseHooks).toHaveLength(2);
 
         const typecheckEntry = postToolUseHooks.find(
-          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run typecheck'
+          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run typecheck-changed'
         );
         expect(typecheckEntry?.matcher).toBe('tools:Write AND file_paths:**/*.ts');
 
         const eslintEntry = postToolUseHooks.find(
-          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run eslint'
+          (h: HookEntry) => h.hooks[0]?.command === 'claudekit-hooks run lint-changed'
         );
         expect(eslintEntry?.matcher).toBe('tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}');
 
@@ -894,6 +966,54 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       );
 
       expect(hookDirCreates).toHaveLength(0);
+    });
+
+    it('should allow selecting only specific project hooks', async () => {
+      const options: SetupOptions = {
+        hooks: 'typecheck-project,lint-project',
+        quiet: true,
+        yes: true,
+      };
+
+      await setup(options);
+
+      const settingsCall = mockFS.writeFile.mock.calls.find(
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
+      );
+
+      expect(settingsCall).toBeDefined();
+      if (settingsCall) {
+        const [, content] = settingsCall;
+        const settings = JSON.parse(content as string);
+
+        // Should have typecheck and lint but not test
+        const stopHooks = settings.hooks.Stop[0]?.hooks.map((h: HookCommand) => h.command) ?? [];
+        expect(stopHooks).toContain('claudekit-hooks run typecheck-project');
+        expect(stopHooks).toContain('claudekit-hooks run lint-project');
+        expect(stopHooks).not.toContain('claudekit-hooks run test-project');
+      }
+    });
+
+    it('should offer new hook names during setup', async () => {
+      // Call setup to ensure mockDiscoverComponents is invoked
+      const options: SetupOptions = {
+        yes: true,
+        quiet: true,
+      };
+      
+      await setup(options);
+      
+      // Now check the mock was called and has the components
+      expect(mockDiscoverComponents).toHaveBeenCalled();
+      const mockResult = await mockDiscoverComponents.mock.results[0]?.value;
+      const components = mockResult.components;
+      
+      expect(components?.has('typecheck-changed')).toBe(true);
+      expect(components?.has('typecheck-project')).toBe(true);
+      expect(components?.has('lint-changed')).toBe(true);
+      expect(components?.has('lint-project')).toBe(true);
+      expect(components?.has('test-changed')).toBe(true);
+      expect(components?.has('test-project')).toBe(true);
     });
   });
 });

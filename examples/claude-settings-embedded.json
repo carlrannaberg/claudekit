@@ -10,8 +10,8 @@
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
           // Run typecheck and no-any detection for TypeScript files
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
@@ -20,7 +20,7 @@
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
           // Run ESLint for all JS/TS files
-          {"type": "command", "command": "claudekit-hooks run eslint"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       },
       {
@@ -29,7 +29,7 @@
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
           // Run tests related to modified files
-          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
         ]
       },
       {
@@ -49,11 +49,13 @@
         "matcher": "*",
         "hooks": [
           // Create checkpoint of current work
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
           // Validate all todos are properly marked
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"},
           // Run project-wide validation
-          {"type": "command", "command": "claudekit-hooks run project-validation"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-project"},
+          {"type": "command", "command": "claudekit-hooks run lint-project"},
+          {"type": "command", "command": "claudekit-hooks run test-project"}
         ]
       }
     ],

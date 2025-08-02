@@ -557,11 +557,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 5: Set configuration based on selected components
     // These are now determined by which hooks/commands the user selected
-    const autoCheckpoint = selectedComponents.includes('auto-checkpoint');
-    const validateTodos = selectedComponents.includes('validate-todo-completion');
-    const runTests = selectedComponents.includes('run-related-tests');
+    const autoCheckpoint = selectedComponents.includes('create-checkpoint');
+    const validateTodos = selectedComponents.includes('check-todos');
+    const runTests = selectedComponents.includes('test-changed') || selectedComponents.includes('test-project');
     const gitIntegration = selectedComponents.some(
-      (id) => id.startsWith('git:') || id.startsWith('checkpoint:')
+      (id) => id.startsWith('git:') || id.startsWith('checkpoint:') || id === 'create-checkpoint'
     );
 
     // Step 6: Confirmation

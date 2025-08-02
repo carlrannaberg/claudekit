@@ -2,6 +2,13 @@
 
 This document describes the embedded hooks system in claudekit and how to use it with Claude Code.
 
+## Hook Naming Convention
+
+Claudekit uses clear suffixes to indicate hook scope:
+- `-changed`: Operates only on files that were created or modified
+- `-project`: Operates on the entire project
+- Action verbs (e.g., `create-checkpoint`): Perform specific actions
+
 ## Introduction to Embedded Hooks
 
 Claudekit provides a powerful embedded hooks system that enhances your Claude Code development workflow. Unlike traditional shell script hooks, embedded hooks are built directly into the `claudekit-hooks` executable, providing:
@@ -54,9 +61,9 @@ Hooks are configured in your project's `.claude/settings.json` file. The claudek
 
 These hooks run after Claude Code modifies files:
 
-#### typecheck
+#### typecheck-changed
 
-**Purpose:** Enforces TypeScript type checking and prevents type errors from being introduced.
+**Purpose:** Enforces TypeScript type checking on modified files and prevents type errors from being introduced.
 
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript/TSX files only)
 
@@ -81,9 +88,9 @@ To fix:
 2. Or change the value to match the type
 ```
 
-#### no-any
+#### check-any-changed
 
-**Purpose:** Enforces strict typing by preventing the use of `any` types.
+**Purpose:** Enforces strict typing by preventing the use of `any` types in modified files.
 
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript files only)
 
@@ -93,9 +100,9 @@ To fix:
 - Excludes valid test utilities like `expect.any()`
 - Provides specific fix suggestions for each occurrence
 
-#### eslint
+#### lint-changed
 
-**Purpose:** Enforces code style and quality standards using ESLint.
+**Purpose:** Enforces code style and quality standards using ESLint on modified files.
 
 **Triggers on:** Write, Edit, MultiEdit tools (JS/JSX/TS/TSX files)
 
@@ -106,7 +113,7 @@ To fix:
 - Shows clear error messages with line numbers
 - Optionally auto-fixes issues (configurable)
 
-#### run-related-tests
+#### test-changed
 
 **Purpose:** Automatically runs tests related to modified files.
 
@@ -126,7 +133,7 @@ To fix:
 
 These hooks run when Claude Code stops or completes a task:
 
-#### auto-checkpoint
+#### create-checkpoint
 
 **Purpose:** Automatically creates git checkpoints to preserve your work.
 
@@ -149,7 +156,7 @@ These hooks run when Claude Code stops or completes a task:
 }
 ```
 
-#### validate-todo-completion
+#### check-todos
 
 **Purpose:** Ensures all todos are completed before Claude Code stops.
 
@@ -172,16 +179,18 @@ You have 2 incomplete todo(s):
 Please complete these tasks before stopping.
 ```
 
-#### project-validation
+#### typecheck-project, lint-project, test-project
 
-**Purpose:** Runs comprehensive validation when work is completed.
+**Purpose:** Run comprehensive validation on the entire project when work is completed.
 
 **Features:**
-- Runs all validation checks (TypeScript, ESLint, tests)
+- **typecheck-project**: Runs TypeScript validation on entire project
+- **lint-project**: Runs ESLint validation on entire project  
+- **test-project**: Runs complete test suite
 - Provides consolidated results
 - Ensures code quality before stopping
-- Configurable validation suite
-- Fast execution with parallel checks
+- Configurable validation commands
+- Can be run individually or together
 
 ## Hook Configuration in settings.json
 
@@ -194,20 +203,20 @@ Hooks are configured in your project's `.claude/settings.json` file. Here's a co
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"},
-          {"type": "command", "command": "claudekit-hooks run no-any"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
         "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run eslint"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       },
       {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run run-related-tests"}
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
         ]
       }
     ],
@@ -215,8 +224,8 @@ Hooks are configured in your project's `.claude/settings.json` file. Here's a co
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run validate-todo-completion"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ],
@@ -224,7 +233,9 @@ Hooks are configured in your project's `.claude/settings.json` file. Here's a co
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run project-validation"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-project"},
+          {"type": "command", "command": "claudekit-hooks run lint-project"},
+          {"type": "command", "command": "claudekit-hooks run test-project"}
         ]
       }
     ]

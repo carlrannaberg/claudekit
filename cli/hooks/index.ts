@@ -4,13 +4,15 @@
  */
 
 // Export all hook classes
-export { TypecheckHook } from './typecheck.js';
-export { NoAnyHook } from './no-any.js';
-export { EslintHook } from './eslint.js';
-export { AutoCheckpointHook } from './auto-checkpoint.js';
-export { RunRelatedTestsHook } from './run-related-tests.js';
-export { ProjectValidationHook } from './project-validation.js';
-export { ValidateTodoCompletionHook } from './validate-todo.js';
+export { TypecheckChangedHook } from './typecheck-changed.js';
+export { CheckAnyChangedHook } from './check-any-changed.js';
+export { LintChangedHook } from './lint-changed.js';
+export { CreateCheckpointHook } from './create-checkpoint.js';
+export { TestChangedHook } from './test-changed.js';
+export { CheckTodosHook } from './check-todos.js';
+export { TypecheckProjectHook } from './typecheck-project.js';
+export { LintProjectHook } from './lint-project.js';
+export { TestProjectHook } from './test-project.js';
 
 // Export base and utils
 export { BaseHook } from './base.js';

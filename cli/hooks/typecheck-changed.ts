@@ -2,8 +2,8 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { checkToolAvailable } from './utils.js';
 
-export class TypecheckHook extends BaseHook {
-  name = 'typecheck';
+export class TypecheckChangedHook extends BaseHook {
+  name = 'typecheck-changed';
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;

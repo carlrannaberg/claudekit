@@ -89,10 +89,10 @@ interface ScanOptions {
  */
 const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
   {
-    path: 'embedded:typecheck',
+    path: 'embedded:typecheck-changed',
     type: 'hook',
     metadata: {
-      id: 'typecheck',
+      id: 'typecheck-changed',
       name: 'TypeScript Type Checking',
       description: 'Run TypeScript type checking on file changes (embedded hook)',
       category: 'validation',
@@ -104,10 +104,10 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     lastModified: new Date('2024-01-01'),
   },
   {
-    path: 'embedded:eslint',
+    path: 'embedded:lint-changed',
     type: 'hook',
     metadata: {
-      id: 'eslint',
+      id: 'lint-changed',
       name: 'ESLint Validation',
       description: 'Run ESLint validation on JavaScript/TypeScript files (embedded hook)',
       category: 'validation',
@@ -134,10 +134,10 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     lastModified: new Date('2024-01-01'),
   },
   {
-    path: 'embedded:no-any',
+    path: 'embedded:check-any-changed',
     type: 'hook',
     metadata: {
-      id: 'no-any',
+      id: 'check-any-changed',
       name: 'TypeScript Any Detector',
       description: 'Detect forbidden any types in TypeScript files (embedded hook)',
       category: 'validation',
@@ -149,10 +149,10 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     lastModified: new Date('2024-01-01'),
   },
   {
-    path: 'embedded:run-related-tests',
+    path: 'embedded:test-changed',
     type: 'hook',
     metadata: {
-      id: 'run-related-tests',
+      id: 'test-changed',
       name: 'Run Related Tests',
       description: 'Automatically run tests related to changed files (embedded hook)',
       category: 'testing',
@@ -164,10 +164,10 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     lastModified: new Date('2024-01-01'),
   },
   {
-    path: 'embedded:auto-checkpoint',
+    path: 'embedded:create-checkpoint',
     type: 'hook',
     metadata: {
-      id: 'auto-checkpoint',
+      id: 'create-checkpoint',
       name: 'Auto Checkpoint',
       description: 'Automatically create git checkpoints on Claude Code stop (embedded hook)',
       category: 'git',
@@ -179,10 +179,10 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     lastModified: new Date('2024-01-01'),
   },
   {
-    path: 'embedded:validate-todo-completion',
+    path: 'embedded:check-todos',
     type: 'hook',
     metadata: {
-      id: 'validate-todo-completion',
+      id: 'check-todos',
       name: 'Validate Todo Completion',
       description: 'Ensure all in-progress todos are completed or updated (embedded hook)',
       category: 'project-management',
@@ -1616,7 +1616,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   // TypeScript project checks
   if (projectInfo.hasTypeScript) {
     if (
-      component.metadata.id === 'typecheck' ||
+      component.metadata.id === 'typecheck-changed' ||
       component.metadata.name.toLowerCase().includes('typescript')
     ) {
       score += RECOMMENDATION_WEIGHTS.directMatch;
@@ -1629,7 +1629,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   // ESLint project checks
   if (projectInfo.hasESLint) {
     if (
-      component.metadata.id === 'eslint' ||
+      component.metadata.id === 'lint-changed' ||
       component.metadata.name.toLowerCase().includes('eslint')
     ) {
       score += RECOMMENDATION_WEIGHTS.directMatch;
@@ -1649,7 +1649,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   // Testing framework checks
   if (projectInfo.hasJest === true || projectInfo.hasVitest === true) {
     if (
-      component.metadata.id === 'run-related-tests' ||
+      component.metadata.id === 'test-changed' ||
       component.metadata.category === 'testing'
     ) {
       score += RECOMMENDATION_WEIGHTS.directMatch;
@@ -1662,7 +1662,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
       score += RECOMMENDATION_WEIGHTS.categoryMatch;
     }
     // Auto-checkpoint is highly recommended for git projects
-    if (component.metadata.id === 'auto-checkpoint') {
+    if (component.metadata.id === 'create-checkpoint') {
       score += RECOMMENDATION_WEIGHTS.directMatch;
     }
   }
@@ -1719,7 +1719,7 @@ function generateRecommendationReasons(
   // TypeScript reasons
   if (
     projectInfo.hasTypeScript &&
-    (component.metadata.id === 'typecheck' ||
+    (component.metadata.id === 'typecheck-changed' ||
       component.metadata.name.toLowerCase().includes('typescript'))
   ) {
     reasons.push('TypeScript detected - type checking recommended');
@@ -1728,7 +1728,7 @@ function generateRecommendationReasons(
   // ESLint reasons
   if (
     projectInfo.hasESLint &&
-    (component.metadata.id === 'eslint' || component.metadata.name.toLowerCase().includes('eslint'))
+    (component.metadata.id === 'lint-changed' || component.metadata.name.toLowerCase().includes('eslint'))
   ) {
     reasons.push('ESLint configuration found - linting automation recommended');
   }
@@ -1745,7 +1745,7 @@ function generateRecommendationReasons(
   // Testing reasons
   if (
     (projectInfo.hasJest === true || projectInfo.hasVitest === true) &&
-    (component.metadata.id === 'run-related-tests' || component.metadata.category === 'testing')
+    (component.metadata.id === 'test-changed' || component.metadata.category === 'testing')
   ) {
     const framework = projectInfo.hasJest === true ? 'Jest' : 'Vitest';
     reasons.push(`${framework} detected - automated test running recommended`);
@@ -1753,7 +1753,7 @@ function generateRecommendationReasons(
 
   // Git reasons
   if (projectInfo.isGitRepository === true && component.metadata.category === 'git') {
-    if (component.metadata.id === 'auto-checkpoint') {
+    if (component.metadata.id === 'create-checkpoint') {
       reasons.push('Git repository - automatic checkpointing highly recommended');
     } else {
       reasons.push('Git repository - version control tools recommended');

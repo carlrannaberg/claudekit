@@ -4,7 +4,7 @@
       {
         "matcher": "tools:Write AND file_paths:**/*.ts",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run typecheck"}
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
         ]
       }
     ],
@@ -12,7 +12,7 @@
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run auto-checkpoint"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"}
         ]
       }
     ]
