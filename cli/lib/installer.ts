@@ -29,7 +29,6 @@ import type {
   Component,
   // ComponentType,
   InstallTarget,
-  ProjectInfo,
   TemplateType,
   Platform,
 } from '../types/config.js';
@@ -453,19 +452,6 @@ export async function createInstallPlan(
     }
   }
 
-  // Plan configuration steps
-  if (installation.target === 'project' || installation.target === 'both') {
-    steps.push({
-      id: 'configure-project-settings',
-      type: 'configure',
-      description: 'Configure project settings',
-      target: path.join(projectDir, 'settings.json'),
-      metadata: {
-        template: options.template || 'default',
-        projectInfo: installation.projectInfo,
-      },
-    });
-  }
 
   // Check for warnings
   if (
@@ -617,9 +603,6 @@ export async function simulateInstallation(
           logger.debug(`  Would check/install dependency: ${step.target}`);
           break;
 
-        case 'configure':
-          logger.debug(`  Would create/update configuration: ${step.target}`);
-          break;
       }
     }
   }
@@ -869,11 +852,6 @@ async function executeStep(
       break;
     }
 
-    case 'configure':
-      logger.debug(`Creating configuration: ${step.target}`);
-      await createConfiguration(step.target, step.metadata);
-      transaction.recordFileCreated(step.target);
-      break;
 
     default:
       // This should never happen as step.type is a union type
@@ -881,66 +859,8 @@ async function executeStep(
   }
 }
 
-interface HookConfiguration {
-  matcher: string;
-  hooks: Array<{ type: 'command'; command: string }>;
-}
 
-interface ClaudeConfiguration {
-  hooks: {
-    PostToolUse: HookConfiguration[];
-    Stop: HookConfiguration[];
-  };
-}
 
-/**
- * Create configuration file based on template and project info
- */
-async function createConfiguration(
-  targetPath: string,
-  metadata?: Record<string, unknown>
-): Promise<void> {
-  // const template = metadata?.['template'] || 'default'; // Unused for now
-  const projectInfo = metadata?.['projectInfo'] as ProjectInfo | undefined;
-
-  // Build configuration based on template and project info
-  const config: ClaudeConfiguration = {
-    hooks: {
-      PostToolUse: [],
-      Stop: [],
-    },
-  };
-
-  // Add TypeScript hook if project has TypeScript
-  if (projectInfo?.hasTypeScript === true) {
-    config.hooks.PostToolUse.push({
-      matcher: 'Write|Edit|MultiEdit',
-      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
-    });
-  }
-
-  // Add ESLint hook if project has ESLint
-  if (projectInfo?.hasESLint === true) {
-    config.hooks.PostToolUse.push({
-      matcher: 'Write|Edit|MultiEdit',
-      hooks: [{ type: 'command', command: 'claudekit-hooks run lint-changed' }],
-    });
-  }
-
-  // Add default stop hooks
-  config.hooks.Stop.push({
-    matcher: '*',
-    hooks: [
-      { type: 'command', command: 'claudekit-hooks run create-checkpoint' },
-      { type: 'command', command: 'claudekit-hooks run check-todos' },
-      // MARKER: This is from installer.ts createConfiguration
-      { type: 'command', command: 'claudekit-hooks run typecheck-project --debug' },
-    ],
-  });
-
-  // Write configuration
-  await fs.writeFile(targetPath, JSON.stringify(config, null, 2));
-}
 
 // ============================================================================
 // Main Installer API
