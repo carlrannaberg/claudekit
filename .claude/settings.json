@@ -6,6 +6,15 @@
         "hooks": [
           {
             "type": "command",
+            "command": "claudekit-hooks run lint-changed"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
             "command": "claudekit-hooks run typecheck-changed"
           }
         ]
@@ -15,7 +24,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run lint-changed"
+            "command": "claudekit-hooks run check-any-changed"
+          }
+        ]
+      },
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run test-changed"
           }
         ]
       }
@@ -31,6 +49,18 @@
           {
             "type": "command",
             "command": "claudekit-hooks run check-todos"
+          },
+          {
+            "type": "command",
+            "command": "claudekit-hooks run typecheck-project"
+          },
+          {
+            "type": "command",
+            "command": "claudekit-hooks run lint-project"
+          },
+          {
+            "type": "command",
+            "command": "claudekit-hooks run test-project"
           }
         ]
       }
