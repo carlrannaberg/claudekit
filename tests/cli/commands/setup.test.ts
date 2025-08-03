@@ -678,7 +678,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       // Should add new typecheck entry
       expect(writtenContent.hooks.PostToolUse).toContainEqual({
-        matcher: 'tools:Write AND file_paths:**/*.ts',
+        matcher: 'Write|Edit|MultiEdit',
         hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
       });
     });
