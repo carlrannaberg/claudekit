@@ -933,6 +933,8 @@ async function createConfiguration(
     hooks: [
       { type: 'command', command: 'claudekit-hooks run create-checkpoint' },
       { type: 'command', command: 'claudekit-hooks run check-todos' },
+      // MARKER: This is from installer.ts createConfiguration
+      { type: 'command', command: 'claudekit-hooks run typecheck-project --debug' },
     ],
   });
 
