@@ -49,7 +49,7 @@ export function createHooksCLI(): Command {
     .action(async (limit?: string) => {
       const { getRecentExecutions } = await import('./hooks/logging.js');
       const executions = await getRecentExecutions(limit !== undefined ? parseInt(limit) : 20);
-      
+
       if (executions.length === 0) {
         console.log('No recent hook executions found.');
         return;
@@ -71,7 +71,7 @@ export function createHooksCLI(): Command {
     .action(async (hookName: string, options) => {
       const globalOpts = program.opts();
       const hookRunner = new HookRunner(
-        globalOpts['config'] as string | undefined, 
+        globalOpts['config'] as string | undefined,
         globalOpts['debug'] === true || options.debug === true
       );
       const exitCode = await hookRunner.run(hookName);

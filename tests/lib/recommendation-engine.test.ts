@@ -176,12 +176,16 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       expect(result.essential).toHaveLength(2); // typecheck + auto-checkpoint
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(
+        true
+      );
       expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true
       );
 
-      const typecheckRec = result.essential.find((r) => r.component.metadata.id === 'typecheck-changed');
+      const typecheckRec = result.essential.find(
+        (r) => r.component.metadata.id === 'typecheck-changed'
+      );
       expect(typecheckRec?.reasons).toContain('TypeScript detected - type checking recommended');
       expect(typecheckRec?.dependencies).toContain('validation-lib');
     });
@@ -240,9 +244,7 @@ describe('Component Recommendation Engine', () => {
 
       const result = await recommendComponents(projectInfo, mockRegistry);
 
-      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(
-        true
-      );
+      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(true);
 
       const testRec = result.essential.find((r) => r.component.metadata.id === 'test-changed');
       expect(testRec?.reasons).toContain('Jest detected - automated test running recommended');
@@ -397,7 +399,9 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Should still get TypeScript recommendations
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(
+        true
+      );
     });
   });
 
@@ -439,12 +443,12 @@ describe('Component Recommendation Engine', () => {
       const result = await recommendComponents(projectInfo, mockRegistry);
 
       // Should recommend all relevant hooks
-      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'lint-changed')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(
+      expect(result.essential.some((r) => r.component.metadata.id === 'typecheck-changed')).toBe(
         true
       );
+      expect(result.essential.some((r) => r.component.metadata.id === 'lint-changed')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
+      expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(true);
       expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true
       );

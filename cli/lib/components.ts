@@ -1678,10 +1678,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
 
   // Testing framework checks
   if (projectInfo.hasJest === true || projectInfo.hasVitest === true) {
-    if (
-      component.metadata.id === 'test-changed' ||
-      component.metadata.category === 'testing'
-    ) {
+    if (component.metadata.id === 'test-changed' || component.metadata.category === 'testing') {
       score += RECOMMENDATION_WEIGHTS.directMatch;
     }
   }
@@ -1758,7 +1755,8 @@ function generateRecommendationReasons(
   // ESLint reasons
   if (
     projectInfo.hasESLint &&
-    (component.metadata.id === 'lint-changed' || component.metadata.name.toLowerCase().includes('eslint'))
+    (component.metadata.id === 'lint-changed' ||
+      component.metadata.name.toLowerCase().includes('eslint'))
   ) {
     reasons.push('ESLint configuration found - linting automation recommended');
   }
@@ -1881,4 +1879,3 @@ export function formatRecommendationSummary(result: RecommendationResult): strin
 
   return lines.join('\n');
 }
-

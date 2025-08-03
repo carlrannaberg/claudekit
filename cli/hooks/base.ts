@@ -97,14 +97,14 @@ export abstract class BaseHook {
     if (options?.timeout !== undefined) {
       mergedOptions.timeout = options.timeout;
     }
-    
+
     if (this.debug) {
       console.error(`[DEBUG] Executing command: ${command} ${args.join(' ')}`);
       console.error(`[DEBUG] Command options:`, mergedOptions);
     }
-    
+
     const result = await execCommand(command, args, mergedOptions);
-    
+
     if (this.debug) {
       console.error(`[DEBUG] Command exit code: ${result.exitCode}`);
       console.error(`[DEBUG] Command stdout length: ${result.stdout.length}`);
@@ -113,7 +113,7 @@ export abstract class BaseHook {
         console.error(`[DEBUG] Command stderr:`, result.stderr);
       }
     }
-    
+
     return result;
   }
 

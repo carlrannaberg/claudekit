@@ -78,7 +78,6 @@ describe('utils', () => {
   });
 
   describe('readStdin', () => {
-
     it('should read data from stdin', async () => {
       const testData = '{"test": "data"}';
       const originalStdin = process.stdin;

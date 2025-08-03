@@ -14,13 +14,16 @@ describe('LintProjectHook', () => {
     mockCheckToolAvailable = vi.fn();
     mockExecCommand = vi.fn();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock the utils functions
     vi.spyOn(utils, 'checkToolAvailable').mockImplementation(mockCheckToolAvailable);
     vi.spyOn(utils, 'formatESLintErrors').mockReturnValue('Formatted ESLint errors');
-    
+
     // Mock the execCommand method on the hook instance
-    vi.spyOn(hook as unknown as { execCommand: typeof mockExecCommand }, 'execCommand').mockImplementation(mockExecCommand);
+    vi.spyOn(
+      hook as unknown as { execCommand: typeof mockExecCommand },
+      'execCommand'
+    ).mockImplementation(mockExecCommand);
   });
 
   afterEach(() => {
@@ -48,7 +51,11 @@ describe('LintProjectHook', () => {
       const result = await hook.execute(context);
 
       expect(result.exitCode).toBe(0);
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('eslint', '.eslintrc.json', '/test/project');
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'eslint',
+        '.eslintrc.json',
+        '/test/project'
+      );
       expect(mockExecCommand).not.toHaveBeenCalled();
     });
 
@@ -59,11 +66,9 @@ describe('LintProjectHook', () => {
 
       const result = await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'npx eslint . --ext .js,.jsx,.ts,.tsx',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('npx eslint . --ext .js,.jsx,.ts,.tsx', [], {
+        cwd: '/test/project',
+      });
       expect(result.exitCode).toBe(0);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Running project-wide ESLint validation...');
       expect(consoleErrorSpy).toHaveBeenCalledWith('✅ ESLint validation passed!');
@@ -114,24 +119,24 @@ describe('LintProjectHook', () => {
     it('should respect custom eslintCommand', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
       mockExecCommand.mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' });
-      (hook as unknown as { config: { eslintCommand: string } }).config = { eslintCommand: 'pnpm eslint . --fix' };
+      (hook as unknown as { config: { eslintCommand: string } }).config = {
+        eslintCommand: 'pnpm eslint . --fix',
+      };
       const context = createMockContext();
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'pnpm eslint . --fix',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('pnpm eslint . --fix', [], {
+        cwd: '/test/project',
+      });
     });
 
     it('should format errors on failure with non-zero exit code', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
-      const mockResult = { 
-        exitCode: 1, 
+      const mockResult = {
+        exitCode: 1,
         stdout: '/test/file.js:1:1 error Missing semicolon',
-        stderr: '' 
+        stderr: '',
       };
       mockExecCommand.mockResolvedValue(mockResult);
       const context = createMockContext();
@@ -145,10 +150,10 @@ describe('LintProjectHook', () => {
 
     it('should format errors when stdout contains error even with exit code 0', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
-      const mockResult = { 
-        exitCode: 0, 
+      const mockResult = {
+        exitCode: 0,
         stdout: '/test/file.js:1:1 error Missing semicolon',
-        stderr: '' 
+        stderr: '',
       };
       mockExecCommand.mockResolvedValue(mockResult);
       const context = createMockContext();
@@ -162,10 +167,10 @@ describe('LintProjectHook', () => {
 
     it('should pass when exit code is 0 and no errors in stdout', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
-      const mockResult = { 
-        exitCode: 0, 
+      const mockResult = {
+        exitCode: 0,
         stdout: 'All files passed linting',
-        stderr: '' 
+        stderr: '',
       };
       mockExecCommand.mockResolvedValue(mockResult);
       const context = createMockContext();
@@ -206,12 +211,14 @@ describe('LintProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('eslint', '.eslintrc.json', '/different/project/path');
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'npx eslint . --ext .js,.jsx,.ts,.tsx',
-        [],
-        { cwd: '/different/project/path' }
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'eslint',
+        '.eslintrc.json',
+        '/different/project/path'
       );
+      expect(mockExecCommand).toHaveBeenCalledWith('npx eslint . --ext .js,.jsx,.ts,.tsx', [], {
+        cwd: '/different/project/path',
+      });
     });
   });
 

@@ -32,12 +32,12 @@ export async function appendHookExecution(execution: HookExecution): Promise<voi
   console.error('[LOGGING] appendHookExecution called for:', execution.hookName);
   try {
     // Debug logging
-    if (process.env['CLAUDEKIT_DEBUG']) {
+    if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
       console.error('[DEBUG] Logging hook execution:', {
         hookName: execution.hookName,
         timestamp: execution.timestamp,
         logDir: LOG_DIR,
-        executionsLog: EXECUTIONS_LOG
+        executionsLog: EXECUTIONS_LOG,
       });
     }
 
@@ -50,13 +50,13 @@ export async function appendHookExecution(execution: HookExecution): Promise<voi
 
     // Update stats
     await updateHookStats(execution);
-    
-    if (process.env['CLAUDEKIT_DEBUG']) {
+
+    if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
       console.error('[DEBUG] Hook execution logged successfully');
     }
   } catch (error) {
     // Log errors when debug is enabled
-    if (process.env['CLAUDEKIT_DEBUG']) {
+    if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
       console.error('[DEBUG] Failed to log hook execution:', error);
     }
   }
@@ -83,12 +83,12 @@ async function updateHookStats(execution: HookExecution): Promise<void> {
       failureCount: 0,
       avgExecutionTime: 0,
       lastExecution: execution.timestamp,
-      recentExecutions: []
+      recentExecutions: [],
     };
   }
 
   const hookStats = stats[execution.hookName];
-  
+
   // This should never happen given the initialization above, but satisfy TypeScript
   if (!hookStats) {
     return;
@@ -103,8 +103,8 @@ async function updateHookStats(execution: HookExecution): Promise<void> {
   }
 
   // Update average execution time
-  hookStats.avgExecutionTime = 
-    (hookStats.avgExecutionTime * (hookStats.totalExecutions - 1) + execution.executionTime) / 
+  hookStats.avgExecutionTime =
+    (hookStats.avgExecutionTime * (hookStats.totalExecutions - 1) + execution.executionTime) /
     hookStats.totalExecutions;
 
   // Update last execution
@@ -114,7 +114,7 @@ async function updateHookStats(execution: HookExecution): Promise<void> {
   hookStats.recentExecutions.push({
     timestamp: execution.timestamp,
     executionTime: execution.executionTime,
-    exitCode: execution.exitCode
+    exitCode: execution.exitCode,
   });
   if (hookStats.recentExecutions.length > 10) {
     hookStats.recentExecutions.shift();
@@ -137,9 +137,9 @@ export async function getHookStats(): Promise<Record<string, HookStats>> {
 
 export async function printHookReport(): Promise<void> {
   const stats = await getHookStats();
-  
+
   console.log('\n=== Hook Execution Report ===\n');
-  
+
   if (Object.keys(stats).length === 0) {
     console.log('No hook executions recorded yet.');
     return;
@@ -148,15 +148,19 @@ export async function printHookReport(): Promise<void> {
   for (const [hookName, hookStats] of Object.entries(stats)) {
     console.log(`Hook: ${hookName}`);
     console.log(`  Total Executions: ${hookStats.totalExecutions}`);
-    console.log(`  Success Rate: ${Math.round((hookStats.successCount / hookStats.totalExecutions) * 100)}%`);
+    console.log(
+      `  Success Rate: ${Math.round((hookStats.successCount / hookStats.totalExecutions) * 100)}%`
+    );
     console.log(`  Average Time: ${Math.round(hookStats.avgExecutionTime)}ms`);
     console.log(`  Last Run: ${new Date(hookStats.lastExecution).toLocaleString()}`);
-    
+
     if (hookStats.recentExecutions.length > 0) {
       console.log('  Recent Executions:');
       for (const exec of hookStats.recentExecutions.slice(-3)) {
         const status = exec.exitCode === 0 ? '✓' : '✗';
-        console.log(`    ${status} ${new Date(exec.timestamp).toLocaleString()} (${exec.executionTime}ms)`);
+        console.log(
+          `    ${status} ${new Date(exec.timestamp).toLocaleString()} (${exec.executionTime}ms)`
+        );
       }
     }
     console.log();
@@ -165,20 +169,23 @@ export async function printHookReport(): Promise<void> {
 
 export async function getRecentExecutions(limit: number = 50): Promise<HookExecution[]> {
   try {
-    if (!await fs.pathExists(EXECUTIONS_LOG)) {
+    if (!(await fs.pathExists(EXECUTIONS_LOG))) {
       return [];
     }
 
     const content = await fs.readFile(EXECUTIONS_LOG, 'utf-8');
     const lines = content.trim().split('\n').filter(Boolean);
-    
-    return lines.slice(-limit).map(line => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        return null;
-      }
-    }).filter(Boolean) as HookExecution[];
+
+    return lines
+      .slice(-limit)
+      .map((line) => {
+        try {
+          return JSON.parse(line);
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean) as HookExecution[];
   } catch {
     return [];
   }

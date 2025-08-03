@@ -14,13 +14,16 @@ describe('TypecheckProjectHook', () => {
     mockCheckToolAvailable = vi.fn();
     mockExecCommand = vi.fn();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock the utils functions
     vi.spyOn(utils, 'checkToolAvailable').mockImplementation(mockCheckToolAvailable);
     vi.spyOn(utils, 'formatTypeScriptErrors').mockReturnValue('Formatted TypeScript errors');
-    
+
     // Mock the execCommand method on the hook instance
-    vi.spyOn(hook as unknown as { execCommand: typeof mockExecCommand }, 'execCommand').mockImplementation(mockExecCommand);
+    vi.spyOn(
+      hook as unknown as { execCommand: typeof mockExecCommand },
+      'execCommand'
+    ).mockImplementation(mockExecCommand);
   });
 
   afterEach(() => {
@@ -59,11 +62,9 @@ describe('TypecheckProjectHook', () => {
 
       const result = await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'npx tsc --noEmit',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('npx tsc --noEmit', [], {
+        cwd: '/test/project',
+      });
       expect(result.exitCode).toBe(0);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Running project-wide TypeScript validation...');
       expect(consoleErrorSpy).toHaveBeenCalledWith('✅ TypeScript validation passed!');
@@ -83,11 +84,9 @@ describe('TypecheckProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'pnpm dlx tsc --noEmit',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('pnpm dlx tsc --noEmit', [], {
+        cwd: '/test/project',
+      });
     });
 
     it('should run tsc --noEmit on project with yarn', async () => {
@@ -104,34 +103,32 @@ describe('TypecheckProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'yarn dlx tsc --noEmit',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('yarn dlx tsc --noEmit', [], {
+        cwd: '/test/project',
+      });
     });
 
     it('should respect custom typescriptCommand', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
       mockExecCommand.mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' });
-      (hook as unknown as { config: { typescriptCommand: string } }).config = { typescriptCommand: 'pnpm tsc --noEmit --strict' };
+      (hook as unknown as { config: { typescriptCommand: string } }).config = {
+        typescriptCommand: 'pnpm tsc --noEmit --strict',
+      };
       const context = createMockContext();
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'pnpm tsc --noEmit --strict',
-        [],
-        { cwd: '/test/project' }
-      );
+      expect(mockExecCommand).toHaveBeenCalledWith('pnpm tsc --noEmit --strict', [], {
+        cwd: '/test/project',
+      });
     });
 
     it('should format errors on failure', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
-      const mockResult = { 
-        exitCode: 1, 
+      const mockResult = {
+        exitCode: 1,
         stdout: 'error TS2322: Type string not assignable to number',
-        stderr: '' 
+        stderr: '',
       };
       mockExecCommand.mockResolvedValue(mockResult);
       const context = createMockContext();
@@ -172,12 +169,14 @@ describe('TypecheckProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('tsc', 'tsconfig.json', '/different/project/path');
-      expect(mockExecCommand).toHaveBeenCalledWith(
-        'npx tsc --noEmit',
-        [],
-        { cwd: '/different/project/path' }
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'tsc',
+        'tsconfig.json',
+        '/different/project/path'
       );
+      expect(mockExecCommand).toHaveBeenCalledWith('npx tsc --noEmit', [], {
+        cwd: '/different/project/path',
+      });
     });
   });
 

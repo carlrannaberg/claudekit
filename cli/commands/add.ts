@@ -34,7 +34,9 @@ export async function add(type: string, name: string, options: AddOptions = {}):
 
     // Validate type
     if (type !== 'command') {
-      throw new Error(`Invalid type "${type}". Only 'command' is supported (hooks are now embedded in claudekit).`);
+      throw new Error(
+        `Invalid type "${type}". Only 'command' is supported (hooks are now embedded in claudekit).`
+      );
     }
 
     // Determine target directory

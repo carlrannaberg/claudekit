@@ -37,10 +37,10 @@ const GlobalHookConfigSchema = z.object({
 // Complete hooks configuration
 const HooksConfigurationSchema = z.object({
   // Hook-specific configs
-  'typecheck': TypecheckConfigSchema.optional(),
+  typecheck: TypecheckConfigSchema.optional(),
   'typecheck-changed': TypecheckConfigSchema.optional(),
   'typecheck-project': TypecheckConfigSchema.optional(),
-  'eslint': EslintConfigSchema.optional(),
+  eslint: EslintConfigSchema.optional(),
   'lint-changed': EslintConfigSchema.optional(),
   'lint-project': EslintConfigSchema.optional(),
   'auto-checkpoint': AutoCheckpointConfigSchema.optional(),
@@ -48,14 +48,18 @@ const HooksConfigurationSchema = z.object({
   'run-related-tests': TestConfigSchema.optional(),
   'test-changed': TestConfigSchema.optional(),
   'test-project': TestConfigSchema.optional(),
-  'prettier': PrettierConfigSchema.optional(),
-  'check-any-changed': z.object({
-    timeout: z.number().min(1000).max(300000).optional(),
-  }).optional(),
-  'check-todos': z.object({
-    timeout: z.number().min(1000).max(300000).optional(),
-  }).optional(),
-  
+  prettier: PrettierConfigSchema.optional(),
+  'check-any-changed': z
+    .object({
+      timeout: z.number().min(1000).max(300000).optional(),
+    })
+    .optional(),
+  'check-todos': z
+    .object({
+      timeout: z.number().min(1000).max(300000).optional(),
+    })
+    .optional(),
+
   // Global config
   global: GlobalHookConfigSchema.optional(),
 });
@@ -72,19 +76,17 @@ export type ClaudekitConfig = z.infer<typeof ClaudekitConfigSchema>;
 export type HooksConfiguration = z.infer<typeof HooksConfigurationSchema>;
 
 // Validation function
-export function validateClaudekitConfig(data: unknown): { 
-  valid: boolean; 
-  errors?: string[]; 
-  data?: ClaudekitConfig 
+export function validateClaudekitConfig(data: unknown): {
+  valid: boolean;
+  errors?: string[];
+  data?: ClaudekitConfig;
 } {
   try {
     const parsed = ClaudekitConfigSchema.parse(data);
     return { valid: true, data: parsed };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errors = error.errors.map(err => 
-        `${err.path.join('.')}: ${err.message}`
-      );
+      const errors = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`);
       return { valid: false, errors };
     }
     return { valid: false, errors: ['Invalid configuration format'] };

@@ -14,12 +14,12 @@ export const HOOK_REGISTRY = {
   'check-any-changed': CheckAnyChangedHook,
   'lint-changed': LintChangedHook,
   'test-changed': TestChangedHook,
-  
+
   // Project-wide hooks
   'typecheck-project': TypecheckProjectHook,
   'lint-project': LintProjectHook,
   'test-project': TestProjectHook,
-  
+
   // Action hooks
   'create-checkpoint': CreateCheckpointHook,
   'check-todos': CheckTodosHook,

@@ -660,7 +660,8 @@ describe('Hook Integration Tests', () => {
     });
   });
 
-  describe.skip('Claude Code Payload Parsing', () => { // Skipped: Tests use bash hooks which no longer exist
+  describe.skip('Claude Code Payload Parsing', () => {
+    // Skipped: Tests use bash hooks which no longer exist
     it('should correctly parse nested tool_input', { timeout: 20000 }, async () => {
       const filePath = await env.createFile('test.ts', 'const x = 1;');
 
@@ -680,7 +681,8 @@ describe('Hook Integration Tests', () => {
     });
   });
 
-  describe.skip('Real File System Operations', () => { // Skipped: Tests use bash hooks which no longer exist
+  describe.skip('Real File System Operations', () => {
+    // Skipped: Tests use bash hooks which no longer exist
     it('should handle file paths with spaces', async () => {
       const filePath = await env.createFile('src/my file.ts', 'const x = 1;');
 

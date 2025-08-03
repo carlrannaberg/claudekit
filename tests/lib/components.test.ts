@@ -311,7 +311,9 @@ Uses /base command`
       // Test embedded hook dependencies
       getDependencies('typecheck-changed', registry);
       // Note: typescript and tsc are external dependencies, so they won't be in the registry
-      expect(getComponent('typecheck-changed', registry)?.metadata.dependencies).toContain('typescript');
+      expect(getComponent('typecheck-changed', registry)?.metadata.dependencies).toContain(
+        'typescript'
+      );
       expect(getComponent('typecheck-changed', registry)?.metadata.dependencies).toContain('tsc');
     });
 

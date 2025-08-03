@@ -51,7 +51,7 @@ export class HookRunner {
 
   async run(hookName: string): Promise<number> {
     const startTime = Date.now();
-    
+
     // Get hook class
     const HookClass = this.hooks.get(hookName);
     if (!HookClass) {
@@ -65,12 +65,12 @@ export class HookRunner {
 
     // Read Claude payload from stdin
     const input = await readStdin();
-    
+
     if (this.debug) {
       console.error('[DEBUG] Raw stdin input:', JSON.stringify(input));
       console.error('[DEBUG] Input length:', input.length);
     }
-    
+
     let payload;
     try {
       payload = JSON.parse(input || '{}');
@@ -86,21 +86,21 @@ export class HookRunner {
 
     // Create and run hook
     const hook = new HookClass(hookConfig);
-    
+
     if (this.debug) {
       console.error('[DEBUG] Running hook:', hookName);
       console.error('[DEBUG] Hook config:', JSON.stringify(hookConfig, null, 2));
       // Set environment variable for the hook to detect debug mode
       process.env['CLAUDEKIT_DEBUG'] = 'true';
     }
-    
+
     const result = await hook.run(payload);
-    
+
     // Clean up environment variable
     if (this.debug) {
       delete process.env['CLAUDEKIT_DEBUG'];
     }
-    
+
     // Log hook execution
     const executionTime = Date.now() - startTime;
     await appendHookExecution({
@@ -109,13 +109,13 @@ export class HookRunner {
       executionTime,
       exitCode: result.exitCode,
       payload: this.debug ? payload : undefined,
-      result: this.debug ? result : undefined
+      result: this.debug ? result : undefined,
     });
-    
+
     if (this.debug) {
       console.error('[DEBUG] Hook result:', JSON.stringify(result, null, 2));
       console.error('[DEBUG] Execution time:', executionTime, 'ms');
-      
+
       // Show hook stats
       const stats = await getHookStats();
       const hookStats = stats[hookName];
@@ -125,7 +125,7 @@ export class HookRunner {
           successCount: hookStats.successCount,
           failureCount: hookStats.failureCount,
           avgExecutionTime: Math.round(hookStats.avgExecutionTime),
-          lastExecution: hookStats.lastExecution
+          lastExecution: hookStats.lastExecution,
         });
       }
     }

@@ -336,7 +336,10 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
   describe('Hook Command Format', () => {
     it('should generate hook commands in embedded format (claudekit-hooks run <hook>)', async () => {
-      const components = [createMockComponent('typecheck-changed'), createMockComponent('lint-changed')];
+      const components = [
+        createMockComponent('typecheck-changed'),
+        createMockComponent('lint-changed'),
+      ];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
@@ -351,7 +354,10 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     });
 
     it('should NOT generate old format commands (.claude/hooks/<hook>.sh)', async () => {
-      const components = [createMockComponent('typecheck-changed'), createMockComponent('lint-changed')];
+      const components = [
+        createMockComponent('typecheck-changed'),
+        createMockComponent('lint-changed'),
+      ];
 
       await createProjectSettings(mockClaudeDir, components, {});
 
@@ -422,9 +428,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       if (!prettierEntry) {
         throw new Error('prettierEntry not found');
       }
-      expect(prettierEntry.matcher).toBe(
-        'Write|Edit|MultiEdit'
-      );
+      expect(prettierEntry.matcher).toBe('Write|Edit|MultiEdit');
       expect(prettierEntry.hooks[0]).toEqual({
         type: 'command',
         command: 'claudekit-hooks run prettier',
@@ -807,9 +811,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       if (!postToolUseEntry || !postToolUseEntry.hooks[0]) {
         throw new Error('PostToolUse entry or hook not found');
       }
-      expect(postToolUseEntry.hooks[0].command).toBe(
-        'claudekit-hooks run typecheck-changed'
-      );
+      expect(postToolUseEntry.hooks[0].command).toBe('claudekit-hooks run typecheck-changed');
 
       // Should not have any command components
       const allCommands = [

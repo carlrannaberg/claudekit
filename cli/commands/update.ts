@@ -32,7 +32,9 @@ export async function update(
   // Validate type
   const validTypes = ['command', 'config'];
   if (!validTypes.includes(type)) {
-    throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')} (hooks are now embedded in claudekit).`);
+    throw new Error(
+      `Invalid type "${type}". Must be one of: ${validTypes.join(', ')} (hooks are now embedded in claudekit).`
+    );
   }
 
   if (type === 'config') {

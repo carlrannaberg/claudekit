@@ -101,25 +101,25 @@ describe('validate command', () => {
               hooks: {
                 PostToolUse: [
                   {
-                    matcher: "tools:Write AND file_paths:**/*.ts",
+                    matcher: 'tools:Write AND file_paths:**/*.ts',
                     hooks: [
                       {
-                        type: "command",
-                        command: "claudekit-hooks run typecheck-changed"
-                      }
-                    ]
-                  }
+                        type: 'command',
+                        command: 'claudekit-hooks run typecheck-changed',
+                      },
+                    ],
+                  },
                 ],
                 Stop: [
                   {
-                    matcher: "*",
+                    matcher: '*',
                     hooks: [
                       {
-                        type: "command", 
-                        command: "claudekit-hooks run create-checkpoint"
-                      }
-                    ]
-                  }
+                        type: 'command',
+                        command: 'claudekit-hooks run create-checkpoint',
+                      },
+                    ],
+                  },
                 ],
               },
             },

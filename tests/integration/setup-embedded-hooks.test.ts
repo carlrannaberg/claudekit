@@ -317,7 +317,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
           lastModified: new Date(),
           metadata: {
             id: 'check-todos',
-            name: 'Check Todo Completion', 
+            name: 'Check Todo Completion',
             description: 'Ensure todos are completed',
             category: 'validation',
             platforms: ['darwin', 'linux'],
@@ -351,7 +351,18 @@ describe('Setup Command - Embedded Hooks Integration', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project', 'test-changed', 'test-project', 'check-todos'])],
+        [
+          'validation',
+          new Set([
+            'typecheck-changed',
+            'typecheck-project',
+            'lint-changed',
+            'lint-project',
+            'test-changed',
+            'test-project',
+            'check-todos',
+          ]),
+        ],
         ['git', new Set(['create-checkpoint', 'git:commit'])],
       ]),
       lastScan: new Date(),
@@ -441,7 +452,7 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         expect(typecheckHook.hooks[0].command).toBe('claudekit-hooks run typecheck-changed');
         expect(typecheckHook.matcher).toBe('Write|Edit|MultiEdit');
 
-        // Check ESLint hook (changed files)  
+        // Check ESLint hook (changed files)
         const eslintHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
           h.hooks.some((hook: HookCommand) => hook.command.includes('lint-changed'))
         );
@@ -558,7 +569,9 @@ describe('Setup Command - Embedded Hooks Integration', () => {
                   PostToolUse: [
                     {
                       matcher: 'tools:Write AND file_paths:**/*.ts',
-                      hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
+                      hooks: [
+                        { type: 'command', command: 'claudekit-hooks run typecheck-changed' },
+                      ],
                     },
                   ],
                   Stop: [],
@@ -730,7 +743,10 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         const componentsArg = mockInstallComponents.mock.calls[0]?.[0];
         if (componentsArg !== undefined) {
           expect(componentsArg).toHaveLength(2);
-          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual(['lint-changed', 'typecheck-changed']);
+          expect(componentsArg.map((c: Component) => c.id).sort()).toEqual([
+            'lint-changed',
+            'typecheck-changed',
+          ]);
         }
       }
 
@@ -748,7 +764,9 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         expect(postToolUseHooks).toHaveLength(2);
 
         postToolUseHooks.forEach((entry: HookEntry) => {
-          expect(entry.hooks[0]?.command).toMatch(/^claudekit-hooks run (typecheck-changed|lint-changed)$/);
+          expect(entry.hooks[0]?.command).toMatch(
+            /^claudekit-hooks run (typecheck-changed|lint-changed)$/
+          );
         });
       }
     });
@@ -892,7 +910,9 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         // Verify the typecheck hook was added
         expect(settings.hooks.PostToolUse).toBeDefined();
         const typecheckHook = settings.hooks.PostToolUse.find((h: HookEntry) =>
-          h.hooks.some((hook: HookCommand) => hook.command === 'claudekit-hooks run typecheck-changed')
+          h.hooks.some(
+            (hook: HookCommand) => hook.command === 'claudekit-hooks run typecheck-changed'
+          )
         );
         expect(typecheckHook).toBeDefined();
       }
@@ -999,14 +1019,14 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         yes: true,
         quiet: true,
       };
-      
+
       await setup(options);
-      
+
       // Now check the mock was called and has the components
       expect(mockDiscoverComponents).toHaveBeenCalled();
       const mockResult = await mockDiscoverComponents.mock.results[0]?.value;
       const components = mockResult.components;
-      
+
       expect(components?.has('typecheck-changed')).toBe(true);
       expect(components?.has('typecheck-project')).toBe(true);
       expect(components?.has('lint-changed')).toBe(true);

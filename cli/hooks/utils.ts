@@ -290,8 +290,8 @@ export function formatTypeScriptErrors(result: ExecResult): string {
     .split('\n')
     .map((line) => `  ${line}`)
     .join('\n');
-  
-  const actions = 
+
+  const actions =
     '\n\nREQUIRED ACTIONS:\n' +
     '1. Fix all TypeScript errors shown above\n' +
     '2. Run type checking command to verify fixes\n' +
@@ -312,8 +312,8 @@ export function formatESLintErrors(result: ExecResult): string {
     .split('\n')
     .map((line) => `  ${line}`)
     .join('\n');
-  
-  const actions = 
+
+  const actions =
     '\n\nREQUIRED ACTIONS:\n' +
     '1. Fix all ESLint errors shown above\n' +
     '2. Run lint command to verify fixes\n' +
@@ -334,8 +334,8 @@ export function formatTestErrors(result: ExecResult): string {
     .split('\n')
     .map((line) => `  ${line}`)
     .join('\n');
-  
-  const actions = 
+
+  const actions =
     '\n\nREQUIRED ACTIONS:\n' +
     '1. Fix all test failures shown above\n' +
     '2. Run test command to verify fixes\n' +

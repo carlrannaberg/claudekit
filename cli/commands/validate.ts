@@ -85,40 +85,64 @@ export async function validate(options: ValidateOptions): Promise<void> {
     try {
       const settingsContent = await fs.readFile(settingsPath, 'utf-8');
       const settings = JSON.parse(settingsContent);
-      
+
       // Count configured hooks
       let hookCount = 0;
       if (settings.hooks !== null && settings.hooks !== undefined) {
         // Count hooks in PostToolUse
-        if (settings.hooks.PostToolUse !== null && settings.hooks.PostToolUse !== undefined && Array.isArray(settings.hooks.PostToolUse)) {
+        if (
+          settings.hooks.PostToolUse !== null &&
+          settings.hooks.PostToolUse !== undefined &&
+          Array.isArray(settings.hooks.PostToolUse)
+        ) {
           for (const config of settings.hooks.PostToolUse) {
-            if (config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
+            if (
+              config.hooks !== null &&
+              config.hooks !== undefined &&
+              Array.isArray(config.hooks)
+            ) {
               hookCount += config.hooks.length;
             }
           }
         }
-        
+
         // Count hooks in Stop
-        if (settings.hooks.Stop !== null && settings.hooks.Stop !== undefined && Array.isArray(settings.hooks.Stop)) {
+        if (
+          settings.hooks.Stop !== null &&
+          settings.hooks.Stop !== undefined &&
+          Array.isArray(settings.hooks.Stop)
+        ) {
           for (const config of settings.hooks.Stop) {
-            if (config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
+            if (
+              config.hooks !== null &&
+              config.hooks !== undefined &&
+              Array.isArray(config.hooks)
+            ) {
               hookCount += config.hooks.length;
             }
           }
         }
-        
+
         // Count hooks in other events (PreToolUse, etc.)
         for (const [event, configs] of Object.entries(settings.hooks)) {
           if (event !== 'PostToolUse' && event !== 'Stop' && Array.isArray(configs)) {
             for (const config of configs as unknown[]) {
-              if (config !== null && config !== undefined && typeof config === 'object' && 'hooks' in config && config.hooks !== null && config.hooks !== undefined && Array.isArray(config.hooks)) {
+              if (
+                config !== null &&
+                config !== undefined &&
+                typeof config === 'object' &&
+                'hooks' in config &&
+                config.hooks !== null &&
+                config.hooks !== undefined &&
+                Array.isArray(config.hooks)
+              ) {
                 hookCount += config.hooks.length;
               }
             }
           }
         }
       }
-      
+
       if (hookCount > 0) {
         legacyResults.push({
           passed: true,
@@ -145,10 +169,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
     try {
       const configContent = await fs.readFile(configPath, 'utf-8');
       const configData = JSON.parse(configContent);
-      
+
       // Validate the configuration schema
       const validation = validateClaudekitConfig(configData);
-      
+
       if (validation.valid) {
         legacyResults.push({
           passed: true,
@@ -162,7 +186,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
           passed: false,
           message: `.claudekit/config.json has ${errorCount} validation error${errorCount > 1 ? 's' : ''}: ${firstError}`,
         });
-        
+
         // Add additional errors as warnings
         if (validation.errors && validation.errors.length > 1) {
           for (let i = 1; i < Math.min(validation.errors.length, 3); i++) {

@@ -546,7 +546,9 @@ describe('Installer', () => {
 
       const plan = await createInstallPlan(installation);
 
-      expect(plan.warnings).toContain('TypeScript detected but typecheck-changed hook not selected');
+      expect(plan.warnings).toContain(
+        'TypeScript detected but typecheck-changed hook not selected'
+      );
       expect(plan.warnings).toContain('ESLint detected but lint-changed hook not selected');
     });
   });

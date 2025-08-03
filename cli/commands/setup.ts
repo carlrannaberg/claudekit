@@ -334,7 +334,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
         }
         console.log(Colors.dim('─'.repeat(60)));
-        
+
         console.log(
           '\nWelcome to claudekit! This wizard will help you configure claudekit\n' +
             'for your development workflow. claudekit provides:\n\n' +
@@ -568,7 +568,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // These are now determined by which hooks/commands the user selected
     const autoCheckpoint = selectedComponents.includes('create-checkpoint');
     const validateTodos = selectedComponents.includes('check-todos');
-    const runTests = selectedComponents.includes('test-changed') || selectedComponents.includes('test-project');
+    const runTests =
+      selectedComponents.includes('test-changed') || selectedComponents.includes('test-project');
     const gitIntegration = selectedComponents.some(
       (id) => id.startsWith('git:') || id.startsWith('checkpoint:') || id === 'create-checkpoint'
     );

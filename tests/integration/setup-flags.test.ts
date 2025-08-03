@@ -394,7 +394,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project'])],
+        [
+          'validation',
+          new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project']),
+        ],
         ['git', new Set(['checkpoint-create', 'git-commit'])],
       ]),
       lastScan: new Date(),

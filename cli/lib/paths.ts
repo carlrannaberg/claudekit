@@ -30,7 +30,7 @@ export async function findComponentsDirectory(): Promise<string> {
     // We're in dist/, only need to check for src/commands since hooks are embedded
     const projectRoot = path.join(currentDir, '..');
     const srcCommandsPath = path.join(projectRoot, 'src', 'commands');
-    
+
     if (await pathExists(srcCommandsPath)) {
       // Return src directory, hooks are embedded
       return path.join(projectRoot, 'src');
