@@ -914,7 +914,7 @@ async function createConfiguration(
   // Add TypeScript hook if project has TypeScript
   if (projectInfo?.hasTypeScript === true) {
     config.hooks.PostToolUse.push({
-      matcher: 'tools:Write AND file_paths:**/*.ts',
+      matcher: 'Write|Edit|MultiEdit',
       hooks: [{ type: 'command', command: 'claudekit-hooks run typecheck-changed' }],
     });
   }
@@ -922,7 +922,7 @@ async function createConfiguration(
   // Add ESLint hook if project has ESLint
   if (projectInfo?.hasESLint === true) {
     config.hooks.PostToolUse.push({
-      matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
+      matcher: 'Write|Edit|MultiEdit',
       hooks: [{ type: 'command', command: 'claudekit-hooks run lint-changed' }],
     });
   }

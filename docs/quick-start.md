@@ -50,7 +50,7 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
         ]
@@ -77,14 +77,14 @@ For a simple TypeScript project, your `.claude/settings.json` might look like:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]

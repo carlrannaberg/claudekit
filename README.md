@@ -135,11 +135,11 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
@@ -224,7 +224,7 @@ claudekit uses a two-level configuration system:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       }
     ],
@@ -258,7 +258,7 @@ The hook system supports sophisticated matching patterns:
 - **Exact Match**: `"Write"` (matches only Write tool)
 - **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
 - **Regex Patterns**: `"Notebook.*"` (matches all Notebook tools)
-- **Conditional Logic**: `"tools:Write AND file_paths:**/*.ts"` (specific files)
+- **Conditional Logic**: `"Write|Edit|MultiEdit"` (specific files)
 - **Universal Match**: `"*"` (matches all tools/events)
 
 ## Platform & Language Support

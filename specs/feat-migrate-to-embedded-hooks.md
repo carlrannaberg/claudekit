@@ -116,7 +116,7 @@ The generated settings.json structure remains unchanged, only the command values
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",

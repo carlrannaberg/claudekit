@@ -18,7 +18,7 @@ This file tells Claude Code which hooks to run and when:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
@@ -48,7 +48,7 @@ This file tells Claude Code which hooks to run and when:
 - `"Write"` - Exact tool match
 - `"Write,Edit,MultiEdit"` - Multiple tools (OR logic)
 - `"*"` - All tools/events
-- `"tools:Write AND file_paths:**/*.ts"` - Conditional matching
+- `"Write|Edit|MultiEdit"` - Conditional matching
 - `"Notebook.*"` - Regex patterns
 
 ## Hook-Specific Configuration (.claudekit/config.json)

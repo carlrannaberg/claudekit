@@ -51,13 +51,13 @@ Update your `.claude/settings.json` to use the embedded hooks commands:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": ".claude/hooks/typecheck.sh"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": ".claude/hooks/eslint.sh"}
         ]
@@ -81,14 +81,14 @@ Update your `.claude/settings.json` to use the embedded hooks commands:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
@@ -295,7 +295,7 @@ Prevents the use of `any` types in TypeScript files:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
@@ -318,7 +318,7 @@ You can use custom shell scripts alongside embedded hooks:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": ".claude/hooks/custom-check.sh"}

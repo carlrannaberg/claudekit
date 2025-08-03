@@ -6,23 +6,23 @@
     "// PostToolUse": "Triggered after file modifications",
     "PostToolUse": [
       {
-        "// Description": "TypeScript type checking for .ts files",
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "// Description": "TypeScript type checking for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "// Description": "ESLint for all JavaScript/TypeScript files",
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "// Description": "ESLint for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       },
       {
-        "// Description": "Prettier formatting for multiple file types",
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md,css,scss,html,yml,yaml}",
+        "// Description": "Prettier formatting for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run prettier"}
         ]
@@ -35,8 +35,8 @@
         ]
       },
       {
-        "// Description": "Example: Python-specific hooks",
-        "matcher": "tools:Write AND file_paths:**/*.py",
+        "// Description": "Example: Python linting for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run python-lint"}
         ]

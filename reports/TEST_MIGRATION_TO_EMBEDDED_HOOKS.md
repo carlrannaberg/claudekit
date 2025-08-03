@@ -94,7 +94,7 @@ Current project settings correctly use embedded format:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",

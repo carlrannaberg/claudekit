@@ -201,14 +201,14 @@ Hooks are configured in your project's `.claude/settings.json` file. Here's a co
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
@@ -250,7 +250,7 @@ The matcher field supports various patterns:
 - **Exact tool match**: `"Write"` - matches only the Write tool
 - **Multiple tools**: `"Write,Edit,MultiEdit"` - matches any of these tools
 - **Wildcard**: `"*"` - matches all tools/events
-- **Conditional logic**: `"tools:Write AND file_paths:**/*.ts"` - matches Write tool on TypeScript files
+- **Conditional logic**: `"Write|Edit|MultiEdit"` - matches Write tool on TypeScript files
 - **Regex patterns**: `"Notebook.*"` - matches all Notebook-related tools
 
 ### Hook-Specific Configuration

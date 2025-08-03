@@ -72,7 +72,7 @@ All settings files follow this structure:
 
 Matchers determine when hooks run:
 
-- `"tools:Write AND file_paths:**/*.ts"` - TypeScript files only
+- `"Write|Edit|MultiEdit"` - TypeScript files only
 - `"Write,Edit,MultiEdit"` - Any file modification
 - `"*"` - Universal (matches everything)
 - `"Notebook.*"` - Regex pattern for Notebook tools

@@ -101,7 +101,7 @@ Successfully implemented the complete embedded hooks system specification with 1
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks typecheck"},
           {"type": "command", "command": "claudekit-hooks no-any"}

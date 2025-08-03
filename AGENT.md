@@ -321,11 +321,11 @@ Edit `.claude/settings.json` using the new matcher format:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       },
       {
@@ -351,13 +351,13 @@ The new hook matcher format supports:
 - **Exact Match**: `"Write"` (matches only Write tool)
 - **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
 - **Regex Patterns**: `"Notebook.*"` (matches Notebook tools)
-- **Conditional Logic**: `"tools:Write AND file_paths:**/*.ts"` (specific files)
+- **Pipe Separator**: `"Write|Edit|MultiEdit"` (matches any of these tools)
 - **Universal Match**: `"*"` (matches all tools/events)
 
 #### Common Patterns
-- `"tools:Write AND file_paths:**/*.ts"` - TypeScript files only
-- `"tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"` - JavaScript/TypeScript files
-- `"Write,Edit,MultiEdit"` - File modification tools
+- `"Write|Edit|MultiEdit"` - All file modification tools (pipe separator)
+- `"Write,Edit,MultiEdit"` - All file modification tools (comma separator)
+- `"Notebook.*"` - All Notebook-related tools
 - `"*"` - All tools (for cleanup/validation hooks)
 
 ### Claude Code Settings Management

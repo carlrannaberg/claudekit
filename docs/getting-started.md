@@ -79,7 +79,7 @@ Open `.claude/settings.json` to see your configuration:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
         ]
@@ -131,10 +131,10 @@ Matchers determine when hooks run:
 
 ```json
 // Run on TypeScript files only
-"matcher": "tools:Write AND file_paths:**/*.ts"
+"matcher": "Write|Edit|MultiEdit"
 
 // Run on any JavaScript/TypeScript file
-"matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"
+"matcher": "Write|Edit|MultiEdit"
 
 // Run on any file modification
 "matcher": "Write,Edit,MultiEdit"
@@ -236,7 +236,7 @@ Slash commands are typed directly in Claude Code:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
@@ -254,7 +254,7 @@ Slash commands are typed directly in Claude Code:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"},
           {"type": "command", "command": "claudekit-hooks run prettier"}

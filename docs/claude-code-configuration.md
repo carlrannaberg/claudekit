@@ -60,11 +60,11 @@ The shared `settings.json` contains team-wide standards and should be committed 
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
@@ -105,7 +105,7 @@ Personal preferences and local overrides go in `settings.local.json`:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.py",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run python-lint"}]
       }
     ]
@@ -196,8 +196,8 @@ The hook system uses flexible matcher patterns:
 - `"*"` - Universal match
 
 #### Advanced Patterns
-- `"tools:Write AND file_paths:**/*.ts"` - Conditional logic
-- `"tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"` - Multiple extensions
+- `"Write|Edit|MultiEdit"` - Conditional logic
+- `"Write|Edit|MultiEdit"` - Multiple extensions
 
 ### Hook Types
 
@@ -222,7 +222,7 @@ The hook system uses flexible matcher patterns:
 **TypeScript Type Checking:**
 ```json
 {
-  "matcher": "tools:Write AND file_paths:**/*.ts",
+  "matcher": "Write|Edit|MultiEdit",
   "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
 }
 ```
@@ -230,7 +230,7 @@ The hook system uses flexible matcher patterns:
 **Linting JavaScript/TypeScript:**
 ```json
 {
-  "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+  "matcher": "Write|Edit|MultiEdit",
   "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
 }
 ```
@@ -382,11 +382,11 @@ Make hooks self-contained:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{ts,tsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
@@ -412,7 +412,7 @@ Make hooks self-contained:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.py",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run black-format"},  # Python formatter
           {"type": "command", "command": "claudekit-hooks run mypy"}     # Type checker
@@ -435,15 +435,15 @@ Make hooks self-contained:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.go",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run go-fmt"}]  # Go formatter
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.rs",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run cargo-check"}]  # Rust checker
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run prettier"}]  # Formatter
       }
     ]

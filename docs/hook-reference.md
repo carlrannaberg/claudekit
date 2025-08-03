@@ -17,7 +17,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 - **Example**:
   ```json
   {
-    "matcher": "tools:Write AND file_paths:**/*.ts",
+    "matcher": "Write|Edit|MultiEdit",
     "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
   }
   ```
@@ -30,7 +30,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 - **Example**:
   ```json
   {
-    "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+    "matcher": "Write|Edit|MultiEdit",
     "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
   }
   ```
@@ -43,7 +43,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 - **Example**:
   ```json
   {
-    "matcher": "tools:Write AND file_paths:**/*.ts",
+    "matcher": "Write|Edit|MultiEdit",
     "hooks": [{"type": "command", "command": "claudekit-hooks run check-any-changed"}]
   }
   ```
@@ -139,7 +139,7 @@ Claudekit uses clear suffixes to indicate hook scope:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
@@ -155,14 +155,14 @@ Claudekit uses clear suffixes to indicate hook scope:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
@@ -187,14 +187,14 @@ Claudekit uses clear suffixes to indicate hook scope:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
           {"type": "command", "command": "claudekit-hooks run check-any-changed"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]

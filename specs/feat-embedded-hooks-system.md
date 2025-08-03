@@ -1486,14 +1486,14 @@ Update `.claude/settings.json` to use claudekit-hooks:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks typecheck"},
           {"type": "command", "command": "claudekit-hooks no-any"}
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks eslint"}]
       }
     ],

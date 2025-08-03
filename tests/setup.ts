@@ -97,7 +97,7 @@ global.testUtils = {
       hooks: {
         PostToolUse: [
           {
-            matcher: 'tools:Write AND file_paths:**/*.ts',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [
               { type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 },
             ],
