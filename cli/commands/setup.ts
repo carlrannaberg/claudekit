@@ -4,6 +4,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter, ComponentProgressReporter } from '../utils/progress.js';
+import { renderFilled } from 'oh-my-logo';
 import {
   pathExists,
   ensureDirectoryExists,
@@ -34,23 +35,39 @@ const COMMAND_GROUPS: CommandGroup[] = [
     id: 'essential-workflow',
     name: '🔧 Essential Workflow',
     description: 'Git operations, checkpoints, validation, and daily development tools',
-    commands: ['git:commit', 'git:status', 'git:push', 'checkpoint:create', 'checkpoint:list', 'checkpoint:restore', 'validate-and-fix', 'gh:repo-init', 'dev:cleanup'],
-    recommended: true
+    commands: [
+      'git:commit',
+      'git:status',
+      'git:push',
+      'checkpoint:create',
+      'checkpoint:list',
+      'checkpoint:restore',
+      'validate-and-fix',
+      'gh:repo-init',
+      'dev:cleanup',
+    ],
+    recommended: true,
   },
   {
     id: 'ai-assistant',
     name: '🤖 AI Assistant Configuration',
     description: 'Manage AGENT.md, create custom commands, and configure Claude Code',
-    commands: ['agent:init', 'agent:migration', 'agent:cli', 'create-command', 'config:bash-timeout'],
-    recommended: false
+    commands: [
+      'agent:init',
+      'agent:migration',
+      'agent:cli',
+      'create-command',
+      'config:bash-timeout',
+    ],
+    recommended: false,
   },
   {
     id: 'spec-management',
     name: '📋 Specification Management',
     description: 'Spec-driven development: create, validate, decompose, and execute specifications',
     commands: ['spec:create', 'spec:validate', 'spec:decompose', 'spec:execute'],
-    recommended: false
-  }
+    recommended: false,
+  },
 ];
 
 interface HookGroup {
@@ -67,26 +84,26 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',
-    hooks: ['eslint', 'typecheck', 'run-related-tests'],
+    hooks: ['lint-changed', 'typecheck-changed', 'check-any-changed', 'test-changed'],
     recommended: true,
-    triggerEvent: 'PostToolUse'
+    triggerEvent: 'PostToolUse',
   },
   {
     id: 'completion-validation',
     name: '✅ Completion Validation (Stop)',
     description: 'Ensure quality and task completion before stopping',
-    hooks: ['project-validation', 'validate-todo-completion'],
+    hooks: ['typecheck-project', 'lint-project', 'test-project', 'check-todos'],
     recommended: true,
-    triggerEvent: 'Stop'
+    triggerEvent: 'Stop',
   },
   {
     id: 'safety-checkpoint',
     name: '💾 Safety Checkpoint (Stop)',
     description: 'Automatically save work when Claude Code stops',
-    hooks: ['auto-checkpoint'],
+    hooks: ['create-checkpoint'],
     recommended: false,
-    triggerEvent: 'Stop'
-  }
+    triggerEvent: 'Stop',
+  },
 ];
 
 /**
@@ -99,28 +116,32 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
   console.log(`\n${Colors.bold('Step 1: Choose Command Groups')}`);
   console.log(Colors.dim('Select groups of slash commands for Claude Code'));
 
-  const commandChoices = COMMAND_GROUPS.map(group => {
-    const commandList = group.commands.map(cmd => `/${cmd}`).join(', ');
+  const commandChoices = COMMAND_GROUPS.map((group) => {
+    const commandList = group.commands.map((cmd) => `/${cmd}`).join(', ');
     return {
       value: group.id,
       name: `${group.name}\n  ${Colors.dim(group.description)}\n  ${Colors.accent('Commands:')} ${Colors.dim(commandList)}`,
       checked: group.recommended,
-      disabled: false
+      disabled: false,
     };
   });
 
   // Add hint about keyboard shortcuts
-  console.log(Colors.dim(`\n(${COMMAND_GROUPS.length} groups - use space to toggle, 'a' to select/deselect all, enter to confirm)\n`));
+  console.log(
+    Colors.dim(
+      `\n(${COMMAND_GROUPS.length} groups - use space to toggle, 'a' to select/deselect all, enter to confirm)\n`
+    )
+  );
 
   const selectedGroups = (await checkbox({
     message: 'Select command groups to install:',
     choices: commandChoices,
-    pageSize: 20 // Large page size ensures all groups are visible without scrolling
+    pageSize: 20, // Large page size ensures all groups are visible without scrolling
   })) as string[];
 
   // Add selected commands from groups
   for (const groupId of selectedGroups) {
-    const group = COMMAND_GROUPS.find(g => g.id === groupId);
+    const group = COMMAND_GROUPS.find((g) => g.id === groupId);
     if (group) {
       selectedComponents.push(...group.commands);
     }
@@ -130,25 +151,27 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
   console.log(`\n${Colors.bold('Step 2: Choose Validation Hooks')}`);
   console.log(Colors.dim('Select automated hooks by when they run and what they do'));
 
-  const hookGroupChoices = HOOK_GROUPS.map(group => ({
+  const hookGroupChoices = HOOK_GROUPS.map((group) => ({
     value: group.id,
     name: group.name,
     description: group.description,
     hooks: group.hooks,
-    checked: group.recommended && (
+    checked:
+      group.recommended &&
       // Only recommend JS/TS hooks if project uses those languages
-      group.id === 'file-validation' ? (projectInfo.hasTypeScript === true || projectInfo.hasESLint === true) : true
-    ),
-    triggerEvent: group.triggerEvent
+      (group.id === 'file-validation'
+        ? projectInfo.hasTypeScript === true || projectInfo.hasESLint === true
+        : true),
+    triggerEvent: group.triggerEvent,
   }));
 
-  const hookChoices = HOOK_GROUPS.map(group => {
+  const hookChoices = HOOK_GROUPS.map((group) => {
     const hooksList = group.hooks.join(', ');
     return {
       value: group.id,
       name: `${group.name}\n  ${Colors.dim(group.description)}\n  ${Colors.accent('Hooks:')} ${Colors.dim(hooksList)}`,
-      checked: hookGroupChoices.find(g => g.value === group.id)?.checked ?? false,
-      disabled: false
+      checked: hookGroupChoices.find((g) => g.value === group.id)?.checked ?? false,
+      disabled: false,
     };
   });
 
@@ -157,53 +180,64 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
     value: '__CUSTOM__',
     name: `${Colors.bold('⚙️  Custom Selection')}\n  ${Colors.dim('Choose individual hooks manually for fine-grained control')}`,
     checked: false,
-    disabled: false
+    disabled: false,
   };
 
   const allHookChoices = [...hookChoices, customChoice];
 
   // Add hint
-  console.log(Colors.dim(`\n(${HOOK_GROUPS.length} groups + custom option - use space to toggle, enter to confirm)\n`));
+  console.log(
+    Colors.dim(
+      `\n(${HOOK_GROUPS.length} groups + custom option - use space to toggle, enter to confirm)\n`
+    )
+  );
 
   let selectedHookGroups = (await checkbox({
     message: 'Select hook groups to install:',
     choices: allHookChoices,
-    pageSize: 20 // Large page size ensures all options are visible without scrolling
+    pageSize: 20, // Large page size ensures all options are visible without scrolling
   })) as string[];
 
   // If other groups are selected along with custom, remove custom to avoid confusion
   if (selectedHookGroups.length > 1 && selectedHookGroups.includes('__CUSTOM__')) {
-    selectedHookGroups = selectedHookGroups.filter(id => id !== '__CUSTOM__');
+    selectedHookGroups = selectedHookGroups.filter((id) => id !== '__CUSTOM__');
   }
 
   // Handle custom selection only if it's the only selection
   if (selectedHookGroups.length === 1 && selectedHookGroups[0] === '__CUSTOM__') {
-    const availableHooks = ['auto-checkpoint', 'eslint', 'typecheck', 'run-related-tests', 'project-validation', 'validate-todo-completion'];
-    const individualHookChoices = availableHooks.map(hook => {
+    const availableHooks = [
+      'auto-checkpoint',
+      'eslint',
+      'typecheck',
+      'run-related-tests',
+      'project-validation',
+      'validate-todo-completion',
+    ];
+    const individualHookChoices = availableHooks.map((hook) => {
       let description = '';
       let triggerEvent = '';
       switch (hook) {
-        case 'auto-checkpoint': 
+        case 'auto-checkpoint':
           description = 'Automatic git checkpoints when stopping';
           triggerEvent = 'Stop';
           break;
-        case 'eslint': 
+        case 'eslint':
           description = 'ESLint validation for JS/TS files';
           triggerEvent = 'PostToolUse';
           break;
-        case 'typecheck': 
+        case 'typecheck':
           description = 'TypeScript type checking';
           triggerEvent = 'PostToolUse';
           break;
-        case 'run-related-tests': 
+        case 'run-related-tests':
           description = 'Run tests related to modified files';
           triggerEvent = 'PostToolUse';
           break;
-        case 'project-validation': 
+        case 'project-validation':
           description = 'Comprehensive project validation';
           triggerEvent = 'Stop';
           break;
-        case 'validate-todo-completion': 
+        case 'validate-todo-completion':
           description = 'Ensure todos are completed';
           triggerEvent = 'Stop';
           break;
@@ -211,25 +245,29 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
       return {
         value: hook,
         name: `${hook} (${triggerEvent})\n  ${Colors.dim(description)}`,
-        checked: false
+        checked: false,
       };
     });
 
-    console.log(Colors.dim(`\n(${individualHookChoices.length} individual hooks available - press 'a' to toggle all)\n`));
-    
+    console.log(
+      Colors.dim(
+        `\n(${individualHookChoices.length} individual hooks available - press 'a' to toggle all)\n`
+      )
+    );
+
     const selectedIndividualHooks = (await checkbox({
       message: 'Select individual hooks:',
       choices: individualHookChoices,
-      pageSize: 10
+      pageSize: 10,
     })) as string[];
 
     selectedComponents.push(...selectedIndividualHooks);
   }
 
   // Add selected hooks from groups (excluding custom)
-  const regularGroups = selectedHookGroups.filter(id => id !== '__CUSTOM__');
+  const regularGroups = selectedHookGroups.filter((id) => id !== '__CUSTOM__');
   for (const groupId of regularGroups) {
-    const group = HOOK_GROUPS.find(g => g.id === groupId);
+    const group = HOOK_GROUPS.find((g) => g.id === groupId);
     if (group) {
       selectedComponents.push(...group.hooks);
     }
@@ -253,7 +291,7 @@ export interface SetupOptions {
 }
 
 interface SetupConfig {
-  installationType: 'user' | 'project' | 'both';
+  installationType: 'user' | 'project';
   projectPath: string;
   selectedComponents: string[];
   options: {
@@ -265,7 +303,7 @@ interface SetupConfig {
 }
 
 /**
- * Setup wizard for ClaudeKit with interactive and non-interactive modes
+ * Setup wizard for claudekit with interactive and non-interactive modes
  */
 export async function setup(options: SetupOptions = {}): Promise<void> {
   const logger = new Logger();
@@ -285,29 +323,41 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Show welcome message (unless in non-interactive mode)
     if (!isNonInteractive || options.quiet !== true) {
-      console.log(Colors.bold(Colors.accent('\nClaudeKit Setup Wizard')));
-      console.log(Colors.dim('─'.repeat(40)));
-
+      // Display logo for interactive mode
       if (!isNonInteractive) {
+        try {
+          console.log(); // Add spacing before logo
+          await renderFilled('claudekit', { palette: 'sunset' });
+          console.log(); // Add spacing after logo
+        } catch {
+          // Fallback to text if logo fails
+          console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
+        }
+        console.log(Colors.dim('─'.repeat(60)));
+
         console.log(
-          '\nWelcome to ClaudeKit! This wizard will help you configure ClaudeKit\n' +
-            'for your development workflow. ClaudeKit provides:\n\n' +
+          '\nWelcome to claudekit! This wizard will help you configure claudekit\n' +
+            'for your development workflow. claudekit provides:\n\n' +
             '  • Automated code quality checks (TypeScript, ESLint, Prettier)\n' +
             '  • Git workflow integration (checkpoints, smart commits)\n' +
             '  • AI assistant configuration management\n' +
             '  • Custom commands and hooks for Claude Code\n'
         );
+      } else {
+        // Simple text for non-interactive mode
+        console.log(Colors.bold(Colors.accent('\nclaudekit Setup Wizard')));
+        console.log(Colors.dim('─'.repeat(40)));
       }
     }
 
     // Step 1: Installation type
     let installationType: string;
     if (options.yes === true || options.commandsOnly === true) {
-      // Default to both for --yes, commands only for --commands-only
-      installationType = options.commandsOnly === true ? 'user' : 'both';
+      // Default to project for --yes, user only for --commands-only
+      installationType = options.commandsOnly === true ? 'user' : 'project';
     } else {
       installationType = await select({
-        message: 'How would you like to install ClaudeKit?',
+        message: 'How would you like to install claudekit?',
         choices: [
           {
             value: 'project',
@@ -317,17 +367,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             value: 'user',
             name: 'User only - Install globally for all projects (~/.claude)',
           },
-          {
-            value: 'both',
-            name: 'Both user and project - Install globally and configure for current project',
-          },
         ],
       });
     }
 
     // Step 2: Project path (if project installation)
     let projectPath = process.cwd();
-    if (installationType === 'project' || installationType === 'both') {
+    if (installationType === 'project') {
       if (options.project !== undefined && options.project !== '') {
         // Use provided project path
         const expanded = expandHomePath(options.project);
@@ -408,13 +454,17 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     }
     const registry = await discoverComponents(srcDir);
     if (options.verbose === true) {
-      console.log(`Discovered ${registry.components.size} components in ${registry.categories.size} categories`);
+      console.log(
+        `Discovered ${registry.components.size} components in ${registry.categories.size} categories`
+      );
     }
 
     progressReporter.update('Generating recommendations...');
     const recommendations = await recommendComponents(projectInfo, registry);
     if (options.verbose === true) {
-      console.log(`Generated ${recommendations.recommended.length} recommended and ${recommendations.optional.length} optional components`);
+      console.log(
+        `Generated ${recommendations.recommended.length} recommended and ${recommendations.optional.length} optional components`
+      );
     }
 
     progressReporter.succeed('Project analysis complete');
@@ -516,14 +566,17 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 5: Set configuration based on selected components
     // These are now determined by which hooks/commands the user selected
-    const autoCheckpoint = selectedComponents.includes('auto-checkpoint');
-    const validateTodos = selectedComponents.includes('validate-todo-completion');
-    const runTests = selectedComponents.includes('run-related-tests');
-    const gitIntegration = selectedComponents.some(id => id.startsWith('git:') || id.startsWith('checkpoint:'));
+    const autoCheckpoint = selectedComponents.includes('create-checkpoint');
+    const validateTodos = selectedComponents.includes('check-todos');
+    const runTests =
+      selectedComponents.includes('test-changed') || selectedComponents.includes('test-project');
+    const gitIntegration = selectedComponents.some(
+      (id) => id.startsWith('git:') || id.startsWith('checkpoint:') || id === 'create-checkpoint'
+    );
 
     // Step 6: Confirmation
     const config: SetupConfig = {
-      installationType: installationType as 'user' | 'project' | 'both',
+      installationType: installationType as 'user' | 'project',
       projectPath,
       selectedComponents,
       options: {
@@ -543,11 +596,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         console.log(`Project path: ${Colors.accent(config.projectPath)}`);
       }
       // Separate commands and hooks for clearer display
-      const selectedCommands = config.selectedComponents.filter(id => 
-        registry.components.get(id)?.type === 'command'
+      const selectedCommands = config.selectedComponents.filter(
+        (id) => registry.components.get(id)?.type === 'command'
       );
-      const selectedHooks = config.selectedComponents.filter(id => 
-        registry.components.get(id)?.type === 'hook'
+      const selectedHooks = config.selectedComponents.filter(
+        (id) => registry.components.get(id)?.type === 'hook'
       );
 
       if (selectedCommands.length > 0) {
@@ -632,13 +685,14 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       // Initialize progress tracking
       const componentNames = finalComponents.map((c) => c.name);
       installProgressReporter.initialize(componentNames);
-      
+
       // Track settings backup for cleanup
       let settingsBackupPath: string | null = null;
 
       // Install based on installation type
-      const isNonInteractive = options.yes === true || options.commands !== undefined || options.hooks !== undefined;
-      
+      const isNonInteractive =
+        options.yes === true || options.commands !== undefined || options.hooks !== undefined;
+
       const installOptions: InstallOptions = {
         dryRun: options.dryRun ?? false,
         force: options.force ?? false,
@@ -670,7 +724,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         },
       };
 
-      if (config.installationType === 'user' || config.installationType === 'both') {
+      if (config.installationType === 'user') {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
         const userResult = await installComponents(
@@ -678,13 +732,19 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           'user',
           userInstallOptions
         );
-        
+
         if (!userResult.success) {
-          throw new Error((userResult.errors?.[0] !== null && userResult.errors?.[0] !== undefined && userResult.errors[0] !== '') ? userResult.errors[0] : 'User installation failed');
+          throw new Error(
+            userResult.errors?.[0] !== null &&
+            userResult.errors?.[0] !== undefined &&
+            userResult.errors[0] !== ''
+              ? userResult.errors[0]
+              : 'User installation failed'
+          );
         }
       }
 
-      if (config.installationType === 'project' || config.installationType === 'both') {
+      if (config.installationType === 'project') {
         progressReporter.update('Installing project-level components...');
 
         // Create .claude directory
@@ -692,29 +752,43 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         await ensureDirectoryExists(claudeDir);
 
         // Install components with the project path
-        const projectInstallOptions = { 
+        const projectInstallOptions = {
           ...installOptions,
-          customPath: claudeDir // Use the .claude directory as the custom path
+          customPath: claudeDir, // Use the .claude directory as the custom path
         };
         const projectResult = await installComponents(
           finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
           'project',
           projectInstallOptions
         );
-        
+
         if (!projectResult.success) {
-          throw new Error((projectResult.errors?.[0] !== null && projectResult.errors?.[0] !== undefined && projectResult.errors[0] !== '') ? projectResult.errors[0] : 'Project installation failed');
+          throw new Error(
+            projectResult.errors?.[0] !== null &&
+            projectResult.errors?.[0] !== undefined &&
+            projectResult.errors[0] !== ''
+              ? projectResult.errors[0]
+              : 'Project installation failed'
+          );
         }
 
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
-        settingsBackupPath = await createProjectSettings(claudeDir, finalComponents, installOptions);
+        settingsBackupPath = await createProjectSettings(
+          claudeDir,
+          finalComponents,
+          installOptions
+        );
       }
 
       progressReporter.succeed('Installation complete!');
-      
+
       // Clean up settings backup file if it was created
-      if (settingsBackupPath !== null && settingsBackupPath !== undefined && settingsBackupPath !== '') {
+      if (
+        settingsBackupPath !== null &&
+        settingsBackupPath !== undefined &&
+        settingsBackupPath !== ''
+      ) {
         try {
           await fs.unlink(settingsBackupPath);
           if (options.verbose === true) {
@@ -722,16 +796,18 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           }
         } catch (error) {
           // Log warning but don't fail installation
-          console.log(Colors.dim(`Warning: Could not clean up backup file ${settingsBackupPath}: ${error}`));
+          console.log(
+            Colors.dim(`Warning: Could not clean up backup file ${settingsBackupPath}: ${error}`)
+          );
         }
       }
-      
+
       // Complete the install progress reporter
       installProgressReporter.complete();
 
       // Show next steps unless quiet mode
       if (options.quiet !== true) {
-        console.log(`\n${Colors.bold(Colors.success('ClaudeKit setup complete!'))}`);
+        console.log(`\n${Colors.bold(Colors.success('claudekit setup complete!'))}`);
         console.log(Colors.dim('─'.repeat(40)));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
@@ -765,10 +841,14 @@ interface HookSettings {
   };
 }
 
-async function createProjectSettings(claudeDir: string, components: Component[], options: InstallOptions): Promise<string | null> {
+async function createProjectSettings(
+  claudeDir: string,
+  components: Component[],
+  options: InstallOptions
+): Promise<string | null> {
   const settingsPath = path.join(claudeDir, 'settings.json');
   let backupPath: string | null = null;
-  
+
   // Read existing settings if present
   let existingSettings: HookSettings | null = null;
   try {
@@ -785,7 +865,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       Stop: [],
     },
   };
-  
+
   // Ensure required structure exists
   if (settings.hooks === null || settings.hooks === undefined) {
     settings.hooks = {
@@ -801,16 +881,20 @@ async function createProjectSettings(claudeDir: string, components: Component[],
   }
 
   // Helper function to check if a hook is already configured
-  const isHookConfigured = (hookPath: string): boolean => {
+  const isHookConfigured = (hookId: string): boolean => {
+    // Create both old and new command formats to check
+    const oldCommand = `.claude/hooks/${hookId}.sh`;
+    const newCommand = `claudekit-hooks run ${hookId}`;
+
     // Check PostToolUse hooks
     for (const entry of settings.hooks.PostToolUse) {
-      if (entry.hooks.some(h => h.command === hookPath)) {
+      if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
         return true;
       }
     }
     // Check Stop hooks
     for (const entry of settings.hooks.Stop) {
-      if (entry.hooks.some(h => h.command === hookPath)) {
+      if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
         return true;
       }
     }
@@ -820,77 +904,87 @@ async function createProjectSettings(claudeDir: string, components: Component[],
   // Add hooks based on installed components and options
   for (const component of components) {
     if (component.type === 'hook') {
-      const hookPath = `.claude/hooks/${path.basename(component.path)}`;
-      
+      // Use embedded hook command format
+      const hookCommand = `claudekit-hooks run ${component.id}`;
+
       // Skip if this hook is already configured
-      if (isHookConfigured(hookPath)) {
+      if (isHookConfigured(component.id)) {
         continue;
       }
 
       switch (component.id) {
-        case 'typecheck':
+        case 'typecheck-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.ts',
-            hooks: [{ type: 'command', command: hookPath }],
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'eslint':
+        case 'lint-changed':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-            hooks: [{ type: 'command', command: hookPath }],
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
         case 'prettier':
           settings.hooks.PostToolUse.push({
-            matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx,json,md}',
-            hooks: [{ type: 'command', command: hookPath }],
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'run-related-tests':
+        case 'check-any-changed':
+          settings.hooks.PostToolUse.push({
+            matcher: 'Write|Edit|MultiEdit',
+            hooks: [{ type: 'command', command: hookCommand }],
+          });
+          break;
+
+        case 'test-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'Write,Edit,MultiEdit',
-            hooks: [{ type: 'command', command: hookPath }],
+            hooks: [{ type: 'command', command: hookCommand }],
           });
           break;
 
-        case 'auto-checkpoint': {
+        case 'create-checkpoint': {
           const stopEntry = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntry !== undefined) {
-            stopEntry.hooks.push({ type: 'command', command: hookPath });
+            stopEntry.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;
         }
 
-        case 'validate-todo-completion': {
+        case 'check-todos': {
           const stopEntryTodo = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryTodo !== undefined) {
-            stopEntryTodo.hooks.push({ type: 'command', command: hookPath });
+            stopEntryTodo.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;
         }
 
-        case 'project-validation': {
-          // Add project-validation to Stop hooks
+        case 'typecheck-project':
+        case 'lint-project':
+        case 'test-project': {
+          // Add project-wide hooks to Stop hooks
           const stopEntryValidation = settings.hooks.Stop.find((e) => e.matcher === '*');
           if (stopEntryValidation !== undefined) {
-            stopEntryValidation.hooks.push({ type: 'command', command: hookPath });
+            stopEntryValidation.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
               matcher: '*',
-              hooks: [{ type: 'command', command: hookPath }],
+              hooks: [{ type: 'command', command: hookCommand }],
             });
           }
           break;
@@ -901,7 +995,7 @@ async function createProjectSettings(claudeDir: string, components: Component[],
 
   // Write settings.json with conflict detection
   const newContent = JSON.stringify(settings, null, 2);
-  
+
   // Check if file exists and has different content
   if (await pathExists(settingsPath)) {
     const existingContent = await fs.readFile(settingsPath, 'utf-8');
@@ -910,17 +1004,17 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       if (options.interactive === false && options.force !== true) {
         throw new Error(
           `\nFile conflict detected: ${settingsPath} already exists with different content.\n` +
-          `To overwrite existing files, run with --force flag.`
+            `To overwrite existing files, run with --force flag.`
         );
       }
-      
+
       // In interactive mode, prompt for confirmation
       if (options.force !== true) {
         // Interactive conflict resolution
         if (options.onPromptStart) {
           options.onPromptStart();
         }
-        
+
         // Clear the spinner and show conflict info
         process.stdout.write('\x1B[2K\r');
         console.log(`\n${Colors.warn('━━━ Settings Conflict Detected ━━━')}`);
@@ -928,24 +1022,24 @@ async function createProjectSettings(claudeDir: string, components: Component[],
         console.log(`This file already exists with different content.`);
         console.log(`The setup wants to add new hook configurations.`);
         console.log('');
-        
+
         const shouldOverwrite = await confirm({
           message: 'Do you want to update the settings file?',
-          default: true
+          default: true,
         });
-        
+
         console.log(''); // Add spacing after prompt
-        
+
         // Notify that prompt is done
         if (options.onPromptEnd) {
           options.onPromptEnd();
         }
-        
+
         if (!shouldOverwrite) {
           console.log(Colors.info('Skipping settings.json update'));
           return null;
         }
-        
+
         // Create backup if requested
         if (options.backup !== false) {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -959,10 +1053,10 @@ async function createProjectSettings(claudeDir: string, components: Component[],
       return null;
     }
   }
-  
+
   // Write the new content
   await fs.writeFile(settingsPath, newContent);
-  
+
   // Return backup path for cleanup
   return backupPath;
 }

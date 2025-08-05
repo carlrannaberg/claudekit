@@ -13,7 +13,6 @@ export {
   ensureDirectoryExists,
 
   // Permission operations
-  setExecutablePermission,
   checkWritePermission,
 
   // File hashing and comparison
@@ -111,7 +110,6 @@ export {
   // Component recommendation
   recommendComponents,
   formatRecommendationSummary,
-  learnFromUserChoice,
   type ComponentRecommendation,
   type RecommendationResult,
 } from './components.js';

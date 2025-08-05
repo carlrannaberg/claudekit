@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:.github/workflows/**/*.{yml,yaml}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run yaml-lint"},
+          {"type": "command", "command": "claudekit-hooks run github-actions-validate"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:Dockerfile*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run dockerfile-lint"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{jenkinsfile,Jenkinsfile}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run jenkins-validate"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run ci-config-validation"}
+        ]
+      }
+    ]
+  }
+}

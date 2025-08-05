@@ -99,17 +99,33 @@ describe('validate command', () => {
           'settings.json': JSON.stringify(
             {
               hooks: {
-                PostToolUse: [],
-                Stop: [],
+                PostToolUse: [
+                  {
+                    matcher: 'tools:Write AND file_paths:**/*.ts',
+                    hooks: [
+                      {
+                        type: 'command',
+                        command: 'claudekit-hooks run typecheck-changed',
+                      },
+                    ],
+                  },
+                ],
+                Stop: [
+                  {
+                    matcher: '*',
+                    hooks: [
+                      {
+                        type: 'command',
+                        command: 'claudekit-hooks run create-checkpoint',
+                      },
+                    ],
+                  },
+                ],
               },
             },
             null,
             2
           ),
-          hooks: {
-            'typecheck.sh': '#!/bin/bash\necho "TypeScript check"',
-            'eslint.sh': '#!/bin/bash\necho "ESLint check"',
-          },
           commands: {},
         },
       });
@@ -155,7 +171,7 @@ describe('validate command', () => {
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✗');
       expect(output).toContain('.claude directory not found');
-      expect(output).toContain('run "claudekit init" first');
+      expect(output).toContain('run "claudekit setup" first');
       expect(output).toContain('Some validation checks failed.');
     });
 
@@ -205,7 +221,7 @@ describe('validate command', () => {
       expect(processExit.exit).not.toHaveBeenCalled();
 
       const output = ConsoleTestHelper.getOutput('log').join('\n');
-      expect(output).toContain('No hooks installed');
+      expect(output).toContain('Found 0 hook(s)');
       expect(output).toContain('✓');
     });
 
@@ -220,7 +236,7 @@ describe('validate command', () => {
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('✓'); // .claude directory exists
       expect(output).toContain('settings.json not found');
-      expect(output).toContain('No hooks installed'); // Missing hooks is not a failure
+      expect(output).toContain('Found 0 hook(s)'); // Missing hooks is not a failure
       expect(output).toContain('No commands installed'); // Missing commands is not a failure
 
       // Should have exactly one ✗ symbol (only settings.json)

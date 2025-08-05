@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,jsx}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
+        ]
+      },
+      {
+        "matcher": "tools:Write AND file_paths:**/*.{js,jsx,json,md,css}",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run prettier"}
+        ]
+      },
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run lint-project"},
+          {"type": "command", "command": "claudekit-hooks run test-project"}
+        ]
+      }
+    ]
+  }
+}

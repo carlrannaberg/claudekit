@@ -95,7 +95,9 @@ const createPromptMock = (type: string): ReturnType<typeof vi.fn> => {
 
     // Check if we should throw an error
     if (mockState.shouldThrow) {
-      throw mockState.throwError !== undefined ? mockState.throwError : new Error(`Mock error for ${type} prompt`);
+      throw mockState.throwError !== undefined
+        ? mockState.throwError
+        : new Error(`Mock error for ${type} prompt`);
     }
 
     // Get response from mock state

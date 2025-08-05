@@ -123,7 +123,7 @@ export function validateProjectPathSecure(
     }
     return false;
   })();
-  
+
   if (hasControlChars) {
     errors.push({
       field: 'path',
@@ -711,7 +711,9 @@ export async function checkAllPrerequisites(
         message: `${check.name}: ${check.description} is not available`,
         severity: check.required ? 'error' : 'warning',
         code: `MISSING_${check.name.toUpperCase().replace(/[^A-Z]/g, '_')}`,
-        ...(check.installHint !== undefined && check.installHint !== '' ? { suggestions: [check.installHint] } : {}),
+        ...(check.installHint !== undefined && check.installHint !== ''
+          ? { suggestions: [check.installHint] }
+          : {}),
       };
 
       if (check.required) {
@@ -806,7 +808,7 @@ export function sanitizeShellInput(input: string): ValidationResult {
   const sanitized = input
     .replace(/./g, (char) => {
       const charCode = char.charCodeAt(0);
-      return (charCode <= 31 || charCode === 127) ? '' : char;
+      return charCode <= 31 || charCode === 127 ? '' : char;
     }) // Remove control characters
     .trim();
 

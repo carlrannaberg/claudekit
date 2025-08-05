@@ -9,12 +9,16 @@ A toolkit of custom commands, hooks, and utilities for Claude Code. This project
 
 ## Build & Commands
 
-This is a bash-based toolkit with no traditional build process. Key commands:
+This is a TypeScript-based toolkit. Key commands:
 
-- **Install**: `./setup.sh` - Installs claudekit to user and project directories
+- **Install**: `npm install -g claudekit` - Install claudekit globally
+- **Setup**: `claudekit setup` - Initialize claudekit in your project
+- **Build**: `npm run build` - **IMPORTANT: Run after any code changes to compile TypeScript**
 - **Test hooks**: Manually trigger by editing files or using Claude Code
 - **Check shell syntax**: `bash -n script.sh`
 - **Validate JSON**: `jq . settings.json`
+
+**Important**: After making any changes to TypeScript files (hooks, commands, or library code), you MUST run `npm run build` before testing. The project uses compiled JavaScript from the `dist/` directory, not the source TypeScript files.
 
 ### Slash Commands (in Claude Code)
 - `/checkpoint:create [description]` - Create a git stash checkpoint
@@ -169,13 +173,13 @@ Claudekit includes a comprehensive testing framework in the `tests/` directory:
 Test hooks directly without Claude Code:
 ```bash
 # Test TypeScript hook
-echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | ~/.claude/hooks/typecheck.sh
+echo '{"tool_input": {"file_path": "/path/to/file.ts"}}' | claudekit-hooks run typecheck-changed
 
 # Test ESLint hook
-echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | ~/.claude/hooks/eslint.sh
+echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | claudekit-hooks run lint-changed
 
 # Test auto-checkpoint (no input needed)
-~/.claude/hooks/auto-checkpoint.sh
+claudekit-hooks run create-checkpoint
 ```
 See `docs/hooks-documentation.md` for detailed testing examples.
 
@@ -242,7 +246,7 @@ src/
 .claude/
 ├── settings.json            # Project-specific hook configuration
 ├── commands/                # Symlinks to src/commands/*
-└── hooks/                   # Symlinks to src/hooks/*
+└── hooks/                   # Legacy - hooks now managed by embedded system
 
 examples/
 └── settings.user.example.json  # Example user-level settings (env vars only)
@@ -256,7 +260,7 @@ examples/
 
 <project>/.claude/            # Project-level
 ├── settings.json            # Hook configuration for this project
-└── hooks/                   # Copied hooks from src/hooks/
+└── hooks/                   # Legacy - hooks now managed by embedded system
 ```
 
 **Key principles:**
@@ -317,24 +321,24 @@ Edit `.claude/settings.json` using the new matcher format:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       },
       {
         "matcher": "Write,Edit,MultiEdit",
-        "hooks": [{"type": "command", "command": ".claude/hooks/run-related-tests.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run test-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
-          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -347,13 +351,13 @@ The new hook matcher format supports:
 - **Exact Match**: `"Write"` (matches only Write tool)
 - **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
 - **Regex Patterns**: `"Notebook.*"` (matches Notebook tools)
-- **Conditional Logic**: `"tools:Write AND file_paths:**/*.ts"` (specific files)
+- **Pipe Separator**: `"Write|Edit|MultiEdit"` (matches any of these tools)
 - **Universal Match**: `"*"` (matches all tools/events)
 
 #### Common Patterns
-- `"tools:Write AND file_paths:**/*.ts"` - TypeScript files only
-- `"tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"` - JavaScript/TypeScript files
-- `"Write,Edit,MultiEdit"` - File modification tools
+- `"Write|Edit|MultiEdit"` - All file modification tools (pipe separator)
+- `"Write,Edit,MultiEdit"` - All file modification tools (comma separator)
+- `"Notebook.*"` - All Notebook-related tools
 - `"*"` - All tools (for cleanup/validation hooks)
 
 ### Claude Code Settings Management
@@ -363,7 +367,7 @@ The `.claude` directory contains configuration with specific version control rul
 #### Version Controlled Files (commit these):
 - `.claude/settings.json` - Shared team settings for hooks, tools, and environment
 - `.claude/commands/*.md` - Custom slash commands available to all team members
-- `.claude/hooks/*.sh` - Hook scripts for automated validations and actions
+- Hooks are managed via embedded system: `claudekit-hooks run <hook-name>`
 
 #### Ignored Files (do NOT commit):
 - `.claude/settings.local.json` - Personal preferences and local overrides
@@ -373,7 +377,7 @@ The `.claude` directory contains configuration with specific version control rul
 - Claude Code automatically adds `.claude/settings.local.json` to `.gitignore`
 - The shared `settings.json` should contain team-wide standards (linting, type checking, etc.)
 - Personal preferences or experimental settings belong in `settings.local.json`
-- Hook scripts in `.claude/hooks/` should be executable (`chmod +x`)
+- Hooks are managed via the embedded system (`claudekit-hooks run <hook-name>`)
 - User-level settings (`~/.claude/settings.json`) should only contain environment variables, not hooks
 
 ### Development Guidelines
@@ -431,9 +435,9 @@ When environment changes, the purpose comment helps determine:
 ## Architecture
 
 ### Project Structure
-- `setup.sh` - Installation script
+- `cli/` - TypeScript CLI source code
 - `.claude/commands/` - Slash command definitions
-- `.claude/hooks/` - Event-triggered scripts
+- Hooks managed via embedded system - Event-triggered validations
 - `docs/` - Detailed documentation
 
 ### Hook System
@@ -447,7 +451,7 @@ When environment changes, the purpose comment helps determine:
 Each hook script MUST be completely self-contained:
 - Include all required functions directly in the script
 - Do NOT source external libraries or validation files
-- Do NOT depend on other scripts in the hooks directory
+- Do NOT depend on external scripts
 - Copy common functions into each hook that needs them
 - This ensures hooks work reliably regardless of installation method or directory structure
 

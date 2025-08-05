@@ -1,7 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { pathExists, getFileStats } from './filesystem.js';
-import type { Component, ComponentType, ComponentCategory, ProjectInfo, Platform } from '../types/config.js';
+import type {
+  Component,
+  ComponentType,
+  ComponentCategory,
+  ProjectInfo,
+  Platform,
+} from '../types/config.js';
 
 /**
  * Component Discovery System
@@ -72,6 +78,167 @@ interface ScanOptions {
   filterByCategory?: ComponentCategory[];
   filterByType?: ComponentType[];
 }
+
+// ============================================================================
+// Embedded Hook Definitions
+// ============================================================================
+
+/**
+ * Embedded hook component definitions
+ * These hooks are built into the claudekit-hooks command
+ */
+const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
+  {
+    path: 'embedded:typecheck-changed',
+    type: 'hook',
+    metadata: {
+      id: 'typecheck-changed',
+      name: 'TypeScript Type Checking (Changed Files)',
+      description: 'Run TypeScript type checking on file changes (embedded hook)',
+      category: 'validation',
+      dependencies: ['typescript', 'tsc'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-typecheck',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:lint-changed',
+    type: 'hook',
+    metadata: {
+      id: 'lint-changed',
+      name: 'ESLint Validation (Changed Files)',
+      description: 'Run ESLint validation on JavaScript/TypeScript files (embedded hook)',
+      category: 'validation',
+      dependencies: ['eslint'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-eslint',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:prettier',
+    type: 'hook',
+    metadata: {
+      id: 'prettier',
+      name: 'Prettier Formatting',
+      description: 'Format code with Prettier on file changes (embedded hook)',
+      category: 'validation',
+      dependencies: ['prettier'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-prettier',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:check-any-changed',
+    type: 'hook',
+    metadata: {
+      id: 'check-any-changed',
+      name: 'TypeScript Any Detector',
+      description: 'Detect forbidden any types in TypeScript files (embedded hook)',
+      category: 'validation',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-no-any',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:test-changed',
+    type: 'hook',
+    metadata: {
+      id: 'test-changed',
+      name: 'Run Related Tests',
+      description: 'Automatically run tests related to changed files (embedded hook)',
+      category: 'testing',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-run-related-tests',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:create-checkpoint',
+    type: 'hook',
+    metadata: {
+      id: 'create-checkpoint',
+      name: 'Create Checkpoint',
+      description: 'Automatically create git checkpoints on Claude Code stop (embedded hook)',
+      category: 'git',
+      dependencies: ['git'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-auto-checkpoint',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:check-todos',
+    type: 'hook',
+    metadata: {
+      id: 'check-todos',
+      name: 'Check Todo Completion',
+      description: 'Ensure all in-progress todos are completed or updated (embedded hook)',
+      category: 'project-management',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-validate-todo-completion',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:typecheck-project',
+    type: 'hook',
+    metadata: {
+      id: 'typecheck-project',
+      name: 'TypeScript Project Validation',
+      description: 'Run TypeScript validation on entire project (embedded hook)',
+      category: 'validation',
+      dependencies: ['typescript', 'tsc'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-typecheck-project',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:lint-project',
+    type: 'hook',
+    metadata: {
+      id: 'lint-project',
+      name: 'ESLint Project Validation',
+      description: 'Run ESLint validation on entire project (embedded hook)',
+      category: 'validation',
+      dependencies: ['eslint'],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-lint-project',
+    lastModified: new Date('2024-01-01'),
+  },
+  {
+    path: 'embedded:test-project',
+    type: 'hook',
+    metadata: {
+      id: 'test-project',
+      name: 'Test Project Suite',
+      description: 'Run full test suite for entire project (embedded hook)',
+      category: 'testing',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-test-project',
+    lastModified: new Date('2024-01-01'),
+  },
+];
 
 // ============================================================================
 // Dependency Definitions
@@ -207,7 +374,7 @@ function parseFrontmatter(content: string): Record<string, unknown> {
 }
 
 /**
- * Parse shell script header comments for hook metadata
+ * Parse shell script header comments (legacy function, kept for backward compatibility)
  */
 function parseShellHeader(content: string): Record<string, unknown> {
   const lines = content.split('\n').slice(0, 50); // Check first 50 lines
@@ -263,7 +430,11 @@ function parseShellHeader(content: string): Record<string, unknown> {
     }
 
     // Accumulate description (exclude padding symbols)
-    if (metadata['description'] === undefined && !lineContent.includes(':') && !lineContent.match(/^#+$/)) {
+    if (
+      metadata['description'] === undefined &&
+      !lineContent.includes(':') &&
+      !lineContent.match(/^#+$/)
+    ) {
       const cleanContent = lineContent.replace(/#+\s*$/, '').trim();
       if (cleanContent !== '') {
         description += (description ? ' ' : '') + cleanContent;
@@ -301,7 +472,11 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
         if (match) {
           const toolName = match[1]?.toLowerCase();
           // Only add non-standard tools as dependencies
-          if (toolName !== undefined && toolName !== '' && !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)) {
+          if (
+            toolName !== undefined &&
+            toolName !== '' &&
+            !['read', 'write', 'edit', 'multiedit', 'bash'].includes(toolName)
+          ) {
             dependencies.add(toolName);
           } else if (toolName === 'read' || toolName === 'write') {
             dependencies.add(toolName);
@@ -336,7 +511,12 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
     if (bashCommands) {
       bashCommands.forEach((cmd) => {
         // Skip self-reference
-        if (componentId !== null && componentId !== undefined && componentId !== '' && cmd === componentId) {
+        if (
+          componentId !== null &&
+          componentId !== undefined &&
+          componentId !== '' &&
+          cmd === componentId
+        ) {
           return;
         }
         dependencies.add(cmd);
@@ -347,7 +527,7 @@ function extractDependencies(content: string, type: ComponentType, componentId?:
     const hookRefs = content.match(/\.claude\/hooks\/([^.\s]+)/g);
     if (hookRefs) {
       hookRefs.forEach((ref) => {
-        const hookName = ref.split('/').pop()?.replace('.sh', '');
+        const hookName = ref.split('/').pop();
         if (hookName !== undefined && hookName !== '' && hookName !== componentId) {
           dependencies.add(hookName);
         }
@@ -368,7 +548,9 @@ function inferCategory(
 ): ComponentCategory {
   // Use explicit category if provided
   if (metadata['category'] !== undefined) {
-    const normalizedCategory = String(metadata['category']).toLowerCase().replace(/[-_\s]/g, '-');
+    const normalizedCategory = String(metadata['category'])
+      .toLowerCase()
+      .replace(/[-_\s]/g, '-');
     const validCategories: ComponentCategory[] = [
       'git',
       'validation',
@@ -443,11 +625,11 @@ function inferCategory(
 /**
  * Create component ID from file path
  */
-function createComponentId(filePath: string, type: ComponentType): string {
-  const fileName = path.basename(filePath, type === 'command' ? '.md' : '.sh');
+function createComponentId(filePath: string, _type: ComponentType): string {
+  const fileName = path.basename(filePath, '.md');
   const parentDir = path.basename(path.dirname(filePath));
 
-  if (parentDir === 'commands' || parentDir === 'hooks') {
+  if (parentDir === 'commands') {
     return fileName;
   }
 
@@ -479,31 +661,52 @@ async function parseComponentFile(
     const dependencies = extractDependencies(content, type, id);
     const metadata: ComponentMetadata = {
       id,
-      name: rawMetadata['name'] as string || path.basename(filePath, type === 'command' ? '.md' : '.sh'),
-      description: rawMetadata['description'] as string || 'No description available',
+      name: (rawMetadata['name'] as string) || path.basename(filePath, '.md'),
+      description: (rawMetadata['description'] as string) || 'No description available',
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
-      platforms: rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
-        ? (rawMetadata['platforms'] as string).split(',').map((p: string) => p.trim()).filter((p): p is Platform => 
-            ['darwin', 'linux', 'win32', 'all'].includes(p as Platform))
-        : ['all'] as Platform[],
+      platforms:
+        rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
+          ? (rawMetadata['platforms'] as string)
+              .split(',')
+              .map((p: string) => p.trim())
+              .filter((p): p is Platform =>
+                ['darwin', 'linux', 'win32', 'all'].includes(p as Platform)
+              )
+          : (['all'] as Platform[]),
       enabled:
         rawMetadata['enabled'] === undefined
           ? true
           : rawMetadata['enabled'] !== 'false' && rawMetadata['enabled'] !== false,
-      ...(rawMetadata['allowed-tools'] !== undefined && rawMetadata['allowed-tools'] !== null && {
-        allowedTools: (rawMetadata['allowed-tools'] as string).split(',').map((t: string) => t.trim()),
-      }),
-      ...(rawMetadata['argument-hint'] !== undefined && rawMetadata['argument-hint'] !== null && { argumentHint: rawMetadata['argument-hint'] as string }),
-      ...(rawMetadata['version'] !== undefined && rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
-      ...(rawMetadata['author'] !== undefined && rawMetadata['author'] !== null && { author: rawMetadata['author'] as string }),
-      ...(rawMetadata['shellOptions'] !== undefined && rawMetadata['shellOptions'] !== null && { 
-        shellOptions: typeof rawMetadata['shellOptions'] === 'string' 
-          ? (rawMetadata['shellOptions'] as string).split(',').map((opt: string) => opt.trim())
-          : rawMetadata['shellOptions'] as string[]
-      }),
-      ...(rawMetadata['timeout'] !== undefined && rawMetadata['timeout'] !== null && { timeout: parseInt(rawMetadata['timeout'] as string, 10) }),
-      ...(rawMetadata['retries'] !== undefined && rawMetadata['retries'] !== null && { retries: parseInt(rawMetadata['retries'] as string, 10) }),
+      ...(rawMetadata['allowed-tools'] !== undefined &&
+        rawMetadata['allowed-tools'] !== null && {
+          allowedTools: (rawMetadata['allowed-tools'] as string)
+            .split(',')
+            .map((t: string) => t.trim()),
+        }),
+      ...(rawMetadata['argument-hint'] !== undefined &&
+        rawMetadata['argument-hint'] !== null && {
+          argumentHint: rawMetadata['argument-hint'] as string,
+        }),
+      ...(rawMetadata['version'] !== undefined &&
+        rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
+      ...(rawMetadata['author'] !== undefined &&
+        rawMetadata['author'] !== null && { author: rawMetadata['author'] as string }),
+      ...(rawMetadata['shellOptions'] !== undefined &&
+        rawMetadata['shellOptions'] !== null && {
+          shellOptions:
+            typeof rawMetadata['shellOptions'] === 'string'
+              ? (rawMetadata['shellOptions'] as string).split(',').map((opt: string) => opt.trim())
+              : (rawMetadata['shellOptions'] as string[]),
+        }),
+      ...(rawMetadata['timeout'] !== undefined &&
+        rawMetadata['timeout'] !== null && {
+          timeout: parseInt(rawMetadata['timeout'] as string, 10),
+        }),
+      ...(rawMetadata['retries'] !== undefined &&
+        rawMetadata['retries'] !== null && {
+          retries: parseInt(rawMetadata['retries'] as string, 10),
+        }),
     };
 
     // Calculate content hash for change detection
@@ -537,7 +740,11 @@ async function scanDirectory(dirPath: string, type: ComponentType): Promise<Comp
     return components;
   }
 
-  const extension = type === 'command' ? '.md' : '.sh';
+  // Only scan for command files since hooks are embedded
+  if (type !== 'command') {
+    return [];
+  }
+  const extension = '.md';
 
   async function scanRecursive(currentPath: string): Promise<void> {
     try {
@@ -725,7 +932,7 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
         dfs(node);
       }
     }
-    
+
     return cycles;
   };
 
@@ -768,7 +975,7 @@ function buildDependencyGraph(registry: ComponentRegistry): DependencyGraph {
     for (const node of nodes.keys()) {
       getDepth(node);
     }
-    
+
     return depths;
   };
 
@@ -811,10 +1018,10 @@ export function resolveAllDependencies(
 
     visiting.add(id);
 
-    // Add static dependencies
+    // Add static dependencies (skip external dependencies for recursion)
     const staticDeps = COMPONENT_DEPENDENCIES[id] || [];
     for (const dep of staticDeps) {
-      if (!resolved.has(dep)) {
+      if (!resolved.has(dep) && !EXTERNAL_DEPENDENCIES.has(dep)) {
         addDependencies(dep, depth + 1);
       }
     }
@@ -898,9 +1105,9 @@ export function resolveDependencyOrder(
       component.metadata.dependencies.forEach((dep) => allDeps.add(dep));
     }
 
-    // Visit dependencies first
+    // Visit dependencies first (skip external dependencies)
     for (const dep of allDeps) {
-      if (componentIds.includes(dep) && !cycles.has(dep)) {
+      if (componentIds.includes(dep) && !cycles.has(dep) && !EXTERNAL_DEPENDENCIES.has(dep)) {
         visit(dep, [...path]);
       }
     }
@@ -971,15 +1178,12 @@ export async function discoverComponents(
   registry.categories.clear();
 
   const commandsDir = path.join(baseDir, 'commands');
-  const hooksDir = path.join(baseDir, 'hooks');
 
-  // Scan for components
-  const [commandFiles, hookFiles] = await Promise.all([
-    scanDirectory(commandsDir, 'command'),
-    scanDirectory(hooksDir, 'hook'),
-  ]);
+  // Scan for command components only
+  const commandFiles = await scanDirectory(commandsDir, 'command');
 
-  const allComponents = [...commandFiles, ...hookFiles];
+  // Use predefined embedded hooks instead of scanning for hook files
+  const allComponents = [...commandFiles, ...EMBEDDED_HOOK_COMPONENTS];
 
   // Filter components based on options
   let filteredComponents = allComponents;
@@ -989,12 +1193,14 @@ export async function discoverComponents(
   }
 
   if (options.filterByType !== undefined && options.filterByType.length > 0) {
-    filteredComponents = filteredComponents.filter((c) => options.filterByType?.includes(c.type) ?? false);
+    filteredComponents = filteredComponents.filter(
+      (c) => options.filterByType?.includes(c.type) ?? false
+    );
   }
 
   if (options.filterByCategory !== undefined && options.filterByCategory.length > 0) {
-    filteredComponents = filteredComponents.filter((c) =>
-      options.filterByCategory?.includes(c.metadata.category) ?? false
+    filteredComponents = filteredComponents.filter(
+      (c) => options.filterByCategory?.includes(c.metadata.category) ?? false
     );
   }
 
@@ -1440,7 +1646,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   // TypeScript project checks
   if (projectInfo.hasTypeScript) {
     if (
-      component.metadata.id === 'typecheck' ||
+      component.metadata.id === 'typecheck-changed' ||
       component.metadata.name.toLowerCase().includes('typescript')
     ) {
       score += RECOMMENDATION_WEIGHTS.directMatch;
@@ -1453,7 +1659,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
   // ESLint project checks
   if (projectInfo.hasESLint) {
     if (
-      component.metadata.id === 'eslint' ||
+      component.metadata.id === 'lint-changed' ||
       component.metadata.name.toLowerCase().includes('eslint')
     ) {
       score += RECOMMENDATION_WEIGHTS.directMatch;
@@ -1472,10 +1678,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
 
   // Testing framework checks
   if (projectInfo.hasJest === true || projectInfo.hasVitest === true) {
-    if (
-      component.metadata.id === 'run-related-tests' ||
-      component.metadata.category === 'testing'
-    ) {
+    if (component.metadata.id === 'test-changed' || component.metadata.category === 'testing') {
       score += RECOMMENDATION_WEIGHTS.directMatch;
     }
   }
@@ -1486,7 +1689,7 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
       score += RECOMMENDATION_WEIGHTS.categoryMatch;
     }
     // Auto-checkpoint is highly recommended for git projects
-    if (component.metadata.id === 'auto-checkpoint') {
+    if (component.metadata.id === 'create-checkpoint') {
       score += RECOMMENDATION_WEIGHTS.directMatch;
     }
   }
@@ -1543,7 +1746,7 @@ function generateRecommendationReasons(
   // TypeScript reasons
   if (
     projectInfo.hasTypeScript &&
-    (component.metadata.id === 'typecheck' ||
+    (component.metadata.id === 'typecheck-changed' ||
       component.metadata.name.toLowerCase().includes('typescript'))
   ) {
     reasons.push('TypeScript detected - type checking recommended');
@@ -1552,7 +1755,8 @@ function generateRecommendationReasons(
   // ESLint reasons
   if (
     projectInfo.hasESLint &&
-    (component.metadata.id === 'eslint' || component.metadata.name.toLowerCase().includes('eslint'))
+    (component.metadata.id === 'lint-changed' ||
+      component.metadata.name.toLowerCase().includes('eslint'))
   ) {
     reasons.push('ESLint configuration found - linting automation recommended');
   }
@@ -1569,7 +1773,7 @@ function generateRecommendationReasons(
   // Testing reasons
   if (
     (projectInfo.hasJest === true || projectInfo.hasVitest === true) &&
-    (component.metadata.id === 'run-related-tests' || component.metadata.category === 'testing')
+    (component.metadata.id === 'test-changed' || component.metadata.category === 'testing')
   ) {
     const framework = projectInfo.hasJest === true ? 'Jest' : 'Vitest';
     reasons.push(`${framework} detected - automated test running recommended`);
@@ -1577,7 +1781,7 @@ function generateRecommendationReasons(
 
   // Git reasons
   if (projectInfo.isGitRepository === true && component.metadata.category === 'git') {
-    if (component.metadata.id === 'auto-checkpoint') {
+    if (component.metadata.id === 'create-checkpoint') {
       reasons.push('Git repository - automatic checkpointing highly recommended');
     } else {
       reasons.push('Git repository - version control tools recommended');
@@ -1674,34 +1878,4 @@ export function formatRecommendationSummary(result: RecommendationResult): strin
   }
 
   return lines.join('\n');
-}
-
-/**
- * Learn from user choices (future enhancement placeholder)
- * This would store user preferences and adjust recommendations over time
- */
-export async function learnFromUserChoice(
-  projectInfo: ProjectInfo,
-  acceptedComponents: string[],
-  rejectedComponents: string[],
-  _userPreferencesPath?: string
-): Promise<void> {
-  // TODO: Implement machine learning or preference tracking
-  // For now, this is a placeholder for future enhancement
-
-  // Potential implementation:
-  // 1. Store project type patterns
-  // 2. Track component acceptance/rejection rates
-  // 3. Adjust recommendation scores based on history
-  // 4. Save preferences to user config file
-
-  console.debug('User choice recorded:', {
-    projectType: {
-      hasTypeScript: projectInfo.hasTypeScript,
-      hasESLint: projectInfo.hasESLint,
-      frameworks: projectInfo.frameworks,
-    },
-    accepted: acceptedComponents,
-    rejected: rejectedComponents,
-  });
 }

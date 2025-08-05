@@ -6,7 +6,18 @@
 // vi import removed - not needed in this file
 // Removed unused fs import
 
-type BufferEncoding = 'ascii' | 'utf8' | 'utf-8' | 'utf16le' | 'ucs2' | 'ucs-2' | 'base64' | 'base64url' | 'latin1' | 'binary' | 'hex';
+type BufferEncoding =
+  | 'ascii'
+  | 'utf8'
+  | 'utf-8'
+  | 'utf16le'
+  | 'ucs2'
+  | 'ucs-2'
+  | 'base64'
+  | 'base64url'
+  | 'latin1'
+  | 'binary'
+  | 'hex';
 
 // Track mock state for testing
 interface MockState {
@@ -64,7 +75,10 @@ export const mockFsExtra = {
   },
 
   // Simulate file system structure
-  createStructure(structure: Record<string, string | Record<string, unknown>>, basePath = ''): void {
+  createStructure(
+    structure: Record<string, string | Record<string, unknown>>,
+    basePath = ''
+  ): void {
     for (const [name, content] of Object.entries(structure)) {
       const fullPath = basePath ? `${basePath}/${name}` : name;
 
@@ -93,7 +107,10 @@ interface MockFsExtra {
   writeFile(path: string, data: string | Buffer): Promise<void>;
   appendFile(path: string, data: string | Buffer): Promise<void>;
   unlink(path: string): Promise<void>;
-  mkdir(path: string, options?: { recursive?: boolean; mode?: number }): Promise<string | undefined>;
+  mkdir(
+    path: string,
+    options?: { recursive?: boolean; mode?: number }
+  ): Promise<string | undefined>;
   rm(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   access(path: string, mode?: number): Promise<void>;
@@ -177,7 +194,11 @@ const createMockFsExtra = (): MockFsExtra => {
       } else {
         // Check if parent exists
         const parentPath = path.substring(0, path.lastIndexOf('/'));
-        if (parentPath !== '' && parentPath !== undefined && !mockState.directories.has(parentPath)) {
+        if (
+          parentPath !== '' &&
+          parentPath !== undefined &&
+          !mockState.directories.has(parentPath)
+        ) {
           const error = new Error(`ENOENT: no such file or directory, mkdir '${path}'`);
           (error as Error & { code: string }).code = 'ENOENT';
           throw error;

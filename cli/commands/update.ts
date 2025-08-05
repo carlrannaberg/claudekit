@@ -30,16 +30,18 @@ export async function update(
   logger.debug(`Updating ${type} "${name}" with options:`, options);
 
   // Validate type
-  const validTypes = ['hook', 'command', 'config'];
+  const validTypes = ['command', 'config'];
   if (!validTypes.includes(type)) {
-    throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')}`);
+    throw new Error(
+      `Invalid type "${type}". Must be one of: ${validTypes.join(', ')} (hooks are now embedded in claudekit).`
+    );
   }
 
   if (type === 'config') {
     // Update configuration
     await updateConfig(name, options);
   } else {
-    // Update hook or command file
+    // Update command file
     await updateFile(type, name, options);
   }
 
@@ -98,9 +100,8 @@ async function updateFile(type: string, name: string, options: UpdateOptions): P
   const logger = new Logger();
 
   // Determine target path
-  const targetDir = type === 'hook' ? '.claude/hooks' : '.claude/commands';
-  const extension = type === 'hook' ? 'sh' : 'md';
-  const targetPath = path.join(targetDir, `${name}.${extension}`);
+  const targetDir = '.claude/commands';
+  const targetPath = path.join(targetDir, `${name}.md`);
 
   // Check if file exists
   if (!(await fs.pathExists(targetPath))) {
@@ -119,11 +120,6 @@ async function updateFile(type: string, name: string, options: UpdateOptions): P
 
   // Update the file
   await fs.writeFile(targetPath, newContent, 'utf8');
-
-  // Ensure hooks remain executable
-  if (type === 'hook') {
-    await fs.chmod(targetPath, 0o755);
-  }
 
   logger.debug(`Updated ${type} file at ${targetPath}`);
 }

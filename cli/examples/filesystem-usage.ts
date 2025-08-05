@@ -10,7 +10,6 @@ import {
   validateProjectPath,
   ensureDirectoryExists,
   copyFileWithBackup,
-  setExecutablePermission,
   needsUpdate,
   getFileHash,
 } from '../lib/filesystem.js';
@@ -20,8 +19,7 @@ import {
  */
 export async function installFileWithValidation(
   sourcePath: string,
-  targetPath: string,
-  makeExecutable: boolean = false
+  targetPath: string
 ): Promise<void> {
   // 1. Validate paths for security
   if (!validateProjectPath(sourcePath) || !validateProjectPath(targetPath)) {
@@ -40,11 +38,6 @@ export async function installFileWithValidation(
 
   // 4. Copy file with automatic backup
   await copyFileWithBackup(sourcePath, targetPath, true);
-
-  // 5. Set executable permissions if needed (for scripts/hooks)
-  if (makeExecutable) {
-    await setExecutablePermission(targetPath);
-  }
 
   console.log(`Successfully installed ${sourcePath} → ${targetPath}`);
 }
@@ -75,14 +68,14 @@ export async function verifyFileIntegrity(
  * Example: Batch file operations with error handling
  */
 export async function installMultipleFiles(
-  fileMap: Record<string, { source: string; executable?: boolean }>
+  fileMap: Record<string, { source: string }>
 ): Promise<{ success: string[]; failed: string[] }> {
   const success: string[] = [];
   const failed: string[] = [];
 
   for (const [targetPath, config] of Object.entries(fileMap)) {
     try {
-      await installFileWithValidation(config.source, targetPath, config.executable);
+      await installFileWithValidation(config.source, targetPath);
       success.push(targetPath);
     } catch (error) {
       console.error(`Failed to install ${targetPath}:`, error);
@@ -96,9 +89,8 @@ export async function installMultipleFiles(
 // Example usage:
 /*
 const files = {
-  '/Users/myuser/project/.claude/hooks/typecheck.sh': {
-    source: '/path/to/source/hooks/typecheck.sh',
-    executable: true
+  '/Users/myuser/project/.claude/commands/custom.md': {
+    source: '/path/to/source/commands/custom.md'
   },
   '/Users/myuser/project/.claude/settings.json': {
     source: '/path/to/source/settings.json'

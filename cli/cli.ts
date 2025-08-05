@@ -21,7 +21,7 @@ let globalOptions: GlobalOptions = {};
 
 program
   .name('claudekit')
-  .description('CLI tools for ClaudeKit development workflow')
+  .description('CLI tools for claudekit development workflow')
   .version(packageJson.version)
   .option('-v, --verbose', 'enable verbose output')
   .option('-q, --quiet', 'suppress non-error output')
@@ -46,7 +46,7 @@ program
 // Setup command - initializes claudekit in a project
 program
   .command('setup')
-  .description('Initialize ClaudeKit in the current directory')
+  .description('Initialize claudekit in the current directory')
   .option('-f, --force', 'overwrite existing configuration')
   .option('-t, --template <template>', 'use a specific template', 'default')
   .option('-y, --yes', 'automatic yes to prompts (use default options)')
@@ -145,26 +145,7 @@ program
     }
   });
 
-// Legacy commands for backward compatibility
-program
-  .command('init')
-  .description('Initialize ClaudeKit in the current directory (alias for setup)')
-  .option('-f, --force', 'overwrite existing configuration')
-  .action(async (options) => {
-    try {
-      const mergedOptions = { ...globalOptions, ...options };
-      if (globalOptions.dryRun === true) {
-        logger.info('Dry run mode: Would initialize ClaudeKit configuration');
-        return;
-      }
-      // Use the existing init command or redirect to setup
-      const { init } = await import('./commands/init.js');
-      await init(mergedOptions);
-    } catch (error) {
-      logger.error(`Init failed: ${error instanceof Error ? error.message : String(error)}`);
-      process.exit(1);
-    }
-  });
+// Legacy commands for backward compatibility - removed init command
 
 program
   .command('validate')

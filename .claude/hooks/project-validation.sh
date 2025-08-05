@@ -1,1 +1,0 @@
-../../src/hooks/project-validation.sh

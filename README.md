@@ -1,3 +1,5 @@
+![claudekit banner](assets/banner.png)
+
 # claudekit
 
 A powerful CLI toolkit for enhancing Claude Code with custom commands, hooks, and development workflow utilities.
@@ -18,7 +20,7 @@ pnpm add -g claudekit
 
 ```bash
 # Initialize claudekit in your project
-claudekit init
+claudekit setup
 
 # Install recommended hooks and commands
 claudekit install
@@ -29,18 +31,18 @@ claudekit list
 
 ## CLI Commands
 
-### `claudekit init`
+### `claudekit setup`
 Initialize claudekit in your project by creating a `.claude` directory with recommended settings.
 
 ```bash
-claudekit init [options]
+claudekit setup [options]
 
 Options:
   -f, --force               Overwrite existing .claude directory
   --skip-recommendations    Skip project analysis and recommendations
 ```
 
-The init command:
+The setup command:
 - Analyzes your project to detect TypeScript, ESLint, testing frameworks, etc.
 - Creates `.claude/settings.json` with recommended hooks configuration
 - Sets up directories for hooks and commands
@@ -60,7 +62,7 @@ Options:
 
 Examples:
   claudekit install                    # Install all recommended components
-  claudekit install typecheck eslint   # Install specific hooks
+  claudekit install typecheck eslint   # Install specific components
   claudekit install --type command     # Install all commands
   claudekit install --essential        # Install only essential components
 ```
@@ -92,16 +94,93 @@ Options:
   --project  Configure project-level settings only
 ```
 
+## Hooks System
+
+Claudekit provides an embedded hooks system that integrates seamlessly with Claude Code through the `claudekit-hooks` executable.
+
+### Overview
+
+The embedded hooks system allows you to run validation and automation hooks without managing individual script files. All hooks are built into the `claudekit-hooks` executable, which is installed globally with claudekit.
+
+### Available Embedded Hooks
+
+#### Hook Naming Convention
+
+Claudekit uses clear suffixes to indicate hook scope:
+- `-changed`: Operates only on files that were created or modified
+- `-project`: Operates on the entire project
+- Action verbs (e.g., `create-checkpoint`): Perform specific actions
+
+#### File-Scoped Hooks (operate on changed files only)
+- **typecheck-changed** - TypeScript type checking on modified files
+- **check-any-changed** - Forbid `any` types in modified TypeScript files
+- **lint-changed** - ESLint validation on modified JavaScript/TypeScript files
+- **test-changed** - Run tests related to modified files
+
+#### Project-Wide Hooks (operate on entire project)
+- **typecheck-project** - TypeScript type checking on entire project
+- **lint-project** - ESLint validation on entire project
+- **test-project** - Run complete test suite
+
+#### Action Hooks
+- **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
+- **check-todos** - Ensure all todos are completed before stopping
+
+### Hook Configuration
+
+Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <hook>` command format:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Testing Hooks
+
+You can test hooks outside of Claude Code using the `claudekit-hooks test` command:
+
+```bash
+# Test a specific hook with a file
+claudekit-hooks test typecheck-changed --file src/index.ts
+
+# Test a hook without file context
+claudekit-hooks test create-checkpoint
+
+# List all available hooks
+claudekit-hooks list
+```
+
 ## Features
 
 ### 🛡️ Development Hooks
-Automatically enforce code quality and run tests:
+Automatically enforce code quality and run tests with embedded hooks:
 
-- **typecheck** - TypeScript type checking (blocks `any` types)
-- **eslint** - ESLint code style and quality validation
-- **run-related-tests** - Auto-run tests for modified files
-- **validate-todo-completion** - Prevent stopping with incomplete todos
-- **auto-checkpoint** - Save work automatically when Claude Code stops
+- **typecheck-changed** - TypeScript type checking on modified files
+- **lint-changed** - ESLint code style and quality validation on modified files
+- **test-changed** - Auto-run tests for modified files
+- **check-todos** - Prevent stopping with incomplete todos
+- **create-checkpoint** - Save work automatically when Claude Code stops
 
 ### 📝 Slash Commands
 
@@ -145,16 +224,16 @@ claudekit uses a two-level configuration system:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
-          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -179,7 +258,7 @@ The hook system supports sophisticated matching patterns:
 - **Exact Match**: `"Write"` (matches only Write tool)
 - **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
 - **Regex Patterns**: `"Notebook.*"` (matches all Notebook tools)
-- **Conditional Logic**: `"tools:Write AND file_paths:**/*.ts"` (specific files)
+- **Conditional Logic**: `"Write|Edit|MultiEdit"` (specific files)
 - **Universal Match**: `"*"` (matches all tools/events)
 
 ## Platform & Language Support
@@ -210,6 +289,8 @@ Enables `/spec:create` to fetch up-to-date library documentation.
 - [Claude Code Configuration](docs/claude-code-configuration.md) - Comprehensive configuration guide
 - [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
 - [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
+- [Hooks Reference](docs/hooks-reference.md) - Complete hook configuration options
+- [Migration from Shell Hooks](docs/migration-from-shell-hooks.md) - Migrating from shell script hooks
 - [File Organization](docs/file-organization.md) - Project structure best practices
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 - [Testing Guide](tests/README.md) - Running the test suite

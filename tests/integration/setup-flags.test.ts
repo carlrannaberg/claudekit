@@ -75,14 +75,14 @@ vi.mock('../../cli/lib/index', () => ({
   discoverComponents: vi.fn().mockResolvedValue({
     components: new Map([
       [
-        'typecheck',
+        'typecheck-changed',
         {
           type: 'hook',
-          path: '/path/to/typecheck.sh',
+          path: '/path/to/typecheck-changed.sh',
           metadata: {
-            id: 'typecheck',
-            name: 'TypeScript Check',
-            description: 'Type checking',
+            id: 'typecheck-changed',
+            name: 'TypeScript Check (Changed Files)',
+            description: 'Type checking for changed files only',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -91,14 +91,46 @@ vi.mock('../../cli/lib/index', () => ({
         },
       ],
       [
-        'eslint',
+        'typecheck-project',
         {
           type: 'hook',
-          path: '/path/to/eslint.sh',
+          path: '/path/to/typecheck-project.sh',
           metadata: {
-            id: 'eslint',
-            name: 'ESLint',
-            description: 'ESLint validation',
+            id: 'typecheck-project',
+            name: 'TypeScript Check (Project-wide)',
+            description: 'Type checking for entire project',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-changed',
+        {
+          type: 'hook',
+          path: '/path/to/lint-changed.sh',
+          metadata: {
+            id: 'lint-changed',
+            name: 'ESLint (Changed Files)',
+            description: 'ESLint validation for changed files only',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'lint-project',
+        {
+          type: 'hook',
+          path: '/path/to/lint-project.sh',
+          metadata: {
+            id: 'lint-project',
+            name: 'ESLint (Project-wide)',
+            description: 'ESLint validation for entire project',
             category: 'validation',
             platforms: ['darwin', 'linux'],
             dependencies: [],
@@ -142,7 +174,12 @@ vi.mock('../../cli/lib/index', () => ({
   }),
   recommendComponents: vi.fn().mockImplementation((_projectInfo, registry) => {
     // Handle case where registry might be undefined in tests
-    if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
+    if (
+      registry === null ||
+      registry === undefined ||
+      registry.components === null ||
+      registry.components === undefined
+    ) {
       return {
         essential: [],
         recommended: [],
@@ -151,36 +188,48 @@ vi.mock('../../cli/lib/index', () => ({
       };
     }
 
-    const typecheckComponent = registry.components.get('typecheck');
-    const eslintComponent = registry.components.get('eslint');
+    const typecheckComponent = registry.components.get('typecheck-changed');
+    const eslintComponent = registry.components.get('lint-changed');
     const checkpointCreateComponent = registry.components.get('checkpoint-create');
 
     return {
       essential: [],
       recommended: [
-        ...(typecheckComponent !== undefined ? [{
-          component: typecheckComponent,
-          score: 85,
-          reasons: ['TypeScript detected'],
-          dependencies: ['tsc'],
-          isRequired: false,
-        }] : []),
-        ...(eslintComponent !== undefined ? [{
-          component: eslintComponent,
-          score: 80,
-          reasons: ['ESLint detected'],
-          dependencies: ['eslint'],
-          isRequired: false,
-        }] : []),
+        ...(typecheckComponent !== undefined
+          ? [
+              {
+                component: typecheckComponent,
+                score: 85,
+                reasons: ['TypeScript detected'],
+                dependencies: ['tsc'],
+                isRequired: false,
+              },
+            ]
+          : []),
+        ...(eslintComponent !== undefined
+          ? [
+              {
+                component: eslintComponent,
+                score: 80,
+                reasons: ['ESLint detected'],
+                dependencies: ['eslint'],
+                isRequired: false,
+              },
+            ]
+          : []),
       ],
       optional: [
-        ...(checkpointCreateComponent !== undefined ? [{
-          component: checkpointCreateComponent,
-          score: 60,
-          reasons: ['Git repository'],
-          dependencies: [],
-          isRequired: false,
-        }] : []),
+        ...(checkpointCreateComponent !== undefined
+          ? [
+              {
+                component: checkpointCreateComponent,
+                score: 60,
+                reasons: ['Git repository'],
+                dependencies: [],
+                isRequired: false,
+              },
+            ]
+          : []),
       ],
       totalScore: 100,
     };
@@ -211,23 +260,26 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Re-apply logger mock after clearing
     const logger = await import('../../cli/utils/logger');
-    vi.mocked(logger.Logger).mockImplementation(() => ({
-      info: vi.fn(),
-      warn: vi.fn(), 
-      error: vi.fn(),
-      debug: vi.fn(),
-      success: vi.fn(),
-      setLevel: vi.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any));
-    
+    vi.mocked(logger.Logger).mockImplementation(
+      () =>
+        ({
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn(),
+          debug: vi.fn(),
+          success: vi.fn(),
+          setLevel: vi.fn(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any
+    );
+
     // Mock console methods to prevent error output during tests
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock fs.writeFile for settings creation
     vi.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
     vi.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
@@ -238,7 +290,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       }
       return Promise.resolve('{}');
     });
-    
+
     // Re-apply filesystem mocks after clearing
     const filesystem = await import('../../cli/lib/filesystem');
     vi.mocked(filesystem.ensureDirectoryExists).mockResolvedValue(undefined);
@@ -249,7 +301,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       }
       return Promise.resolve(true);
     });
-    
+
     // Re-apply mocks after clearing
     const libIndex = await import('../../cli/lib/index');
     vi.mocked(libIndex.detectProjectContext).mockResolvedValue({
@@ -263,20 +315,20 @@ describe('Setup Command - Non-Interactive Flags', () => {
       packageManager: 'npm',
       projectPath: process.cwd(),
     });
-    
+
     vi.mocked(libIndex.discoverComponents).mockResolvedValue({
       components: new Map([
         [
-          'typecheck',
+          'typecheck-changed',
           {
             type: 'hook',
-            path: '/path/to/typecheck.sh',
+            path: '/path/to/typecheck-changed.sh',
             hash: 'abc123',
             lastModified: new Date(),
             metadata: {
-              id: 'typecheck',
-              name: 'TypeScript Check',
-              description: 'Type checking',
+              id: 'typecheck-changed',
+              name: 'TypeScript Check (Changed Files)',
+              description: 'Type checking for changed files only',
               category: 'validation',
               platforms: ['darwin', 'linux'],
               dependencies: [],
@@ -285,16 +337,16 @@ describe('Setup Command - Non-Interactive Flags', () => {
           },
         ],
         [
-          'eslint',
+          'lint-changed',
           {
             type: 'hook',
-            path: '/path/to/eslint.sh',
+            path: '/path/to/lint-changed.sh',
             hash: 'def456',
             lastModified: new Date(),
             metadata: {
-              id: 'eslint',
-              name: 'ESLint',
-              description: 'ESLint validation',
+              id: 'lint-changed',
+              name: 'ESLint (Changed Files)',
+              description: 'ESLint validation for changed files only',
               category: 'validation',
               platforms: ['darwin', 'linux'],
               dependencies: [],
@@ -342,7 +394,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
       dependencies: new Map(),
       dependents: new Map(),
       categories: new Map([
-        ['validation', new Set(['typecheck', 'eslint'])],
+        [
+          'validation',
+          new Set(['typecheck-changed', 'typecheck-project', 'lint-changed', 'lint-project']),
+        ],
         ['git', new Set(['checkpoint-create', 'git-commit'])],
       ]),
       lastScan: new Date(),
@@ -354,10 +409,15 @@ describe('Setup Command - Non-Interactive Flags', () => {
         cycles: [],
       },
     });
-    
+
     vi.mocked(libIndex.recommendComponents).mockImplementation(async (_projectInfo, registry) => {
       // Handle case where registry might be undefined in tests
-      if (registry === null || registry === undefined || registry.components === null || registry.components === undefined) {
+      if (
+        registry === null ||
+        registry === undefined ||
+        registry.components === null ||
+        registry.components === undefined
+      ) {
         return Promise.resolve({
           essential: [],
           recommended: [],
@@ -366,49 +426,65 @@ describe('Setup Command - Non-Interactive Flags', () => {
         });
       }
 
-      const typecheckComponent = registry.components.get('typecheck');
-      const eslintComponent = registry.components.get('eslint');
+      const typecheckComponent = registry.components.get('typecheck-changed');
+      const eslintComponent = registry.components.get('lint-changed');
       const checkpointCreateComponent = registry.components.get('checkpoint-create');
       const gitCommitComponent = registry.components.get('git-commit');
 
       return Promise.resolve({
         essential: [],
         recommended: [
-          ...(typecheckComponent !== undefined ? [{
-            component: typecheckComponent,
-            score: 85,
-            reasons: ['TypeScript detected'],
-            dependencies: ['tsc'],
-            isRequired: false,
-          }] : []),
-          ...(eslintComponent !== undefined ? [{
-            component: eslintComponent,
-            score: 80,
-            reasons: ['ESLint detected'],
-            dependencies: ['eslint'],
-            isRequired: false,
-          }] : []),
+          ...(typecheckComponent !== undefined
+            ? [
+                {
+                  component: typecheckComponent,
+                  score: 85,
+                  reasons: ['TypeScript detected'],
+                  dependencies: ['tsc'],
+                  isRequired: false,
+                },
+              ]
+            : []),
+          ...(eslintComponent !== undefined
+            ? [
+                {
+                  component: eslintComponent,
+                  score: 80,
+                  reasons: ['ESLint detected'],
+                  dependencies: ['eslint'],
+                  isRequired: false,
+                },
+              ]
+            : []),
         ],
         optional: [
-          ...(checkpointCreateComponent !== undefined ? [{
-            component: checkpointCreateComponent,
-            score: 60,
-            reasons: ['Version control workflow'],
-            dependencies: [],
-            isRequired: false,
-          }] : []),
-          ...(gitCommitComponent !== undefined ? [{
-            component: gitCommitComponent,
-            score: 55,
-            reasons: ['Git workflow enhancement'],
-            dependencies: [],
-            isRequired: false,
-          }] : []),
+          ...(checkpointCreateComponent !== undefined
+            ? [
+                {
+                  component: checkpointCreateComponent,
+                  score: 60,
+                  reasons: ['Version control workflow'],
+                  dependencies: [],
+                  isRequired: false,
+                },
+              ]
+            : []),
+          ...(gitCommitComponent !== undefined
+            ? [
+                {
+                  component: gitCommitComponent,
+                  score: 55,
+                  reasons: ['Git workflow enhancement'],
+                  dependencies: [],
+                  isRequired: false,
+                },
+              ]
+            : []),
         ],
         totalScore: 100,
       });
     });
-    
+
     vi.mocked(libIndex.installComponents).mockResolvedValue({
       success: true,
       installedComponents: [],
@@ -446,7 +522,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       expect(installComponents).toHaveBeenCalled();
     });
 
-    it('should install both user and project by default', async () => {
+    it('should install project only by default', async () => {
       const options: SetupOptions = {
         yes: true,
         quiet: true,
@@ -455,12 +531,11 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index');
-      expect(installComponents).toHaveBeenCalledTimes(2);
+      expect(installComponents).toHaveBeenCalledTimes(1);
 
-      // Check that both user and project installations happened
+      // Check that only project installation happened
       const calls = (installComponents as unknown as ReturnType<typeof vi.fn>).mock.calls;
-      expect(calls[0]?.[1]).toBe('user');
-      expect(calls[1]?.[1]).toBe('project');
+      expect(calls[0]?.[1]).toBe('project');
     });
   });
 
@@ -473,7 +548,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
       // The setup should complete without throwing an error
       await expect(setup(options)).resolves.not.toThrow();
-      
+
       // Note: Due to complex mocking requirements in integration tests,
       // we verify the command completes successfully rather than testing
       // internal implementation details. The actual component installation
@@ -493,7 +568,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
   describe('--hooks flag', () => {
     it('should install only specified hooks', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck,eslint',
+        hooks: 'typecheck-changed,lint-changed',
         quiet: true,
       };
 
@@ -503,7 +578,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
 
     it('should handle whitespace in comma-separated list', async () => {
       const options: SetupOptions = {
-        hooks: 'typecheck, eslint',
+        hooks: 'typecheck-changed, lint-changed',
         quiet: true,
       };
 
@@ -632,7 +707,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await setup(options);
 
       const { installComponents } = await import('../../cli/lib/index');
-      expect(installComponents).toHaveBeenCalledTimes(2);
+      expect(installComponents).toHaveBeenCalledTimes(1);
 
       const projectCall = (
         installComponents as unknown as ReturnType<typeof vi.fn>
@@ -646,7 +721,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
     it('should work with --commands --hooks combination', async () => {
       const options: SetupOptions = {
         commands: 'checkpoint-create',
-        hooks: 'typecheck',
+        hooks: 'typecheck-changed',
         quiet: true,
       };
 

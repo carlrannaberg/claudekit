@@ -134,7 +134,8 @@ export class ProgressReporter {
       return;
     }
 
-    const finalMessage = message !== undefined && message !== '' ? message : this.formatCompletionMessage();
+    const finalMessage =
+      message !== undefined && message !== '' ? message : this.formatCompletionMessage();
 
     if (this.spinner) {
       this.spinner.succeed(Colors.success(finalMessage));
@@ -327,7 +328,9 @@ export class FileProgressReporter {
       }
 
       case 'failed':
-        this.reporter.error(`Failed to copy ${fileName}: ${details !== undefined && details !== '' ? details : 'Unknown error'}`);
+        this.reporter.error(
+          `Failed to copy ${fileName}: ${details !== undefined && details !== '' ? details : 'Unknown error'}`
+        );
         break;
     }
   }

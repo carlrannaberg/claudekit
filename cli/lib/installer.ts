@@ -7,7 +7,6 @@ import { Colors } from '../utils/colors.js';
 import {
   copyFileWithBackup,
   ensureDirectoryExists,
-  setExecutablePermission,
   checkWritePermission,
   pathExists,
   safeRemove,
@@ -30,7 +29,6 @@ import type {
   Component,
   // ComponentType,
   InstallTarget,
-  ProjectInfo,
   TemplateType,
   Platform,
 } from '../types/config.js';
@@ -52,7 +50,7 @@ import type {
 
 export interface InstallStep {
   id: string;
-  type: 'create-dir' | 'copy-file' | 'set-permission' | 'install-dependency' | 'configure';
+  type: 'create-dir' | 'copy-file' | 'install-dependency' | 'configure';
   description: string;
   source?: string;
   target: string;
@@ -294,13 +292,13 @@ export async function createInstallPlan(
   if (installation.target === 'user' || installation.target === 'both') {
     directories.add(userDir);
     directories.add(path.join(userDir, 'commands'));
-    directories.add(path.join(userDir, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   if (installation.target === 'project' || installation.target === 'both') {
     directories.add(projectDir);
     directories.add(path.join(projectDir, 'commands'));
-    directories.add(path.join(projectDir, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   // Add custom path if specified
@@ -308,14 +306,19 @@ export async function createInstallPlan(
     const customPath = normalizePath(options.customPath);
     directories.add(customPath);
     directories.add(path.join(customPath, 'commands'));
-    directories.add(path.join(customPath, 'hooks'));
+    // Hook directories removed - hooks are now embedded
   }
 
   // First pass: collect all directories needed by analyzing components
   for (const component of orderedComponents) {
+    // Skip hook components - they are now embedded
+    if (component.type === 'hook') {
+      continue;
+    }
+
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
-    
+    const componentTypeDir = 'commands'; // Only commands are copied now
+
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
     if (sourceDir) {
@@ -329,7 +332,7 @@ export async function createInstallPlan(
     // Collect directories for each target
     if (installation.target === 'user' || installation.target === 'both') {
       const targetPath = path.join(userDir, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(userDir, componentTypeDir);
@@ -341,7 +344,7 @@ export async function createInstallPlan(
 
     if (installation.target === 'project' || installation.target === 'both') {
       const targetPath = path.join(projectDir, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(projectDir, componentTypeDir);
@@ -354,7 +357,7 @@ export async function createInstallPlan(
     if (options.customPath !== undefined) {
       const customPath = normalizePath(options.customPath);
       const targetPath = path.join(customPath, componentTypeDir, relativePath);
-      
+
       // Ensure all parent directories are added to the directories set
       let parentDir = path.dirname(targetPath);
       const baseDir = path.join(customPath, componentTypeDir);
@@ -377,11 +380,16 @@ export async function createInstallPlan(
 
   // Second pass: create file copy and permission steps
   for (const component of orderedComponents) {
+    // Skip hook components - they are now embedded
+    if (component.type === 'hook') {
+      continue;
+    }
+
     const targets: string[] = [];
 
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = component.type === 'command' ? 'commands' : 'hooks';
-    
+    const componentTypeDir = 'commands'; // Only commands are copied now
+
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
     if (sourceDir) {
@@ -423,17 +431,6 @@ export async function createInstallPlan(
         target,
         component,
       });
-
-      // Add permission step for hooks
-      if (component.type === 'hook') {
-        steps.push({
-          id: `chmod-${component.id}-at-${target}`,
-          type: 'set-permission',
-          description: `Set executable permission on ${path.relative(path.dirname(target), target)}`,
-          target,
-          component,
-        });
-      }
     }
 
     // Plan dependency installation if enabled
@@ -455,30 +452,20 @@ export async function createInstallPlan(
     }
   }
 
-  // Plan configuration steps
-  if (installation.target === 'project' || installation.target === 'both') {
-    steps.push({
-      id: 'configure-project-settings',
-      type: 'configure',
-      description: 'Configure project settings',
-      target: path.join(projectDir, 'settings.json'),
-      metadata: {
-        template: options.template || 'default',
-        projectInfo: installation.projectInfo,
-      },
-    });
-  }
 
   // Check for warnings
   if (
     installation.projectInfo?.hasTypeScript === true &&
-    !orderedComponents.some((c) => c.id === 'typecheck')
+    !orderedComponents.some((c) => c.id === 'typecheck-changed')
   ) {
-    warnings.push('TypeScript detected but typecheck hook not selected');
+    warnings.push('TypeScript detected but typecheck-changed hook not selected');
   }
 
-  if (installation.projectInfo?.hasESLint === true && !orderedComponents.some((c) => c.id === 'eslint')) {
-    warnings.push('ESLint detected but eslint hook not selected');
+  if (
+    installation.projectInfo?.hasESLint === true &&
+    !orderedComponents.some((c) => c.id === 'lint-changed')
+  ) {
+    warnings.push('ESLint detected but lint-changed hook not selected');
   }
 
   // Warn about circular dependencies if any were detected
@@ -612,17 +599,10 @@ export async function simulateInstallation(
           }
           break;
 
-        case 'set-permission':
-          logger.debug(`  Would set executable permission: ${step.target}`);
-          break;
-
         case 'install-dependency':
           logger.debug(`  Would check/install dependency: ${step.target}`);
           break;
 
-        case 'configure':
-          logger.debug(`  Would create/update configuration: ${step.target}`);
-          break;
       }
     }
   }
@@ -819,67 +799,59 @@ async function executeStep(
       }
 
       await copyFileWithBackup(
-        step.source, 
-        step.target, 
+        step.source,
+        step.target,
         options.backup !== false,
-        options.force === true ? undefined : async (_source: string, target: string): Promise<boolean> => {
-          // Check if we're in non-interactive mode
-          if (options.interactive === false) {
-            throw new Error(
-              `\nFile conflict detected: ${target} already exists with different content.\n` +
-              `To overwrite existing files, run with --force flag.`
-            );
-          }
-          
-          // Interactive conflict resolution (skip if force is true)
-          // Notify that we're starting a prompt (to pause progress)
-          if (options.onPromptStart) {
-            options.onPromptStart();
-          }
-          
-          // Clear the spinner and show conflict info
-          process.stdout.write('\x1B[2K\r');
-          console.log(`\n${Colors.warn('━━━ File Conflict Detected ━━━')}`);
-          console.log(`Target file: ${Colors.accent(target)}`);
-          console.log(`This file already exists with different content.`);
-          console.log('');
-          
-          const shouldOverwrite = await confirm({
-            message: 'Do you want to overwrite the existing file?',
-            default: false
-          });
-          
-          console.log(''); // Add spacing after prompt
-          
-          // Notify that prompt is done (to resume progress)
-          if (options.onPromptEnd) {
-            options.onPromptEnd();
-          }
-          
-          return shouldOverwrite;
-        }
+        options.force === true
+          ? undefined
+          : async (_source: string, target: string): Promise<boolean> => {
+              // Check if we're in non-interactive mode
+              if (options.interactive === false) {
+                throw new Error(
+                  `\nFile conflict detected: ${target} already exists with different content.\n` +
+                    `To overwrite existing files, run with --force flag.`
+                );
+              }
+
+              // Interactive conflict resolution (skip if force is true)
+              // Notify that we're starting a prompt (to pause progress)
+              if (options.onPromptStart) {
+                options.onPromptStart();
+              }
+
+              // Clear the spinner and show conflict info
+              process.stdout.write('\x1B[2K\r');
+              console.log(`\n${Colors.warn('━━━ File Conflict Detected ━━━')}`);
+              console.log(`Target file: ${Colors.accent(target)}`);
+              console.log(`This file already exists with different content.`);
+              console.log('');
+
+              const shouldOverwrite = await confirm({
+                message: 'Do you want to overwrite the existing file?',
+                default: false,
+              });
+
+              console.log(''); // Add spacing after prompt
+
+              // Notify that prompt is done (to resume progress)
+              if (options.onPromptEnd) {
+                options.onPromptEnd();
+              }
+
+              return shouldOverwrite;
+            }
       );
       transaction.recordFileCreated(step.target);
-      break;
-
-    case 'set-permission':
-      logger.debug(`Setting executable permission: ${step.target}`);
-      await setExecutablePermission(step.target);
       break;
 
     case 'install-dependency': {
       // For now, just check if dependency exists
       // Future: implement actual dependency installation
-      const depName = step.metadata?.['dependency'] as string ?? step.target;
+      const depName = (step.metadata?.['dependency'] as string) ?? step.target;
       logger.debug(`Checking dependency: ${depName}`);
       break;
     }
 
-    case 'configure':
-      logger.debug(`Creating configuration: ${step.target}`);
-      await createConfiguration(step.target, step.metadata);
-      transaction.recordFileCreated(step.target);
-      break;
 
     default:
       // This should never happen as step.type is a union type
@@ -887,64 +859,8 @@ async function executeStep(
   }
 }
 
-interface HookConfiguration {
-  matcher: string;
-  hooks: Array<{ type: 'command'; command: string }>;
-}
 
-interface ClaudeConfiguration {
-  hooks: {
-    PostToolUse: HookConfiguration[];
-    Stop: HookConfiguration[];
-  };
-}
 
-/**
- * Create configuration file based on template and project info
- */
-async function createConfiguration(
-  targetPath: string,
-  metadata?: Record<string, unknown>
-): Promise<void> {
-  // const template = metadata?.['template'] || 'default'; // Unused for now
-  const projectInfo = metadata?.['projectInfo'] as ProjectInfo | undefined;
-
-  // Build configuration based on template and project info
-  const config: ClaudeConfiguration = {
-    hooks: {
-      PostToolUse: [],
-      Stop: [],
-    },
-  };
-
-  // Add TypeScript hook if project has TypeScript
-  if (projectInfo?.hasTypeScript === true) {
-    config.hooks.PostToolUse.push({
-      matcher: 'tools:Write AND file_paths:**/*.ts',
-      hooks: [{ type: 'command', command: '.claude/hooks/typecheck.sh' }],
-    });
-  }
-
-  // Add ESLint hook if project has ESLint
-  if (projectInfo?.hasESLint === true) {
-    config.hooks.PostToolUse.push({
-      matcher: 'tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}',
-      hooks: [{ type: 'command', command: '.claude/hooks/eslint.sh' }],
-    });
-  }
-
-  // Add default stop hooks
-  config.hooks.Stop.push({
-    matcher: '*',
-    hooks: [
-      { type: 'command', command: '.claude/hooks/auto-checkpoint.sh' },
-      { type: 'command', command: '.claude/hooks/validate-todo-completion.sh' },
-    ],
-  });
-
-  // Write configuration
-  await fs.writeFile(targetPath, JSON.stringify(config, null, 2));
-}
 
 // ============================================================================
 // Main Installer API
@@ -1052,7 +968,7 @@ export class Installer {
     const selectedComponents: Component[] = [];
 
     // Always include base hooks
-    const baseHooks = ['auto-checkpoint', 'validate-todo-completion'];
+    const baseHooks = ['create-checkpoint', 'check-todos'];
     for (const hookId of baseHooks) {
       const hook = allComponents.find((c) => c.id === hookId && c.type === 'hook');
       if (hook) {
@@ -1062,7 +978,7 @@ export class Installer {
 
     // Add TypeScript hook if TypeScript detected
     if (projectInfo?.hasTypeScript) {
-      const tsHook = allComponents.find((c) => c.id === 'typecheck' && c.type === 'hook');
+      const tsHook = allComponents.find((c) => c.id === 'typecheck-changed' && c.type === 'hook');
       if (tsHook) {
         selectedComponents.push(tsHook);
       }
@@ -1070,7 +986,7 @@ export class Installer {
 
     // Add ESLint hook if ESLint detected
     if (projectInfo?.hasESLint) {
-      const eslintHook = allComponents.find((c) => c.id === 'eslint' && c.type === 'hook');
+      const eslintHook = allComponents.find((c) => c.id === 'lint-changed' && c.type === 'hook');
       if (eslintHook) {
         selectedComponents.push(eslintHook);
       }

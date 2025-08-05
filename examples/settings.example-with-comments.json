@@ -1,0 +1,85 @@
+{
+  "// Documentation": "This is a comprehensive example of claudekit hooks configuration",
+  "// Learn more": "https://github.com/carlrannaberg/claudekit/docs/hooks-reference.md",
+  
+  "hooks": {
+    "// PostToolUse": "Triggered after file modifications",
+    "PostToolUse": [
+      {
+        "// Description": "TypeScript type checking for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run typecheck-changed"},
+          {"type": "command", "command": "claudekit-hooks run check-any-changed"}
+        ]
+      },
+      {
+        "// Description": "ESLint for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
+        ]
+      },
+      {
+        "// Description": "Prettier formatting for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run prettier"}
+        ]
+      },
+      {
+        "// Description": "Run tests related to modified files",
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run test-changed"}
+        ]
+      },
+      {
+        "// Description": "Example: Python linting for all modified files",
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run python-lint"}
+        ]
+      },
+      {
+        "// Description": "Example: Regex pattern for Notebook tools",
+        "matcher": "Notebook.*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run notebook-validation"}
+        ]
+      }
+    ],
+    
+    "// Stop": "Triggered when Claude Code session ends",
+    "Stop": [
+      {
+        "// Description": "Universal matcher for all Stop events",
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"},
+          {"type": "command", "command": "claudekit-hooks run typecheck-project"},
+          {"type": "command", "command": "claudekit-hooks run lint-project"},
+          {"type": "command", "command": "claudekit-hooks run test-project"}
+        ]
+      }
+    ],
+    
+    "// PreToolUse": "Triggered before tool execution (optional)",
+    "PreToolUse": [
+      {
+        "// Description": "Example: Safety check before destructive operations",
+        "matcher": "tools:Bash AND command:rm*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run safety-check"}
+        ]
+      }
+    ]
+  },
+  
+  "// Environment Variables": "Available to all hooks",
+  "env": {
+    "NODE_ENV": "development",
+    "CLAUDEKIT_VERBOSE": "false"
+  }
+}

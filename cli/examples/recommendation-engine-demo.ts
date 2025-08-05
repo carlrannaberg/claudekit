@@ -99,7 +99,7 @@ async function main(): Promise<void> {
     // Installation hint
     if (recommendations.essential.length > 0) {
       console.log(
-        chalk.dim('\n💡 Tip: Run "claudekit init" to initialize with these recommendations')
+        chalk.dim('\n💡 Tip: Run "claudekit setup" to initialize with these recommendations')
       );
     }
   } catch (error) {

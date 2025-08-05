@@ -791,7 +791,6 @@ export const DEFAULT_VALUES = {
  * File extensions associated with different component types
  */
 export const FILE_EXTENSIONS = {
-  hook: '.sh',
   command: '.md',
 } as const;
 
@@ -800,7 +799,6 @@ export const FILE_EXTENSIONS = {
  */
 export const DIRECTORIES = {
   CLAUDE: '.claude',
-  HOOKS: '.claude/hooks',
   COMMANDS: '.claude/commands',
   USER_HOME: '~/.claude',
   TEMP: 'temp',

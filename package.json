@@ -7,7 +7,8 @@
     "node": ">=20.0.0"
   },
   "bin": {
-    "claudekit": "./bin/claudekit"
+    "claudekit": "./bin/claudekit",
+    "claudekit-hooks": "./bin/claudekit-hooks"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,9 +26,13 @@
     "README.md"
   ],
   "scripts": {
-    "build": "npm run clean && npm run build:esm && npm run build:types",
-    "build:esm": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external && esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --packages=external",
+    "build": "npm run clean && npm run build:main && npm run build:hooks && npm run build:esm && npm run build:types",
+    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external --sourcemap",
+    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/hooks-cli.js --external:node:* --packages=external --sourcemap",
+    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --packages=external --sourcemap",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
+    "build:hooks-dev": "tsc cli/hooks-cli.ts --outDir dist --module esnext --target es2022 --moduleResolution node --skipLibCheck",
+    "build:config": "tsx build.config.ts",
     "clean": "rm -rf dist",
     "dev": "tsx watch cli/cli.ts",
     "test": "vitest run",
@@ -46,7 +51,7 @@
     "test:silent": "vitest run --reporter=basic",
     "coverage:check": "vitest run --coverage --reporter=verbose",
     "coverage:threshold": "vitest run --coverage --reporter=json --outputFile.json=./coverage/coverage-summary.json",
-    "lint": "eslint cli tests --ext .ts --ignore-pattern tests/commands/init.test.ts --ignore-pattern tests/commands/validate.test.ts --ignore-pattern tests/integration/workflow.test.ts --ignore-pattern tests/lib/validation.test.ts",
+    "lint": "eslint . --ext .ts",
     "format": "prettier --write \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
@@ -59,6 +64,7 @@
     "@inquirer/prompts": "^7.6.0",
     "commander": "^14.0.0",
     "fs-extra": "^11.3.0",
+    "oh-my-logo": "^0.2.1",
     "ora": "^8.2.0",
     "picocolors": "^1.1.0",
     "zod": "^3.24.1"

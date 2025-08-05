@@ -97,7 +97,7 @@ global.testUtils = {
       hooks: {
         PostToolUse: [
           {
-            matcher: 'tools:Write AND file_paths:**/*.ts',
+            matcher: 'Write|Edit|MultiEdit',
             hooks: [
               { type: 'command', command: '.claude/hooks/typecheck.sh', enabled: true, retries: 0 },
             ],
@@ -128,7 +128,10 @@ global.testUtils = {
   ): Promise<string> {
     const tempDir = await global.testUtils.createTempDir();
 
-    async function createStructure(basePath: string, struct: Record<string, unknown>): Promise<void> {
+    async function createStructure(
+      basePath: string,
+      struct: Record<string, unknown>
+    ): Promise<void> {
       for (const [name, content] of Object.entries(struct)) {
         const fullPath = path.join(basePath, name);
 

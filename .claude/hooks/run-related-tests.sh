@@ -1,1 +1,0 @@
-../../src/hooks/run-related-tests.sh

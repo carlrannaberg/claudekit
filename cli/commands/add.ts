@@ -12,7 +12,7 @@ interface AddOptions {
 }
 
 /**
- * Add a new hook or command to the project
+ * Add a new command to the project
  */
 export async function add(type: string, name: string, options: AddOptions = {}): Promise<void> {
   const logger = new Logger();
@@ -33,17 +33,18 @@ export async function add(type: string, name: string, options: AddOptions = {}):
     progressReporter.start(`Adding ${type} "${name}"...`);
 
     // Validate type
-    const validTypes = ['hook', 'command'];
-    if (!validTypes.includes(type)) {
-      throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')}`);
+    if (type !== 'command') {
+      throw new Error(
+        `Invalid type "${type}". Only 'command' is supported (hooks are now embedded in claudekit).`
+      );
     }
 
     // Determine target directory
-    const targetDir = type === 'hook' ? '.claude/hooks' : '.claude/commands';
+    const targetDir = '.claude/commands';
     const targetPath =
       options.path !== undefined && options.path !== ''
         ? options.path
-        : path.join(targetDir, `${name}.${type === 'hook' ? 'sh' : 'md'}`);
+        : path.join(targetDir, `${name}.md`);
 
     logger.debug(`Target path: ${targetPath}`);
 
@@ -57,23 +58,12 @@ export async function add(type: string, name: string, options: AddOptions = {}):
     progressReporter.update('Creating directory structure...');
     await fs.ensureDir(path.dirname(targetPath));
 
-    // Create file based on type and template
-    progressReporter.update(`Generating ${type} template...`);
-    let content = '';
-    if (type === 'hook') {
-      content = generateHookTemplate(name, options.template);
-    } else {
-      content = generateCommandTemplate(name, options.template);
-    }
+    // Create file based on template
+    progressReporter.update(`Generating command template...`);
+    const content = generateCommandTemplate(name, options.template);
 
     progressReporter.update(`Writing ${type} file...`);
     await fs.writeFile(targetPath, content, 'utf8');
-
-    // Make hooks executable
-    if (type === 'hook') {
-      progressReporter.update('Setting executable permissions...');
-      await fs.chmod(targetPath, 0o755);
-    }
 
     progressReporter.succeed(`Successfully added ${type} "${name}"`);
   } catch (error) {
@@ -82,38 +72,7 @@ export async function add(type: string, name: string, options: AddOptions = {}):
   }
 }
 
-function generateHookTemplate(name: string, _template?: string): string {
-  // Basic hook template
-  // TODO: Implement template support
-  return `#!/usr/bin/env bash
-set -euo pipefail
-
-################################################################################
-# ${name} Hook                                                                 #
-# Description: Add your hook description here                                 #
-################################################################################
-
-# Read JSON payload from stdin
-PAYLOAD=$(cat)
-
-# Extract relevant fields using jq or fallback methods
-if command -v jq &> /dev/null; then
-    # Use jq for JSON parsing
-    TOOL_NAME=$(echo "$PAYLOAD" | jq -r '.tool_name // empty')
-else
-    # Fallback to sed/grep
-    TOOL_NAME=$(echo "$PAYLOAD" | sed -n 's/.*"tool_name"[[:space:]]*:[[:space:]]*"\\([^"]*\\)".*/\\1/p')
-fi
-
-# Your hook logic here
-echo "Hook ${name} executed for tool: $TOOL_NAME" >&2
-
-# Exit with appropriate code
-# 0 = allow operation
-# 2 = block with error message
-exit 0
-`;
-}
+// Hook template function removed - hooks are now embedded
 
 function generateCommandTemplate(name: string, _template?: string): string {
   // Basic command template

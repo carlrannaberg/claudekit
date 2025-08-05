@@ -11,7 +11,7 @@ interface RemoveOptions {
 }
 
 /**
- * Remove a hook or command from the project
+ * Remove a command from the project
  */
 export async function remove(
   type: string,
@@ -29,15 +29,15 @@ export async function remove(
   logger.debug(`Removing ${type} "${name}" with options:`, options);
 
   // Validate type
-  const validTypes = ['hook', 'command'];
-  if (!validTypes.includes(type)) {
-    throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')}`);
+  if (type !== 'command') {
+    throw new Error(
+      `Invalid type "${type}". Only 'command' is supported (hooks are now embedded in claudekit).`
+    );
   }
 
   // Determine target path
-  const targetDir = type === 'hook' ? '.claude/hooks' : '.claude/commands';
-  const extension = type === 'hook' ? 'sh' : 'md';
-  const targetPath = path.join(targetDir, `${name}.${extension}`);
+  const targetDir = '.claude/commands';
+  const targetPath = path.join(targetDir, `${name}.md`);
 
   logger.debug(`Target path: ${targetPath}`);
 

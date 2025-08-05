@@ -36,9 +36,7 @@ your-project/
 │   ├── commands/             # Custom slash commands
 │   │   ├── my-command.md     # Team command (version controlled)
 │   │   └── personal.md       # Personal command (if gitignored)
-│   └── hooks/                # Hook scripts
-│       ├── typecheck.sh      # Team hook (version controlled)
-│       └── my-hook.sh        # Personal hook (if gitignored)
+│   └── hooks/                # Legacy - hooks now managed by embedded system
 └── .gitignore               # Should include .claude/settings.local.json
 ```
 
@@ -62,20 +60,20 @@ The shared `settings.json` contains team-wide standards and should be committed 
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-        "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"},
-          {"type": "command", "command": ".claude/hooks/validate-todo-completion.sh"}
+          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
+          {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
     ]
@@ -107,8 +105,8 @@ Personal preferences and local overrides go in `settings.local.json`:
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.py",
-        "hooks": [{"type": "command", "command": ".claude/hooks/my-python-linter.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run python-lint"}]
       }
     ]
   }
@@ -138,7 +136,7 @@ User-level settings (`~/.claude/settings.json`) should contain only environment 
 ✅ **Always commit these files:**
 - `.claude/settings.json` - Team configuration
 - `.claude/commands/*.md` - Team slash commands
-- `.claude/hooks/*.sh` - Team hook scripts
+- Hooks are managed via embedded system: `claudekit-hooks run <hook-name>`
 
 ### Files to Ignore
 
@@ -160,7 +158,7 @@ Claude Code automatically adds `.claude/settings.local.json` to `.gitignore`, bu
 # Don't ignore team settings
 !.claude/settings.json
 !.claude/commands/
-!.claude/hooks/
+# Hooks are managed via embedded system
 ```
 
 ## Configuration Hierarchy
@@ -198,8 +196,8 @@ The hook system uses flexible matcher patterns:
 - `"*"` - Universal match
 
 #### Advanced Patterns
-- `"tools:Write AND file_paths:**/*.ts"` - Conditional logic
-- `"tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}"` - Multiple extensions
+- `"Write|Edit|MultiEdit"` - Conditional logic
+- `"Write|Edit|MultiEdit"` - Multiple extensions
 
 ### Hook Types
 
@@ -210,7 +208,7 @@ The hook system uses flexible matcher patterns:
       {
         "matcher": "pattern",
         "hooks": [
-          {"type": "command", "command": "path/to/script.sh"},
+          {"type": "command", "command": "claudekit-hooks run hook-name"},
           {"type": "inline", "script": "echo 'Inline script'"}
         ]
       }
@@ -224,16 +222,16 @@ The hook system uses flexible matcher patterns:
 **TypeScript Type Checking:**
 ```json
 {
-  "matcher": "tools:Write AND file_paths:**/*.ts",
-  "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+  "matcher": "Write|Edit|MultiEdit",
+  "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
 }
 ```
 
 **Linting JavaScript/TypeScript:**
 ```json
 {
-  "matcher": "tools:Write AND file_paths:**/*.{js,ts,tsx,jsx}",
-  "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+  "matcher": "Write|Edit|MultiEdit",
+  "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
 }
 ```
 
@@ -241,7 +239,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "*",
-  "hooks": [{"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
 }
 ```
 
@@ -249,7 +247,7 @@ The hook system uses flexible matcher patterns:
 ```json
 {
   "matcher": "Write,Edit,MultiEdit",
-  "hooks": [{"type": "command", "command": ".claude/hooks/run-related-tests.sh"}]
+  "hooks": [{"type": "command", "command": "claudekit-hooks run test-changed"}]
 }
 ```
 
@@ -315,21 +313,33 @@ Environment variables are available to:
 
 ### 2. Hook Script Guidelines
 
-**Make hooks executable:**
+**Using Embedded Hooks:**
+
+Claudekit provides embedded hooks that work cross-platform. See [Hooks Documentation](./hooks-documentation.md).
+
+**For Custom Shell Scripts:**
+
+Hooks are managed via the embedded system:
 ```bash
-chmod +x .claude/hooks/*.sh
+# List available hooks
+claudekit-hooks list
+
+# Test a hook
+claudekit-hooks test typecheck-changed --file test.ts
 ```
 
-**Include shebang and error handling:**
+Include shebang and error handling:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 ```
 
-**Make hooks self-contained:**
+Make hooks self-contained:
 - Don't rely on external scripts
 - Include all necessary functions
 - Handle missing dependencies gracefully
+
+**Consider using embedded hooks instead of custom scripts for better maintainability.**
 
 ### 3. Security Considerations
 
@@ -372,18 +382,18 @@ set -euo pipefail
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.ts",
-        "hooks": [{"type": "command", "command": ".claude/hooks/typecheck.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{ts,tsx}",
-        "hooks": [{"type": "command", "command": ".claude/hooks/eslint.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
       }
     ],
     "Stop": [
       {
         "matcher": "*",
-        "hooks": [{"type": "command", "command": ".claude/hooks/auto-checkpoint.sh"}]
+        "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
       }
     ]
   },
@@ -402,10 +412,10 @@ set -euo pipefail
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.py",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {"type": "command", "command": ".claude/hooks/black-format.sh"},
-          {"type": "command", "command": ".claude/hooks/mypy-check.sh"}
+          {"type": "command", "command": "claudekit-hooks run black-format"},  # Python formatter
+          {"type": "command", "command": "claudekit-hooks run mypy"}     # Type checker
         ]
       }
     ]
@@ -425,16 +435,16 @@ set -euo pipefail
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "tools:Write AND file_paths:**/*.go",
-        "hooks": [{"type": "command", "command": ".claude/hooks/go-fmt.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run go-fmt"}]  # Go formatter
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.rs",
-        "hooks": [{"type": "command", "command": ".claude/hooks/cargo-check.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run cargo-check"}]  # Rust checker
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,ts}",
-        "hooks": [{"type": "command", "command": ".claude/hooks/prettier.sh"}]
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run prettier"}]  # Formatter
       }
     ]
   }
@@ -446,9 +456,10 @@ set -euo pipefail
 ### Common Issues
 
 **1. Hooks not running:**
-- Check file permissions: `chmod +x .claude/hooks/*.sh`
+- For embedded hooks: Verify `claudekit-hooks` is installed: `which claudekit-hooks`
+- For embedded hooks: Run `claudekit-hooks list` to see available hooks
 - Verify matcher pattern matches your files
-- Check logs in `~/.claude/hooks.log`
+- Test hooks directly: `claudekit-hooks test <hook-name> --file <path>`
 
 **2. Settings not applying:**
 - Check file name spelling (settings.json, not setting.json)
@@ -462,9 +473,15 @@ set -euo pipefail
 
 ### Debug Commands
 
-**Test hook directly:**
+**Test embedded hooks:**
 ```bash
-echo '{"tool_input": {"file_path": "test.ts"}}' | .claude/hooks/typecheck.sh
+claudekit-hooks test typecheck-changed --file test.ts
+claudekit-hooks test lint-changed --file app.js
+```
+
+**Test embedded hooks:**
+```bash
+claudekit-hooks test python-lint --file test.py
 ```
 
 **Validate settings:**
@@ -473,9 +490,9 @@ jq . .claude/settings.json
 jq . .claude/settings.local.json
 ```
 
-**Check hook permissions:**
+**List available embedded hooks:**
 ```bash
-ls -la .claude/hooks/
+claudekit-hooks list
 ```
 
 ### Getting Help

@@ -16,14 +16,35 @@ export async function findComponentsDirectory(): Promise<string> {
   const currentFilePath = fileURLToPath(currentFileUrl);
   const currentDir = path.dirname(currentFilePath);
 
+  // Debug logging
+  if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
+    console.error('findComponentsDirectory debug:');
+    console.error('  currentFileUrl:', currentFileUrl);
+    console.error('  currentFilePath:', currentFilePath);
+    console.error('  currentDir:', currentDir);
+  }
+
+  // Strategy 0: Check if we're running from bundled dist/cli.js
+  // In this case, currentDir is the dist directory
+  if (currentFilePath.endsWith('dist/cli.js') || currentFilePath.endsWith('dist\\cli.js')) {
+    // We're in dist/, only need to check for src/commands since hooks are embedded
+    const projectRoot = path.join(currentDir, '..');
+    const srcCommandsPath = path.join(projectRoot, 'src', 'commands');
+
+    if (await pathExists(srcCommandsPath)) {
+      // Return src directory, hooks are embedded
+      return path.join(projectRoot, 'src');
+    }
+  }
+
   // Strategy 1: Check if we're in development (src exists at project root)
   // Go up from lib to find project root
   const projectRoot = path.resolve(currentDir, '../..');
   const devSrcPath = path.join(projectRoot, 'src');
   if (await pathExists(devSrcPath)) {
     const devCommandsPath = path.join(devSrcPath, 'commands');
-    const devHooksPath = path.join(devSrcPath, 'hooks');
-    if ((await pathExists(devCommandsPath)) && (await pathExists(devHooksPath))) {
+    // Only check for commands directory since hooks are embedded
+    if (await pathExists(devCommandsPath)) {
       return devSrcPath;
     }
   }
@@ -33,8 +54,8 @@ export async function findComponentsDirectory(): Promise<string> {
   const packagedSrcPath = path.join(distRoot, '..', 'src');
   if (await pathExists(packagedSrcPath)) {
     const packagedCommandsPath = path.join(packagedSrcPath, 'commands');
-    const packagedHooksPath = path.join(packagedSrcPath, 'hooks');
-    if ((await pathExists(packagedCommandsPath)) && (await pathExists(packagedHooksPath))) {
+    // Only check for commands directory since hooks are embedded
+    if (await pathExists(packagedCommandsPath)) {
       return packagedSrcPath;
     }
   }
@@ -43,8 +64,8 @@ export async function findComponentsDirectory(): Promise<string> {
   const distSrcPath = path.join(distRoot, 'src');
   if (await pathExists(distSrcPath)) {
     const distCommandsPath = path.join(distSrcPath, 'commands');
-    const distHooksPath = path.join(distSrcPath, 'hooks');
-    if ((await pathExists(distCommandsPath)) && (await pathExists(distHooksPath))) {
+    // Only check for commands directory since hooks are embedded
+    if (await pathExists(distCommandsPath)) {
       return distSrcPath;
     }
   }
@@ -53,8 +74,8 @@ export async function findComponentsDirectory(): Promise<string> {
   const cwdSrcPath = path.join(process.cwd(), 'src');
   if (await pathExists(cwdSrcPath)) {
     const cwdCommandsPath = path.join(cwdSrcPath, 'commands');
-    const cwdHooksPath = path.join(cwdSrcPath, 'hooks');
-    if ((await pathExists(cwdCommandsPath)) && (await pathExists(cwdHooksPath))) {
+    // Only check for commands directory since hooks are embedded
+    if (await pathExists(cwdCommandsPath)) {
       return cwdSrcPath;
     }
   }

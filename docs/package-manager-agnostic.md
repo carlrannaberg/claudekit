@@ -1,6 +1,6 @@
 # Package Manager Agnostic Support
 
-claudekit is designed to work seamlessly with npm, yarn, and pnpm. This document explains how the automatic package manager detection works and how to ensure your hooks and commands remain package manager agnostic.
+claudekit is designed to work seamlessly with npm, yarn, and pnpm. This document explains how the automatic package manager detection works in the embedded hooks system and how to ensure your commands remain package manager agnostic.
 
 ## Automatic Detection
 
@@ -36,56 +36,45 @@ Each hook includes detection functions that map commands appropriately:
 
 ### Hook Implementation
 
-All claudekit hooks include inlined package manager detection:
+The embedded hooks system automatically detects your package manager. When you use:
 
 ```bash
-# Detect package manager
-detect_package_manager() {
-    if [[ -f "pnpm-lock.yaml" ]]; then
-        echo "pnpm"
-    elif [[ -f "yarn.lock" ]]; then
-        echo "yarn"
-    elif [[ -f "package-lock.json" ]]; then
-        echo "npm"
-    elif [[ -f "package.json" ]]; then
-        # Check packageManager field if available
-        if command -v jq &> /dev/null; then
-            local pkg_mgr=$(jq -r '.packageManager // empty' package.json 2>/dev/null)
-            if [[ -n "$pkg_mgr" ]]; then
-                echo "${pkg_mgr%%@*}"
-                return
-            fi
-        fi
-        echo "npm"
-    else
-        echo ""
-    fi
-}
-
-# Use detected package manager
-local pkg_exec=$(get_package_manager_exec)
-$pkg_exec eslint "$file_path"
+claudekit-hooks run typecheck-changed
 ```
+
+The embedded hook internally:
+1. Detects your package manager (npm, yarn, or pnpm)
+2. Uses the appropriate command syntax
+3. Handles all platform differences
+
+This detection happens automatically - you don't need to configure anything.
 
 ## Best Practices
 
-### For Hook Development
+### For Custom Hook Development
 
-1. **Always use detection functions**:
+If you're creating custom shell script hooks:
+
+1. **Use the embedded hooks when possible**: The embedded hooks handle package manager detection automatically.
+
+2. **For custom scripts, detect package managers**:
    ```bash
-   # Bad - hardcoded
-   npx tsc --noEmit
+   # Detect which package manager to use
+   if [[ -f "pnpm-lock.yaml" ]]; then
+       PKG_RUNNER="pnpm run"
+   elif [[ -f "yarn.lock" ]]; then
+       PKG_RUNNER="yarn"
+   else
+       PKG_RUNNER="npm run"
+   fi
    
-   # Good - package manager agnostic
-   local pkg_exec=$(get_package_manager_exec)
-   $pkg_exec tsc --noEmit
+   # Use the detected runner
+   $PKG_RUNNER lint
    ```
-
-2. **Include detection functions inline**: Hooks must be self-contained, so include the detection functions directly in each hook rather than sourcing external files.
 
 3. **Provide appropriate error messages**:
    ```bash
-   echo "Run $(get_package_manager_run) lint to fix issues"
+   echo "Run your package manager's lint command to fix issues"
    ```
 
 ### For Command Development
@@ -106,35 +95,34 @@ $pkg_exec eslint "$file_path"
 
 ## Testing
 
-To test package manager detection:
+To test package manager detection with embedded hooks:
 
 1. **Create test environments**:
    ```bash
    # Test with npm
    mkdir test-npm && cd test-npm
    npm init -y
-   npm install typescript
+   npm install typescript eslint
    
    # Test with yarn
    mkdir test-yarn && cd test-yarn
    yarn init -y
-   yarn add typescript
+   yarn add typescript eslint
    
    # Test with pnpm
    mkdir test-pnpm && cd test-pnpm
    pnpm init
-   pnpm add typescript
+   pnpm add typescript eslint
    ```
 
-2. **Verify detection**:
+2. **Verify embedded hooks work correctly**:
    ```bash
-   # Source the detection functions
-   source /path/to/package-manager-detect.sh
+   # Test that hooks use the correct package manager
+   claudekit-hooks test typecheck-changed --file test.ts
+   claudekit-hooks test lint-changed --file test.js
    
-   # Check detection
-   echo "Detected: $(detect_package_manager)"
-   echo "Run command: $(get_package_manager_run)"
-   echo "Exec command: $(get_package_manager_exec)"
+   # The hooks should automatically use npm, yarn, or pnpm
+   # based on which lock file is present
    ```
 
 ## Supported Package Managers
@@ -183,33 +171,44 @@ cd your-project
    }
    ```
 
-### Hooks using wrong commands
+### Hooks using wrong package manager
 
-**Problem**: Old version of hooks with hardcoded npm commands.
+**Problem**: Embedded hooks not detecting the correct package manager.
 
-**Solution**: Re-run the claudekit setup to install updated hooks:
-```bash
-cd /path/to/claudekit
-./setup.sh
-```
+**Solution**: 
+1. Ensure you have the latest claudekit:
+   ```bash
+   npm install -g claudekit@latest
+   ```
+2. Check for conflicting lock files
+3. Set explicit packageManager in `.claudekit/config.json`:
+   ```json
+   {
+     "packageManager": "pnpm"
+   }
+   ```
 
 ## Migration Guide
 
-If you have existing hooks with hardcoded npm commands:
+If you're migrating from shell script hooks to embedded hooks:
 
-1. **Identify hardcoded commands**:
-   ```bash
-   grep -n "npm\|npx" .claude/hooks/*.sh
+1. **Update your settings.json**:
+   ```json
+   // Old: Shell script
+   {"type": "command", "command": ".claude/hooks/typecheck.sh"}
+   
+   // New: Embedded hook
+   {"type": "command", "command": "claudekit-hooks run typecheck-changed"}
    ```
 
-2. **Update to use detection**:
-   - Replace `npm test` with `$(get_package_manager_test)`
-   - Replace `npm run` with `$(get_package_manager_run)`
-   - Replace `npx` with `$(get_package_manager_exec)`
+2. **Remove old shell scripts** (after testing):
+   ```bash
+   rm -rf .claude/hooks/*.sh
+   ```
 
 3. **Test with different package managers**:
-   - Create test projects with each package manager
-   - Verify hooks work correctly in each environment
+   - The embedded hooks automatically handle all package managers
+   - No code changes needed when switching package managers
 
 ## Future Enhancements
 
@@ -222,6 +221,6 @@ Potential improvements for even better package manager support:
 
 ## See Also
 
-- [Hooks Documentation](hooks-documentation.md) - General hooks guide
+- [Hooks Documentation](hooks-documentation.md) - Embedded hooks guide
+- [Migration Guide](migration-from-shell-hooks.md) - Migrating to embedded hooks
 - [Create Command Documentation](create-command-documentation.md) - Creating package manager agnostic commands
-- [Package Manager Detection Source](../src/hooks/package-manager-detect.sh) - The detection implementation
