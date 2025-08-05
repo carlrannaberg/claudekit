@@ -44,9 +44,32 @@ Options:
 
 The setup command:
 - Analyzes your project to detect TypeScript, ESLint, testing frameworks, etc.
-- Creates `.claude/settings.json` with recommended hooks configuration
-- Sets up directories for hooks and commands
+- Creates `.claude/settings.json` with embedded hooks configuration
+- Sets up directories for commands and installs the embedded hooks system
 - Provides personalized recommendations based on your project
+
+### `claudekit-hooks`
+Manage and execute embedded hooks system.
+
+```bash
+claudekit-hooks <command> [options]
+
+Commands:
+  run <hook>      Run a specific hook
+  list            List all available hooks
+  stats           Show hook execution statistics
+  recent [limit]  Show recent hook executions (default: 20)
+
+Options:
+  --config <path>  Path to config file (default: .claudekit/config.json)
+  --debug          Enable debug logging
+
+Examples:
+  claudekit-hooks run typecheck-changed    # Run TypeScript validation on changed files
+  claudekit-hooks list                     # List all available embedded hooks
+  claudekit-hooks stats                    # Show hook performance statistics
+  claudekit-hooks recent 10                # Show last 10 hook executions
+```
 
 ### `claudekit install`
 Install hooks and commands into your project.
@@ -83,16 +106,6 @@ Output includes:
 - Available commands organized by namespace
 - Current settings.json configuration
 
-### `claudekit setup`
-Interactive setup wizard for first-time configuration (alternative to manual setup).
-
-```bash
-claudekit setup [options]
-
-Options:
-  --user     Configure user-level settings only
-  --project  Configure project-level settings only
-```
 
 ## Hooks System
 
@@ -158,29 +171,50 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
 
 ### Testing Hooks
 
-You can test hooks outside of Claude Code using the `claudekit-hooks test` command:
+You can test hooks outside of Claude Code using the `claudekit-hooks` command:
 
 ```bash
-# Test a specific hook with a file
-claudekit-hooks test typecheck-changed --file src/index.ts
+# Run a specific hook (reads stdin for file context)
+echo '{"tool_input": {"file_path": "src/index.ts"}}' | claudekit-hooks run typecheck-changed
 
-# Test a hook without file context
-claudekit-hooks test create-checkpoint
+# Run a hook without file context
+claudekit-hooks run create-checkpoint
 
 # List all available hooks
 claudekit-hooks list
+
+# Show hook execution statistics
+claudekit-hooks stats
+
+# View recent hook activity
+claudekit-hooks recent 5
 ```
 
 ## Features
 
-### 🛡️ Development Hooks
-Automatically enforce code quality and run tests with embedded hooks:
+### 🛡️ Embedded Hooks System
+Automatically enforce code quality and run tests with the built-in TypeScript hooks system:
 
+#### File-Scoped Validation (operates on changed files only)
 - **typecheck-changed** - TypeScript type checking on modified files
-- **lint-changed** - ESLint code style and quality validation on modified files
+- **check-any-changed** - Forbid `any` types in modified TypeScript files  
+- **lint-changed** - ESLint code style validation on modified files
 - **test-changed** - Auto-run tests for modified files
-- **check-todos** - Prevent stopping with incomplete todos
+
+#### Project-Wide Validation
+- **typecheck-project** - TypeScript validation on entire project
+- **lint-project** - ESLint validation on entire project  
+- **test-project** - Run complete test suite
+
+#### Action Hooks
 - **create-checkpoint** - Save work automatically when Claude Code stops
+- **check-todos** - Prevent stopping with incomplete todos
+
+#### Hook Management & Monitoring
+- Built-in execution logging with statistics tracking
+- Performance monitoring with `claudekit-hooks stats`
+- Recent activity viewing with `claudekit-hooks recent`
+- Debug mode for troubleshooting hook issues
 
 ### 📝 Slash Commands
 

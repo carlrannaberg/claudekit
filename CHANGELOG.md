@@ -8,6 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-08-05
+
+### Added
+- **Embedded Hooks System**: Complete TypeScript-based hook system with `claudekit-hooks` CLI
+  - New `claudekit-hooks` binary for running individual hooks with proper TypeScript execution
+  - Hook execution logging and statistics system with `~/.claudekit/logs/` for tracking performance
+  - Support for project-wide and file-specific validation hooks
+  - Built-in hooks: `typecheck-changed`, `check-any-changed`, `lint-changed`, `test-changed`, `create-checkpoint`, `check-todos`, and project-wide variants
+- **Enhanced Build System**: Separate build targets for main CLI and hooks system with sourcemaps
+- **ASCII Banner**: Added `oh-my-logo` integration for setup wizard branding
+- **Hook Commands**: `stats`, `recent`, and `list` subcommands for hook management and monitoring
+
+### Changed
+- **Hook Configuration**: Simplified matcher syntax in `.claude/settings.json` with pipe separator support (`Write|Edit|MultiEdit`)
+- **Setup Command**: Enhanced setup wizard with comprehensive hook configuration and visual improvements
+- **Build Process**: Multi-target build system with dedicated hook compilation and improved TypeScript handling
+- **Hook Architecture**: All hooks now use embedded TypeScript system instead of external shell scripts
+
+### Removed
+- **Legacy Shell Hooks**: Removed all shell-based hooks from `src/hooks/` (migrated to TypeScript embedded system)
+- **Setup Script**: Removed `setup.sh` bash script (functionality moved to TypeScript `setup` command)
+- **Init Command**: Consolidated `init` functionality into the enhanced `setup` command
+- **Shell Hook Dependencies**: Eliminated external script dependencies for more reliable hook execution
+
+### Fixed
+- **Hook Matcher Patterns**: Corrected hook matcher syntax for better tool matching reliability
+- **Installation Process**: Improved setup wizard with clearer options and error handling
+- **TypeScript Integration**: Better type safety and error handling across the hook system
+
 ### Security
 - Enhanced allowed-tools validation to prevent unrestricted bash access across all commands
 
