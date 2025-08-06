@@ -14,13 +14,19 @@ export default defineConfig({
     // Allow TypeScript files to be imported without extension
     mainFields: ['module', 'main']
   },
+  esbuild: {
+    // Enable TypeScript decorators and other features
+    target: 'node20',
+    format: 'esm'
+  },
   test: {
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    // deps: {
-    //   registerNodeLoader: true,
-    // },
+    deps: {
+      // This helps with module resolution in CI
+      inline: [/test-helpers/]
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
