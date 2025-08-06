@@ -54,6 +54,7 @@ test-*/
 !tests/          # Don't ignore the main tests directory
 !src/**/test/    # Don't ignore test directories in src
 !tests/utils/test-helpers.js  # Don't ignore the test helpers JS re-export
+!tests/utils/test-helpers.ts  # Don't ignore the test helpers TypeScript source
 !cli/hooks/test-*.ts  # Don't ignore test hook files
 
 # Temporary documentation
