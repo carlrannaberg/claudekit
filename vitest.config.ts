@@ -20,13 +20,15 @@ export default defineConfig({
     format: 'esm'
   },
   test: {
+    server: {
+      deps: {
+        // Inline test-helpers to fix module resolution in CI
+        inline: [/test-helpers/]
+      }
+    },
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    deps: {
-      // This helps with module resolution in CI
-      inline: [/test-helpers/]
-    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
