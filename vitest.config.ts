@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@tests': new globalThis.URL('./tests', import.meta.url).pathname,
+      // Explicitly map test-helpers imports
+      '../utils/test-helpers': new globalThis.URL('./tests/utils/test-helpers.ts', import.meta.url).pathname,
+      './utils/test-helpers': new globalThis.URL('./tests/utils/test-helpers.ts', import.meta.url).pathname,
+      'tests/utils/test-helpers': new globalThis.URL('./tests/utils/test-helpers.ts', import.meta.url).pathname
     },
     extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
     // Allow TypeScript files to be imported without extension
@@ -20,12 +24,6 @@ export default defineConfig({
     format: 'esm'
   },
   test: {
-    server: {
-      deps: {
-        // Inline test-helpers to fix module resolution in CI
-        inline: [/test-helpers/]
-      }
-    },
     globals: true,
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
