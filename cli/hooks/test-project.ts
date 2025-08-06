@@ -27,11 +27,47 @@ export class TestProjectHook extends BaseHook {
     const testCommand = (this.config['testCommand'] as string) 
       || packageManager.test;
     
-    const result = await this.execCommand(testCommand, [], { cwd: projectRoot });
+    // Use a timeout just under Claude Code's 60s limit
+    const result = await this.execCommand(testCommand, [], { 
+      cwd: projectRoot,
+      timeout: 55000  // 55 seconds (under Claude Code's 60s limit)
+    });
     
     if (result.exitCode === 0) {
       this.success('All tests passed!');
       return { exitCode: 0 };
+    }
+    
+    // Check if output was cut off (likely timeout)
+    const output = result.stdout + result.stderr;
+    if (output.includes('RUN  v') && !output.includes('Test Files') && !output.includes('✓') && !output.includes('✗')) {
+      console.error('████ Test Suite Timeout ████\n');
+      console.error('The test suite was terminated due to Claude Code\'s 60-second hook timeout limit.\n');
+      
+      const customCommand = this.config['testCommand'] as string;
+      if (customCommand) {
+        console.error(`Current command: ${customCommand}\n`);
+        console.error('RECOMMENDED ACTIONS:');
+        console.error('1. Use a faster test command in .claudekit/config.json:');
+        console.error('   Example: "testCommand": "npm run test:unit"  (skip integration tests)\n');
+      } else {
+        console.error(`Current command: ${packageManager.test}\n`);
+        console.error('RECOMMENDED ACTIONS:');
+        console.error('1. Configure a faster test command in .claudekit/config.json:\n');
+        console.error('   {');
+        console.error('     "hooks": {');
+        console.error('       "test-project": {');
+        console.error('         "testCommand": "npm run test:fast"');
+        console.error('       }');
+        console.error('     }');
+        console.error('   }\n');
+      }
+      
+      console.error('2. Disable test-project hook in .claude/settings.json');
+      console.error('3. Increase the timeout in .claude/settings.json (if Claude Code supports it):');
+      console.error('   Note: Claude Code has a 60s default timeout, configurable per command\n');
+      console.error('4. Run tests manually when needed: npm test');
+      return { exitCode: 0 }; // Don't block on timeout
     }
     
     // Format test failure output

@@ -29,7 +29,6 @@ const EXECUTIONS_LOG = path.join(LOG_DIR, 'hook-executions.jsonl');
 const STATS_FILE = path.join(LOG_DIR, 'hook-stats.json');
 
 export async function appendHookExecution(execution: HookExecution): Promise<void> {
-  console.error('[LOGGING] appendHookExecution called for:', execution.hookName);
   try {
     // Debug logging
     if (process.env['CLAUDEKIT_DEBUG'] === 'true') {

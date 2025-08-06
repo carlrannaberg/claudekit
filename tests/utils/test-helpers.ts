@@ -145,7 +145,7 @@ export class CommandTestHelper {
     vi.spyOn(process, 'cwd').mockReturnValue(cwd);
     
     return () => {
-      vi.mocked(process.cwd).mockRestore();
+      vi.mocked(process.cwd).mockReset();
     };
   }
 
