@@ -51,7 +51,10 @@
     "allowUnreachableCode": false,
     
     // Skip Lib Check  
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    
+    // Types
+    "types": ["vitest/globals"]
   },
   "include": ["cli/**/*", "tests/**/*", "vitest.config.ts", "build.config.ts"],
   "exclude": ["node_modules", "dist", "temp/**/*"]
