@@ -25,7 +25,7 @@ import {
   type ValidationResult,
   // type ValidationError, // Removed unused import
 } from '../../cli/lib/validation';
-import { TestFileSystem } from '../utils/test-helpers';
+import { TestFileSystem } from '../utils/test-helpers.ts';
 
 describe('validation module', () => {
   let testFs: TestFileSystem;

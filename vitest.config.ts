@@ -10,14 +10,7 @@ export default defineConfig({
     alias: {
       '@tests': new globalThis.URL('./tests', import.meta.url).pathname
     },
-    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
-    // Allow TypeScript files to be imported without extension
-    mainFields: ['module', 'main']
-  },
-  esbuild: {
-    // Enable TypeScript decorators and other features
-    target: 'node20',
-    format: 'esm'
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
   },
   test: {
     globals: true,
