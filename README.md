@@ -365,8 +365,6 @@ Enables `/spec:create` to fetch up-to-date library documentation.
    }
    ```
 
-The hook will automatically detect timeouts and provide context-aware recommendations based on your current configuration.
-
 ## Development
 
 ### Building from Source
