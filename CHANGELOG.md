@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-08-07
+
+### Fixed
+- **Test Hook Timeout Handling**: Improved test-project hook with 55-second timeout limit and better error messages for Claude Code's 60-second hook timeout
+- **Vitest 3 Compatibility**: Updated test framework from vitest ^2.1.8 to ^3.2.4 and fixed test helper mocking compatibility
+- **Debug Logging Cleanup**: Removed unnecessary debug console output from hook execution logging
+- **GitIgnore Pattern**: Fixed gitignore to ensure test-helpers.ts source file is properly tracked
+
+### Changed
+- **Test Framework**: Upgraded to vitest 3.2.4 with improved performance and compatibility
+
 ## [0.2.0] - 2025-08-05
 
 ### Added
