@@ -10,7 +10,9 @@ export default defineConfig({
     alias: {
       '@tests': new globalThis.URL('./tests', import.meta.url).pathname,
     },
-    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json']
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json'],
+    // Allow TypeScript files to be imported without extension
+    mainFields: ['module', 'main']
   },
   test: {
     globals: true,
@@ -61,14 +63,7 @@ export default defineConfig({
     exclude: [
       'node_modules', 
       'dist', 
-      'coverage',
-      // Temporarily exclude files with import issues in CI
-      ...(process.env['CI'] !== undefined ? [
-        'tests/commands/init.test.ts',
-        'tests/commands/validate.test.ts', 
-        'tests/integration/workflow.test.ts',
-        'tests/lib/validation.test.ts'
-      ] : [])
+      'coverage'
     ],
     testTimeout: 10000,
     hookTimeout: 10000,
