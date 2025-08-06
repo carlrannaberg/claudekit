@@ -10,7 +10,7 @@ Clean up temporary files and debug artifacts that Claude Code commonly creates d
 
 ## Context
 
-\!`git status --porcelain && git status --ignored --porcelain | grep "^!!" && echo "--- PWD: $(pwd) ---" && ls -la && if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true" && git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts)|.*-test\.(js|ts)|quick-test\.(js|ts)|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi`
+\!`git status --porcelain && git status --ignored --porcelain | grep "^!!" && echo "--- PWD: $(pwd) ---" && ls -la && if [ -z "$(git status --porcelain)" ]; then echo "WORKING_DIR_CLEAN=true" && git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts|sh)|.*-test\.(js|ts|sh)|quick-test\.(js|ts|sh)|.*-poc\..*|poc-.*\..*|.*_poc\..*|proof-of-concept-.*\..*|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | head -20 && echo "--- Found $(git ls-files | grep -E "(analyze-.*\.(js|ts)|debug-.*\.(js|ts)|test-.*\.(js|ts|sh)|.*-test\.(js|ts|sh)|quick-test\.(js|ts|sh)|.*-poc\..*|poc-.*\..*|.*_poc\..*|proof-of-concept-.*\..*|verify-.*\.md|research-.*\.(js|ts)|temp-.*/|test-.*/|.*_SUMMARY\.md|.*_REPORT\.md|.*_CHECKLIST\.md|.*_COMPLETE\.md|.*_GUIDE\.md|.*_ANALYSIS\.md|.*-analysis\.md|.*-examples\.(js|ts))$" | wc -l) committed cleanup candidates ---"; else echo "WORKING_DIR_CLEAN=false"; fi`
 
 Launch ONE subagent to analyze the git status (including ignored files) and propose files for deletion. If the working directory is clean, also check for committed files that match cleanup patterns.
 
@@ -23,11 +23,17 @@ Launch ONE subagent to analyze the git status (including ignored files) and prop
 - `*-analysis.md` - Analysis documents (e.g., `eslint-manual-analysis.md`)
 
 **Test Files (temporary/experimental):**
-- `test-*.js`, `test-*.ts` - Test scripts (e.g., `test-race-condition.js`, `test-basic-add.js`)
-- `*-test.js`, `*-test.ts` - Test scripts with suffix
-- `quick-test.js`, `quick-test.ts` - Quick test files
+- `test-*.js`, `test-*.ts`, `test-*.sh` - Test scripts (e.g., `test-race-condition.js`, `test-basic-add.js`, `test-poc.sh`)
+- `*-test.js`, `*-test.ts`, `*-test.sh` - Test scripts with suffix
+- `quick-test.js`, `quick-test.ts`, `quick-test.sh` - Quick test files
 - `verify-*.md` - Verification documents (e.g., `verify-migration.md`)
 - `*-examples.js`, `*-examples.ts` - Example files (e.g., `frontmatter-replacement-examples.ts`)
+
+**Proof of Concept (POC) Files:**
+- `*-poc.*` - POC files in any language (e.g., `test-poc.sh`, `auth-poc.js`)
+- `poc-*.*` - POC files with prefix (e.g., `poc-validation.ts`)
+- `*_poc.*` - POC files with underscore (e.g., `feature_poc.js`)
+- `proof-of-concept-*.*` - Verbose POC naming
 
 **Temporary Directories:**
 - `temp-*` - Temporary directories (e.g., `temp-debug/`, `temp-test/`, `temp-test-fix/`)

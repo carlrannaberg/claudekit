@@ -329,6 +329,44 @@ Enables `/spec:create` to fetch up-to-date library documentation.
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
 - [Testing Guide](tests/README.md) - Running the test suite
 
+## Troubleshooting
+
+### Common Issues
+
+#### Test Suite Timeout in Claude Code
+
+**Problem:** The `test-project` hook fails with a timeout when running tests through Claude Code's Stop hook.
+
+**Cause:** Claude Code has a 60-second timeout limit for hooks. Test suites that include building and running comprehensive tests often exceed this limit.
+
+**Solutions:**
+
+1. **Configure a faster test command** in `.claudekit/config.json`:
+   ```json
+   {
+     "hooks": {
+       "test-project": {
+         "testCommand": "npm run test:unit"  // Run only unit tests
+       }
+     }
+   }
+   ```
+
+2. **Disable the test-project hook** if your test suite is too large:
+   - Remove `test-project` from your `.claude/settings.json` Stop hooks
+   - Run tests manually when needed with `npm test`
+
+3. **Create a custom fast test script** in your `package.json`:
+   ```json
+   {
+     "scripts": {
+       "test:fast": "vitest run --reporter=dot --bail=1"
+     }
+   }
+   ```
+
+The hook will automatically detect timeouts and provide context-aware recommendations based on your current configuration.
+
 ## Development
 
 ### Building from Source
