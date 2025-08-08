@@ -78,6 +78,8 @@ prototype-*.*
 # IMPORTANT: Don't ignore the reports directory
 !reports/
 !reports/**
+# But do ignore .DS_Store files in reports
+reports/**/.DS_Store
 
 # Build artifacts
 dist/
