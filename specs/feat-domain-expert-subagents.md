@@ -61,8 +61,6 @@ While the principles for creating effective domain experts are well-documented i
 
 ### External Documentation
 - [Claude Code Subagents Documentation](../docs/official-subagents-documentation.md)
-- [Claude Code Hooks Documentation](../docs/official-hooks-documentation.md)
-- [Claude Code Slash Commands Documentation](../docs/official-slash-commands-documentation.md)
 - Framework/library docs for domain expertise
 
 ## Detailed Design
@@ -541,8 +539,6 @@ describe('Subagent Format Validation', () => {
 ### Internal Documentation
 - [Subagents Principles](../docs/subagents-principles.md)
 - [Official Subagents Documentation](../docs/official-subagents-documentation.md)
-- [Official Hooks Documentation](../docs/official-hooks-documentation.md)
-- [Official Slash Commands Documentation](../docs/official-slash-commands-documentation.md)
 - [Component Discovery System](../cli/lib/components.ts)
 - [Setup Command Patterns](../cli/commands/setup.ts)
 
