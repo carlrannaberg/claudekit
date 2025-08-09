@@ -150,6 +150,9 @@ async function installAgents(
   const agentsDir = path.join(projectPath, '.claude', 'agents');
   await ensureDirectoryExists(agentsDir);
 
+  // Get the components directory for agent files
+  const srcDir = await findComponentsDirectory();
+
   for (const agentId of selectedAgentIds) {
     const agent = AGENTS.find((a) => a.id === agentId);
     if (!agent) {
@@ -157,11 +160,12 @@ async function installAgents(
       continue;
     }
 
-    // Copy actual agent files from src/agents/
-    const sourcePath = path.join(__dirname, '../../src/agents', agent.path);
     const destPath = path.join(agentsDir, `${agent.id}.md`);
 
     try {
+      // Compute source path inside try block for proper error handling
+      const sourcePath = path.join(srcDir, 'agents', agent.path);
+      
       // Check if source file exists
       await fs.access(sourcePath);
       await fs.copyFile(sourcePath, destPath);
@@ -172,6 +176,7 @@ async function installAgents(
     } catch {
       // If source file doesn't exist, create a placeholder
       if (options.verbose === true) {
+        const sourcePath = path.join(srcDir, 'agents', agent.path);
         logger.warn(`Source file not found: ${sourcePath}, creating placeholder`);
       }
 
@@ -972,7 +977,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           console.log(`• ${agentCount} subagent${agentCount !== 1 ? 's' : ''}`);
         }
 
-        console.log(Colors.dim('\n─'.repeat(40)));
+        console.log(Colors.dim(`\n${'─'.repeat(40)}`));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
         console.log(`  2. ${Colors.accent('claudekit list')} - See available commands`);
