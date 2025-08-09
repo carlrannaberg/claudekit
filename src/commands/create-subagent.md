@@ -39,14 +39,18 @@ If they list fewer than 5 problems, suggest expanding scope or reconsidering as 
 - Common patterns:
   - Analysis experts: `Read, Grep, Glob, Bash`
   - Fix experts: `Read, Edit, MultiEdit, Bash, Grep`
-  - Architecture experts: `Read, Write, Edit, Bash, Task`
+  - Architecture experts: `Read, Write, Edit, Bash, Grep`
+
+**Tip**: Use `/agents` to adjust tool permissions interactively later.
 
 ### 4. Environmental Adaptation
 Help define how the agent detects and adapts to project context:
-- Framework/library detection commands
-- Configuration file checks
+- Framework/library detection (prefer config reads over heavy commands)
+- Configuration file checks using internal tools first
 - Project structure analysis
 - Available tool discovery
+
+**Note**: Prefer internal tools (Read, Grep, Glob) over shell commands for better performance.
 
 ## Domain Expert Template
 
@@ -56,12 +60,24 @@ Generate the subagent using this structure:
 ---
 name: {{domain}}-expert
 description: Expert in {{domain}} handling {{problem-list}}. {{proactive-trigger}}. Detects project setup and adapts approach. Uses {{key-tools}}.
-tools: {{tools-list or leave blank}}
+tools: # Optional - leave blank to inherit all tools, or specify like: Read, Grep, Glob, Bash
 ---
 
 # {{Domain}} Expert
 
 I am an expert in {{domain}} with deep knowledge of {{specific-areas}}.
+
+## When invoked:
+
+0. If a more specialized expert fits better, recommend switching and stop:
+   - {{specific-area-1}} → {{subdomain-1}}-expert  
+   - {{specific-area-2}} → {{subdomain-2}}-expert
+   
+   Example: "This requires {{specialization}}. Use the {{subdomain}}-expert subagent. Stopping here."
+
+1. Detect environment using internal tools first (Read, Grep, Glob)
+2. Apply appropriate fix strategy based on detection
+3. Validate in order: typecheck → tests → build (avoid long-lived/watch commands)
 
 ## Domain Coverage
 
@@ -86,10 +102,13 @@ I analyze the project to understand:
 
 Detection commands:
 \`\`\`bash
-# Check {{domain}} setup
+# Check {{domain}} setup (prefer internal tools first)
+# Use Read/Grep/Glob for config files before shell commands
 {{detection-command-1}}
 {{detection-command-2}}
 \`\`\`
+
+**Safety note**: Avoid watch/serve processes; use one-shot diagnostics only.
 
 ### Adaptation Strategies
 - Match {{convention-type-1}}
@@ -110,10 +129,13 @@ Detection commands:
 
 ### Fix Validation
 \`\`\`bash
-# Verify fixes
-{{validation-command}}
-{{test-command}}
+# Verify fixes (validation order)
+{{validation-command}}  # 1. Typecheck first
+{{test-command}}        # 2. Run tests
+# 3. Build only if needed
 \`\`\`
+
+**Validation order**: typecheck → tests → build (skip build unless output affects functionality)
 
 ## Problem-Specific Approaches
 
@@ -144,15 +166,15 @@ When encountering {{symptom}}:
 - ✅ Knowledge transferred to developer
 ```
 
-## Hierarchy Guidance
+## When to recommend another subagent (and stop)
 
 ### For Broad Domain Experts
 Include acknowledgment of sub-domains:
 ```yaml
-## When I Defer
-For specialized topics, I recommend using specific experts when available:
-- {{specific-area-1}} → {{subdomain-1}}-expert
-- {{specific-area-2}} → {{subdomain-2}}-expert
+## When to recommend another subagent (and stop)
+If a specialist fits better, recommend switching and stop:
+- {{specific-area-1}} → Use the {{subdomain-1}}-expert subagent. Stopping here.
+- {{specific-area-2}} → Use the {{subdomain-2}}-expert subagent. Stopping here.
 ```
 
 ### For Sub-Domain Experts
@@ -160,6 +182,7 @@ Reference the parent domain:
 ```yaml
 ## Specialization
 I provide deep expertise in {{specific-area}} as part of the broader {{parent-domain}} domain.
+For other {{parent-domain}} issues, use the {{parent-domain}}-expert subagent.
 ```
 
 ## Quality Checks
@@ -201,7 +224,19 @@ For agents that should be used automatically, include trigger phrases:
    ```
 
 2. **Generate Agent File**
-   Create `{{agent-name}}.md` with the populated template
+   First, convert agent name to kebab-case filename:
+   - "TypeScript Expert" → `typescript-expert.md`
+   - "Database Performance" → `database-performance.md`
+   
+   Check if file exists before writing:
+   ```bash
+   # Check for existing file
+   if [[ -f "{{path}}/{{kebab-name}}.md" ]]; then
+     # Ask user: overwrite or create {{kebab-name}}-new.md?
+   fi
+   ```
+   
+   Create `{{kebab-name}}.md` with the populated template
 
 3. **Validate Structure**
    - Ensure YAML frontmatter is valid
