@@ -58,15 +58,15 @@ Common tool patterns:
 
 ### Declaring allowed-tools
 - Only declare tools that Claude will explicitly invoke during command execution
-- Commands prefixed with `!` execute automatically and DON'T need to be in allowed-tools
-- Example: If your command includes `!git status` (automatic) and instructs Claude to run `git commit` (explicit), only `Bash(git commit:*)` needs to be in allowed-tools
+- Commands prefixed with `\!` execute automatically and DON'T need to be in allowed-tools
+- Example: If your command includes `\!git status` (automatic) and instructs Claude to run `git commit` (explicit), only `Bash(git commit:*)` needs to be in allowed-tools
 
 ### Command Execution Best Practices
-- **Complex Subshells**: Avoid complex subshells in `!` commands as they can cause Claude Code's Bash tool to display "Error:" labels even when commands succeed
-  - Problematic: `!(command | head -n; [ $(command | wc -l) -gt n ] && echo "...")`
-  - Better: `!command | head -n`
+- **Complex Subshells**: Avoid complex subshells in `\!` commands as they can cause Claude Code's Bash tool to display "Error:" labels even when commands succeed
+  - Problematic: `\!(command | head -n; [ $(command | wc -l) -gt n ] && echo "...")`
+  - Better: `\!command | head -n`
 - **Git Commands**: Always use `--no-pager` with git commands to prevent interactive mode issues
-  - Example: `!git --no-pager log --oneline -5`
+  - Example: `\!git --no-pager log --oneline -5`
 
 ## Implementation Steps
 
