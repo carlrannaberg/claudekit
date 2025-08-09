@@ -116,7 +116,7 @@ npx tsc --extendedDiagnostics --incremental false | grep -E "Check time|Files:|L
 ```
 
 **Build Performance Patterns**
-- Enable `skipLibCheck: true` (often significantly improves performance on large projects)
+- Enable `skipLibCheck: true` for library type checking only (often significantly improves performance on large projects, but avoid masking app typing issues)
 - Use `incremental: true` with `.tsbuildinfo` cache
 - Configure `include`/`exclude` precisely
 - For monorepos: Use project references with `composite: true`
@@ -179,8 +179,14 @@ type NestedArray<T, D extends number = 5> =
 **JavaScript to TypeScript Migration**
 ```bash
 # Incremental migration strategy
-# 1. Enable allowJs and checkJs
-echo '{ "compilerOptions": { "allowJs": true, "checkJs": true } }' > tsconfig.json
+# 1. Enable allowJs and checkJs (merge into existing tsconfig.json):
+# Add to existing tsconfig.json:
+# {
+#   "compilerOptions": {
+#     "allowJs": true,
+#     "checkJs": true
+#   }
+# }
 
 # 2. Rename files gradually (.js → .ts)
 # 3. Add types file by file using AI assistance
@@ -318,6 +324,7 @@ class DomainError extends Error {
 - Configure `"moduleResolution": "bundler"` for modern tools
 - Use dynamic imports for CJS: `const pkg = await import('cjs-package')`
   - Note: `await import()` requires async function or top-level await in ESM
+  - For CJS packages in ESM: May need `(await import('pkg')).default` depending on the package's export structure and your compiler settings
 
 ### AI-Assisted Development
 - GitHub Copilot excels at TypeScript generics
