@@ -452,7 +452,6 @@ export async function createInstallPlan(
     }
   }
 
-
   // Check for warnings
   if (
     installation.projectInfo?.hasTypeScript === true &&
@@ -602,7 +601,6 @@ export async function simulateInstallation(
         case 'install-dependency':
           logger.debug(`  Would check/install dependency: ${step.target}`);
           break;
-
       }
     }
   }
@@ -852,15 +850,11 @@ async function executeStep(
       break;
     }
 
-
     default:
       // This should never happen as step.type is a union type
       throw new Error(`Unknown step type: ${step.type}`);
   }
 }
-
-
-
 
 // ============================================================================
 // Main Installer API

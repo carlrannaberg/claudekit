@@ -12,12 +12,15 @@ describe('TestProjectHook', () => {
     hook = new TestProjectHook();
     mockExecCommand = vi.fn();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     // Mock the utils functions
     vi.spyOn(utils, 'formatTestErrors').mockReturnValue('Formatted test errors');
-    
+
     // Mock the execCommand method on the hook instance
-    vi.spyOn(hook as unknown as { execCommand: typeof mockExecCommand }, 'execCommand').mockImplementation(mockExecCommand);
+    vi.spyOn(
+      hook as unknown as { execCommand: typeof mockExecCommand },
+      'execCommand'
+    ).mockImplementation(mockExecCommand);
   });
 
   afterEach(() => {
@@ -79,7 +82,10 @@ describe('TestProjectHook', () => {
 
       const result = await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith('npm test', [], { cwd: '/test/project', timeout: 55000 });
+      expect(mockExecCommand).toHaveBeenCalledWith('npm test', [], {
+        cwd: '/test/project',
+        timeout: 55000,
+      });
       expect(result.exitCode).toBe(0);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Running project test suite...');
       expect(consoleErrorSpy).toHaveBeenCalledWith('✅ All tests passed!');
@@ -110,7 +116,10 @@ describe('TestProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith('pnpm test', [], { cwd: '/test/project', timeout: 55000 });
+      expect(mockExecCommand).toHaveBeenCalledWith('pnpm test', [], {
+        cwd: '/test/project',
+        timeout: 55000,
+      });
     });
 
     it('should run test script with yarn', async () => {
@@ -138,7 +147,10 @@ describe('TestProjectHook', () => {
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith('yarn test', [], { cwd: '/test/project', timeout: 55000 });
+      expect(mockExecCommand).toHaveBeenCalledWith('yarn test', [], {
+        cwd: '/test/project',
+        timeout: 55000,
+      });
     });
 
     it('should respect custom testCommand', async () => {
@@ -155,12 +167,17 @@ describe('TestProjectHook', () => {
         }
         return Promise.resolve({ exitCode: 0, stdout: '', stderr: '' });
       });
-      (hook as unknown as { config: { testCommand: string } }).config = { testCommand: 'custom test command' };
+      (hook as unknown as { config: { testCommand: string } }).config = {
+        testCommand: 'custom test command',
+      };
       const context = createMockContext();
 
       await hook.execute(context);
 
-      expect(mockExecCommand).toHaveBeenCalledWith('custom test command', [], { cwd: '/test/project', timeout: 55000 });
+      expect(mockExecCommand).toHaveBeenCalledWith('custom test command', [], {
+        cwd: '/test/project',
+        timeout: 55000,
+      });
     });
 
     it('should format errors on test failure', async () => {
@@ -173,10 +190,10 @@ describe('TestProjectHook', () => {
           });
         }
         if (command === 'npm test') {
-          return Promise.resolve({ 
-            exitCode: 1, 
+          return Promise.resolve({
+            exitCode: 1,
             stdout: 'FAIL test/example.test.js',
-            stderr: 'Test suite failed' 
+            stderr: 'Test suite failed',
           });
         }
         return Promise.resolve({ exitCode: 0, stdout: '', stderr: '' });
@@ -186,10 +203,10 @@ describe('TestProjectHook', () => {
       const result = await hook.execute(context);
 
       expect(result.exitCode).toBe(2);
-      expect(utils.formatTestErrors).toHaveBeenCalledWith({ 
-        exitCode: 1, 
+      expect(utils.formatTestErrors).toHaveBeenCalledWith({
+        exitCode: 1,
         stdout: 'FAIL test/example.test.js',
-        stderr: 'Test suite failed' 
+        stderr: 'Test suite failed',
       });
       expect(consoleErrorSpy).toHaveBeenCalledWith('Formatted test errors');
     });
