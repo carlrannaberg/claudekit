@@ -9,7 +9,7 @@ allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Bash(grep:*), B
 This command helps you adopt the AGENT.md standard by converting your existing CLAUDE.md file and creating symlinks for compatibility with various AI assistants.
 
 ## Current Project State
-!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .cursor/rules/** .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
+!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .cursor/rules .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
 
 ## Task
 
@@ -19,7 +19,8 @@ Convert this project to use the AGENT.md standard following these steps:
 Check for existing AI configuration files:
 - CLAUDE.md (Claude Code)
 - .clinerules (Cline)
-- .cursorrules and .cursor/rules/** (Cursor)
+- .cursorrules (Cursor - legacy)
+- .cursor/rules (Cursor - newer format)
 - .windsurfrules (Windsurf)
 - .replit.md (Replit)
 - .github/copilot-instructions.md (GitHub Copilot)
@@ -32,11 +33,12 @@ Check all AI config files and their content to determine migration strategy:
 **Priority order for analysis:**
 1. CLAUDE.md (Claude Code)
 2. .clinerules (Cline)
-3. .cursorrules and .cursor/rules/** (Cursor)
-4. .windsurfrules (Windsurf)
-5. .github/copilot-instructions.md (GitHub Copilot)
-6. .replit.md (Replit)
-7. GEMINI.md (Gemini CLI)
+3. .cursor/rules (Cursor - newer format)
+4. .cursorrules (Cursor - legacy)
+5. .windsurfrules (Windsurf)
+6. .github/copilot-instructions.md (GitHub Copilot)
+7. .replit.md (Replit)
+8. GEMINI.md (Gemini CLI)
 
 **Content Analysis:**
 - Compare file sizes and content
@@ -55,7 +57,8 @@ mv CLAUDE.md AGENT.md  # or whichever file exists
 ```bash
 # Keep the priority file, symlink others
 mv CLAUDE.md AGENT.md
-ln -sf AGENT.md .cursorrules  # if .cursorrules was identical
+ln -sf AGENT.md .cursor/rules  # if .cursor/rules was identical
+ln -sf AGENT.md .cursorrules   # if .cursorrules was identical
 ```
 
 **Scenario C: Multiple files with different content**
@@ -83,7 +86,7 @@ ln -sf AGENT.md .cursorrules  # if .cursorrules was identical
    - Build commands: npm run build
    - Testing: vitest
    
-   📄 .cursorrules (856 bytes)  
+   📄 .cursor/rules (856 bytes)  
    - Code style: Prettier + ESLint
    - TypeScript: strict mode
    
@@ -96,7 +99,7 @@ ln -sf AGENT.md .cursorrules  # if .cursorrules was identical
    ```
    Choose migration approach:
    1. 🔄 Auto-merge (recommended) - Combine all unique content
-   2. 📋 Keep CLAUDE.md, backup others (.cursorrules.bak, copilot-instructions.md.bak)
+   2. 📋 Keep CLAUDE.md, backup others (.cursor/rules.bak, .cursorrules.bak, copilot-instructions.md.bak)
    3. 🎯 Selective - Choose which sections to include
    4. 🛠️  Manual - Guide me through merging step-by-step
    ```
@@ -116,7 +119,11 @@ ln -s AGENT.md CLAUDE.md
 # Cline
 ln -s AGENT.md .clinerules
 
-# Cursor
+# Cursor (newer format)
+mkdir -p .cursor
+ln -s ../AGENT.md .cursor/rules
+
+# Cursor (legacy format)
 ln -s AGENT.md .cursorrules
 
 # Windsurf
