@@ -9,7 +9,7 @@ allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Bash(grep:*), B
 This command helps you adopt the AGENT.md standard by converting your existing CLAUDE.md file and creating symlinks for compatibility with various AI assistants.
 
 ## Current Project State
-!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
+!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .cursor/rules/** .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
 
 ## Task
 
@@ -19,7 +19,7 @@ Convert this project to use the AGENT.md standard following these steps:
 Check for existing AI configuration files:
 - CLAUDE.md (Claude Code)
 - .clinerules (Cline)
-- .cursorrules (Cursor)
+- .cursorrules and .cursor/rules/** (Cursor)
 - .windsurfrules (Windsurf)
 - .replit.md (Replit)
 - .github/copilot-instructions.md (GitHub Copilot)
@@ -32,7 +32,7 @@ Check all AI config files and their content to determine migration strategy:
 **Priority order for analysis:**
 1. CLAUDE.md (Claude Code)
 2. .clinerules (Cline)
-3. .cursorrules (Cursor)
+3. .cursorrules and .cursor/rules/** (Cursor)
 4. .windsurfrules (Windsurf)
 5. .github/copilot-instructions.md (GitHub Copilot)
 6. .replit.md (Replit)
