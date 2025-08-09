@@ -21,6 +21,14 @@ import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 
+// Agent interface for subagents management
+interface Agent {
+  id: string;
+  name: string;
+  description: string;
+  path: string;
+}
+
 // Command group definitions for improved setup flow
 interface CommandGroup {
   id: string;
@@ -106,10 +114,83 @@ const HOOK_GROUPS: HookGroup[] = [
   },
 ];
 
+// Agent definitions (MVP: just TypeScript)
+const AGENTS: Agent[] = [
+  {
+    id: 'typescript-expert',
+    name: 'TypeScript Expert',
+    description: 'TypeScript/JavaScript guidance',
+    path: 'typescript/expert.md'
+  }
+];
+
 /**
- * Perform improved two-step selection: command groups then hook groups
+ * Install selected agents to the project
  */
-async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string[]> {
+async function installAgents(selectedAgentIds: string[], projectPath: string, options: { verbose?: boolean; quiet?: boolean } = {}): Promise<void> {
+  if (selectedAgentIds.length === 0) {
+    return;
+  }
+
+  const logger = new Logger();
+  if (options.verbose === true) {
+    logger.setLevel('debug');
+  } else if (options.quiet === true) {
+    logger.setLevel('error');
+  }
+
+  if (options.quiet !== true) {
+    console.log('\n🤖 Installing subagents...');
+  }
+
+  const agentsDir = path.join(projectPath, '.claude', 'agents');
+  await ensureDirectoryExists(agentsDir);
+
+  for (const agentId of selectedAgentIds) {
+    const agent = AGENTS.find(a => a.id === agentId);
+    if (!agent) {
+      logger.warn(`Agent not found: ${agentId}`);
+      continue;
+    }
+
+    // Copy actual agent files from src/agents/
+    const sourcePath = path.join(__dirname, '../../src/agents', agent.path);
+    const destPath = path.join(agentsDir, `${agent.id}.md`);
+    
+    try {
+      // Check if source file exists
+      await fs.access(sourcePath);
+      await fs.copyFile(sourcePath, destPath);
+      
+      if (options.quiet !== true) {
+        console.log(`  ✅ ${agent.id}`);
+      }
+    } catch {
+      // If source file doesn't exist, create a placeholder
+      if (options.verbose === true) {
+        logger.warn(`Source file not found: ${sourcePath}, creating placeholder`);
+      }
+      
+      const agentContent = `# ${agent.name}
+
+${agent.description}
+
+This is a placeholder for the ${agent.name} subagent.
+`;
+
+      await fs.writeFile(destPath, agentContent);
+      
+      if (options.quiet !== true) {
+        console.log(`  ✅ ${agent.id} (placeholder)`);
+      }
+    }
+  }
+}
+
+/**
+ * Perform improved three-step selection: command groups, hook groups, then agents
+ */
+async function performThreeStepSelection(projectInfo: ProjectInfo): Promise<{ components: string[], selectedAgents: string[] }> {
   const selectedComponents: string[] = [];
 
   // Step 1: Command Group Selection
@@ -273,7 +354,30 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
     }
   }
 
-  return selectedComponents;
+  // Step 3: Agent Selection
+  console.log(`\n${Colors.bold('Step 3: Choose Subagents')}`); 
+  console.log(Colors.dim('Select AI assistant subagents to install'));
+
+  const agentChoices = AGENTS.map((agent) => ({
+    value: agent.id,
+    name: `${agent.name}\n  ${Colors.dim(agent.description)}`,
+    checked: true, // Default to checked
+    disabled: false,
+  }));
+
+  console.log(
+    Colors.dim(
+      `\n(${AGENTS.length} agents available - use space to toggle, enter to confirm)\n`
+    )
+  );
+
+  const selectedAgents = (await checkbox({
+    message: 'Select subagents to install:',
+    choices: agentChoices,
+    pageSize: 10,
+  })) as string[];
+
+  return { components: selectedComponents, selectedAgents };
 }
 
 export interface SetupOptions {
@@ -288,6 +392,9 @@ export interface SetupOptions {
   project?: string;
   commandsOnly?: boolean;
   selectIndividual?: boolean; // Flag for power users to select individual components
+  all?: boolean;
+  skipAgents?: boolean;
+  selectedAgents?: string[]; // Store selected agents for installation
 }
 
 interface SetupConfig {
@@ -317,6 +424,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
   try {
     const isNonInteractive =
       options.yes === true ||
+      options.all === true ||
       options.commands !== undefined ||
       options.hooks !== undefined ||
       options.commandsOnly === true;
@@ -352,8 +460,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 1: Installation type
     let installationType: string;
-    if (options.yes === true || options.commandsOnly === true) {
-      // Default to project for --yes, user only for --commands-only
+    if (options.yes === true || options.all === true || options.commandsOnly === true) {
+      // Default to project for --yes/--all, user only for --commands-only
       installationType = options.commandsOnly === true ? 'user' : 'project';
     } else {
       installationType = await select({
@@ -394,7 +502,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         } catch {
           throw new Error(`No write permission for directory: ${options.project}`);
         }
-      } else if (options.yes !== true && options.commandsOnly !== true) {
+      } else if (options.yes !== true && options.all !== true && options.commandsOnly !== true) {
         const inputPath = await input({
           message: 'Project directory path:',
           default: process.cwd(),
@@ -529,12 +637,17 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (selectedComponents.length === 0) {
         throw new Error('No valid components specified');
       }
-    } else if (options.yes === true || options.commandsOnly === true) {
+    } else if (options.yes === true || options.all === true || options.commandsOnly === true) {
       // Default to essential and recommended components
       selectedComponents = [
         ...recommendations.essential.map((r) => r.component.metadata.id),
         ...recommendations.recommended.map((r) => r.component.metadata.id),
       ];
+      
+      // For --all flag, also select all agents automatically
+      if (options.all === true && options.skipAgents !== true) {
+        options.selectedAgents = AGENTS.map(agent => agent.id);
+      }
     } else if (options.selectIndividual === true) {
       // Legacy individual component selection for power users
       const allComponents = [
@@ -560,8 +673,19 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         choices: allComponents,
       })) as string[];
     } else {
-      // New improved two-step selection process
-      selectedComponents = await performTwoStepSelection(projectInfo);
+      // New improved three-step selection process
+      const selectionResult = await performThreeStepSelection(projectInfo);
+      selectedComponents = selectionResult.components;
+      
+      // Store selected agents for later installation
+      const selectedAgents = selectionResult.selectedAgents;
+      
+      // Install agents if any were selected and not skipped
+      if (selectedAgents !== null && selectedAgents !== undefined && selectedAgents.length > 0 && options.skipAgents !== true) {
+        // Agents will be installed after the main installation step
+        // Store them for later use
+        options.selectedAgents = selectedAgents;
+      }
     }
 
     // Step 5: Set configuration based on selected components
@@ -625,7 +749,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     }
 
     // Ask for confirmation unless non-interactive mode
-    if (options.yes !== true && options.commands === undefined && options.hooks === undefined) {
+    if (options.yes !== true && options.all !== true && options.commands === undefined && options.hooks === undefined) {
       const proceed = await confirm({
         message: '\nProceed with installation?',
         default: true,
@@ -691,7 +815,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
       // Install based on installation type
       const isNonInteractive =
-        options.yes === true || options.commands !== undefined || options.hooks !== undefined;
+        options.yes === true || options.all === true || options.commands !== undefined || options.hooks !== undefined;
 
       const installOptions: InstallOptions = {
         dryRun: options.dryRun ?? false,
@@ -781,6 +905,15 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         );
       }
 
+      // Install agents if selected
+      if (options.selectedAgents !== undefined && options.selectedAgents.length > 0 && config.installationType === 'project') {
+        progressReporter.update('Installing subagents...');
+        await installAgents(options.selectedAgents, config.projectPath, {
+          verbose: options.verbose === true,
+          quiet: options.quiet === true
+        });
+      }
+
       progressReporter.succeed('Installation complete!');
 
       // Clean up settings backup file if it was created
@@ -805,10 +938,20 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       // Complete the install progress reporter
       installProgressReporter.complete();
 
-      // Show next steps unless quiet mode
+      // Show completion summary unless quiet mode
       if (options.quiet !== true) {
-        console.log(`\n${Colors.bold(Colors.success('claudekit setup complete!'))}`);
-        console.log(Colors.dim('─'.repeat(40)));
+        const commandCount = finalComponents.filter(c => c.type === 'command').length;
+        const hookCount = finalComponents.filter(c => c.type === 'hook').length;
+        const agentCount = options.selectedAgents ? options.selectedAgents.length : 0;
+
+        console.log(`\n${Colors.bold(Colors.success('✨ Setup complete! Claude Code now has:'))}`);
+        console.log(`• ${commandCount} slash command${commandCount !== 1 ? 's' : ''}`);
+        console.log(`• ${hookCount} automated hook${hookCount !== 1 ? 's' : ''}`);
+        if (agentCount > 0) {
+          console.log(`• ${agentCount} subagent${agentCount !== 1 ? 's' : ''}`);
+        }
+        
+        console.log(Colors.dim('\n─'.repeat(40)));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
         console.log(`  2. ${Colors.accent('claudekit list')} - See available commands`);

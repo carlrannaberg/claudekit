@@ -50,6 +50,8 @@ program
   .option('-f, --force', 'overwrite existing configuration')
   .option('-t, --template <template>', 'use a specific template', 'default')
   .option('-y, --yes', 'automatic yes to prompts (use default options)')
+  .option('--all', 'install all features without prompting')
+  .option('--skip-agents', 'skip subagent installation')
   .option('--commands <list>', 'comma-separated list of command IDs to install')
   .option('--hooks <list>', 'comma-separated list of hook IDs to install')
   .option('--project <path>', 'target directory for project installation')

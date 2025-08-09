@@ -190,7 +190,85 @@ claudekit-hooks stats
 claudekit-hooks recent 5
 ```
 
+## Subagents
+
+Claudekit includes a library of specialized subagents that enhance Claude Code with domain expertise:
+
+### Available Agents
+
+- **TypeScript Expert**: Comprehensive TypeScript/JavaScript guidance
+  - Type system debugging
+  - Build configuration
+  - Module resolution
+  - Best practices
+
+### Installation
+
+Subagents are installed during initial setup:
+
+```bash
+# Interactive setup (select Subagents when prompted)
+claudekit setup
+
+# Install everything including agents
+claudekit setup --all
+
+# Skip agents if not needed
+claudekit setup --skip-agents
+```
+
+### Usage
+
+Once installed, Claude Code automatically delegates to appropriate subagents based on your task. For example:
+
+- "Fix this TypeScript error" → Delegates to typescript-expert
+- "Optimize my build" → Delegates to typescript-expert
+- "Help with React hooks" → Uses general assistance (React agent coming soon)
+
+### Custom Agents
+
+Create your own agents by adding markdown files to `.claude/agents/`:
+
+```markdown
+---
+name: my-expert
+description: My domain expertise
+tools: Read, Grep, Edit
+---
+
+# System prompt here
+```
+
+See `src/agents/` for examples.
+
+### How It Works
+
+1. During setup, agents are copied from `src/agents/` to `.claude/agents/`
+2. Claude Code automatically discovers agents in `.claude/agents/`
+3. When you ask a question, Claude evaluates if any agent matches
+4. If a match is found, Claude delegates to that agent's expertise
+5. The agent operates in a clean context with focused knowledge
+
+### Contributing Agents
+
+We welcome community contributions! To add a new agent:
+
+1. Fork the repository
+2. Create your agent in `src/agents/[domain]/[name].md`
+3. Add it to the agents array in `cli/commands/setup.ts`
+4. Test with real scenarios
+5. Submit a pull request
+
+See [Agent Authoring Guide](src/agents/README.md) for detailed guidelines.
+
 ## Features
+
+### 🤖 Subagents
+Specialized domain expert AI assistants:
+- **TypeScript Expert** - Comprehensive TypeScript/JavaScript guidance
+- **Custom Agents** - Create your own domain experts
+- **Automatic Delegation** - Claude routes tasks to the best expert
+- **Agent Library** - Growing collection of community agents
 
 ### 🛡️ Embedded Hooks System
 Automatically enforce code quality and run tests with the built-in TypeScript hooks system:
