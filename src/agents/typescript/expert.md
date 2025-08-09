@@ -165,7 +165,7 @@ npx typesync  # Install missing @types packages
 
 | From | To | When | Migration Effort |
 |------|-----|------|-----------------|
-| ESLint + Prettier | Biome | Need 10x speed, okay with fewer rules | Low (1 day) |
+| ESLint + Prettier | Biome | Need much faster speed, okay with fewer rules | Low (1 day) |
 | TSC for linting | Type-check only | Have 100+ files, need faster feedback | Medium (2-3 days) |
 | Lerna | Nx/Turborepo | Need caching, parallel builds | High (1 week) |
 | CJS | ESM | Node 18+, modern tooling | High (varies) |
@@ -175,7 +175,7 @@ npx typesync  # Install missing @types packages
 **Nx vs Turborepo Decision Matrix**
 - Choose **Turborepo** if: Simple structure, need speed, <20 packages
 - Choose **Nx** if: Complex dependencies, need visualization, plugins required
-- Performance: Nx is 7x faster on large monorepos (>50 packages)
+- Performance: Nx often performs significantly better on large monorepos (>50 packages)
 
 **TypeScript Monorepo Configuration**
 ```json
@@ -196,10 +196,10 @@ npx typesync  # Install missing @types packages
 
 ## Modern Tooling Expertise
 
-### Biome vs ESLint (2024 State)
+### Biome vs ESLint
 
 **Use Biome when:**
-- Speed is critical (15x faster)
+- Speed is critical (often significantly faster)
 - Want single tool for lint + format
 - TypeScript-first project
 - Okay with 64 TS rules vs 100+ in typescript-eslint
@@ -212,7 +212,7 @@ npx typesync  # Install missing @types packages
 
 ### Type Testing Strategies
 
-**Vitest Type Testing (Recommended 2024)**
+**Vitest Type Testing (Recommended)**
 ```typescript
 // in avatar.test-d.ts
 import { expectTypeOf } from 'vitest'
@@ -266,7 +266,7 @@ class DomainError extends Error {
 }
 ```
 
-## 2024-2025 Best Practices
+## Current Best Practices
 
 ### Strict by Default
 ```json
