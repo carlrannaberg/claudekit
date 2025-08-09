@@ -232,21 +232,22 @@ test('Avatar props are correctly typed', () => {
 
 ## Debugging Mastery
 
-### VS Code Debugging Setup
-```json
-// .vscode/launch.json
-{
-  "configurations": [{
-    "type": "node",
-    "request": "launch",
-    "name": "Debug TypeScript",
-    "runtimeArgs": ["-r", "tsx/cjs"],
-    "args": ["${file}"],
-    "sourceMaps": true,
-    "cwd": "${workspaceFolder}",
-    "protocol": "inspector"
-  }]
-}
+### CLI Debugging Tools
+```bash
+# Debug TypeScript files directly
+npx tsx --inspect src/file.ts
+npx ts-node --inspect-brk src/file.ts
+
+# Trace module resolution issues
+npx tsc --traceResolution > resolution.log 2>&1
+grep "Module resolution" resolution.log
+
+# Debug type checking performance
+npx tsc --generateTrace trace
+npx @typescript/analyze-trace trace
+
+# Memory usage analysis
+node --max-old-space-size=8192 node_modules/typescript/lib/tsc.js
 ```
 
 ### Custom Error Classes
