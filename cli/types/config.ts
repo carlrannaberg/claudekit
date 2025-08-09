@@ -12,7 +12,7 @@ export const PlatformSchema = z.enum(['darwin', 'linux', 'win32', 'all']);
 /**
  * Component type schema
  */
-export const ComponentTypeSchema = z.enum(['command', 'hook']);
+export const ComponentTypeSchema = z.enum(['command', 'hook', 'agent']);
 
 /**
  * Package manager schema

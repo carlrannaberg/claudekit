@@ -55,7 +55,7 @@ program
   .option('--commands <list>', 'comma-separated list of command IDs to install')
   .option('--hooks <list>', 'comma-separated list of hook IDs to install')
   .option('--project <path>', 'target directory for project installation')
-  .option('--commands-only', 'install only commands in user directory (~/.claude)')
+  .option('--user', 'install in user directory (~/.claude) instead of project')
   .option('--select-individual', 'use legacy individual component selection instead of groups')
   .action(async (options) => {
     try {

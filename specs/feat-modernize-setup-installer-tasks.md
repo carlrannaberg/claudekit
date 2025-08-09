@@ -547,7 +547,7 @@ function recommendComponents(projectInfo: ProjectInfo): Component[] {
 - --commands flag for component selection
 - --hooks flag for hook selection
 - --project flag for target directory
-- --commands-only flag
+- --user flag
 - --dry-run flag
 
 **Implementation Steps**:

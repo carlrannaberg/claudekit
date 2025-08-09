@@ -272,8 +272,7 @@ describe('Setup Command - Non-Interactive Flags', () => {
           debug: vi.fn(),
           success: vi.fn(),
           setLevel: vi.fn(),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any
+        }) as unknown as InstanceType<typeof logger.Logger>
     );
 
     // Mock console methods to prevent error output during tests
@@ -639,10 +638,10 @@ describe('Setup Command - Non-Interactive Flags', () => {
     });
   });
 
-  describe('--commands-only flag', () => {
+  describe('--user flag', () => {
     it('should install only to user directory', async () => {
       const options: SetupOptions = {
-        commandsOnly: true,
+        user: true,
         quiet: true,
       };
 
@@ -650,9 +649,9 @@ describe('Setup Command - Non-Interactive Flags', () => {
       await expect(setup(options)).resolves.not.toThrow();
     });
 
-    it('should use default components with --commands-only', async () => {
+    it('should use default components with --user', async () => {
       const options: SetupOptions = {
-        commandsOnly: true,
+        user: true,
         quiet: true,
       };
 

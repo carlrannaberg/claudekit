@@ -425,8 +425,14 @@ export class ComponentProgressReporter {
   /**
    * Complete component operations
    */
-  complete(): void {
-    this.reporter.succeed(`Installed ${this.components.length} components`);
+  complete(additionalItems?: { agentCount?: number }): void {
+    if (additionalItems?.agentCount !== undefined && additionalItems.agentCount > 0) {
+      const componentText = this.components.length === 1 ? 'component' : 'components';
+      const agentText = additionalItems.agentCount === 1 ? 'subagent' : 'subagents';
+      this.reporter.succeed(`Installed ${this.components.length} ${componentText} and ${additionalItems.agentCount} ${agentText}`);
+    } else {
+      this.reporter.succeed(`Installed ${this.components.length} ${this.components.length === 1 ? 'component' : 'components'}`);
+    }
   }
 
   /**

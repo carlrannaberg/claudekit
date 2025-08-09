@@ -292,12 +292,14 @@ export async function createInstallPlan(
   if (installation.target === 'user' || installation.target === 'both') {
     directories.add(userDir);
     directories.add(path.join(userDir, 'commands'));
+    directories.add(path.join(userDir, 'agents'));
     // Hook directories removed - hooks are now embedded
   }
 
   if (installation.target === 'project' || installation.target === 'both') {
     directories.add(projectDir);
     directories.add(path.join(projectDir, 'commands'));
+    directories.add(path.join(projectDir, 'agents'));
     // Hook directories removed - hooks are now embedded
   }
 
@@ -306,6 +308,7 @@ export async function createInstallPlan(
     const customPath = normalizePath(options.customPath);
     directories.add(customPath);
     directories.add(path.join(customPath, 'commands'));
+    directories.add(path.join(customPath, 'agents'));
     // Hook directories removed - hooks are now embedded
   }
 
@@ -317,7 +320,7 @@ export async function createInstallPlan(
     }
 
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = 'commands'; // Only commands are copied now
+    const componentTypeDir = component.type === 'agent' ? 'agents' : 'commands';
 
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;
@@ -388,7 +391,7 @@ export async function createInstallPlan(
     const targets: string[] = [];
 
     // Calculate relative path from source base to preserve directory structure
-    const componentTypeDir = 'commands'; // Only commands are copied now
+    const componentTypeDir = component.type === 'agent' ? 'agents' : 'commands';
 
     // Use basename as fallback if sourceDir is not available (e.g., in tests)
     let relativePath: string;

@@ -47,7 +47,7 @@ interface ComponentFile {
   lastModified: Date;
 }
 
-interface ComponentRegistry {
+export interface ComponentRegistry {
   components: Map<string, ComponentFile>;
   dependencies: Map<string, Set<string>>;
   dependents: Map<string, Set<string>>;
@@ -625,14 +625,19 @@ function inferCategory(
 /**
  * Create component ID from file path
  */
-function createComponentId(filePath: string, _type: ComponentType): string {
+function createComponentId(filePath: string, type: ComponentType): string {
   const fileName = path.basename(filePath, '.md');
   const parentDir = path.basename(path.dirname(filePath));
 
-  if (parentDir === 'commands') {
+  if (parentDir === 'commands' || parentDir === 'agents') {
     return fileName;
   }
 
+  // For nested components (e.g., commands/git/status.md or agents/typescript/expert.md)
+  if (type === 'agent') {
+    return `${parentDir}-${fileName}`;
+  }
+  
   return `${parentDir}:${fileName}`;
 }
 
@@ -740,8 +745,8 @@ async function scanDirectory(dirPath: string, type: ComponentType): Promise<Comp
     return components;
   }
 
-  // Only scan for command files since hooks are embedded
-  if (type !== 'command') {
+  // Only scan for command and agent files since hooks are embedded
+  if (type !== 'command' && type !== 'agent') {
     return [];
   }
   const extension = '.md';
@@ -1178,12 +1183,14 @@ export async function discoverComponents(
   registry.categories.clear();
 
   const commandsDir = path.join(baseDir, 'commands');
+  const agentsDir = path.join(baseDir, 'agents');
 
-  // Scan for command components only
+  // Scan for command and agent components
   const commandFiles = await scanDirectory(commandsDir, 'command');
+  const agentFiles = await scanDirectory(agentsDir, 'agent');
 
-  // Use predefined embedded hooks instead of scanning for hook files
-  const allComponents = [...commandFiles, ...EMBEDDED_HOOK_COMPONENTS];
+  // Use predefined embedded hooks, but scan for actual agent files
+  const allComponents = [...commandFiles, ...agentFiles, ...EMBEDDED_HOOK_COMPONENTS];
 
   // Filter components based on options
   let filteredComponents = allComponents;

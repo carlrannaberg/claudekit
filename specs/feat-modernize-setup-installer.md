@@ -755,8 +755,8 @@ npx claudekit setup --yes \
   --hooks "auto-checkpoint,typecheck" \
   --project "/path/to/project"
 
-# Commands only
-npx claudekit setup --yes --commands-only
+# User installation
+npx claudekit setup --yes --user
 
 # Dry run
 npx claudekit setup --dry-run --verbose
