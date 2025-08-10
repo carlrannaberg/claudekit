@@ -113,6 +113,11 @@ Add YAML frontmatter with required and optional fields:
 name: my-agent
 description: Use this agent for [specific tasks]. Use PROACTIVELY when [conditions].
 tools: Bash, Read, Grep  # Optional - inherits all tools if omitted
+category: technology     # 'universal', 'technology', or 'optional'
+universal: false         # true for universal helpers (overrides category)
+defaultSelected: false   # true to pre-select in setup
+displayName: My Agent    # Human-readable name for UI
+bundle: [related-agent]  # Optional: agents to install together
 ---
 ```
 
@@ -172,49 +177,79 @@ Situation? → Decision
 - [Best practices guides]
 ```
 
-### Step 5: Register the Agent in Setup System
+### Step 5: Making Your Agent Appear in Setup
 
-For the agent to appear in `claudekit setup`, update the grouping logic in `cli/lib/agents/registry-grouping.ts`:
+The claudekit system **automatically discovers** your agent and groups it based on metadata:
 
 #### For Universal Agents
-If your agent should be available for all projects (like oracle, code-reviewer):
-1. Add `universal: true` to your agent's frontmatter (as metadata)
-2. The agent will automatically appear in the "Universal Helpers" section
+Agents available for all projects (like oracle, code-reviewer):
+```yaml
+---
+name: oracle
+description: Advanced analysis expert...
+universal: true
+defaultSelected: true  # Optional: pre-selected by default
+---
+```
+✅ **No code changes needed** - Just set `universal: true`
 
-#### For Technology-Specific Agents  
-If your agent is for a specific technology stack:
-1. Update the `technology` filter in `groupAgents()` function:
+#### For Technology-Specific Agents
+Agents for specific technology stacks:
+```yaml
+---
+name: python-expert
+description: Python development expert
+category: technology
+universal: false
+bundle: [python-linter, python-formatter]  # Optional: related agents
+---
+```
+⚠️ **Currently requires code change** in `cli/lib/agents/registry-grouping.ts`:
 ```typescript
-// Add your technology keyword to the filter
-return ['typescript', 'react', 'nodejs', 'nextjs', 'docker', 'github-actions', 'your-tech'].some(
-  tech => a.id.includes(tech)
-);
+// Update the technology filter to use category metadata:
+const technology = agentComponents.filter((a) => {
+  if (a.universal === true) return false;
+  return a.category === 'technology';  // Use metadata instead of keywords
+});
 ```
 
-#### For Mutually Exclusive Agents
-If your agent is part of a radio group (e.g., test frameworks, databases):
-1. Add to `AGENT_RADIO_GROUPS` array:
+#### For Optional/Specialized Agents
+Agents that are optional extras:
+```yaml
+---
+name: accessibility-expert
+description: Accessibility testing expert
+category: optional
+universal: false
+---
+```
+⚠️ **Currently requires code change** in `cli/lib/agents/registry-grouping.ts`:
+```typescript
+// Update the optional filter to use category metadata:
+const optional = agentComponents.filter((a) => {
+  if (a.universal === true) return false;
+  return a.category === 'optional';  // Use metadata instead of keywords
+});
+```
+
+#### For Mutually Exclusive Agents (Radio Groups)
+For test frameworks, databases, etc. that are mutually exclusive:
+1. Add appropriate metadata to the agent
+2. Update `AGENT_RADIO_GROUPS` in `cli/lib/agents/registry-grouping.ts`:
 ```typescript
 {
-  id: 'your-category',
-  title: 'Your Category',
+  id: 'test-framework',
+  title: 'Test Framework',
   type: 'radio',
   options: [
-    { id: 'option1', label: 'Option 1', agents: ['your-agent-1'] },
-    { id: 'option2', label: 'Option 2', agents: ['your-agent-2'] },
+    { id: 'jest', label: 'Jest', agents: ['jest-expert'] },
+    { id: 'vitest', label: 'Vitest', agents: ['vitest-expert'] },
+    { id: 'both', label: 'Both', agents: ['jest-expert', 'vitest-expert'] },
     { id: 'none', label: 'None', agents: [] },
   ],
 }
 ```
-
-#### For Optional Agents
-If your agent is optional/specialized:
-1. Update the `optional` filter:
-```typescript
-return ['playwright', 'css', 'accessibility', 'devops', 'your-keyword'].some(
-  keyword => a.id.includes(keyword)
-);
-```
+⚠️ **Requires code changes** - Radio groups define mutual exclusivity relationships
 
 ### Step 6: Create the Symlink
 
@@ -261,12 +296,13 @@ For integration with `claudekit setup`, these additional metadata fields can be 
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `universal` | boolean | If true, appears in "Universal Helpers" section | `true` |
-| `displayName` | string | Human-readable name for setup UI | `Oracle (GPT-5)` |
-| `category` | string | Category for organization | `universal`, `testing` |
+| `category` | string | Agent grouping: `technology`, `optional` | `technology` |
+| `universal` | boolean | If true, appears in "Universal Helpers" section (overrides category) | `true` |
 | `defaultSelected` | boolean | Pre-selected in setup | `true` |
+| `displayName` | string | Human-readable name for setup UI | `Oracle (GPT-5)` |
+| `bundle` | string[] | Related agents to install together | `[python-linter, python-formatter]` |
 
-**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec.
+**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec. The `universal` field works automatically, but `category` currently requires updating the grouping logic in `registry-grouping.ts`.
 
 ## Writing Effective Subagents
 
