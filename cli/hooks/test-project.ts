@@ -37,17 +37,12 @@ export class TestProjectHook extends BaseHook {
       return { exitCode: 0 };
     }
 
-    // Check if output was cut off (likely timeout)
-    const output = result.stdout + result.stderr;
-    if (
-      output.includes('RUN  v') &&
-      !output.includes('Test Files') &&
-      !output.includes('✓') &&
-      !output.includes('✗')
-    ) {
+    // Robust timeout handling: rely on exec metadata instead of output heuristics
+    if (result.timedOut === true) {
       console.error('████ Test Suite Timeout ████\n');
+      const durationText = result.durationMs !== undefined ? ` after ${result.durationMs}ms` : '';
       console.error(
-        "The test suite was terminated due to Claude Code's 60-second hook timeout limit.\n"
+        `The test suite was terminated${durationText} due to the hook timeout limit.\n`
       );
 
       const customCommand = this.config['testCommand'] as string;
@@ -70,10 +65,7 @@ export class TestProjectHook extends BaseHook {
       }
 
       console.error('2. Disable test-project hook in .claude/settings.json');
-      console.error(
-        '3. Increase the timeout in .claude/settings.json (if Claude Code supports it):'
-      );
-      console.error('   Note: Claude Code has a 60s default timeout, configurable per command\n');
+      console.error('3. Increase the timeout if supported by your environment');
       console.error('4. Run tests manually when needed: npm test');
       return { exitCode: 0 }; // Don't block on timeout
     }

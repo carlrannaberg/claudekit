@@ -294,11 +294,13 @@ describe('utils', () => {
 
       const result = await execCommand('npm', ['test'], { cwd: '/test/dir' });
 
-      expect(result).toEqual({
-        stdout: 'Success output',
-        stderr: 'Some warnings',
-        exitCode: 0,
-      });
+      expect(result).toEqual(
+        expect.objectContaining({
+          stdout: 'Success output',
+          stderr: 'Some warnings',
+          exitCode: 0,
+        })
+      );
       expect(mockExec).toHaveBeenCalledWith(
         'npm test',
         {
@@ -330,11 +332,13 @@ describe('utils', () => {
 
       const result = await execCommand('npm', ['test']);
 
-      expect(result).toEqual({
-        stdout: 'Partial output',
-        stderr: 'Error output',
-        exitCode: 1,
-      });
+      expect(result).toEqual(
+        expect.objectContaining({
+          stdout: 'Partial output',
+          stderr: 'Error output',
+          exitCode: 1,
+        })
+      );
     });
 
     it('should use default options when not provided', async () => {
@@ -352,7 +356,7 @@ describe('utils', () => {
       await execCommand('ls');
 
       expect(mockExec).toHaveBeenCalledWith(
-        'ls ',
+        'ls',
         {
           cwd: process.cwd(),
           timeout: 30000,
