@@ -236,9 +236,16 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     // Check color validity
     if (frontmatter['color'] !== undefined && frontmatter['color'] !== null && typeof frontmatter['color'] === 'string') {
       const color = frontmatter['color'] as string;
-      // Check if it's not a hex color and not a standard CSS color
-      if (!color.startsWith('#') && !CSS_NAMED_COLORS.has(color.toLowerCase())) {
-        result.suggestions.push(`Color "${color}" is not a standard CSS named color (but may still work in Claude Code)`);
+      const hexColorRegex = /^#[0-9A-F]{6}([0-9A-F]{2})?$/i;
+      
+      if (color.startsWith('#')) {
+        // Validate hex color format
+        if (!hexColorRegex.test(color)) {
+          result.warnings.push(`Invalid hex color format: "${color}" (should be #RRGGBB or #RRGGBBAA)`);
+        }
+      } else if (!CSS_NAMED_COLORS.has(color.toLowerCase())) {
+        // Not a standard CSS named color
+        result.suggestions.push(`Color "${color}" is not a standard CSS named color`);
       }
     }
     
