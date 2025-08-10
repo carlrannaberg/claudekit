@@ -1,12 +1,11 @@
 ---
 name: vitest-expert
-description: Vitest testing framework expert for Vite integration, Jest migration, browser mode testing, and performance optimization
+description: >-
+  Vitest testing framework expert for Vite integration, Jest migration, browser
+  mode testing, and performance optimization
 category: testing
-version: 1.0.0
-author: claudekit
-tags: [testing, vitest, vite, jest-migration, browser-testing, performance]
-created: 2025-08-10
-modified: 2025-08-10
+created: 2025-08-10T00:00:00.000Z
+modified: 2025-08-10T00:00:00.000Z
 color: teal
 displayName: Vitest Expert
 ---

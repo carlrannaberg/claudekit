@@ -9,7 +9,7 @@ last_updated: 2025-08-10
 dependencies:
   - "@playwright/test"
   - Node.js 16+
-allowed-tools:
+tools:
   - Bash
   - Read
   - Write

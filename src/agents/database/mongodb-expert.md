@@ -15,7 +15,7 @@ triggers:
   - Transaction handling in multi-document operations
   - Memory usage and query timeout issues
   - MongoDB security and authentication setup
-allowed-tools:
+tools:
   - Bash(mongosh:*, mongo:*)
   - Read
   - Grep

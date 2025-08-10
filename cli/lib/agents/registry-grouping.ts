@@ -93,6 +93,7 @@ function toAgentComponent(component: unknown): AgentComponent {
     };
   };
   const metadata = comp.metadata;
+  
   return {
     id: metadata.id,
     name: metadata.name,

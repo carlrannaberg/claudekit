@@ -12,7 +12,7 @@ triggers:
   - Index strategy and optimization needs
   - Database security and access control
   - Backup, monitoring, and maintenance tasks
-allowed-tools:
+tools:
   - Bash(psql:*, mysql:*, mongosh:*, sqlite3:*)
   - Read
   - Grep

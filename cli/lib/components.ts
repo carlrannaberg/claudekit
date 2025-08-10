@@ -719,15 +719,21 @@ async function parseComponentFile(
       }),
       ...(type === 'agent' && rawMetadata['bundle'] !== undefined && {
         bundle: ((): string[] => {
-          if (typeof rawMetadata['bundle'] === 'string') {
+          const bundleValue = rawMetadata['bundle'];
+          
+          if (typeof bundleValue === 'string') {
             // Parse string format like "[typescript-type-expert, typescript-build-expert]"
-            return rawMetadata['bundle']
+            return bundleValue
               .replace(/^\[|\]$/g, '')
               .split(',')
-              .map((s: string) => s.trim());
+              .map((s: string) => s.trim())
+              .filter((s: string) => s.length > 0); // Filter out empty strings
           }
-          if (Array.isArray(rawMetadata['bundle'])) {
-            return rawMetadata['bundle'] as string[];
+          if (Array.isArray(bundleValue)) {
+            // Ensure all items are non-empty strings
+            const filtered = bundleValue
+              .filter((item): item is string => typeof item === 'string' && item.length > 0);
+            return filtered;
           }
           return [];
         })(),

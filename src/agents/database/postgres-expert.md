@@ -13,7 +13,7 @@ triggers:
   - PostgreSQL-specific extensions and features
   - Transaction isolation and lock contention issues
   - WAL configuration and checkpoint tuning
-allowed-tools:
+tools:
   - Bash(psql:*, pg_dump:*, pg_restore:*, pg_basebackup:*)
   - Read
   - Grep
