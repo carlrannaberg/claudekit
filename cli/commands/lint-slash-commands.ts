@@ -89,7 +89,7 @@ function validateAllowedTools(tools: string | undefined): string[] {
   const validToolPatterns = [
     'Read', 'Write', 'Edit', 'MultiEdit', 'Bash', 'Grep', 'Glob', 'LS',
     'Task', 'NotebookEdit', 'WebFetch', 'WebSearch', 'TodoWrite',
-    'BashOutput', 'KillBash'
+    'BashOutput', 'KillBash', 'ExitPlanMode'
   ];
   
   // Parse tools - they can have restrictions like Bash(git:*)
@@ -99,8 +99,11 @@ function validateAllowedTools(tools: string | undefined): string[] {
     // Extract base tool name (e.g., "Bash(git:*)" -> "Bash")
     const baseTool = tool.split('(')[0]?.trim() ?? '';
     
-    // Check if it's a known tool
-    if (baseTool !== '' && !validToolPatterns.includes(baseTool)) {
+    // Check if it's an MCP tool (format: mcp__<server>__<tool>)
+    const isMcpTool = baseTool.startsWith('mcp__');
+    
+    // Check if it's a known tool or MCP tool
+    if (baseTool !== '' && !validToolPatterns.includes(baseTool) && !isMcpTool) {
       warnings.push(`Unknown tool: ${baseTool}`);
     }
     
