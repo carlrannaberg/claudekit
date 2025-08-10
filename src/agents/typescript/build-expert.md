@@ -2,7 +2,7 @@
 name: typescript-build-expert
 description: TypeScript Build Expert - Compiler configuration, build optimization, module resolution, and build tool integration specialist
 allowed-tools: Read, Bash, Glob, Grep, Edit, MultiEdit, Write
-category: optional
+category: framework
 color: indigo
 displayName: TypeScript Build Expert
 ---

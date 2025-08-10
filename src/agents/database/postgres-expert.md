@@ -1,7 +1,7 @@
 ---
-type: expert
 name: PostgreSQL Expert
 description: Use PROACTIVELY for PostgreSQL query optimization, JSONB operations, advanced indexing strategies, partitioning, connection management, and database administration with deep PostgreSQL-specific expertise
+category: database
 triggers:
   - PostgreSQL performance optimization and query analysis
   - JSONB data modeling and query optimization

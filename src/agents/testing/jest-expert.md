@@ -1,6 +1,7 @@
 ---
 name: Jest Testing Expert
 description: Expert in Jest testing framework, advanced mocking strategies, snapshot testing, async patterns, TypeScript integration, and performance optimization
+category: testing
 version: 1.0.0
 author: ClaudeKit
 tags: [testing, jest, mocking, snapshots, async, performance, typescript, configuration]

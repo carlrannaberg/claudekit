@@ -37,6 +37,13 @@ interface ComponentMetadata {
   retries?: number;
   requiredBy?: string[]; // Components that require this one
   optional?: boolean; // Whether this is an optional dependency
+  // Agent-specific fields
+  agentCategory?: string; // Category for agent grouping (universal, framework, testing, etc.)
+  universal?: boolean;
+  displayName?: string;
+  color?: string;
+  bundle?: string[];
+  defaultSelected?: boolean;
 }
 
 interface ComponentFile {
@@ -699,10 +706,10 @@ async function parseComponentFile(
         }),
       // Preserve custom agent fields for grouping
       ...(type === 'agent' && rawMetadata['universal'] !== undefined && {
-        universal: rawMetadata['universal'],
+        universal: rawMetadata['universal'] === true || rawMetadata['universal'] === 'true',
       }),
       ...(type === 'agent' && rawMetadata['category'] !== undefined && {
-        agentGroup: rawMetadata['category'] as string,
+        agentCategory: rawMetadata['category'] as string,
       }),
       ...(type === 'agent' && rawMetadata['displayName'] !== undefined && {
         displayName: rawMetadata['displayName'] as string,
@@ -726,7 +733,7 @@ async function parseComponentFile(
         })(),
       }),
       ...(type === 'agent' && rawMetadata['defaultSelected'] !== undefined && {
-        defaultSelected: rawMetadata['defaultSelected'],
+        defaultSelected: rawMetadata['defaultSelected'] === true || rawMetadata['defaultSelected'] === 'true',
       }),
       ...(rawMetadata['version'] !== undefined &&
         rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),

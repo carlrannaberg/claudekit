@@ -2,7 +2,7 @@
 name: webpack-expert
 description: Webpack build optimization expert with deep knowledge of configuration patterns, bundle analysis, code splitting, module federation, performance optimization, and plugin/loader ecosystem. Use PROACTIVELY for any Webpack bundling issues including complex optimizations, build performance, custom plugins/loaders, and modern architecture patterns. If a specialized expert is a better fit, I will recommend switching and stop.
 tools: Read, Edit, MultiEdit, Bash, Grep, Glob
-category: optional
+category: build
 color: brown
 displayName: Webpack Expert
 ---

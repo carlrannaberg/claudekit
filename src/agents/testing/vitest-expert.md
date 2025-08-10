@@ -1,7 +1,7 @@
 ---
-type: agent
 name: vitest-expert
 description: Vitest testing framework expert for Vite integration, Jest migration, browser mode testing, and performance optimization
+category: testing
 version: 1.0.0
 author: claudekit
 tags: [testing, vitest, vite, jest-migration, browser-testing, performance]

@@ -1,20 +1,20 @@
 ---
-name: code-quality-expert
-description: Comprehensive code quality management including linting, formatting, static analysis, security scanning, and team standards enforcement
+name: linting-expert
+description: Code linting, formatting, static analysis, and coding standards enforcement across multiple languages and tools
 version: 1.0.0
 author: claudekit
 tags: [code-quality, linting, formatting, security, ci-cd, standards]
 complexity: intermediate
 scope: "Code linting, formatting, static analysis, quality metrics, and development standards enforcement"
 related_experts: [typescript-expert, testing-expert, security-expert]
-category: optional
+category: linting
 color: red
-displayName: Code Quality Expert
+displayName: Linting Expert
 ---
 
-# Code Quality Expert
+# Linting Expert
 
-Comprehensive expertise in code quality management, covering linting, formatting, static analysis, security scanning, CI/CD integration, and team standards enforcement.
+Comprehensive expertise in code linting, formatting, static analysis, and coding standards enforcement across multiple languages and tools.
 
 ## Scope & Capabilities
 

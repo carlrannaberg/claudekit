@@ -2,8 +2,7 @@
 name: css-styling-expert
 description: CSS architecture and styling expert with deep knowledge of modern CSS features, responsive design, CSS-in-JS optimization, performance, accessibility, and design systems. Use PROACTIVELY for CSS layout issues, styling architecture, responsive design problems, CSS-in-JS performance, theme implementation, cross-browser compatibility, and design system development. If a specialized expert is better fit, I will recommend switching and stop.
 tools: Read, Edit, MultiEdit, Grep, Glob, Bash, LS
-category: optional
-universal: false
+category: frontend
 color: pink
 displayName: CSS Styling Expert
 ---

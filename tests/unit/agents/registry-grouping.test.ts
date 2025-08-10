@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { groupAgents, type AgentComponent, type RadioGroup } from '../../../cli/lib/agents/registry-grouping.js';
+import { 
+  groupAgentsByCategory, 
+  calculateSelectedAgents,
+  getAgentDisplayName,
+  type AgentComponent,
+  type AgentCategoryGroup 
+} from '../../../cli/lib/agents/registry-grouping.js';
 import { discoverComponents } from '../../../cli/lib/components.js';
 import { findComponentsDirectory } from '../../../cli/lib/paths.js';
 import type { ComponentRegistry } from '../../../cli/lib/components.js';
@@ -12,146 +18,139 @@ describe('Agent Grouping', () => {
     registry = await discoverComponents(sourceDir);
   });
 
-  describe('Dynamic Radio Groups', () => {
-    it('should create radio groups based on prefixes', async () => {
-      const groups = groupAgents(registry);
+  describe('Category-based grouping', () => {
+    it('should group agents by their categories', async () => {
+      const groups = groupAgentsByCategory(registry);
       
-      // Should have radio groups for testing, database, and build-tools
-      expect(groups.radioGroups).toBeDefined();
-      expect(groups.radioGroups.length).toBeGreaterThan(0);
+      // Should have various category groups
+      expect(groups).toBeDefined();
+      expect(groups.length).toBeGreaterThan(0);
       
-      const radioGroupIds = groups.radioGroups.map((g: RadioGroup) => g.id);
-      expect(radioGroupIds).toContain('test-framework');
-      expect(radioGroupIds).toContain('database');
-      expect(radioGroupIds).toContain('build-tool');
+      const categoryNames = groups.map((g: AgentCategoryGroup) => g.category);
+      
+      // Check for expected categories
+      expect(categoryNames).toContain('general');
+      expect(categoryNames).toContain('framework');
+      expect(categoryNames).toContain('testing');
+      expect(categoryNames).toContain('database');
+      expect(categoryNames).toContain('build');
     });
 
-    it('should include all testing agents in test-framework group', async () => {
-      const groups = groupAgents(registry);
-      const testGroup = groups.radioGroups.find((g: RadioGroup) => g.id === 'test-framework');
+    it('should include all testing agents in testing category', async () => {
+      const groups = groupAgentsByCategory(registry);
+      const testGroup = groups.find((g: AgentCategoryGroup) => g.category === 'testing');
       
       expect(testGroup).toBeDefined();
       if (testGroup) {
-        const allAgents = testGroup.options.flatMap((o) => o.agents);
-        // Test framework group should contain unit test frameworks
-        expect(allAgents).toContain('testing-jest-expert');
-        expect(allAgents).toContain('testing-vitest-expert');
+        const agentIds = testGroup.agents.map((a: AgentComponent) => a.id);
         
-        // Verify Playwright is NOT in test-framework group (it's E2E, not unit testing)
-        const playwrightInGroup = allAgents.some((id: string) => id.includes('playwright'));
-        expect(playwrightInGroup).toBe(false);
+        // Testing category should contain all test frameworks
+        expect(agentIds).toContain('testing-jest-expert');
+        expect(agentIds).toContain('testing-vitest-expert');
+        expect(agentIds).toContain('testing-expert');
+        
+        // Should now include Playwright in testing category
+        expect(agentIds).toContain('e2e-playwright-expert');
       }
     });
 
-    it('should not have build tools in optional section', async () => {
-      const groups = groupAgents(registry);
+    it('should have build tools in build category', async () => {
+      const groups = groupAgentsByCategory(registry);
+      const buildGroup = groups.find((g: AgentCategoryGroup) => g.category === 'build');
       
-      const buildToolsInOptional = groups.optional.filter((a: AgentComponent) => 
-        a.id.includes('vite') || a.id.includes('webpack')
-      );
-      
-      expect(buildToolsInOptional).toHaveLength(0);
+      expect(buildGroup).toBeDefined();
+      if (buildGroup) {
+        const agentIds = buildGroup.agents.map((a: AgentComponent) => a.id);
+        expect(agentIds).toContain('build-tools-vite-expert');
+        expect(agentIds).toContain('build-tools-webpack-expert');
+      }
     });
 
-    it('should not have database agents in optional section', async () => {
-      const groups = groupAgents(registry);
+    it('should have database agents in database category', async () => {
+      const groups = groupAgentsByCategory(registry);
+      const dbGroup = groups.find((g: AgentCategoryGroup) => g.category === 'database');
       
-      const dbInOptional = groups.optional.filter((a: AgentComponent) => 
-        a.id.startsWith('database-')
-      );
-      
-      expect(dbInOptional).toHaveLength(0);
+      expect(dbGroup).toBeDefined();
+      if (dbGroup) {
+        const agentIds = dbGroup.agents.map((a: AgentComponent) => a.id);
+        expect(agentIds).toContain('database-mongodb-expert');
+        expect(agentIds).toContain('database-postgres-expert');
+        expect(agentIds).toContain('database-expert');
+      }
     });
 
-    it('should not have test framework agents in optional section', async () => {
-      const groups = groupAgents(registry);
+    it('should mark general category as pre-selected', async () => {
+      const groups = groupAgentsByCategory(registry);
+      const generalGroup = groups.find((g: AgentCategoryGroup) => g.category === 'general');
       
-      const testInOptional = groups.optional.filter((a: AgentComponent) => 
-        a.id.startsWith('testing-') && 
-        (a.id.includes('jest') || a.id.includes('vitest'))
-      );
+      expect(generalGroup).toBeDefined();
+      expect(generalGroup?.preSelected).toBe(true);
       
-      expect(testInOptional).toHaveLength(0);
-    });
-  });
-
-  describe('Agent Categories', () => {
-    it('should have universal agents', async () => {
-      const groups = groupAgents(registry);
-      
-      expect(groups.universal.length).toBeGreaterThan(0);
-      
-      // Oracle and git-expert should be universal
-      const universalIds = groups.universal.map((a: AgentComponent) => a.id);
-      expect(universalIds).toContain('oracle');
-      expect(universalIds).toContain('git-expert');
-    });
-
-    it('should have technology agents', async () => {
-      const groups = groupAgents(registry);
-      
-      expect(groups.technology.length).toBeGreaterThan(0);
-      
-      // TypeScript, React, Node.js experts should be in technology
-      const techIds = groups.technology.map((a: AgentComponent) => a.id);
-      expect(techIds).toContain('typescript-expert');
-      expect(techIds).toContain('react-expert');
-      expect(techIds).toContain('nodejs-expert');
-    });
-
-    it('should have optional agents', async () => {
-      const groups = groupAgents(registry);
-      
-      expect(groups.optional.length).toBeGreaterThan(0);
-      
-      // CSS, accessibility, Docker should be optional
-      const optionalIds = groups.optional.map((a: AgentComponent) => a.id);
-      const hasCSS = optionalIds.some((id: string) => id.includes('css'));
-      const hasAccessibility = optionalIds.some((id: string) => id.includes('accessibility'));
-      const hasDocker = optionalIds.some((id: string) => id.includes('docker'));
-      
-      expect(hasCSS || hasAccessibility || hasDocker).toBe(true);
+      // Other categories should not be pre-selected by default
+      const frameworkGroup = groups.find((g: AgentCategoryGroup) => g.category === 'framework');
+      expect(frameworkGroup?.preSelected).toBe(false);
     });
   });
 
-  describe('No Duplicates', () => {
-    it('should not have any agent in multiple categories', async () => {
-      const groups = groupAgents(registry);
+  describe('Bundle handling', () => {
+    it('should not show bundled agents in main lists', async () => {
+      const groups = groupAgentsByCategory(registry);
       
-      const allIds = new Set<string>();
-      const duplicates: string[] = [];
+      // Flatten all visible agents
+      const allVisibleAgents = groups.flatMap((g: AgentCategoryGroup) => 
+        g.agents.map((a: AgentComponent) => a.id)
+      );
       
-      // Collect all IDs and check for duplicates
-      const categories = [
-        groups.universal,
-        groups.technology,
-        groups.optional,
-      ];
+      // TypeScript bundles type-expert and build-expert - they should not appear in main list
+      expect(allVisibleAgents).not.toContain('typescript-type-expert');
+      expect(allVisibleAgents).not.toContain('typescript-build-expert');
       
-      categories.forEach(category => {
-        category.forEach((agent: AgentComponent) => {
-          if (allIds.has(agent.id)) {
-            duplicates.push(agent.id);
-          }
-          allIds.add(agent.id);
-        });
-      });
+      // React bundles performance-expert - it should not appear in main list  
+      expect(allVisibleAgents).not.toContain('react-performance-expert');
       
-      // Radio group agents shouldn't be in other categories
-      groups.radioGroups.forEach((group: RadioGroup) => {
-        group.options.forEach((option) => {
-          option.agents.forEach((agentId: string) => {
-            categories.forEach(category => {
-              const inCategory = category.some((a: AgentComponent) => a.id === agentId);
-              if (inCategory) {
-                duplicates.push(agentId);
-              }
-            });
-          });
-        });
-      });
+      // But the parent agents should be visible
+      expect(allVisibleAgents).toContain('typescript-expert');
+      expect(allVisibleAgents).toContain('react-expert');
+    });
+
+    it('should include bundled agents when parent is selected', async () => {
+      const selectedIds = ['typescript-expert'];
+      const finalAgents = calculateSelectedAgents(registry, selectedIds);
       
-      expect(duplicates).toHaveLength(0);
+      // Should include the parent and bundled agents
+      expect(finalAgents).toContain('typescript-expert');
+      expect(finalAgents).toContain('typescript-type-expert');
+      expect(finalAgents).toContain('typescript-build-expert');
+    });
+  });
+
+  describe('Display names', () => {
+    it('should show bundle count in display name', () => {
+      const agent: AgentComponent = {
+        id: 'test-agent',
+        name: 'Test Agent',
+        description: 'Test',
+        category: 'testing',
+        bundle: ['bundled-1', 'bundled-2'],
+        displayName: undefined,
+      };
+      
+      const displayName = getAgentDisplayName(agent);
+      expect(displayName).toBe('Test Agent (3 agents)');
+    });
+
+    it('should use displayName when available', () => {
+      const agent: AgentComponent = {
+        id: 'test-agent',
+        name: 'test-agent',
+        description: 'Test',
+        category: 'testing',
+        bundle: undefined,
+        displayName: 'Custom Display Name',
+      };
+      
+      const displayName = getAgentDisplayName(agent);
+      expect(displayName).toBe('Custom Display Name');
     });
   });
 });

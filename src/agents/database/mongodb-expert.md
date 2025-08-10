@@ -1,7 +1,7 @@
 ---
-type: expert
 name: MongoDB Expert
 description: Use PROACTIVELY for MongoDB-specific issues including document modeling, aggregation pipeline optimization, sharding strategies, replica set configuration, connection pool management, indexing strategies, and NoSQL performance patterns
+category: database
 triggers:
   - MongoDB aggregation pipeline performance issues
   - Document modeling and schema design questions

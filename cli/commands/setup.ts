@@ -21,10 +21,10 @@ import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 import {
-  groupAgents,
-  calculateSelectedAgentsFromRegistry,
+  groupAgentsByCategory,
+  calculateSelectedAgents,
   getAgentDisplayName,
-  AGENT_RADIO_GROUPS,
+  type AgentComponent,
 } from '../lib/agents/registry-grouping.js';
 
 // Command group definitions for improved setup flow
@@ -307,81 +307,47 @@ async function performThreeStepSelection(
     selectedComponents.push(...allAgents);
     console.log(Colors.success(`Selected all ${allAgents.length} agents`));
   } else {
-    // Get agents from registry and group them
+    // Get agents from registry and group them by category
     const sourceDir = await findComponentsDirectory();
     const registry = await discoverComponents(sourceDir);
-    const agentGroups = groupAgents(registry);
+    const agentCategories = groupAgentsByCategory(registry);
     
     // Show the new selection interface
     console.log(`\n${Colors.bold('Select Your Development Stack')}`);
     console.log(Colors.dim('━'.repeat(63)));
     
-    // Universal agents selection
-    console.log(`\n${Colors.accent('Universal Helpers')} (recommended for all):`);
-    const universalChoices = agentGroups.universal.map(agent => ({
-      value: agent.id,
-      name: getAgentDisplayName(agent),
-      checked: true,
-    }));
+    // Collect all selected agent IDs
+    const selectedAgentIds: string[] = [];
     
-    const selectedUniversal = await checkbox({
-      message: 'Universal agents:',
-      choices: universalChoices,
-      pageSize: 10,
-    }) as string[];
-    
-    // Technology stack selection
-    console.log(`\n${Colors.accent('Your Technology Stack')}:`);
-    const techChoices = agentGroups.technology.map(agent => ({
-      value: agent.id,
-      name: getAgentDisplayName(agent),
-      checked: false,
-    }));
-    
-    const selectedTech = await checkbox({
-      message: 'Select technologies you use:',
-      choices: techChoices,
-      pageSize: 10,
-    }) as string[];
-    
-    // Tool-specific selections (radio groups)
-    const groupSelections = new Map<string, string>();
-    
-    for (const group of AGENT_RADIO_GROUPS) {
-      console.log(`\n${Colors.accent(group.title)}:`);
-      const choice = await select({
-        message: `Choose your ${group.title.toLowerCase()}:`,
-        choices: group.options.map(opt => ({
-          value: opt.id,
-          name: opt.label,
-        })),
-        default: group.options[0]?.id,
-      });
-      groupSelections.set(group.id, choice);
+    // Display each category and let user select agents
+    for (const categoryGroup of agentCategories) {
+      // Skip uncategorized group in normal flow
+      if (categoryGroup.category === 'uncategorized') {
+        continue;
+      }
+      
+      console.log(`\n${Colors.accent(categoryGroup.title)}`);
+      if (categoryGroup.description) {
+        console.log(Colors.dim(categoryGroup.description));
+      }
+      
+      const choices = categoryGroup.agents.map((agent: AgentComponent) => ({
+        value: agent.id,
+        name: getAgentDisplayName(agent),
+        checked: categoryGroup.preSelected ?? false,
+      }));
+      
+      const selected = await checkbox({
+        message: `Select ${categoryGroup.title.toLowerCase()}:`,
+        choices,
+        pageSize: Math.min(10, choices.length + 1),
+      }) as string[];
+      
+      selectedAgentIds.push(...selected);
     }
     
-    // Optional agents
-    console.log(`\n${Colors.accent('Additional Tools')} (optional):`);
-    const optionalChoices = agentGroups.optional.map(agent => ({
-      value: agent.id,
-      name: getAgentDisplayName(agent),
-      checked: false,
-    }));
-    
-    const selectedOptional = await checkbox({
-      message: 'Select additional tools:',
-      choices: optionalChoices,
-      pageSize: 5,
-    }) as string[];
-    
-    // Calculate final agent list
-    const finalAgents = calculateSelectedAgentsFromRegistry(
-      registry,
-      selectedUniversal,
-      selectedTech,
-      groupSelections,
-      selectedOptional
-    );
+    // Calculate final agent list (including bundled agents)
+    const finalAgents = calculateSelectedAgents(registry, selectedAgentIds);
     
     selectedComponents.push(...finalAgents);
     console.log(Colors.success(`\n${finalAgents.length} agents selected`));

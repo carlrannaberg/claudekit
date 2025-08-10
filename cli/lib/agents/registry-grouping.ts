@@ -8,119 +8,76 @@ export interface AgentComponent {
   id: string;
   name: string;
   description: string;
-  universal: boolean | string | undefined;
+  category: string | undefined;
   bundle: string[] | undefined;
   displayName: string | undefined;
-  category: string | undefined;
 }
 
-export interface AgentGroup {
-  id: string;
+export interface AgentCategoryGroup {
+  category: string;
   title: string;
+  description: string;
   agents: AgentComponent[];
+  preSelected?: boolean;
 }
 
-export interface RadioGroup {
-  id: string;
-  title: string;
-  type: 'radio';
-  options: {
-    id: string;
-    label: string;
-    agents: string[];
-  }[];
-}
-
-// Define prefixes for dynamic radio group generation
-const RADIO_GROUP_PREFIXES = [
-  { prefix: 'testing-', title: 'Test Framework', id: 'test-framework' },
-  { prefix: 'database-', title: 'Database', id: 'database' },
-  { prefix: 'build-tools-', title: 'Build Tool', id: 'build-tool' },
+// Define the agent categories with their display information
+export const AGENT_CATEGORIES = [
+  {
+    category: 'general',
+    title: 'General Purpose',
+    description: 'General development assistants and tools',
+    preSelected: true,
+  },
+  {
+    category: 'framework',
+    title: 'Frameworks & Core',
+    description: 'Core frameworks and language support',
+    preSelected: false,
+  },
+  {
+    category: 'testing',
+    title: 'Testing',
+    description: 'Testing frameworks and tools',
+    preSelected: false,
+  },
+  {
+    category: 'linting',
+    title: 'Linting & Formatting',
+    description: 'Code linting, formatting, and style enforcement',
+    preSelected: false,
+  },
+  {
+    category: 'database',
+    title: 'Database',
+    description: 'Database systems and ORMs',
+    preSelected: false,
+  },
+  {
+    category: 'build',
+    title: 'Build Tools',
+    description: 'Build and bundling tools',
+    preSelected: false,
+  },
+  {
+    category: 'frontend',
+    title: 'Frontend',
+    description: 'Frontend development tools',
+    preSelected: false,
+  },
+  {
+    category: 'devops',
+    title: 'DevOps',
+    description: 'Infrastructure and deployment tools',
+    preSelected: false,
+  },
+  {
+    category: 'tools',
+    title: 'Development Tools',
+    description: 'Additional development and analysis tools',
+    preSelected: false,
+  },
 ];
-
-/**
- * Dynamically generate radio groups based on agent prefixes
- */
-function generateRadioGroups(agentComponents: AgentComponent[]): RadioGroup[] {
-  return RADIO_GROUP_PREFIXES.map(groupDef => {
-    // Find all agents matching this prefix
-    const prefixAgents = agentComponents.filter(a => a.id.startsWith(groupDef.prefix));
-    
-    // Skip if no agents found for this prefix
-    if (prefixAgents.length === 0) {
-      return null;
-    }
-    
-    // Create options from found agents
-    const options: RadioGroup['options'] = [];
-    
-    // Find base expert (e.g., "database-expert" for database group)
-    const baseExpertId = `${groupDef.prefix.slice(0, -1)}-expert`;
-    const baseExpert = prefixAgents.find(a => a.id === baseExpertId);
-    
-    // Find specific experts (e.g., "database-postgres-expert", "database-mongodb-expert")
-    const specificAgents = prefixAgents.filter(a => a.id !== baseExpertId);
-    
-    // Create individual options for each specific agent
-    specificAgents.forEach(agent => {
-      // Use displayName from metadata if available, otherwise extract from ID
-      let label: string;
-      if (agent.displayName !== undefined && agent.displayName !== '') {
-        label = agent.displayName;
-      } else if (agent.name !== undefined && agent.name !== '') {
-        label = agent.name;
-      } else {
-        // Fallback: extract label from agent ID (e.g., "testing-jest-expert" -> "Jest")
-        const labelPart = agent.id.replace(groupDef.prefix, '').replace('-expert', '');
-        label = labelPart.charAt(0).toUpperCase() + labelPart.slice(1);
-      }
-      
-      // Build agents list based on group type
-      let agents: string[] = [];
-      if (groupDef.prefix === 'database-' && baseExpert) {
-        // For database, include base expert + specific expert
-        agents = [baseExpert.id, agent.id];
-      } else {
-        // For others, just the specific expert
-        agents = [agent.id];
-      }
-      
-      options.push({
-        id: agent.id,
-        label,
-        agents,
-      });
-    });
-    
-    // Add "Both/All" option if there are multiple specific agents
-    if (specificAgents.length > 1) {
-      const allAgents = prefixAgents.map(a => a.id);
-      const label = specificAgents.length === 2 ? 'Both' : 'All';
-      options.push({
-        id: `all-${groupDef.id}`,
-        label,
-        agents: allAgents,
-      });
-    }
-    
-    // Always add "None" option
-    options.push({
-      id: `none-${groupDef.id}`,
-      label: 'None',
-      agents: [],
-    });
-    
-    return {
-      id: groupDef.id,
-      title: groupDef.title,
-      type: 'radio' as const,
-      options,
-    };
-  }).filter((group): group is RadioGroup => group !== null);
-}
-
-// This will be populated dynamically when groupAgents is called
-export const AGENT_RADIO_GROUPS: RadioGroup[] = [];
 
 /**
  * Convert registry component to agent component with metadata
@@ -140,22 +97,30 @@ function toAgentComponent(component: unknown): AgentComponent {
     id: metadata.id,
     name: metadata.name,
     description: metadata.description,
-    universal: metadata['universal'] as boolean | string | undefined,
+    category: metadata['agentCategory'] as string | undefined,
     bundle: metadata['bundle'] as string[] | undefined,
     displayName: metadata['displayName'] as string | undefined,
-    category: metadata['agentGroup'] as string | undefined,
   };
 }
 
 /**
- * Group agents from the registry based on their metadata
+ * Get display name for an agent, handling bundles
  */
-export function groupAgents(registry: ComponentRegistry): {
-  universal: AgentComponent[];
-  technology: AgentComponent[];
-  radioGroups: RadioGroup[];
-  optional: AgentComponent[];
-} {
+export function getAgentDisplayName(agent: AgentComponent): string {
+  let displayName = agent.displayName ?? agent.name;
+  
+  // If this agent bundles other agents, indicate how many
+  if (agent.bundle !== undefined && agent.bundle.length > 0) {
+    displayName += ` (${agent.bundle.length + 1} agents)`;
+  }
+  
+  return displayName;
+}
+
+/**
+ * Group agents from the registry based on their category
+ */
+export function groupAgentsByCategory(registry: ComponentRegistry): AgentCategoryGroup[] {
   const agentComponents = Array.from(registry.components.values())
     .filter((c) => c.type === 'agent')
     .map(toAgentComponent);
@@ -168,147 +133,59 @@ export function groupAgents(registry: ComponentRegistry): {
     }
   });
 
-  // Generate radio groups dynamically based on agent prefixes
-  const radioGroups = generateRadioGroups(agentComponents);
-  
-  // Update the exported constant for backward compatibility
-  AGENT_RADIO_GROUPS.length = 0;
-  AGENT_RADIO_GROUPS.push(...radioGroups);
+  // Filter out bundled agents from the main list
+  const visibleAgents = agentComponents.filter(agent => !bundledAgentIds.has(agent.id));
 
-  // Group by universal flag in metadata
-  const universal = agentComponents.filter((a) => {
-    return a.universal === true || String(a.universal) === 'true';
-  });
+  // Group agents by category
+  const groups: AgentCategoryGroup[] = [];
   
-  // Technology stack agents (non-universal, not in radio groups, not bundled)
-  const radioGroupAgents = new Set(
-    radioGroups.flatMap(g => g.options.flatMap(o => o.agents))
-  );
-  
-  const technology = agentComponents.filter((a) => {
-    if (a.universal === true || String(a.universal) === 'true') {
-      return false;
+  for (const categoryDef of AGENT_CATEGORIES) {
+    const categoryAgents = visibleAgents.filter(agent => agent.category === categoryDef.category);
+    
+    if (categoryAgents.length > 0) {
+      groups.push({
+        ...categoryDef,
+        agents: categoryAgents.sort((a, b) => a.name.localeCompare(b.name)),
+      });
     }
-    if (radioGroupAgents.has(a.id)) {
-      return false;
-    }
-    // Exclude agents that are bundled by another agent
-    if (bundledAgentIds.has(a.id)) {
-      return false;
-    }
-    // Use category field if available, otherwise fall back to keyword matching
-    if (a.category !== undefined && a.category !== null) {
-      return a.category === 'technology';
-    }
-    // Fallback for agents without category field (backward compatibility)
-    return ['typescript', 'react', 'nodejs', 'nextjs'].some(
-      tech => a.id.includes(tech)
-    );
-  });
+  }
 
-  // Optional agents (not universal, not technology, not in radio groups, not bundled)
-  const optional = agentComponents.filter((a) => {
-    if (a.universal === true || String(a.universal) === 'true') {
-      return false;
-    }
-    if (radioGroupAgents.has(a.id)) {
-      return false;
-    }
-    // Exclude agents that are bundled by another agent
-    if (bundledAgentIds.has(a.id)) {
-      return false;
-    }
-    if (technology.includes(a)) {
-      return false;
-    }
-    // Use category field if available
-    if (a.category !== undefined && a.category !== null) {
-      return a.category === 'optional';
-    }
-    // No fallback - agents without proper category metadata won't appear
-    return false;
-  });
+  // Add a group for uncategorized agents (for debugging/migration)
+  const uncategorized = visibleAgents.filter(agent => agent.category === undefined || agent.category === '');
+  if (uncategorized.length > 0) {
+    groups.push({
+      category: 'uncategorized',
+      title: 'Other Agents',
+      description: 'Agents without categories',
+      agents: uncategorized,
+      preSelected: false,
+    });
+  }
 
-  return {
-    universal,
-    technology,
-    radioGroups,
-    optional,
-  };
+  return groups;
 }
 
 /**
- * Calculate selected agents including bundles
+ * Calculate final list of agents to install based on selections
  */
-export function calculateSelectedAgentsFromRegistry(
+export function calculateSelectedAgents(
   registry: ComponentRegistry,
-  universalIds: string[],
-  technologyIds: string[],
-  radioSelections: Map<string, string>,
-  optionalIds: string[]
+  selectedAgentIds: string[]
 ): string[] {
-  const selectedAgents = new Set<string>();
+  const finalAgents = new Set<string>(selectedAgentIds);
+  
+  // Get all agent components
   const agentComponents = Array.from(registry.components.values())
     .filter((c) => c.type === 'agent')
     .map(toAgentComponent);
-
-  // Add universal agents
-  if (Array.isArray(universalIds) && universalIds.length > 0) {
-    universalIds.forEach(id => selectedAgents.add(id));
-  }
-
-  // Add technology agents and their bundles
-  if (Array.isArray(technologyIds) && technologyIds.length > 0) {
-    technologyIds.forEach(id => {
-      selectedAgents.add(id);
-      const agent = agentComponents.find(a => a.id === id);
-      if (agent && agent.bundle && Array.isArray(agent.bundle)) {
-        agent.bundle.forEach((bundledId: string) => selectedAgents.add(bundledId));
-      }
-    });
-  }
-
-  // Add radio group selections
-  if (radioSelections instanceof Map && radioSelections.size > 0) {
-    radioSelections.forEach((selection, groupId) => {
-      const group = AGENT_RADIO_GROUPS.find(g => g.id === groupId);
-      const option = group?.options.find(o => o.id === selection);
-      if (option) {
-        option.agents.forEach(id => selectedAgents.add(id));
-      }
-    });
-  }
-
-  // Add optional agents
-  if (Array.isArray(optionalIds) && optionalIds.length > 0) {
-    optionalIds.forEach(id => selectedAgents.add(id));
-  }
-
-  return Array.from(selectedAgents);
-}
-
-/**
- * Get display name for an agent
- */
-export function getAgentDisplayName(agent: AgentComponent): string {
-  let displayName: string;
   
-  // Use displayName from metadata if available
-  if (agent.displayName !== undefined && agent.displayName !== '') {
-    displayName = agent.displayName;
-  } else if (agent.name !== undefined && agent.name !== '') {
-    // Use name from metadata
-    displayName = agent.name;
-  } else {
-    // Fallback to ID
-    displayName = agent.id;
-  }
+  // Add bundled agents for any selected agents that have bundles
+  selectedAgentIds.forEach(agentId => {
+    const agent = agentComponents.find(a => a.id === agentId);
+    if (agent && agent.bundle && Array.isArray(agent.bundle)) {
+      agent.bundle.forEach(bundledId => finalAgents.add(bundledId));
+    }
+  });
   
-  // If this agent has a bundle, append the count
-  if (agent.bundle && Array.isArray(agent.bundle) && agent.bundle.length > 0) {
-    const totalAgents = agent.bundle.length + 1; // +1 for the parent agent itself
-    displayName += ` (${totalAgents} agents)`;
-  }
-  
-  return displayName;
+  return Array.from(finalAgents);
 }

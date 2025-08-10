@@ -1,7 +1,7 @@
 ---
-type: expert
 name: Database Expert
 description: Use PROACTIVELY for database performance optimization, schema design issues, query performance problems, connection management, and transaction handling across PostgreSQL, MySQL, MongoDB, and SQLite with ORM integration
+category: database
 triggers:
   - Database connection errors or timeouts
   - Slow query performance issues

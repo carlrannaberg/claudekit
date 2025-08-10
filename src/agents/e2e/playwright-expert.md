@@ -1,9 +1,9 @@
 ---
-type: agent
 role: testing-expert
 domain: playwright-e2e
 name: Playwright E2E Testing Expert
 description: Expert in Playwright end-to-end testing, cross-browser automation, visual regression testing, and CI/CD integration
+category: testing
 version: 1.0.0
 last_updated: 2025-08-10
 dependencies:

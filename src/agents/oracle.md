@@ -2,8 +2,7 @@
 name: oracle
 description: Use this agent for audits, debugging nasty bugs, deep research, getting second opinions on approaches, reviewing commits for correctness, or analyzing complex problems. Invoke when you need advanced reasoning about difficult issues. Use PROACTIVELY when encountering complex bugs, architectural decisions, or when a thorough review would prevent future issues.
 tools: Bash
-category: universal
-universal: true
+category: general
 defaultSelected: true
 displayName: Oracle (GPT-5)
 color: purple

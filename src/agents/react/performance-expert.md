@@ -2,7 +2,7 @@
 name: react-performance-expert
 description: React performance optimization specialist. Expert in DevTools Profiler, memoization, Core Web Vitals, bundle optimization, and virtualization. Use for performance bottlenecks, slow renders, large bundles, or memory issues.
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
-category: optional
+category: framework
 color: cyan
 displayName: React Performance Expert
 ---
