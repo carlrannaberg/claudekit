@@ -20,7 +20,12 @@ import {
 import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
-import type { ComponentRegistry } from '../lib/components.js';
+import {
+  groupAgents,
+  calculateSelectedAgentsFromRegistry,
+  getAgentDisplayName,
+  AGENT_RADIO_GROUPS,
+} from '../lib/agents/registry-grouping.js';
 
 // Command group definitions for improved setup flow
 interface CommandGroup {
@@ -111,8 +116,7 @@ const HOOK_GROUPS: HookGroup[] = [
  * Perform improved three-step selection: command groups, hook groups, then agents
  */
 async function performThreeStepSelection(
-  projectInfo: ProjectInfo,
-  registry: ComponentRegistry
+  projectInfo: ProjectInfo
 ): Promise<{ components: string[] }> {
   const selectedComponents: string[] = [];
 
@@ -277,38 +281,110 @@ async function performThreeStepSelection(
     }
   }
 
-  // Step 3: Agent Selection
-  console.log(`\n${Colors.bold('Step 3: Choose Subagents')}`);
-  console.log(Colors.dim('Select AI assistant subagents to install'));
+  // Step 3: Agent Selection with new grouping system
+  console.log(`\n${Colors.bold('Step 3: Choose AI Assistant Subagents (Optional)')}`);
+  
+  // Ask if user wants agents
+  const agentChoice = await select({
+    message: 'Would you like to install AI assistant subagents?',
+    choices: [
+      { value: 'select', name: '📦 Select Agents ← RECOMMENDED\n  Choose which agents match your tools' },
+      { value: 'all', name: '🌟 Install All\n  Get all 24 available agents' },
+      { value: 'skip', name: '⏭️  Skip Agents\n  Don\'t install any agents' },
+    ],
+    default: 'select',
+  });
 
-  // Get agent components from registry
-  const agentComponents = Array.from(registry.components.values()).filter(
-    (c) => c.type === 'agent'
-  );
-
-  const agentChoices = agentComponents.map((agent) => ({
-    value: agent.metadata.id,
-    name: `${agent.metadata.name}\n  ${Colors.dim(agent.metadata.description)}`,
-    checked: true, // Default to checked
-    disabled: false,
-  }));
-
-  console.log(
-    Colors.dim(
-      `\n(${agentComponents.length} agents available - use space to toggle, enter to confirm)\n`
-    )
-  );
-
-  // Only show agent selection if there are agents available
-  if (agentChoices.length > 0) {
-    const selectedAgentIds = (await checkbox({
-      message: 'Select subagents to install:',
-      choices: agentChoices,
+  if (agentChoice === 'skip') {
+    console.log(Colors.dim('Skipping agent installation'));
+  } else if (agentChoice === 'all') {
+    // Get all agents from registry
+    const sourceDir = await findComponentsDirectory();
+    const registry = await discoverComponents(sourceDir);
+    const allAgents = Array.from(registry.components.values())
+      .filter(c => c.type === 'agent')
+      .map(c => c.metadata.id);
+    selectedComponents.push(...allAgents);
+    console.log(Colors.success(`Selected all ${allAgents.length} agents`));
+  } else {
+    // Get agents from registry and group them
+    const sourceDir = await findComponentsDirectory();
+    const registry = await discoverComponents(sourceDir);
+    const agentGroups = groupAgents(registry);
+    
+    // Show the new selection interface
+    console.log(`\n${Colors.bold('Select Your Development Stack')}`);
+    console.log(Colors.dim('━'.repeat(63)));
+    
+    // Universal agents selection
+    console.log(`\n${Colors.accent('Universal Helpers')} (recommended for all):`);
+    const universalChoices = agentGroups.universal.map(agent => ({
+      value: agent.id,
+      name: getAgentDisplayName(agent),
+      checked: true,
+    }));
+    
+    const selectedUniversal = await checkbox({
+      message: 'Universal agents:',
+      choices: universalChoices,
       pageSize: 10,
-    })) as string[];
-
-    // Add selected agents to components list
-    selectedComponents.push(...selectedAgentIds);
+    }) as string[];
+    
+    // Technology stack selection
+    console.log(`\n${Colors.accent('Your Technology Stack')}:`);
+    const techChoices = agentGroups.technology.map(agent => ({
+      value: agent.id,
+      name: getAgentDisplayName(agent),
+      checked: false,
+    }));
+    
+    const selectedTech = await checkbox({
+      message: 'Select technologies you use:',
+      choices: techChoices,
+      pageSize: 10,
+    }) as string[];
+    
+    // Tool-specific selections (radio groups)
+    const groupSelections = new Map<string, string>();
+    
+    for (const group of AGENT_RADIO_GROUPS) {
+      console.log(`\n${Colors.accent(group.title)}:`);
+      const choice = await select({
+        message: `Choose your ${group.title.toLowerCase()}:`,
+        choices: group.options.map(opt => ({
+          value: opt.id,
+          name: opt.label,
+        })),
+        default: group.options[0]?.id,
+      });
+      groupSelections.set(group.id, choice);
+    }
+    
+    // Optional agents
+    console.log(`\n${Colors.accent('Additional Tools')} (optional):`);
+    const optionalChoices = agentGroups.optional.map(agent => ({
+      value: agent.id,
+      name: getAgentDisplayName(agent),
+      checked: false,
+    }));
+    
+    const selectedOptional = await checkbox({
+      message: 'Select additional tools:',
+      choices: optionalChoices,
+      pageSize: 5,
+    }) as string[];
+    
+    // Calculate final agent list
+    const finalAgents = calculateSelectedAgentsFromRegistry(
+      registry,
+      selectedUniversal,
+      selectedTech,
+      groupSelections,
+      selectedOptional
+    );
+    
+    selectedComponents.push(...finalAgents);
+    console.log(Colors.success(`\n${finalAgents.length} agents selected`));
   }
 
   return { components: selectedComponents };
@@ -620,7 +696,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       })) as string[];
     } else {
       // New improved three-step selection process
-      const selectionResult = await performThreeStepSelection(projectInfo, registry);
+      const selectionResult = await performThreeStepSelection(projectInfo);
       selectedComponents = selectionResult.components;
 
       // Agents are now part of the unified component system, no special handling needed
