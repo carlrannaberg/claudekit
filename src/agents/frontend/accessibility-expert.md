@@ -4,6 +4,7 @@ description: WCAG 2.1/2.2 compliance, WAI-ARIA implementation, screen reader opt
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: optional
 universal: false
+color: yellow
 ---
 
 # Accessibility Expert

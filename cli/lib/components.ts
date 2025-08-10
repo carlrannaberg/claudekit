@@ -101,7 +101,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-typecheck',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:lint-changed',
@@ -116,22 +116,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-eslint',
-    lastModified: new Date('2024-01-01'),
-  },
-  {
-    path: 'embedded:prettier',
-    type: 'hook',
-    metadata: {
-      id: 'prettier',
-      name: 'Prettier Formatting',
-      description: 'Format code with Prettier on file changes (embedded hook)',
-      category: 'validation',
-      dependencies: ['prettier'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-prettier',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:check-any-changed',
@@ -146,7 +131,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-no-any',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:test-changed',
@@ -161,7 +146,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-run-related-tests',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:create-checkpoint',
@@ -176,7 +161,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-auto-checkpoint',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:check-todos',
@@ -191,7 +176,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-validate-todo-completion',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:typecheck-project',
@@ -206,7 +191,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-typecheck-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:lint-project',
@@ -221,7 +206,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-lint-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:test-project',
@@ -236,7 +221,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-test-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
 ];
 

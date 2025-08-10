@@ -4,6 +4,7 @@ description: GitHub Actions CI/CD pipeline optimization, workflow automation, cu
 version: 1.0.0
 author: claudekit
 tags: [infrastructure, cicd, github-actions, automation, security, performance]
+color: gray
 ---
 
 # GitHub Actions Expert

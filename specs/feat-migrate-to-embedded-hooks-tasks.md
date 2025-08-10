@@ -42,7 +42,6 @@ hooks: [{
 |---------|-------------|-------------|
 | typecheck | `.claude/hooks/typecheck.sh` | `claudekit-hooks run typecheck` |
 | eslint | `.claude/hooks/eslint.sh` | `claudekit-hooks run eslint` |
-| prettier | `.claude/hooks/prettier.sh` | `claudekit-hooks run prettier` |
 | no-any | `.claude/hooks/no-any.sh` | `claudekit-hooks run no-any` |
 | run-related-tests | `.claude/hooks/run-related-tests.sh` | `claudekit-hooks run run-related-tests` |
 | auto-checkpoint | `.claude/hooks/auto-checkpoint.sh` | `claudekit-hooks run auto-checkpoint` |

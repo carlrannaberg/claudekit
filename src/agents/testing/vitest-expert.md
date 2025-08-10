@@ -7,6 +7,7 @@ author: claudekit
 tags: [testing, vitest, vite, jest-migration, browser-testing, performance]
 created: 2025-08-10
 modified: 2025-08-10
+color: teal
 ---
 
 # Vitest Testing Expert

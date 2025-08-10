@@ -4,6 +4,7 @@ description: Git expert with deep knowledge of merge conflicts, branching strate
 category: universal
 universal: true
 defaultSelected: true
+color: orange
 ---
 
 # Git Expert

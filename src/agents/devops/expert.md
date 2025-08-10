@@ -3,6 +3,7 @@ name: devops-expert
 description: DevOps and Infrastructure expert with comprehensive knowledge of CI/CD pipelines, containerization, orchestration, infrastructure as code, monitoring, security, and performance optimization. Use PROACTIVELY for any DevOps, deployment, infrastructure, or operational issues. If a specialized expert is a better fit, I will recommend switching and stop.
 category: optional
 universal: false
+color: red
 ---
 
 # DevOps Expert

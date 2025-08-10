@@ -157,12 +157,6 @@ async function createProjectSettings(
           });
           break;
 
-        case 'prettier':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Write|Edit|MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
 
         case 'check-any-changed':
           settings.hooks.PostToolUse.push({
@@ -413,27 +407,6 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       });
     });
 
-    it('should handle prettier hook with correct matcher', async () => {
-      const components = [createMockComponent('prettier')];
-
-      await createProjectSettings(mockClaudeDir, components, {});
-
-      const writtenContent = getWrittenContent() as HookSettings;
-      expect(writtenContent).not.toBeNull();
-      const prettierEntry = writtenContent.hooks.PostToolUse.find((e: HookEntry) =>
-        e.hooks.some((h: HookCommand) => h.command.includes('prettier'))
-      );
-
-      expect(prettierEntry).toBeDefined();
-      if (!prettierEntry) {
-        throw new Error('prettierEntry not found');
-      }
-      expect(prettierEntry.matcher).toBe('Write|Edit|MultiEdit');
-      expect(prettierEntry.hooks[0]).toEqual({
-        type: 'command',
-        command: 'claudekit-hooks run prettier',
-      });
-    });
 
     it('should handle check-any-changed hook with correct matcher', async () => {
       const components = [createMockComponent('check-any-changed')];

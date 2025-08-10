@@ -100,7 +100,6 @@ Maintain the existing hook ID to command mapping:
 |---------|------------------|
 | typecheck | `claudekit-hooks run typecheck` |
 | eslint | `claudekit-hooks run eslint` |
-| prettier | `claudekit-hooks run prettier` |
 | no-any | `claudekit-hooks run no-any` |
 | run-related-tests | `claudekit-hooks run run-related-tests` |
 | auto-checkpoint | `claudekit-hooks run auto-checkpoint` |

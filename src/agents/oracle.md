@@ -6,6 +6,7 @@ category: universal
 universal: true
 defaultSelected: true
 displayName: Oracle (GPT-5)
+color: purple
 ---
 
 # Oracle

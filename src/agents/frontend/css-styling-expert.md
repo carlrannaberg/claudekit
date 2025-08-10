@@ -4,6 +4,7 @@ description: CSS architecture and styling expert with deep knowledge of modern C
 tools: Read, Edit, MultiEdit, Grep, Glob, Bash, LS
 category: optional
 universal: false
+color: pink
 ---
 
 # CSS Styling Expert

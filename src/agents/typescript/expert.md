@@ -6,6 +6,7 @@ universal: false
 defaultSelected: false
 bundle: [typescript-type-expert, typescript-build-expert]
 displayName: TypeScript (3 agents)
+color: blue
 ---
 
 # TypeScript Expert

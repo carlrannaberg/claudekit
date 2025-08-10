@@ -4,6 +4,7 @@ description: Node.js runtime and ecosystem expert with deep knowledge of async p
 tools: Read, Write, Edit, Bash, Grep, Glob
 category: technology
 universal: false
+color: green
 ---
 
 # Node.js Expert

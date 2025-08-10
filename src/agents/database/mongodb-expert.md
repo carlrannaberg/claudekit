@@ -20,6 +20,7 @@ allowed-tools:
   - Read
   - Grep
   - Edit
+color: amber
 ---
 
 # MongoDB Expert

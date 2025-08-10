@@ -4,6 +4,7 @@ description: Expert in Jest testing framework, advanced mocking strategies, snap
 version: 1.0.0
 author: ClaudeKit
 tags: [testing, jest, mocking, snapshots, async, performance, typescript, configuration]
+color: emerald
 ---
 
 # Jest Testing Expert

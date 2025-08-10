@@ -48,24 +48,6 @@ describe('Component Recommendation Engine', () => {
         },
       ],
       [
-        'prettier',
-        {
-          path: '../cli/hooks/prettier.sh',
-          type: 'hook' as const,
-          metadata: {
-            id: 'prettier',
-            name: 'Prettier Formatter',
-            description: 'Formats code with Prettier',
-            category: 'validation' as const,
-            dependencies: ['validation-lib'],
-            platforms: ['all'] as Platform[],
-            enabled: true,
-          },
-          hash: 'hash3',
-          lastModified: new Date(),
-        },
-      ],
-      [
         'create-checkpoint',
         {
           path: '../cli/hooks/create-checkpoint.sh',
@@ -405,27 +387,6 @@ describe('Component Recommendation Engine', () => {
     });
   });
 
-  describe('Prettier recommendations', () => {
-    it('should recommend prettier hook for Prettier projects', async () => {
-      const projectInfo: ProjectInfo = {
-        hasTypeScript: false,
-        hasESLint: false,
-        hasPrettier: true,
-        packageManager: 'npm',
-        projectPath: '/test/project',
-        isGitRepository: false,
-      };
-
-      const result = await recommendComponents(projectInfo, mockRegistry);
-
-      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
-
-      const prettierRec = result.essential.find((r) => r.component.metadata.id === 'prettier');
-      expect(prettierRec?.reasons).toContain(
-        'Prettier configuration found - formatting automation recommended'
-      );
-    });
-  });
 
   describe('Combined project recommendations', () => {
     it('should handle projects with multiple tools', async () => {
@@ -447,7 +408,6 @@ describe('Component Recommendation Engine', () => {
         true
       );
       expect(result.essential.some((r) => r.component.metadata.id === 'lint-changed')).toBe(true);
-      expect(result.essential.some((r) => r.component.metadata.id === 'prettier')).toBe(true);
       expect(result.essential.some((r) => r.component.metadata.id === 'test-changed')).toBe(true);
       expect(result.essential.some((r) => r.component.metadata.id === 'create-checkpoint')).toBe(
         true

@@ -2,6 +2,7 @@
 name: testing-expert
 description: Testing expert with comprehensive knowledge of test structure, mocking strategies, async testing, coverage analysis, and cross-framework debugging. Use PROACTIVELY for test reliability, flaky test debugging, framework migration, and testing architecture decisions. Covers Jest, Vitest, Playwright, and Testing Library.
 tools: Read, Edit, Bash, Grep, Glob
+color: lime
 ---
 
 # Testing Expert

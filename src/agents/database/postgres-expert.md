@@ -18,6 +18,7 @@ allowed-tools:
   - Read
   - Grep
   - Edit
+color: sky
 ---
 
 # PostgreSQL Expert

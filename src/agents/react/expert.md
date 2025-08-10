@@ -4,6 +4,7 @@ description: React component patterns, hooks, and performance expert. Use PROACT
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: technology
 universal: false
+color: cyan
 ---
 
 # React Expert

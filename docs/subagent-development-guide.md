@@ -259,6 +259,7 @@ bundle: [related-agent]           # Install together
 | `defaultSelected` | Pre-selected in setup | `true`/`false` |
 | `displayName` | Human-readable name | Any string |
 | `bundle` | Related agents | Array of agent names |
+| `color` | Visual color in Claude Code UI | `indigo`, `#3b82f6` |
 
 ### Step 4: Structure Agent Content
 
@@ -457,6 +458,44 @@ which docker >/dev/null 2>&1 && echo "Docker available"
 - Place delegation logic in step 0
 - Include "Stopping here." after delegation
 - Make conditions specific and clear
+
+## Color Feature
+
+The `color` field in the YAML frontmatter allows you to customize the visual appearance of your agent in Claude Code:
+
+```yaml
+---
+name: code-reviewer
+description: Expert reviewer for code quality and best practices
+tools: Read, Grep, Bash
+color: indigo     # or "#3b82f6"
+---
+```
+
+**Color Options:**
+- Common color names: `red`, `blue`, `green`, `yellow`, `purple`, `indigo`, `cyan`, etc.
+- Hex color codes: `#3b82f6`, `#ef4444`, `#10b981`
+- Case-insensitive: `Red`, `RED`, `red` all work
+
+**Notes:**
+- This `color:` key is currently used by Claude Code and commonly seen in community agent templates
+- While not yet documented in the official Claude Code documentation, it works in practice
+- Examples from public repositories show usage like `color: red`, `color: Cyan`
+- The feature is established and widely used in the Claude Code ecosystem
+
+**Example Usage in the Wild:**
+```yaml
+# Testing framework agents
+color: green    # For test-related agents
+
+# Security/audit agents  
+color: red      # For critical review agents
+
+# Documentation agents
+color: blue     # For documentation generators
+```
+
+This feature is particularly useful for visually distinguishing agents by their role or importance in the Claude Code interface.
 
 ## Best Practices
 

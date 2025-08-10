@@ -17,6 +17,7 @@ allowed-tools:
   - Read
   - Grep
   - Edit
+color: violet
 ---
 
 # Database Expert
