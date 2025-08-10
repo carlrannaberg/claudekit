@@ -1,9 +1,5 @@
 ---
-allowed-tools:
-  - Bash
-  - Write
-  - TodoRead
-  - TodoWrite
+allowed-tools: Bash, Write, TodoWrite
 description: Create a new GitHub repository with proper setup including directory creation, git initialization, and remote configuration
 category: workflow
 argument-hint: "<repository-name>"
