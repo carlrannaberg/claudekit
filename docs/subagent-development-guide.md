@@ -172,7 +172,51 @@ Situation? → Decision
 - [Best practices guides]
 ```
 
-### Step 5: Create the Symlink
+### Step 5: Register the Agent in Setup System
+
+For the agent to appear in `claudekit setup`, update the grouping logic in `cli/lib/agents/registry-grouping.ts`:
+
+#### For Universal Agents
+If your agent should be available for all projects (like oracle, code-reviewer):
+1. Add `universal: true` to your agent's frontmatter (as metadata)
+2. The agent will automatically appear in the "Universal Helpers" section
+
+#### For Technology-Specific Agents  
+If your agent is for a specific technology stack:
+1. Update the `technology` filter in `groupAgents()` function:
+```typescript
+// Add your technology keyword to the filter
+return ['typescript', 'react', 'nodejs', 'nextjs', 'docker', 'github-actions', 'your-tech'].some(
+  tech => a.id.includes(tech)
+);
+```
+
+#### For Mutually Exclusive Agents
+If your agent is part of a radio group (e.g., test frameworks, databases):
+1. Add to `AGENT_RADIO_GROUPS` array:
+```typescript
+{
+  id: 'your-category',
+  title: 'Your Category',
+  type: 'radio',
+  options: [
+    { id: 'option1', label: 'Option 1', agents: ['your-agent-1'] },
+    { id: 'option2', label: 'Option 2', agents: ['your-agent-2'] },
+    { id: 'none', label: 'None', agents: [] },
+  ],
+}
+```
+
+#### For Optional Agents
+If your agent is optional/specialized:
+1. Update the `optional` filter:
+```typescript
+return ['playwright', 'css', 'accessibility', 'devops', 'your-keyword'].some(
+  keyword => a.id.includes(keyword)
+);
+```
+
+### Step 6: Create the Symlink
 
 Create a symlink in `.claude/agents/` for runtime discovery:
 
@@ -184,8 +228,12 @@ ln -sf ../../src/agents/my-agent.md .claude/agents/my-agent.md
 ln -sf ../../../src/agents/mydomain/expert.md .claude/agents/mydomain-expert.md
 ```
 
-### Step 6: Test the Agent
+### Step 7: Test the Agent
 
+#### Test in Setup
+Run `claudekit setup` and verify your agent appears in the correct section.
+
+#### Test Invocation
 Test your agent by invoking it explicitly:
 
 ```
@@ -197,20 +245,28 @@ Or let Claude invoke it automatically when the task matches the description fiel
 
 ## Metadata Fields
 
+### Standard Claude Code Fields
+
 Per the [official documentation](./official-subagents-documentation.md#configuration-fields):
 
-### Required Fields
+| Field | Required | Type | Description | Example |
+|-------|----------|------|-------------|---------|
+| `name` | Yes | string | Unique identifier using lowercase letters and hyphens | `code-reviewer` |
+| `description` | Yes | string | Natural language description of when to invoke | `Use this agent for audits...` |
+| `tools` | No | string | Comma-separated list of tools. If omitted, inherits all | `Bash, Read, Grep` |
+
+### Claudekit Extension Fields
+
+For integration with `claudekit setup`, these additional metadata fields can be included:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `name` | string | Unique identifier using lowercase letters and hyphens | `code-reviewer` |
-| `description` | string | Natural language description of the agent's purpose and when to invoke | `Use this agent for audits, debugging nasty bugs...` |
+| `universal` | boolean | If true, appears in "Universal Helpers" section | `true` |
+| `displayName` | string | Human-readable name for setup UI | `Oracle (GPT-5)` |
+| `category` | string | Category for organization | `universal`, `testing` |
+| `defaultSelected` | boolean | Pre-selected in setup | `true` |
 
-### Optional Fields
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `tools` | string | Comma-separated list of specific tools. If omitted, inherits all tools from main thread | `Bash, Read, Grep` |
+**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec.
 
 ## Writing Effective Subagents
 
