@@ -21,28 +21,11 @@ const AgentCategorySchema = z.enum([
 
 /**
  * Valid color schemes for UI display
+ * Claude Code supports both named colors and hex codes
  */
-const ColorSchema = z.enum([
-  'blue',
-  'cyan',
-  'green',
-  'yellow',
-  'red',
-  'purple',
-  'pink',
-  'orange',
-  'gray',
-  'black',
-  'white',
-  'indigo',
-  'teal',
-  'lime',
-  'emerald',
-  'sky',
-  'violet',
-  'rose',
-  'brown'
-]);
+const ColorSchema = z.string()
+  .optional()
+  .describe('Named color (e.g., "indigo", "amber") or hex code (e.g., "#3b82f6")');
 
 /**
  * Frontmatter schema for subagent markdown files
@@ -62,7 +45,7 @@ export const SubagentFrontmatterSchema = z.object({
   
   // Claudekit-specific fields for UI and organization
   category: AgentCategorySchema.optional().describe('Claudekit: category for grouping agents'),
-  color: ColorSchema.optional().describe('Claudekit: UI color scheme'),
+  color: ColorSchema.describe('Claudekit: UI color scheme'),
   displayName: z.string().optional().describe('Claudekit: display name for UI'),
   bundle: z.array(z.string()).optional().describe('Claudekit: bundled subagent names'),
 }).strict(); // Strict mode will catch any extra fields
