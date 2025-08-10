@@ -99,6 +99,13 @@ Start by understanding the complete landscape of your domain:
 - What tools and technologies are standard?
 - What are the best practices and anti-patterns?
 - What resources do experts rely on?
+
+## Problem Prioritization (Frequency × Complexity):
+Identify 15+ recurring problems and rate each:
+- Frequency: HIGH/MEDIUM/LOW (how often it occurs)
+- Complexity: HIGH/MEDIUM/LOW (how hard to solve)
+- Priority = Frequency × Complexity score
+Example: "Too many re-renders" (HIGH freq, MEDIUM complexity)
 ```
 
 **2. Tool and Technology Survey**
@@ -133,24 +140,30 @@ Identify recurring patterns in the domain:
 
 #### Research Output Template
 
-Create a research report before implementing your subagent:
+Create both a research report AND a problem matrix before implementing your subagent:
 
+**1. Research Report (markdown):**
 ```markdown
 # [Domain] Expert Research Report
 
-## Domain Overview
-- Core purpose and scope
-- Key technologies and tools
-- Target audience and use cases
+## 1. Scope and Boundaries
+- One-sentence scope: "[Core expertise areas]"
+- 15 Recurring Problems (with frequency × complexity ratings)
+- Sub-domain mapping (when to delegate to specialists)
 
-## Common Problems & Solutions
-### Problem 1: [Description]
-- Symptoms: How it manifests
-- Root causes: Why it happens
-- Solutions: Step-by-step fixes
-- Prevention: Best practices
+## 2. Topic Map (6 Categories)
+### Category 1: [Name]
+- Common Error Messages: [List actual errors]
+- Root Causes: [Why these occur]
+- Fix Strategies:
+  1. Minimal: [Quick fix]
+  2. Better: [Proper solution]
+  3. Complete: [Refactor approach]
+- Diagnostics: [Commands to identify]
+- Validation: [How to verify fix]
+- Links: [Official documentation]
 
-### Problem 2: [Continue pattern...]
+### Category 2-6: [Continue pattern...]
 
 ## Expert Knowledge Base
 ### Critical Commands
@@ -188,6 +201,15 @@ command --flag # What this does and when to use it
 - Questions for domain experts
 ```
 
+**2. Problem Matrix (CSV):**
+Save as `reports/agent-research/[domain]/expert-matrix.csv`:
+```csv
+Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic Command,Validation Step,Official Link
+Hooks Hygiene,"Invalid hook call",Hook called conditionally,Move to top level,Restructure logic,Create custom hook,Check structure,No errors,react.dev/rules
+Performance,"Too many re-renders",State in render,Use event handler,Add dependencies,Refactor state,DevTools check,Stable renders,react.dev/memo
+[Continue with 20-50 rows covering all problems]
+```
+
 #### Research Examples
 
 **Oracle Agent Research:**
@@ -197,8 +219,15 @@ For the oracle agent, the research revealed:
 3. **Key insight**: Fallback strategy needed as tool availability varies
 4. **Decision**: Check tools sequentially, stop at first available
 
-**Comprehensive Research Report:**
-See [Agent Research Report](../reports/agent-research/AGENT_RESEARCH_REPORT.md) for a full example of domain research that informed the creation of multiple subagents in this project.
+**Comprehensive Research Examples:**
+- Full suite specification: [Domain Expert Subagents Suite](../specs/feat-domain-expert-subagents-suite.md)
+- Research reports: Browse [Agent Research Reports](../reports/agent-research/) directory
+- Example: [React Expert Research](../reports/agent-research/react/expert-research.md) + [Matrix](../reports/agent-research/react/expert-matrix.csv)
+
+The research phase produced 22 agents with:
+- 500+ documented issues with progressive solutions
+- 200+ links to official documentation
+- CSV matrices for rapid agent development
 
 #### Research Tools and Techniques
 
@@ -348,14 +377,7 @@ universal: false
 bundle: [python-linter, python-formatter]  # Optional: related agents
 ---
 ```
-⚠️ **Currently requires code change** in `cli/lib/agents/registry-grouping.ts`:
-```typescript
-// Update the technology filter to use category metadata:
-const technology = agentComponents.filter((a) => {
-  if (a.universal === true) return false;
-  return a.category === 'technology';  // Use metadata instead of keywords
-});
-```
+✅ **No code changes needed** - Just set `category: technology`
 
 #### For Optional/Specialized Agents
 Agents that are optional extras:
@@ -367,14 +389,7 @@ category: optional
 universal: false
 ---
 ```
-⚠️ **Currently requires code change** in `cli/lib/agents/registry-grouping.ts`:
-```typescript
-// Update the optional filter to use category metadata:
-const optional = agentComponents.filter((a) => {
-  if (a.universal === true) return false;
-  return a.category === 'optional';  // Use metadata instead of keywords
-});
-```
+✅ **No code changes needed** - Just set `category: optional`
 
 #### For Mutually Exclusive Agents (Radio Groups)
 For test frameworks, databases, etc. that are mutually exclusive:
@@ -446,7 +461,7 @@ For integration with `claudekit setup`, these additional metadata fields can be 
 | `displayName` | string | Human-readable name for setup UI | `Oracle (GPT-5)` |
 | `bundle` | string[] | Related agents to install together | `[python-linter, python-formatter]` |
 
-**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec. The `universal` field works automatically, but `category` currently requires updating the grouping logic in `registry-grouping.ts`.
+**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec. Both `universal` and `category` fields work automatically to control agent grouping in the setup UI.
 
 ## Writing Effective Subagents
 
