@@ -257,6 +257,38 @@ export async function validate(options: ValidateOptions): Promise<void> {
       });
     }
 
+    // Check for agents directory
+    progressReporter.update('Checking agents installation...');
+    const agentsDir = path.join(claudeDir, 'agents');
+    try {
+      await fs.access(agentsDir);
+
+      // Count agents recursively
+      let agentCount = 0;
+      async function countAgents(dir: string): Promise<void> {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            await countAgents(path.join(dir, entry.name));
+          } else if (entry.name.endsWith('.md')) {
+            agentCount++;
+          }
+        }
+      }
+
+      await countAgents(agentsDir);
+      legacyResults.push({
+        passed: true,
+        message: `Found ${agentCount} agent(s)`,
+      });
+    } catch {
+      // Agents directory doesn't exist - this is valid, just means no agents installed
+      legacyResults.push({
+        passed: true,
+        message: 'No agents installed',
+      });
+    }
+
     // Optional: Check prerequisites
     if (options.prerequisites === true) {
       progressReporter.update('Checking development prerequisites...');

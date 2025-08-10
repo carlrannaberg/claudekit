@@ -7,6 +7,7 @@ tags: [code-quality, linting, formatting, security, ci-cd, standards]
 complexity: intermediate
 scope: "Code linting, formatting, static analysis, quality metrics, and development standards enforcement"
 related_experts: [typescript-expert, testing-expert, security-expert]
+category: optional
 color: red
 ---
 

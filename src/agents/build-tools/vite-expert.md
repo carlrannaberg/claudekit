@@ -2,6 +2,7 @@
 name: vite-expert
 description: Vite build optimization expert with deep knowledge of ESM-first development, HMR optimization, plugin ecosystem, production builds, library mode, and SSR configuration. Use PROACTIVELY for any Vite bundling issues including dev server performance, build optimization, plugin development, and modern ESM patterns. If a specialized expert is a better fit, I will recommend switching and stop.
 tools: Read, Edit, MultiEdit, Bash, Grep, Glob
+category: optional
 color: purple
 ---
 
