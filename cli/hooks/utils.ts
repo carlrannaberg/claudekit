@@ -119,7 +119,8 @@ export async function execCommand(
     const elapsedNearTimeout = durationMs >= Math.max(0, requestedTimeout - 25);
     const didTimeOut =
       execError.timedOut === true ||
-      execError.killed === true && (execError.signal === 'SIGTERM' || execError.signal === 'SIGKILL') ||
+      (execError.killed === true &&
+        (execError.signal === 'SIGTERM' || execError.signal === 'SIGKILL')) ||
       elapsedNearTimeout;
 
     return {

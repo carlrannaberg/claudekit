@@ -637,7 +637,7 @@ function createComponentId(filePath: string, type: ComponentType): string {
   if (type === 'agent') {
     return `${parentDir}-${fileName}`;
   }
-  
+
   return `${parentDir}:${fileName}`;
 }
 
@@ -657,13 +657,22 @@ async function parseComponentFile(
     }
 
     // Parse metadata based on file type
-    const rawMetadata = (type === 'command' || type === 'agent') ? parseFrontmatter(content) : parseShellHeader(content);
+    const rawMetadata =
+      type === 'command' || type === 'agent'
+        ? parseFrontmatter(content)
+        : parseShellHeader(content);
 
     // For agents, validate that required fields are present
     if (type === 'agent') {
       // Agent files must have 'name' and 'description' in frontmatter
-      if (rawMetadata['name'] === undefined || rawMetadata['name'] === null || rawMetadata['name'] === '' ||
-          rawMetadata['description'] === undefined || rawMetadata['description'] === null || rawMetadata['description'] === '') {
+      if (
+        rawMetadata['name'] === undefined ||
+        rawMetadata['name'] === null ||
+        rawMetadata['name'] === '' ||
+        rawMetadata['description'] === undefined ||
+        rawMetadata['description'] === null ||
+        rawMetadata['description'] === ''
+      ) {
         // Skip files without proper agent metadata
         return null;
       }

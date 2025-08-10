@@ -9,52 +9,52 @@ type AgentRegistryType = Record<string, DomainEntry>;
 export const AGENT_REGISTRY: AgentRegistryType = {
   typescript: {
     broad: 'typescript-expert',
-    specialized: ['typescript-type-expert', 'typescript-build-expert']
+    specialized: ['typescript-type-expert', 'typescript-build-expert'],
   },
   react: {
     broad: 'react-expert',
-    specialized: ['react-performance-expert']
+    specialized: ['react-performance-expert'],
   },
   nodejs: {
     broad: 'nodejs-expert',
-    specialized: []
+    specialized: [],
   },
   testing: {
     broad: 'testing-expert',
-    specialized: ['jest-expert', 'vitest-expert', 'playwright-expert']
+    specialized: ['jest-expert', 'vitest-expert', 'playwright-expert'],
   },
   database: {
     broad: 'database-expert',
-    specialized: ['postgres-expert', 'mongodb-expert']
+    specialized: ['postgres-expert', 'mongodb-expert'],
   },
   git: {
     broad: 'git-expert',
-    specialized: []
+    specialized: [],
   },
   'code-quality': {
     broad: 'code-quality-expert',
-    specialized: []
+    specialized: [],
   },
   devops: {
     broad: 'devops-expert',
-    specialized: []
+    specialized: [],
   },
   infrastructure: {
     broad: null,
-    specialized: ['docker-expert', 'github-actions-expert']
+    specialized: ['docker-expert', 'github-actions-expert'],
   },
   frontend: {
     broad: null,
-    specialized: ['css-styling-expert', 'accessibility-expert']
+    specialized: ['css-styling-expert', 'accessibility-expert'],
   },
   'build-tools': {
     broad: null,
-    specialized: ['webpack-expert', 'vite-expert']
+    specialized: ['webpack-expert', 'vite-expert'],
   },
   framework: {
     broad: null,
-    specialized: ['nextjs-expert']
-  }
+    specialized: ['nextjs-expert'],
+  },
 };
 
 // Helper function to get all agents
@@ -72,14 +72,13 @@ export function getAllAgents(): string[] {
 // Get broad domain experts only
 export function getBroadExperts(): string[] {
   return Object.values(AGENT_REGISTRY)
-    .map(d => d.broad)
+    .map((d) => d.broad)
     .filter((broad): broad is string => broad !== null);
 }
 
 // Get specialized experts only
 export function getSpecializedExperts(): string[] {
-  return Object.values(AGENT_REGISTRY)
-    .flatMap(d => d.specialized);
+  return Object.values(AGENT_REGISTRY).flatMap((d) => d.specialized);
 }
 
 // Get agents by domain
@@ -88,14 +87,14 @@ export function getAgentsByDomain(domain: string): { broad?: string; specialized
   if (domainEntry === undefined) {
     return { specialized: [] };
   }
-  
+
   const result: { broad?: string; specialized: string[] } = {
-    specialized: domainEntry.specialized
+    specialized: domainEntry.specialized,
   };
-  
+
   if (domainEntry.broad !== null) {
     result.broad = domainEntry.broad;
   }
-  
+
   return result;
 }

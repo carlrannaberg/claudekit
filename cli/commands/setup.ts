@@ -22,7 +22,6 @@ import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 import type { ComponentRegistry } from '../lib/components.js';
 
-
 // Command group definitions for improved setup flow
 interface CommandGroup {
   id: string;
@@ -295,7 +294,9 @@ async function performThreeStepSelection(
   }));
 
   console.log(
-    Colors.dim(`\n(${agentComponents.length} agents available - use space to toggle, enter to confirm)\n`)
+    Colors.dim(
+      `\n(${agentComponents.length} agents available - use space to toggle, enter to confirm)\n`
+    )
   );
 
   // Only show agent selection if there are agents available
@@ -580,14 +581,14 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (options.all === true && options.skipAgents !== true) {
         // Get all agent components from registry
         const agentComponents = Array.from(registry.components.values())
-          .filter(c => c.type === 'agent')
-          .map(c => c.metadata.id);
+          .filter((c) => c.type === 'agent')
+          .map((c) => c.metadata.id);
         selectedComponents.push(...agentComponents);
       }
       // For --yes flag, select TypeScript agent by default (unless agents are skipped)
       else if (options.yes === true && options.skipAgents !== true) {
         const tsAgent = Array.from(registry.components.values()).find(
-          c => c.type === 'agent' && c.metadata.id === 'typescript-expert'
+          (c) => c.type === 'agent' && c.metadata.id === 'typescript-expert'
         );
         if (tsAgent) {
           selectedComponents.push(tsAgent.metadata.id);
@@ -885,7 +886,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         const totalInstalled = commandCount + hookCount + finalAgentCount;
 
         console.log(`\n${Colors.bold(Colors.success('✨ Setup complete!'))}`);
-        
+
         if (totalInstalled > 0) {
           console.log(`\n${Colors.bold('Installed items:')}`);
           if (commandCount > 0) {
