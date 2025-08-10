@@ -1,1 +1,0 @@
-../../../src/commands/checkpoint/restore.md

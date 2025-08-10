@@ -1,1 +1,0 @@
-../../../src/commands/git/status.md

@@ -265,6 +265,25 @@ export async function validate(options: ValidateOptions): Promise<void> {
 
       // Count agents recursively
       let agentCount = 0;
+      
+      // Helper function to check if a file is a valid agent
+      async function isValidAgent(filePath: string): Promise<boolean> {
+        try {
+          const content = await fs.readFile(filePath, 'utf-8');
+          // Check for frontmatter with name and description
+          if (content.startsWith('---')) {
+            const frontmatterEnd = content.indexOf('---', 3);
+            if (frontmatterEnd !== -1) {
+              const frontmatter = content.substring(3, frontmatterEnd);
+              return frontmatter.includes('name:') && frontmatter.includes('description:');
+            }
+          }
+        } catch {
+          // Can't read file, skip
+        }
+        return false;
+      }
+      
       async function countAgents(dir: string): Promise<void> {
         const entries = await fs.readdir(dir, { withFileTypes: true });
         for (const entry of entries) {
@@ -278,14 +297,18 @@ export async function validate(options: ValidateOptions): Promise<void> {
               const stats = await fs.stat(fullPath);
               if (stats.isDirectory()) {
                 await countAgents(fullPath);
-              } else if (entry.name.endsWith('.md')) {
-                agentCount++;
+              } else if (stats.isFile() && entry.name.endsWith('.md')) {
+                if (await isValidAgent(fullPath)) {
+                  agentCount++;
+                }
               }
             } catch {
               // Broken symlink, ignore
             }
           } else if (entry.name.endsWith('.md')) {
-            agentCount++;
+            if (await isValidAgent(fullPath)) {
+              agentCount++;
+            }
           }
         }
       }
