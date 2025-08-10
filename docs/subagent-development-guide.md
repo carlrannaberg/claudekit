@@ -13,7 +13,7 @@ This guide provides comprehensive instructions for creating new subagents in cla
 - [Overview](#overview)
 - [Core Principles](#core-principles)
 - [Directory Structure](#directory-structure)
-- [Step-by-Step Process](#step-by-step-process)
+- [Creating a Subagent](#creating-a-subagent)
 - [Metadata Fields](#metadata-fields)
 - [Writing Effective Subagents](#writing-effective-subagents)
 - [Testing and Validation](#testing-and-validation)
@@ -81,7 +81,7 @@ claudekit/
 - Use descriptive names: `expert.md`, `analyzer.md`, `optimizer.md`
 - Avoid redundant prefixes (not `typescript-typescript-expert.md`)
 
-## Step-by-Step Process
+## Creating a Subagent
 
 ### Step 1: Define the Agent's Purpose
 
@@ -194,21 +194,6 @@ Use the my-agent subagent to [test task]
 
 Or let Claude invoke it automatically when the task matches the description field.
 
-### Step 7: Document and Commit
-
-1. Update any relevant documentation
-2. Create a descriptive commit:
-
-```bash
-git add src/agents/my-agent.md .claude/agents/my-agent.md
-git commit -m "feat: add [domain] subagent for [purpose]
-
-Implements [agent name] subagent that [what it does].
-
-- [Key feature 1]
-- [Key feature 2]
-- [Key capability]"
-```
 
 ## Metadata Fields
 
@@ -386,15 +371,15 @@ ls -la .claude/agents/ | grep my-agent
 ### 3. Invocation Testing
 
 Test different invocation patterns:
-```bash
-# Direct invocation
-/agent:my-agent "simple task"
+```
+# Explicit invocation
+Use the my-agent subagent to perform a simple task
 
 # Complex task
-/agent:my-agent "analyze this complex problem with context"
+Use the my-agent subagent to analyze this complex problem with context
 
-# Edge cases
-/agent:my-agent ""  # Empty input
+# Automatic invocation
+[Task that matches the agent's description field]
 ```
 
 ### 4. Tool Access Testing
@@ -407,7 +392,7 @@ Verify tool restrictions work:
 
 ### Agent Not Found
 
-**Problem**: `/agent:my-agent` returns "not found"
+**Problem**: "Use the my-agent subagent" doesn't work
 
 **Solutions**:
 1. Check symlink exists: `ls -la .claude/agents/`
