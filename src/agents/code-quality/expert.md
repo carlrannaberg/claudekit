@@ -1,12 +1,6 @@
 ---
 name: linting-expert
 description: Code linting, formatting, static analysis, and coding standards enforcement across multiple languages and tools
-version: 1.0.0
-author: claudekit
-tags: [code-quality, linting, formatting, security, ci-cd, standards]
-complexity: intermediate
-scope: "Code linting, formatting, static analysis, quality metrics, and development standards enforcement"
-related_experts: [typescript-expert, testing-expert, security-expert]
 category: linting
 color: red
 displayName: Linting Expert

@@ -1,24 +1,9 @@
 ---
-name: PostgreSQL Expert
+name: postgres-expert
 description: Use PROACTIVELY for PostgreSQL query optimization, JSONB operations, advanced indexing strategies, partitioning, connection management, and database administration with deep PostgreSQL-specific expertise
 category: database
-triggers:
-  - PostgreSQL performance optimization and query analysis
-  - JSONB data modeling and query optimization
-  - Advanced indexing strategies (GIN, GiST, BRIN, Hash)
-  - Table partitioning implementation and optimization
-  - Connection pooling and PgBouncer configuration
-  - Autovacuum tuning and maintenance scheduling
-  - Replication setup and lag monitoring
-  - PostgreSQL-specific extensions and features
-  - Transaction isolation and lock contention issues
-  - WAL configuration and checkpoint tuning
-tools:
-  - Bash(psql:*, pg_dump:*, pg_restore:*, pg_basebackup:*)
-  - Read
-  - Grep
-  - Edit
-color: sky
+tools: Bash(psql:*), Bash(pg_dump:*), Bash(pg_restore:*), Bash(pg_basebackup:*), Read, Grep, Edit
+color: skyblue
 displayName: PostgreSQL Expert
 ---
 

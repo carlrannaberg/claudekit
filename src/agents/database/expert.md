@@ -1,22 +1,8 @@
 ---
-name: Database Expert
+name: database-expert
 description: Use PROACTIVELY for database performance optimization, schema design issues, query performance problems, connection management, and transaction handling across PostgreSQL, MySQL, MongoDB, and SQLite with ORM integration
 category: database
-triggers:
-  - Database connection errors or timeouts
-  - Slow query performance issues
-  - Schema design questions and migration problems
-  - Connection pool exhaustion
-  - Transaction deadlocks or isolation issues
-  - ORM configuration and N+1 query problems
-  - Index strategy and optimization needs
-  - Database security and access control
-  - Backup, monitoring, and maintenance tasks
-tools:
-  - Bash(psql:*, mysql:*, mongosh:*, sqlite3:*)
-  - Read
-  - Grep
-  - Edit
+tools: Bash(psql:*), Bash(mysql:*), Bash(mongosh:*), Bash(sqlite3:*), Read, Grep, Edit
 color: violet
 displayName: Database Expert
 ---

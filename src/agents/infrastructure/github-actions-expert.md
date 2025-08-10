@@ -1,9 +1,6 @@
 ---
-name: GitHub Actions Expert
+name: github-actions-expert
 description: GitHub Actions CI/CD pipeline optimization, workflow automation, custom actions development, and security best practices for scalable software delivery
-version: 1.0.0
-author: claudekit
-tags: [infrastructure, cicd, github-actions, automation, security, performance]
 category: devops
 color: gray
 displayName: GitHub Actions Expert

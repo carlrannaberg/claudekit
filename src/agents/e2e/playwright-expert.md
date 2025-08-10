@@ -1,35 +1,8 @@
 ---
-role: testing-expert
-domain: playwright-e2e
-name: Playwright E2E Testing Expert
+name: playwright-expert
 description: Expert in Playwright end-to-end testing, cross-browser automation, visual regression testing, and CI/CD integration
 category: testing
-version: 1.0.0
-last_updated: 2025-08-10
-dependencies:
-  - "@playwright/test"
-  - Node.js 16+
-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - MultiEdit
-  - Grep
-  - Glob
-environment_detection:
-  primary_indicators:
-    - "package.json contains @playwright/test"
-    - "playwright.config.js/ts exists"
-    - "tests/ or e2e/ directory exists"
-  secondary_indicators:
-    - "GitHub Actions with Playwright"
-    - ".github/workflows/ contains browser testing"
-    - "Docker configuration for browsers"
-validation_commands:
-  - "npx playwright --version"
-  - "npx playwright test --list"
-  - "npx playwright show-report"
+tools: Bash, Read, Write, Edit, MultiEdit, Grep, Glob
 color: indigo
 displayName: Playwright Expert
 ---

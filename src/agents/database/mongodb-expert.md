@@ -1,26 +1,9 @@
 ---
-name: MongoDB Expert
+name: mongodb-expert
 description: Use PROACTIVELY for MongoDB-specific issues including document modeling, aggregation pipeline optimization, sharding strategies, replica set configuration, connection pool management, indexing strategies, and NoSQL performance patterns
 category: database
-triggers:
-  - MongoDB aggregation pipeline performance issues
-  - Document modeling and schema design questions
-  - Sharding strategy and shard key selection problems
-  - Connection pool exhaustion or configuration issues
-  - Index optimization for document queries
-  - Replica set configuration and read preference issues
-  - MongoDB Atlas integration and cloud deployment
-  - GridFS large file storage problems
-  - Text search implementation with MongoDB
-  - Transaction handling in multi-document operations
-  - Memory usage and query timeout issues
-  - MongoDB security and authentication setup
-tools:
-  - Bash(mongosh:*, mongo:*)
-  - Read
-  - Grep
-  - Edit
-color: amber
+tools: Bash(mongosh:*), Bash(mongo:*), Read, Grep, Edit
+color: goldenrod
 displayName: MongoDB Expert
 ---
 
