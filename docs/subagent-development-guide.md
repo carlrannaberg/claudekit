@@ -186,12 +186,13 @@ ln -sf ../../../src/agents/mydomain/expert.md .claude/agents/mydomain-expert.md
 
 ### Step 6: Test the Agent
 
-Test your agent by invoking it directly:
+Test your agent by invoking it explicitly:
 
-```bash
-# In Claude Code
-/agent:my-agent "test task for the agent"
 ```
+Use the my-agent subagent to [test task]
+```
+
+Or let Claude invoke it automatically when the task matches the description field.
 
 ### Step 7: Document and Commit
 
