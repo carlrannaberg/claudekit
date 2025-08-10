@@ -268,8 +268,22 @@ export async function validate(options: ValidateOptions): Promise<void> {
       async function countAgents(dir: string): Promise<void> {
         const entries = await fs.readdir(dir, { withFileTypes: true });
         for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          
+          // Handle both regular directories and symlinks to directories
           if (entry.isDirectory()) {
-            await countAgents(path.join(dir, entry.name));
+            await countAgents(fullPath);
+          } else if (entry.isSymbolicLink()) {
+            try {
+              const stats = await fs.stat(fullPath);
+              if (stats.isDirectory()) {
+                await countAgents(fullPath);
+              } else if (entry.name.endsWith('.md')) {
+                agentCount++;
+              }
+            } catch {
+              // Broken symlink, ignore
+            }
           } else if (entry.name.endsWith('.md')) {
             agentCount++;
           }
