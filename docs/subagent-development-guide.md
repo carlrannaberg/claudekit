@@ -83,15 +83,159 @@ claudekit/
 
 ## Creating a Subagent
 
-### Step 1: Define the Agent's Purpose
+### Step 1: Research and Discovery
 
-Before writing code, clearly define:
-1. **Domain**: What area of expertise? (e.g., security, performance, databases)
-2. **Tasks**: What specific tasks will it handle?
-3. **Triggers**: When should Claude invoke this agent?
-4. **Tools**: What tools does it need access to?
+Before writing any code, thorough research is essential for creating an effective subagent. This phase often determines the success of your subagent.
 
-### Step 2: Create the Agent File
+#### Research Methodology
+
+**1. Domain Analysis**
+Start by understanding the complete landscape of your domain:
+
+```markdown
+## Research Questions to Answer:
+- What are the core concepts and terminology?
+- What are the common problems developers face?
+- What tools and technologies are standard?
+- What are the best practices and anti-patterns?
+- What resources do experts rely on?
+```
+
+**2. Tool and Technology Survey**
+
+Research existing tools that experts use:
+```bash
+# Example: Researching TypeScript tooling
+- tsc (TypeScript compiler) - capabilities, flags, performance options
+- tsx, ts-node - runtime execution tools
+- Biome, ESLint - linting and formatting
+- Vite, Webpack, Rollup - build tools
+- Type testing tools - vitest, tsd
+```
+
+**3. Documentation Mining**
+
+Gather authoritative sources:
+- Official documentation and guides
+- GitHub issues and discussions for common problems
+- Stack Overflow patterns and solutions
+- Blog posts from recognized experts
+- Conference talks and tutorials
+
+**4. Pattern Recognition**
+
+Identify recurring patterns in the domain:
+- Common error messages and their solutions
+- Typical workflow sequences
+- Decision trees experts use
+- Performance optimization strategies
+- Migration and upgrade patterns
+
+#### Research Output Template
+
+Create a research report before implementing your subagent:
+
+```markdown
+# [Domain] Expert Research Report
+
+## Domain Overview
+- Core purpose and scope
+- Key technologies and tools
+- Target audience and use cases
+
+## Common Problems & Solutions
+### Problem 1: [Description]
+- Symptoms: How it manifests
+- Root causes: Why it happens
+- Solutions: Step-by-step fixes
+- Prevention: Best practices
+
+### Problem 2: [Continue pattern...]
+
+## Expert Knowledge Base
+### Critical Commands
+```bash
+# Command with explanation
+command --flag # What this does and when to use it
+```
+
+### Decision Frameworks
+| Scenario | Recommended Approach | Reasoning |
+|----------|---------------------|-----------|
+| [Case 1] | [Solution] | [Why] |
+| [Case 2] | [Solution] | [Why] |
+
+### Code Patterns
+```language
+// Pattern name and purpose
+// Working example with explanation
+```
+
+## Tools & Resources
+### Essential Tools
+- Tool name: Purpose and key features
+- Installation: How to set up
+- Key commands: Most important operations
+
+### Authoritative Resources
+- [Official Docs](URL): What to find there
+- [Expert Blog](URL): Specialized knowledge
+- [Tool Repo](URL): Issues and examples
+
+## Research Gaps
+- What couldn't be determined
+- Areas needing more investigation
+- Questions for domain experts
+```
+
+#### Research Examples
+
+**Oracle Agent Research:**
+For the oracle agent, the research revealed:
+1. **Multiple CLI tools** exist for GPT-5 access (cursor-agent, codex, opencode)
+2. **Common patterns**: All tools use similar prompt/model/force flags
+3. **Key insight**: Fallback strategy needed as tool availability varies
+4. **Decision**: Check tools sequentially, stop at first available
+
+**Comprehensive Research Report:**
+See [Agent Research Report](../reports/agent-research/AGENT_RESEARCH_REPORT.md) for a full example of domain research that informed the creation of multiple subagents in this project.
+
+#### Research Tools and Techniques
+
+**1. GitHub Code Search**
+```bash
+# Find how experts use specific tools
+# Search: "filename:*.md oracle GPT-5"
+# Search: "language:typescript tsc --extendedDiagnostics"
+```
+
+**2. Package Analysis**
+```bash
+# Analyze popular packages in the ecosystem
+npm info [package] # Check package details
+npm ls [package] # See dependency tree
+npx npmgraph [package] # Visualize dependencies
+```
+
+**3. Documentation Aggregation**
+- Use `/agent:oracle` to analyze multiple docs
+- Create comparison matrices for similar tools
+- Extract command patterns from CLI help texts
+
+**4. Community Research**
+- Discord/Slack communities for real-world problems
+- GitHub Discussions for design decisions
+- Twitter/X for latest developments and tips
+
+### Step 2: Define the Agent's Purpose
+
+Based on your research, clearly define:
+1. **Domain**: Specific area of expertise identified through research
+2. **Tasks**: Concrete tasks discovered in research
+3. **Triggers**: Problem patterns that should invoke this agent
+4. **Tools**: Minimum tools needed based on research findings
+
+### Step 3: Create the Agent File
 
 Create the markdown file in the appropriate location:
 
@@ -104,7 +248,7 @@ mkdir -p src/agents/mydomain
 touch src/agents/mydomain/expert.md
 ```
 
-### Step 3: Write the Frontmatter
+### Step 4: Write the Frontmatter
 
 Add YAML frontmatter with required and optional fields:
 
@@ -121,7 +265,7 @@ bundle: [related-agent]  # Optional: agents to install together
 ---
 ```
 
-### Step 4: Write the Agent Instructions
+### Step 5: Write the Agent Instructions
 
 Structure your agent following this template:
 
@@ -177,7 +321,7 @@ Situation? → Decision
 - [Best practices guides]
 ```
 
-### Step 5: Making Your Agent Appear in Setup
+### Step 6: Making Your Agent Appear in Setup
 
 The claudekit system **automatically discovers** your agent and groups it based on metadata:
 
@@ -251,7 +395,7 @@ For test frameworks, databases, etc. that are mutually exclusive:
 ```
 ⚠️ **Requires code changes** - Radio groups define mutual exclusivity relationships
 
-### Step 6: Create the Symlink
+### Step 7: Create the Symlink
 
 Create a symlink in `.claude/agents/` for runtime discovery:
 
@@ -263,7 +407,7 @@ ln -sf ../../src/agents/my-agent.md .claude/agents/my-agent.md
 ln -sf ../../../src/agents/mydomain/expert.md .claude/agents/mydomain-expert.md
 ```
 
-### Step 7: Test the Agent
+### Step 8: Test the Agent
 
 #### Test in Setup
 Run `claudekit setup` and verify your agent appears in the correct section.
@@ -520,22 +664,27 @@ Verify tool restrictions work:
 
 ## Best Practices
 
-1. **Start Simple**: Begin with basic functionality, then add complexity
-2. **Test Incrementally**: Test each section as you write it
-3. **Document Assumptions**: Clearly state what environment or tools you expect
-4. **Provide Examples**: Include working code examples, not just descriptions
-5. **Link Resources**: Always provide authoritative documentation links
-6. **Consider Security**: Restrict tools to minimum necessary
-7. **Plan for Failure**: Include fallback strategies and error handling
-8. **Keep Updated**: Review and update agents as tools and practices evolve
+1. **Research First**: Spend significant time researching before writing any code
+2. **Start Simple**: Begin with basic functionality, then add complexity
+3. **Test Incrementally**: Test each section as you write it
+4. **Document Assumptions**: Clearly state what environment or tools you expect
+5. **Provide Examples**: Include working code examples from your research
+6. **Link Resources**: Always provide authoritative documentation links
+7. **Consider Security**: Restrict tools to minimum necessary
+8. **Plan for Failure**: Include fallback strategies and error handling
+9. **Keep Updated**: Review and update agents as tools and practices evolve
+10. **Save Research**: Keep research reports in `reports/` for future reference
 
 ## Conclusion
 
 Creating effective subagents requires:
-- Clear understanding of the domain
-- Structured, systematic approach
-- Practical, working examples
-- Proper metadata configuration
-- Thorough testing
+- **Thorough research** of the domain and its tools
+- Clear understanding of common problems and solutions
+- Structured, systematic approach to implementation
+- Practical, working examples from real-world usage
+- Proper metadata configuration for claudekit integration
+- Comprehensive testing of all scenarios
+
+The research phase is the foundation of a great subagent. Time invested in understanding the domain, tools, and expert patterns will result in a subagent that truly extends Claude's capabilities effectively.
 
 Follow this guide and the established patterns to create subagents that seamlessly extend Claude's capabilities in your specific domains.
