@@ -78,7 +78,7 @@ export interface ExecResult {
   /** True when the process was killed due to timeout */
   timedOut?: boolean;
   /** Signal used to terminate the process, if any (e.g., SIGTERM) */
-  signal?: NodeJS.Signals | string | null;
+  signal?: string | null;
   /** Whether the process was killed */
   killed?: boolean;
   /** Elapsed time in milliseconds for the executed command */
@@ -107,7 +107,7 @@ export async function execCommand(
       stderr?: string;
       code?: number;
       killed?: boolean;
-      signal?: NodeJS.Signals | string | null;
+      signal?: string | null;
       timedOut?: boolean; // some environments
     };
 
