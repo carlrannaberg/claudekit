@@ -1,705 +1,483 @@
 # Subagent Development Guide for Claudekit
 
-This guide provides comprehensive instructions for creating new subagents in claudekit, based on established patterns and best practices.
+This guide provides comprehensive instructions for creating research-driven, high-quality subagents that extend Claude's capabilities in specific domains.
 
 ## Related Documentation
 
 - [Domain Expert Principles](./subagents-principles.md) - Core principles for designing domain experts
 - [Official Subagents Documentation](./official-subagents-documentation.md) - Claude's official subagent capabilities
 - [Feature Specification](../specs/feat-domain-expert-subagents-suite.md) - Complete subagent suite specification
-- [Agent Research Report](../reports/agent-research/AGENT_RESEARCH_REPORT.md) - Research findings on agent patterns
+- [Agent Research Reports](../reports/agent-research/) - Examples of comprehensive domain research
 
 ## Table of Contents
 - [Overview](#overview)
 - [Core Principles](#core-principles)
-- [Directory Structure](#directory-structure)
-- [Creating a Subagent](#creating-a-subagent)
-- [Metadata Fields](#metadata-fields)
-- [Writing Effective Subagents](#writing-effective-subagents)
+- [The Research Phase](#the-research-phase)
+- [Implementation Guide](#implementation-guide)
 - [Testing and Validation](#testing-and-validation)
-- [Examples](#examples)
-- [Common Patterns](#common-patterns)
+- [Patterns and Examples](#patterns-and-examples)
 - [Troubleshooting](#troubleshooting)
+- [Best Practices](#best-practices)
 
 ## Overview
 
-Subagents in claudekit are specialized AI agents that extend Claude's capabilities in specific domains. They follow a consistent structure and can be invoked automatically by Claude when it recognizes tasks matching their expertise.
+Subagents are specialized AI assistants that provide concentrated expertise in specific domains. They operate with their own context windows, tool permissions, and knowledge bases, allowing Claude to delegate complex tasks to domain experts.
 
-### What is a Subagent?
+### What Makes a Great Subagent?
 
-A subagent is:
-- A markdown file with YAML frontmatter defining metadata
-- A specialized expert in a particular domain or task type
-- Automatically discoverable and invocable by Claude
-- Self-contained with all necessary instructions and context
+A successful subagent combines:
+- **Deep domain research** - Understanding of 15+ common problems and their solutions
+- **Clear boundaries** - Well-defined scope and delegation rules
+- **Practical knowledge** - Working examples from real-world usage
+- **Smart tool usage** - Only the permissions necessary for the task
+
+### How Subagents Work
+
+1. **Claude recognizes** a task matching the agent's description
+2. **Delegates** the task to the specialized subagent
+3. **Subagent analyzes** using its concentrated domain knowledge
+4. **Returns results** to continue the conversation
 
 ## Core Principles
 
-Based on the [Domain Expert Principles](./subagents-principles.md) and [Official Documentation](./official-subagents-documentation.md):
+Based on [Domain Expert Principles](./subagents-principles.md) and proven patterns from 22 production agents:
 
-### 1. **Complete Domain Coverage**
-- Cover an entire problem domain comprehensively
-- Don't create overly narrow agents (e.g., "React useState expert")
-- Aim for coherent domains like "TypeScript expert" or "Database expert"
+### 1. Complete Domain Coverage
+Cover an entire problem domain comprehensively. Avoid overly narrow agents (❌ "React useState expert") in favor of coherent domains (✅ "React expert", "TypeScript expert").
 
-### 2. **Clear Invocation Triggers**
-- The `description` field tells Claude WHEN to use the agent
-- Write descriptions that Claude can pattern-match against user requests
-- Include "Use PROACTIVELY" for agents that should be used automatically
+### 2. Research-Driven Development
+Every subagent must be built on thorough research documenting common problems, solutions, and patterns. This research forms the foundation of effective agents.
 
-### 3. **Self-Contained Instructions**
-- Each subagent should contain all necessary knowledge
-- Don't rely on external files or dependencies
-- Include examples, patterns, and reference materials
+### 3. Clear Invocation Triggers
+Write descriptions that Claude can pattern-match: "Use this agent for [specific scenarios]. Use PROACTIVELY when [conditions]."
 
-### 4. **Tool Restrictions**
-- Explicitly define allowed tools in the `tools` field
-- Restrict tools to only what's necessary for the task
-- Consider security implications of tool access
+### 4. Self-Contained Knowledge
+Include all necessary information within the agent. Don't rely on external files or assume prior context.
 
-## Directory Structure
+### 5. Minimal Tool Permissions
+Grant only essential tools. For analysis agents: `Read, Grep, Glob`. For implementation agents: add `Edit, Write`. For system agents: add `Bash`.
 
-```
-claudekit/
-├── src/
-│   └── agents/                 # Source subagent files
-│       ├── oracle.md           # Universal agents at root
-│       ├── typescript/         # Domain-specific directories
-│       │   └── expert.md
-│       ├── react/
-│       ├── database/
-│       └── testing/
-└── .claude/
-    └── agents/                 # Symlinked for runtime use
-        └── oracle.md -> ../../src/agents/oracle.md
-```
+## The Research Phase
 
-### Naming Conventions
+**Research is the foundation of every great subagent.** Before writing any code, invest time understanding the domain thoroughly. The research phase typically produces:
+- 15+ documented problems with solutions
+- 6 problem categories for organization
+- 20-50 issue patterns in a CSV matrix
+- Links to authoritative documentation
 
-- **Universal agents**: Place at `src/agents/[name].md`
-- **Domain-specific agents**: Place at `src/agents/[domain]/[name].md`
-- Use descriptive names: `expert.md`, `analyzer.md`, `optimizer.md`
-- Avoid redundant prefixes (not `typescript-typescript-expert.md`)
+### Research Methodology
 
-## Creating a Subagent
+#### 1. Domain Analysis
 
-### Step 1: Research and Discovery
-
-Before writing any code, thorough research is essential for creating an effective subagent. This phase often determines the success of your subagent.
-
-#### Research Methodology
-
-**1. Domain Analysis**
-Start by understanding the complete landscape of your domain:
-
-```markdown
-## Research Questions to Answer:
+Start with fundamental questions:
 - What are the core concepts and terminology?
-- What are the common problems developers face?
+- What problems do developers face daily?
 - What tools and technologies are standard?
-- What are the best practices and anti-patterns?
-- What resources do experts rely on?
+- What are recognized best practices?
+- What anti-patterns should be avoided?
 
-## Problem Prioritization (Frequency × Complexity):
-Identify 15+ recurring problems and rate each:
-- Frequency: HIGH/MEDIUM/LOW (how often it occurs)
-- Complexity: HIGH/MEDIUM/LOW (how hard to solve)
-- Priority = Frequency × Complexity score
-Example: "Too many re-renders" (HIGH freq, MEDIUM complexity)
+**Problem Prioritization Matrix:**
+```
+Problem: "Too many re-renders"
+Frequency: HIGH (happens often)
+Complexity: MEDIUM (moderate difficulty)
+Priority: HIGH × MEDIUM = High Priority
 ```
 
-**2. Tool and Technology Survey**
+Target 15+ problems, rating each by frequency × complexity.
 
-Research existing tools that experts use:
+#### 2. Tool and Technology Survey
+
+Map the ecosystem:
 ```bash
-# Example: Researching TypeScript tooling
-- tsc (TypeScript compiler) - capabilities, flags, performance options
-- tsx, ts-node - runtime execution tools
-- Biome, ESLint - linting and formatting
-- Vite, Webpack, Rollup - build tools
-- Type testing tools - vitest, tsd
+# Example: TypeScript tooling research
+- tsc: Compiler capabilities, flags, performance
+- tsx/ts-node: Runtime execution options
+- Biome/ESLint: Linting and formatting tools
+- Vite/Webpack: Build tool integration
+- vitest/tsd: Type testing approaches
 ```
 
-**3. Documentation Mining**
+#### 3. Documentation Mining
 
 Gather authoritative sources:
-- Official documentation and guides
-- GitHub issues and discussions for common problems
-- Stack Overflow patterns and solutions
-- Blog posts from recognized experts
-- Conference talks and tutorials
+- **Official docs** - Primary reference (react.dev, nodejs.org)
+- **GitHub issues** - Common problems and solutions
+- **Stack Overflow** - Recurring patterns
+- **Expert blogs** - Advanced techniques
+- **Conference talks** - Best practices
 
-**4. Pattern Recognition**
+#### 4. Pattern Recognition
 
-Identify recurring patterns in the domain:
-- Common error messages and their solutions
+Identify recurring themes:
+- Common error messages → Root causes → Solutions
 - Typical workflow sequences
 - Decision trees experts use
-- Performance optimization strategies
-- Migration and upgrade patterns
+- Performance optimization patterns
+- Migration and upgrade strategies
 
-#### Research Output Template
+### Research Outputs
 
-Create both a research report AND a problem matrix before implementing your subagent:
+Your research should produce two key deliverables:
 
-**1. Research Report (markdown):**
+#### 1. Research Report (Markdown)
+
+Save as `reports/agent-research/[domain]/expert-research.md`:
+
 ```markdown
 # [Domain] Expert Research Report
 
 ## 1. Scope and Boundaries
-- One-sentence scope: "[Core expertise areas]"
+- One-sentence scope: "React patterns, hooks, performance, SSR/hydration"
 - 15 Recurring Problems (with frequency × complexity ratings)
 - Sub-domain mapping (when to delegate to specialists)
 
 ## 2. Topic Map (6 Categories)
-### Category 1: [Name]
-- Common Error Messages: [List actual errors]
-- Root Causes: [Why these occur]
-- Fix Strategies:
-  1. Minimal: [Quick fix]
-  2. Better: [Proper solution]
-  3. Complete: [Refactor approach]
-- Diagnostics: [Commands to identify]
-- Validation: [How to verify fix]
-- Links: [Official documentation]
 
-### Category 2-6: [Continue pattern...]
+### Category 1: Hooks Hygiene
+**Common Errors:**
+- "Invalid hook call. Hooks can only be called inside function components"
+- "React Hook useEffect has missing dependencies"
 
-## Expert Knowledge Base
-### Critical Commands
+**Root Causes:**
+- Calling hooks conditionally or in loops
+- Missing dependency array values
+
+**Fix Strategies:**
+1. Minimal: Add missing dependencies
+2. Better: Extract custom hooks
+3. Complete: Refactor component architecture
+
+**Diagnostics:**
 ```bash
-# Command with explanation
-command --flag # What this does and when to use it
+npx eslint src/ --rule react-hooks/exhaustive-deps
 ```
 
-### Decision Frameworks
-| Scenario | Recommended Approach | Reasoning |
-|----------|---------------------|-----------|
-| [Case 1] | [Solution] | [Why] |
-| [Case 2] | [Solution] | [Why] |
+**Validation:**
+- No ESLint warnings
+- Components render without errors
 
-### Code Patterns
-```language
-// Pattern name and purpose
-// Working example with explanation
+**Resources:**
+- [Rules of Hooks](https://react.dev/reference/rules-of-hooks)
+- [useEffect Guide](https://react.dev/reference/react/useEffect)
+
+### Categories 2-6: [Continue pattern...]
 ```
 
-## Tools & Resources
-### Essential Tools
-- Tool name: Purpose and key features
-- Installation: How to set up
-- Key commands: Most important operations
+#### 2. Problem Matrix (CSV)
 
-### Authoritative Resources
-- [Official Docs](URL): What to find there
-- [Expert Blog](URL): Specialized knowledge
-- [Tool Repo](URL): Issues and examples
-
-## Research Gaps
-- What couldn't be determined
-- Areas needing more investigation
-- Questions for domain experts
-```
-
-**2. Problem Matrix (CSV):**
 Save as `reports/agent-research/[domain]/expert-matrix.csv`:
+
 ```csv
-Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic Command,Validation Step,Official Link
-Hooks Hygiene,"Invalid hook call",Hook called conditionally,Move to top level,Restructure logic,Create custom hook,Check structure,No errors,react.dev/rules
-Performance,"Too many re-renders",State in render,Use event handler,Add dependencies,Refactor state,DevTools check,Stable renders,react.dev/memo
-[Continue with 20-50 rows covering all problems]
+Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic,Validation,Link
+Hooks,"Invalid hook call",Conditional call,Move to top,Restructure,Custom hook,Check code,No errors,react.dev
+Performance,"Too many renders",State in render,Event handler,Dependencies,Refactor,DevTools,Stable,react.dev
+[20-50 rows covering all identified problems]
 ```
 
-#### Research Examples
+### Research Examples
 
-**Oracle Agent Research:**
-For the oracle agent, the research revealed:
-1. **Multiple CLI tools** exist for GPT-5 access (cursor-agent, codex, opencode)
-2. **Common patterns**: All tools use similar prompt/model/force flags
-3. **Key insight**: Fallback strategy needed as tool availability varies
-4. **Decision**: Check tools sequentially, stop at first available
+The research phase for claudekit's 22 agents produced:
+- **500+ documented issues** with progressive solutions
+- **200+ official documentation links**
+- **Comprehensive problem matrices** for rapid development
 
-**Comprehensive Research Examples:**
-- Full suite specification: [Domain Expert Subagents Suite](../specs/feat-domain-expert-subagents-suite.md)
-- Research reports: Browse [Agent Research Reports](../reports/agent-research/) directory
-- Example: [React Expert Research](../reports/agent-research/react/expert-research.md) + [Matrix](../reports/agent-research/react/expert-matrix.csv)
+Browse examples:
+- [React Expert Research](../reports/agent-research/react/expert-research.md) + [Matrix](../reports/agent-research/react/expert-matrix.csv)
+- [Full Suite Specification](../specs/feat-domain-expert-subagents-suite.md)
+- [All Research Reports](../reports/agent-research/)
 
-The research phase produced 22 agents with:
-- 500+ documented issues with progressive solutions
-- 200+ links to official documentation
-- CSV matrices for rapid agent development
+## Implementation Guide
 
-#### Research Tools and Techniques
+With research complete, follow these steps to implement your subagent:
 
-**1. GitHub Code Search**
+### Step 1: Define Purpose and Boundaries
+
+Based on your research, clearly establish:
+- **Domain**: Specific expertise area (e.g., "React development")
+- **Tasks**: Concrete problems it solves (from research)
+- **Triggers**: Patterns that invoke this agent
+- **Delegation**: When to recommend specialists
+
+### Step 2: Choose File Location
+
 ```bash
-# Find how experts use specific tools
-# Search: "filename:*.md oracle GPT-5"
-# Search: "language:typescript tsc --extendedDiagnostics"
+# Universal agents (all projects need them)
+src/agents/oracle.md
+src/agents/code-reviewer.md
+
+# Domain-specific agents (organized by domain)
+src/agents/typescript/expert.md
+src/agents/react/expert.md
+src/agents/database/postgres-expert.md
 ```
 
-**2. Package Analysis**
+Create your file:
 ```bash
-# Analyze popular packages in the ecosystem
-npm info [package] # Check package details
-npm ls [package] # See dependency tree
-npx npmgraph [package] # Visualize dependencies
-```
-
-**3. Documentation Aggregation**
-- Use `/agent:oracle` to analyze multiple docs
-- Create comparison matrices for similar tools
-- Extract command patterns from CLI help texts
-
-**4. Community Research**
-- Discord/Slack communities for real-world problems
-- GitHub Discussions for design decisions
-- Twitter/X for latest developments and tips
-
-### Step 2: Define the Agent's Purpose
-
-Based on your research, clearly define:
-1. **Domain**: Specific area of expertise identified through research
-2. **Tasks**: Concrete tasks discovered in research
-3. **Triggers**: Problem patterns that should invoke this agent
-4. **Tools**: Minimum tools needed based on research findings
-
-### Step 3: Create the Agent File
-
-Create the markdown file in the appropriate location:
-
-```bash
-# For universal agents
+# Universal agent
 touch src/agents/my-agent.md
 
-# For domain-specific agents
+# Domain-specific
 mkdir -p src/agents/mydomain
 touch src/agents/mydomain/expert.md
 ```
 
-### Step 4: Write the Frontmatter
+### Step 3: Write Frontmatter with Metadata
 
-Add YAML frontmatter with required and optional fields:
+The frontmatter controls how your agent is discovered and grouped:
 
 ```yaml
 ---
-name: my-agent
-description: Use this agent for [specific tasks]. Use PROACTIVELY when [conditions].
-tools: Bash, Read, Grep  # Optional - inherits all tools if omitted
-category: technology     # 'universal', 'technology', or 'optional'
-universal: false         # true for universal helpers (overrides category)
-defaultSelected: false   # true to pre-select in setup
-displayName: My Agent    # Human-readable name for UI
-bundle: [related-agent]  # Optional: agents to install together
+# Required Claude Code fields
+name: my-agent                    # Unique identifier
+description: Use this agent for... # When Claude should invoke
+tools: Bash, Read, Grep           # Allowed tools (omit for all)
+
+# Claudekit grouping fields (automatic discovery)
+category: technology              # 'technology' or 'optional'
+universal: false                  # true for universal helpers
+defaultSelected: false            # Pre-selected in setup
+displayName: My Agent             # UI display name
+bundle: [related-agent]           # Install together
 ---
 ```
 
-### Step 5: Write the Agent Instructions
+#### Metadata Field Reference
 
-Structure your agent following this template:
+**Standard Claude Code Fields:**
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier (lowercase, hyphens) |
+| `description` | Yes | Natural language trigger for Claude |
+| `tools` | No | Comma-separated tools (inherits all if omitted) |
+
+**Claudekit Extension Fields:**
+| Field | Description | Values |
+|-------|-------------|---------|
+| `category` | Grouping for setup UI | `technology`, `optional` |
+| `universal` | Shows in "Universal Helpers" | `true`/`false` |
+| `defaultSelected` | Pre-selected in setup | `true`/`false` |
+| `displayName` | Human-readable name | Any string |
+| `bundle` | Related agents | Array of agent names |
+
+### Step 4: Structure Agent Content
+
+Transform your research into the agent body:
 
 ```markdown
-# Agent Name
+# [Domain] Expert
 
-You are [role description with specific expertise].
+You are [role with specific expertise from research].
 
 ## When invoked:
 
-1. [First step - usually detection or analysis]
+0. If ultra-specific expertise needed, recommend specialist:
+   - Deep webpack issues → webpack-expert
+   - Complex SQL → database-expert
+   Output: "This requires [specialty]. Use the [expert] subagent. Stopping here."
+
+1. Detect environment and adapt:
    ```bash
-   # Example commands if applicable
+   # Check project setup
+   test -f package.json && echo "Node.js project"
+   test -f tsconfig.json && echo "TypeScript enabled"
    ```
 
-2. [Second step - main task execution]
+2. Apply domain expertise to solve the problem
 
-3. [Third step - validation or reporting]
+3. Validate solution works as expected
 
 ## [Domain] Expertise
 
-### [Specific Area 1]
+[Transform your research categories into sections]
 
-**[Pattern or Technique Name]**
-```language
-// Code example
-```
-- Use for: [When to use this]
-- Avoid: [When not to use this]
-- Resource: [Link to documentation]
+### Hooks Hygiene
+[From research: problems, solutions, patterns]
 
-### [Specific Area 2]
-[Continue pattern...]
-
-## [Problem Resolution Patterns]
-
-### [Common Problem Type]
-[Solution approach with examples]
+### Performance Optimization
+[From research: diagnostics, fixes, validation]
 
 ## Quick Decision Trees
 
+[From research: decision frameworks]
 ```
-Situation? → Decision
-├─ Condition A → Action 1
-├─ Condition B → Action 2
-└─ Condition C → Action 3
+< 10 packages → Turborepo
+> 50 packages → Nx
+Complex deps → Nx with visualization
 ```
 
 ## Resources
 
-- [Authoritative documentation links]
-- [Tool references]
-- [Best practices guides]
+[From research: authoritative links]
+- [Official Docs](url)
+- [Best Practices](url)
 ```
 
-### Step 6: Making Your Agent Appear in Setup
+### Step 5: Setup Integration
 
-The claudekit system **automatically discovers** your agent and groups it based on metadata:
+Your agent is automatically discovered by claudekit based on metadata:
 
-#### For Universal Agents
-Agents available for all projects (like oracle, code-reviewer):
-```yaml
----
-name: oracle
-description: Advanced analysis expert...
-universal: true
-defaultSelected: true  # Optional: pre-selected by default
----
-```
-✅ **No code changes needed** - Just set `universal: true`
+**Universal Agents** (`universal: true`):
+- Appear in "Universal Helpers" section
+- Recommended for all projects
+- Examples: oracle, code-reviewer
 
-#### For Technology-Specific Agents
-Agents for specific technology stacks:
-```yaml
----
-name: python-expert
-description: Python development expert
-category: technology
-universal: false
-bundle: [python-linter, python-formatter]  # Optional: related agents
----
-```
-✅ **No code changes needed** - Just set `category: technology`
+**Technology Agents** (`category: technology`):
+- Appear in "Technology Stack" section  
+- Project-specific tools
+- Examples: typescript-expert, react-expert
 
-#### For Optional/Specialized Agents
-Agents that are optional extras:
-```yaml
----
-name: accessibility-expert
-description: Accessibility testing expert
-category: optional
-universal: false
----
-```
-✅ **No code changes needed** - Just set `category: optional`
+**Optional Agents** (`category: optional`):
+- Appear in "Optional" section
+- Specialized tools
+- Examples: accessibility-expert, css-expert
 
-#### For Mutually Exclusive Agents (Radio Groups)
-For test frameworks, databases, etc. that are mutually exclusive:
-1. Add appropriate metadata to the agent
-2. Update `AGENT_RADIO_GROUPS` in `cli/lib/agents/registry-grouping.ts`:
-```typescript
-{
-  id: 'test-framework',
-  title: 'Test Framework',
-  type: 'radio',
-  options: [
-    { id: 'jest', label: 'Jest', agents: ['jest-expert'] },
-    { id: 'vitest', label: 'Vitest', agents: ['vitest-expert'] },
-    { id: 'both', label: 'Both', agents: ['jest-expert', 'vitest-expert'] },
-    { id: 'none', label: 'None', agents: [] },
-  ],
-}
-```
-⚠️ **Requires code changes** - Radio groups define mutual exclusivity relationships
+**Radio Groups** (mutually exclusive):
+- Require manual update to `AGENT_RADIO_GROUPS` in `cli/lib/agents/registry-grouping.ts`
+- For test frameworks, databases, build tools
 
-### Step 7: Create the Symlink
+### Step 6: Create Runtime Symlink
 
-Create a symlink in `.claude/agents/` for runtime discovery:
+Enable runtime discovery:
 
 ```bash
 # From project root
 ln -sf ../../src/agents/my-agent.md .claude/agents/my-agent.md
 
-# Or for domain-specific
+# For domain-specific agents
 ln -sf ../../../src/agents/mydomain/expert.md .claude/agents/mydomain-expert.md
 ```
 
-### Step 8: Test the Agent
+## Testing and Validation
 
-#### Test in Setup
-Run `claudekit setup` and verify your agent appears in the correct section.
+### 1. Verify Structure
 
-#### Test Invocation
-Test your agent by invoking it explicitly:
+```bash
+# Check required frontmatter
+grep -E "^name:|^description:" src/agents/my-agent.md
 
-```
-Use the my-agent subagent to [test task]
-```
-
-Or let Claude invoke it automatically when the task matches the description field.
-
-
-## Metadata Fields
-
-### Standard Claude Code Fields
-
-Per the [official documentation](./official-subagents-documentation.md#configuration-fields):
-
-| Field | Required | Type | Description | Example |
-|-------|----------|------|-------------|---------|
-| `name` | Yes | string | Unique identifier using lowercase letters and hyphens | `code-reviewer` |
-| `description` | Yes | string | Natural language description of when to invoke | `Use this agent for audits...` |
-| `tools` | No | string | Comma-separated list of tools. If omitted, inherits all | `Bash, Read, Grep` |
-
-### Claudekit Extension Fields
-
-For integration with `claudekit setup`, these additional metadata fields can be included:
-
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `category` | string | Agent grouping: `technology`, `optional` | `technology` |
-| `universal` | boolean | If true, appears in "Universal Helpers" section (overrides category) | `true` |
-| `defaultSelected` | boolean | Pre-selected in setup | `true` |
-| `displayName` | string | Human-readable name for setup UI | `Oracle (GPT-5)` |
-| `bundle` | string[] | Related agents to install together | `[python-linter, python-formatter]` |
-
-**Note**: These extension fields are parsed from the frontmatter by claudekit's registry system but are not part of the official Claude Code spec. Both `universal` and `category` fields work automatically to control agent grouping in the setup UI.
-
-## Writing Effective Subagents
-
-### 1. Clear Role Definition
-
-Start with a concise role statement:
-```markdown
-You are an advanced TypeScript expert with deep knowledge of type-level programming, performance optimization, and modern tooling.
+# Verify symlink
+ls -la .claude/agents/ | grep my-agent
 ```
 
-### 2. Structured Methodology
+### 2. Test in Setup
 
-Use numbered steps for systematic approaches:
-```markdown
-## When invoked:
-
-1. Analyze the current environment
-2. Identify the specific problem
-3. Apply appropriate solution
-4. Validate the results
+```bash
+claudekit setup
+# Verify agent appears in correct section
 ```
 
-### 3. Practical Examples
+### 3. Test Invocation
 
-Include real, working code examples:
-```typescript
-// Good: Specific, practical example
-type Brand<K, T> = K & { __brand: T };
-type UserId = Brand<string, 'UserId'>;
+```
+# Explicit invocation
+Use the my-agent subagent to analyze this code
 
-// Bad: Vague or theoretical
-// "Use branded types for better type safety"
+# Automatic invocation
+[Problem that matches agent description]
 ```
 
-### 4. Decision Frameworks
+### 4. Validate Tool Restrictions
 
-Provide clear decision criteria:
-```markdown
-| Situation | Solution | Reason |
-|-----------|----------|--------|
-| < 10 packages | Turborepo | Simplicity |
-| > 50 packages | Nx | Performance |
-| Complex deps | Nx | Visualization |
-```
+- Agent with `tools: Bash` → Cannot read files
+- Agent with no `tools` field → Full access
+- Test actual tool usage matches permissions
 
-### 5. Resource Links
+## Patterns and Examples
 
-Include authoritative references:
-```markdown
-## Resources
-- [Official TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Performance Guide](https://github.com/microsoft/TypeScript/wiki/Performance)
-```
+### Successful Agent Patterns
 
-## Examples
-
-### Example 1: Oracle Agent (Analysis-Focused)
-
-The oracle agent demonstrates:
-- External tool integration (GPT-5 CLI tools)
-- Fallback strategies
-- Read-only analysis pattern
-- Tool restriction (Bash only)
-
-Key pattern:
+#### Oracle Agent Pattern
+**Purpose**: External tool integration for enhanced analysis
 ```markdown
 1. Check if cursor-agent is available
-   If available, run: `cursor-agent -p "[request]" --model gpt-5` and stop
-2. Check if codex is available
-   If available, run: `codex exec "[request]" --model gpt-5` and stop
+   If yes: cursor-agent -p "[request]" --model gpt-5
+2. Check if codex is available  
+   If yes: codex exec "[request]" --model gpt-5
 3. Fallback to Claude's analysis
 ```
 
-### Example 2: TypeScript Expert (Implementation-Focused)
-
-The TypeScript expert demonstrates:
-- Comprehensive domain coverage
-- Delegation to specialized sub-experts
-- Practical code examples
-- Performance considerations
-- Migration strategies
-
-Key pattern:
+#### TypeScript Expert Pattern
+**Purpose**: Comprehensive domain coverage with delegation
 ```markdown
 0. If ultra-specific expertise needed, delegate and stop
 1. Analyze project setup comprehensively
-2. Identify problem category
+2. Identify problem category from research
 3. Apply appropriate solution
 4. Validate thoroughly
 ```
 
-## Common Patterns
+### Common Implementation Patterns
 
-### Pattern 1: Tool Detection and Fallback
-
-```markdown
+#### Environment Detection
 ```bash
-if which tool1 >/dev/null 2>&1; then
-    tool1 command
-elif which tool2 >/dev/null 2>&1; then
-    tool2 command
-else
-    # Fallback approach
-fi
-```
+# Detect project type and tools
+test -f package.json && echo "Node.js"
+test -f tsconfig.json && echo "TypeScript"
+which docker >/dev/null 2>&1 && echo "Docker available"
 ```
 
-### Pattern 2: Delegation to Specialists
-
+#### Delegation Logic
 ```markdown
 0. If the issue requires ultra-specific expertise:
    - Deep webpack internals → webpack-expert
    - Complex SQL optimization → database-expert
    
-   Output: "This requires [specialty]. Please invoke: 'Use the [expert] subagent.' Stopping here."
+   Output: "This requires [specialty]. Use the [expert] subagent. Stopping here."
 ```
 
-### Pattern 3: Structured Analysis
-
+#### Structured Problem Resolution
 ```markdown
-## Analysis Summary
-**Problem**: [Concise statement]
-**Severity**: Critical/High/Medium/Low
-**Root Cause**: [Primary cause]
-**Recommendation**: [Primary action]
+## Problem: [From research]
+**Severity**: High
+**Root Cause**: [From research findings]
+**Fix 1 (Quick)**: [Minimal change]
+**Fix 2 (Better)**: [Proper solution]
+**Fix 3 (Best)**: [Complete refactor]
 ```
-
-### Pattern 4: Environment Detection
-
-```markdown
-# Detect project type
-if [ -f "package.json" ]; then
-    # Node.js project
-elif [ -f "Cargo.toml" ]; then
-    # Rust project
-elif [ -f "go.mod" ]; then
-    # Go project
-fi
-```
-
-## Testing and Validation
-
-### 1. Frontmatter Validation
-
-Ensure all required fields are present:
-```bash
-# Check for required fields
-grep -E "^name:|^description:" src/agents/my-agent.md
-```
-
-### 2. Symlink Verification
-
-Verify symlinks are correctly created:
-```bash
-ls -la .claude/agents/ | grep my-agent
-```
-
-### 3. Invocation Testing
-
-Test different invocation patterns:
-```
-# Explicit invocation
-Use the my-agent subagent to perform a simple task
-
-# Complex task
-Use the my-agent subagent to analyze this complex problem with context
-
-# Automatic invocation
-[Task that matches the agent's description field]
-```
-
-### 4. Tool Access Testing
-
-Verify tool restrictions work:
-- Agent with `tools: Bash` should not be able to Read files
-- Agent with no tools field should have full access
 
 ## Troubleshooting
 
 ### Agent Not Found
+- Verify symlink exists: `ls -la .claude/agents/`
+- Check `name` field in frontmatter
+- Ensure valid YAML syntax
 
-**Problem**: "Use the my-agent subagent" doesn't work
+### Not Invoked Automatically
+- Make description more specific
+- Add "Use PROACTIVELY" to description
+- Set `defaultSelected: true`
 
-**Solutions**:
-1. Check symlink exists: `ls -la .claude/agents/`
-2. Verify frontmatter has `name` field
-3. Ensure no syntax errors in YAML
-
-### Agent Not Invoked Automatically
-
-**Problem**: Claude doesn't invoke agent for matching tasks
-
-**Solutions**:
-1. Make description more specific and pattern-matchable
-2. Add "Use PROACTIVELY" to description
-3. Ensure `defaultSelected: true` for auto-enablement
-
-### Tool Access Errors
-
-**Problem**: Agent can't use expected tools
-
-**Solutions**:
-1. Explicitly list tools in `tools` field
-2. Check for typos in tool names
-3. Verify tool permissions in Claude Code
+### Tool Access Issues
+- Explicitly list tools in frontmatter
+- Check for typos in tool names
+- Verify Claude Code permissions
 
 ### Delegation Not Working
-
-**Problem**: Agent doesn't delegate to specialists
-
-**Solutions**:
-1. Ensure delegation logic is in step 0
-2. Include "Stopping here." after delegation
-3. Make delegation conditions clear and specific
+- Place delegation logic in step 0
+- Include "Stopping here." after delegation
+- Make conditions specific and clear
 
 ## Best Practices
 
-1. **Research First**: Spend significant time researching before writing any code
-2. **Start Simple**: Begin with basic functionality, then add complexity
-3. **Test Incrementally**: Test each section as you write it
-4. **Document Assumptions**: Clearly state what environment or tools you expect
-5. **Provide Examples**: Include working code examples from your research
-6. **Link Resources**: Always provide authoritative documentation links
-7. **Consider Security**: Restrict tools to minimum necessary
-8. **Plan for Failure**: Include fallback strategies and error handling
-9. **Keep Updated**: Review and update agents as tools and practices evolve
-10. **Save Research**: Keep research reports in `reports/` for future reference
+1. **Research First**: Invest significant time understanding the domain before implementation
+2. **Document Problems**: Base your agent on real issues with proven solutions
+3. **Test Incrementally**: Validate each section as you build
+4. **Use Real Examples**: Include working code from your research
+5. **Link Sources**: Always reference authoritative documentation
+6. **Restrict Tools**: Grant minimum necessary permissions
+7. **Plan Fallbacks**: Include error handling strategies
+8. **Save Research**: Keep research artifacts in `reports/` for future reference
+9. **Iterate Based on Usage**: Update agents as you discover new patterns
 
 ## Conclusion
 
-Creating effective subagents requires:
-- **Thorough research** of the domain and its tools
-- Clear understanding of common problems and solutions
-- Structured, systematic approach to implementation
-- Practical, working examples from real-world usage
-- Proper metadata configuration for claudekit integration
-- Comprehensive testing of all scenarios
+Creating effective subagents is a research-driven process. The time invested in understanding the domain, documenting problems, and organizing solutions directly translates to agent quality. 
 
-The research phase is the foundation of a great subagent. Time invested in understanding the domain, tools, and expert patterns will result in a subagent that truly extends Claude's capabilities effectively.
+Follow this guide to create subagents that:
+- Solve real problems developers face
+- Provide expert-level domain knowledge
+- Integrate seamlessly with claudekit
+- Extend Claude's capabilities meaningfully
 
-Follow this guide and the established patterns to create subagents that seamlessly extend Claude's capabilities in your specific domains.
+Your research is the foundation—build on it to create agents that truly make a difference.
