@@ -225,7 +225,7 @@ CMD ["index.js"]
 - **Hot reloading setup**: Volume mounting and file watching
 - **Debug configuration**: Port exposure and debugging tools
 - **Testing integration**: Test-specific containers and environments
-- **IDE integration**: Remote development container support
+- **Development containers**: Remote development container support via CLI tools
 
 **Development workflow:**
 ```yaml

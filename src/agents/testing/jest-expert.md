@@ -548,19 +548,13 @@ module.exports = {
 # ❌ Problematic: Standard execution
 jest
 
-# ✅ Solution: Debug mode
+# ✅ Solution: Debug mode using Chrome DevTools
 node --inspect-brk node_modules/.bin/jest --runInBand --no-cache
+# Open chrome://inspect in Chrome browser to debug
 
-# In VS Code launch.json
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Debug Jest Tests",
-  "program": "${workspaceFolder}/node_modules/.bin/jest",
-  "args": ["--runInBand", "--no-cache"],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-}
+# Alternative: Use console.log debugging
+npm test -- --runInBand --verbose 2>&1 | tee test-debug.log
+# Analyze test-debug.log for issues
 ```
 
 ### Category 8: CI/CD Integration
