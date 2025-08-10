@@ -112,11 +112,7 @@ Add YAML frontmatter with required and optional fields:
 ---
 name: my-agent
 description: Use this agent for [specific tasks]. Use PROACTIVELY when [conditions].
-tools: Bash, Read, Grep  # Only tools actually needed
-category: universal       # or specific category
-universal: false          # true only for cross-domain agents
-defaultSelected: false    # true if should be auto-enabled
-displayName: My Agent     # Human-readable name for UI
+tools: Bash, Read, Grep  # Optional - inherits all tools if omitted
 ---
 ```
 
@@ -215,23 +211,20 @@ Implements [agent name] subagent that [what it does].
 
 ## Metadata Fields
 
+Per the [official documentation](./official-subagents-documentation.md#configuration-fields):
+
 ### Required Fields
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `name` | string | Unique identifier for the agent | `oracle` |
-| `description` | string | When Claude should invoke this agent | `Use this agent for audits, debugging nasty bugs...` |
+| `name` | string | Unique identifier using lowercase letters and hyphens | `code-reviewer` |
+| `description` | string | Natural language description of the agent's purpose and when to invoke | `Use this agent for audits, debugging nasty bugs...` |
 
 ### Optional Fields
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `tools` | string | Comma-separated list of allowed tools | `Bash, Read, Grep` |
-| `category` | string | Agent category for organization | `universal`, `typescript`, `database` |
-| `universal` | boolean | True if agent applies across all domains | `true` |
-| `defaultSelected` | boolean | Auto-enable in new projects | `true` |
-| `displayName` | string | Human-readable name for UI | `Oracle (GPT-5)` |
-| `model` | string | Specific model to use (rarely needed) | `sonnet` |
+| `tools` | string | Comma-separated list of specific tools. If omitted, inherits all tools from main thread | `Bash, Read, Grep` |
 
 ## Writing Effective Subagents
 
