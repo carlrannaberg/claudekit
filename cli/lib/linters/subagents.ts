@@ -28,6 +28,35 @@ const ColorSchema = z.string()
   .describe('Named color (e.g., "indigo", "amber") or hex code (e.g., "#3b82f6")');
 
 /**
+ * Standard CSS named colors (from CSS specification)
+ */
+const CSS_NAMED_COLORS = new Set([
+  'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black',
+  'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
+  'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue',
+  'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkgrey', 'darkkhaki',
+  'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon',
+  'darkseagreen', 'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise',
+  'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
+  'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod',
+  'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo',
+  'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue',
+  'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightgrey',
+  'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray',
+  'lightslategrey', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen',
+  'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple',
+  'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
+  'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite',
+  'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
+  'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink',
+  'plum', 'powderblue', 'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue',
+  'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver',
+  'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue',
+  'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
+  'yellow', 'yellowgreen'
+]);
+
+/**
  * Frontmatter schema for subagent markdown files
  * Based on official Claude Code subagent documentation + claudekit-specific fields
  */
@@ -202,6 +231,15 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     // Check displayName
     if (frontmatter['displayName'] === undefined && frontmatter['name'] !== undefined && frontmatter['name'] !== null) {
       result.suggestions.push('Consider adding displayName for better UI presentation');
+    }
+    
+    // Check color validity
+    if (frontmatter['color'] !== undefined && frontmatter['color'] !== null && typeof frontmatter['color'] === 'string') {
+      const color = frontmatter['color'] as string;
+      // Check if it's not a hex color and not a standard CSS color
+      if (!color.startsWith('#') && !CSS_NAMED_COLORS.has(color.toLowerCase())) {
+        result.suggestions.push(`Color "${color}" is not a standard CSS named color (but may still work in Claude Code)`);
+      }
     }
     
     // Check for duplicate content in description
