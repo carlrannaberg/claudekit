@@ -89,7 +89,7 @@ function toAgentComponent(component: unknown): AgentComponent {
     universal: metadata['universal'] as boolean | string | undefined,
     bundle: metadata['bundle'] as string[] | undefined,
     displayName: metadata['displayName'] as string | undefined,
-    category: metadata['category'] as string | undefined,
+    category: metadata['agentGroup'] as string | undefined,
   };
 }
 

@@ -697,6 +697,25 @@ async function parseComponentFile(
         rawMetadata['argument-hint'] !== null && {
           argumentHint: rawMetadata['argument-hint'] as string,
         }),
+      // Preserve custom agent fields for grouping
+      ...(type === 'agent' && rawMetadata['universal'] !== undefined && {
+        universal: rawMetadata['universal'],
+      }),
+      ...(type === 'agent' && rawMetadata['category'] !== undefined && {
+        agentGroup: rawMetadata['category'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['displayName'] !== undefined && {
+        displayName: rawMetadata['displayName'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['color'] !== undefined && {
+        color: rawMetadata['color'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['bundle'] !== undefined && {
+        bundle: rawMetadata['bundle'],
+      }),
+      ...(type === 'agent' && rawMetadata['defaultSelected'] !== undefined && {
+        defaultSelected: rawMetadata['defaultSelected'],
+      }),
       ...(rawMetadata['version'] !== undefined &&
         rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
       ...(rawMetadata['author'] !== undefined &&
