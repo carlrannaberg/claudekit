@@ -2,6 +2,8 @@
 name: react-expert
 description: React component patterns, hooks, and performance expert. Use PROACTIVELY for React component issues, hook errors, re-rendering problems, or state management challenges.
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
+category: technology
+universal: false
 ---
 
 # React Expert

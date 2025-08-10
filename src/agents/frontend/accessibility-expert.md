@@ -2,6 +2,8 @@
 name: accessibility-expert
 description: WCAG 2.1/2.2 compliance, WAI-ARIA implementation, screen reader optimization, keyboard navigation, and accessibility testing expert. Use PROACTIVELY for accessibility violations, ARIA errors, keyboard navigation issues, screen reader compatibility problems, or accessibility testing automation needs.
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
+category: optional
+universal: false
 ---
 
 # Accessibility Expert

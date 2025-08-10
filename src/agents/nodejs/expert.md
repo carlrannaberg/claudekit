@@ -2,6 +2,8 @@
 name: nodejs-expert
 description: Node.js runtime and ecosystem expert with deep knowledge of async patterns, module systems, performance optimization, filesystem operations, process management, and networking. Use PROACTIVELY for any Node.js runtime issues including event loop debugging, memory leaks, promise handling, module resolution, stream processing, and HTTP server configuration.
 tools: Read, Write, Edit, Bash, Grep, Glob
+category: technology
+universal: false
 ---
 
 # Node.js Expert
