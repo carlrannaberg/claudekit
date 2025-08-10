@@ -2,20 +2,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { z } from 'zod';
-import chalk from 'chalk';
-import { glob } from 'glob';
-
-/**
- * Slash Command Linter
- * 
- * This tool validates slash command markdown files to ensure their frontmatter
- * conforms to the official Claude Code documentation. It identifies invalid
- * fields and validates the structure of slash commands.
- */
-
-// ============================================================================
-// Schema Definitions
-// ============================================================================
 
 /**
  * Valid allowed-tools patterns
@@ -35,7 +21,7 @@ const ModelSchema = z.enum(['opus', 'sonnet', 'haiku'])
  * Frontmatter schema for slash command markdown files
  * Based on official Claude Code slash command documentation
  */
-const SlashCommandFrontmatterSchema = z.object({
+export const SlashCommandFrontmatterSchema = z.object({
   // Official fields per documentation
   'allowed-tools': AllowedToolsSchema.optional()
     .describe('List of tools the command can use'),
@@ -54,7 +40,7 @@ const SlashCommandFrontmatterSchema = z.object({
 /**
  * Result of linting a single file
  */
-interface LintResult {
+export interface LintResult {
   file: string;
   valid: boolean;
   errors: string[];
@@ -70,10 +56,6 @@ interface UnrecognizedKeysIssue {
   path: Array<string | number>;
   message: string;
 }
-
-// ============================================================================
-// Linting Functions
-// ============================================================================
 
 /**
  * Validate allowed-tools field format
@@ -119,13 +101,20 @@ function validateAllowedTools(tools: string | undefined): string[] {
 }
 
 /**
+ * Check if a file has frontmatter (to distinguish from READMEs, etc.)
+ */
+export function hasFrontmatter(content: string): boolean {
+  const lines = content.split('\n');
+  return lines.length > 0 && lines[0] === '---';
+}
+
+/**
  * Check if file uses bash command execution (!command)
  */
 async function checkBashCommandUsage(content: string): Promise<string[]> {
   const warnings: string[] = [];
   
   // Look for bash command execution patterns
-  // Note: In the actual file, the ! is escaped, but in content it appears as !
   const bashCommandPattern = /!\s*`[^`]+`/g;
   const hasBashCommands = bashCommandPattern.test(content);
   
@@ -167,7 +156,7 @@ function checkFileReferences(content: string): string[] {
 /**
  * Lint a single slash command markdown file
  */
-async function lintFile(filePath: string): Promise<LintResult> {
+export async function lintCommandFile(filePath: string): Promise<LintResult> {
   const result: LintResult = {
     file: filePath,
     valid: true,
@@ -180,6 +169,13 @@ async function lintFile(filePath: string): Promise<LintResult> {
   try {
     // Read and parse file
     const content = await fs.readFile(filePath, 'utf-8');
+    
+    // Skip files without frontmatter
+    if (!hasFrontmatter(content)) {
+      // Return valid result for non-command files
+      return result;
+    }
+    
     const { data: frontmatter, content: markdown } = matter(content);
     
     // Track which fields are present but not in schema
@@ -259,119 +255,4 @@ async function lintFile(filePath: string): Promise<LintResult> {
   }
   
   return result;
-}
-
-// ============================================================================
-// CLI Interface
-// ============================================================================
-
-interface CliOptions {
-  quiet: boolean;
-  pattern?: string | undefined;
-}
-
-/**
- * Main CLI function
- */
-async function main(): Promise<void> {
-  const args = process.argv.slice(2);
-  
-  const options: CliOptions = {
-    quiet: args.includes('--quiet'),
-    pattern: args.find(arg => !arg.startsWith('--')) ?? undefined
-  };
-  
-  // Default pattern for slash command files
-  const pattern = options.pattern ?? 'src/commands/**/*.md';
-  
-  console.log(chalk.bold('\n🔍 Slash Command Linter\n'));
-  console.log(chalk.gray(`Pattern: ${pattern}`));
-  
-  // Find all matching files
-  const files = await glob(pattern);
-  
-  if (files.length === 0) {
-    console.log(chalk.yellow('No files found matching pattern'));
-    process.exit(0);
-  }
-  
-  console.log(chalk.gray(`Found ${files.length} files to lint\n`));
-  
-  let totalErrors = 0;
-  let totalWarnings = 0;
-  let totalUnusedFields = 0;
-  const allUnusedFields = new Set<string>();
-  
-  for (const file of files) {
-    const relativePath = path.relative(process.cwd(), file);
-    
-    if (!options.quiet) {
-      console.log(chalk.bold(`\n${relativePath}:`));
-    }
-    
-    const result = await lintFile(file);
-    
-    if (result.valid && result.warnings.length === 0 && result.unusedFields.length === 0) {
-      if (!options.quiet) {
-        console.log(chalk.green('  ✓ Valid'));
-      }
-    } else {
-      // Show errors
-      for (const error of result.errors) {
-        console.log(chalk.red(`  ✗ ${error}`));
-        totalErrors++;
-      }
-      
-      // Show warnings
-      for (const warning of result.warnings) {
-        console.log(chalk.yellow(`  ⚠ ${warning}`));
-        totalWarnings++;
-      }
-      
-      // Show unused fields
-      if (result.unusedFields.length > 0) {
-        console.log(chalk.yellow(`  ⚠ Unused fields: ${result.unusedFields.join(', ')}`));
-        totalUnusedFields += result.unusedFields.length;
-        result.unusedFields.forEach(field => allUnusedFields.add(field));
-      }
-      
-      // Show suggestions
-      if (!options.quiet) {
-        for (const suggestion of result.suggestions) {
-          console.log(chalk.gray(`  💡 ${suggestion}`));
-        }
-      }
-    }
-  }
-  
-  // Summary
-  console.log(chalk.bold('\n📊 Summary:\n'));
-  console.log(`  Files checked: ${files.length}`);
-  console.log(`  Errors: ${totalErrors > 0 ? chalk.red(String(totalErrors)) : chalk.green('0')}`);
-  console.log(`  Warnings: ${totalWarnings > 0 ? chalk.yellow(String(totalWarnings)) : chalk.green('0')}`);
-  console.log(`  Unused fields: ${totalUnusedFields > 0 ? chalk.yellow(String(totalUnusedFields)) : chalk.green('0')}`);
-  
-  if (allUnusedFields.size > 0) {
-    console.log(chalk.yellow('\n  All unused fields found:'));
-    for (const field of Array.from(allUnusedFields).sort()) {
-      console.log(chalk.gray(`    - ${field}`));
-    }
-    console.log(chalk.cyan('\n💡 Note: "category" is a claudekit-specific field for organizing commands'));
-  }
-  
-  if (totalErrors > 0 || totalWarnings > 0 || totalUnusedFields > 0) {
-    console.log(chalk.cyan('\n💡 Review the issues above and fix them manually'));
-    process.exit(1);
-  } else {
-    console.log(chalk.green('\n✨ All files are valid!'));
-  }
-}
-
-// Export for use as a module
-export { lintFile, SlashCommandFrontmatterSchema, main };
-export type { LintResult };
-
-// Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(console.error);
 }

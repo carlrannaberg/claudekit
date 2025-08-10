@@ -166,6 +166,36 @@ program
     }
   });
 
+// Lint subagents command
+program
+  .command('lint-subagents [directory]')
+  .description('Lint subagent markdown files for frontmatter issues')
+  .action(async (directory = 'src/agents', options) => {
+    try {
+      const mergedOptions = { ...globalOptions, ...options, root: directory };
+      const { lintSubagents } = await import('./commands/lint-subagents.js');
+      await lintSubagents(mergedOptions);
+    } catch (error) {
+      logger.error(`Lint subagents failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    }
+  });
+
+// Lint commands command
+program
+  .command('lint-commands [directory]')
+  .description('Lint slash command markdown files for frontmatter issues')
+  .action(async (directory = 'src/commands', options) => {
+    try {
+      const mergedOptions = { ...globalOptions, ...options, root: directory };
+      const { lintCommands } = await import('./commands/lint-commands.js');
+      await lintCommands(mergedOptions);
+    } catch (error) {
+      logger.error(`Lint commands failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    }
+  });
+
 // Function to run the CLI - only execute if this is the main module
 export function runCli(): void {
   // Parse command line arguments
