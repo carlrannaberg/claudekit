@@ -6,6 +6,7 @@ author: claudekit
 tags: [infrastructure, cicd, github-actions, automation, security, performance]
 category: optional
 color: gray
+displayName: GitHub Actions Expert
 ---
 
 # GitHub Actions Expert

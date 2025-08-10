@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: optional
 universal: false
 color: yellow
+displayName: Accessibility Expert
 ---
 
 # Accessibility Expert

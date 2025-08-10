@@ -5,6 +5,8 @@ tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: technology
 universal: false
 color: cyan
+bundle: [react-performance-expert]
+displayName: React Expert
 ---
 
 # React Expert

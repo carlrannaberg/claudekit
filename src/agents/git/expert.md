@@ -5,6 +5,7 @@ category: universal
 universal: true
 defaultSelected: true
 color: orange
+displayName: Git Expert
 ---
 
 # Git Expert

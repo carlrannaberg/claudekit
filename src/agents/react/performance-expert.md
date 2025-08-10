@@ -4,6 +4,7 @@ description: React performance optimization specialist. Expert in DevTools Profi
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: optional
 color: cyan
+displayName: React Performance Expert
 ---
 
 # React Performance Expert

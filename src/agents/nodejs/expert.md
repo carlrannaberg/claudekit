@@ -5,6 +5,7 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 category: technology
 universal: false
 color: green
+displayName: Node.js Expert
 ---
 
 # Node.js Expert

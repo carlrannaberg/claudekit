@@ -4,6 +4,7 @@ description: DevOps and Infrastructure expert with comprehensive knowledge of CI
 category: optional
 universal: false
 color: red
+displayName: DevOps Expert
 ---
 
 # DevOps Expert
@@ -360,7 +361,6 @@ rules:
   resources: ["deployments"]
   verbs: ["get", "list"]
 
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

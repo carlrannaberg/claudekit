@@ -4,6 +4,7 @@ description: Webpack build optimization expert with deep knowledge of configurat
 tools: Read, Edit, MultiEdit, Bash, Grep, Glob
 category: optional
 color: brown
+displayName: Webpack Expert
 ---
 
 # Webpack Expert

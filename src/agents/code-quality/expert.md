@@ -1,5 +1,5 @@
 ---
-name: Code Quality Expert
+name: code-quality-expert
 description: Comprehensive code quality management including linting, formatting, static analysis, security scanning, and team standards enforcement
 version: 1.0.0
 author: claudekit
@@ -9,6 +9,7 @@ scope: "Code linting, formatting, static analysis, quality metrics, and developm
 related_experts: [typescript-expert, testing-expert, security-expert]
 category: optional
 color: red
+displayName: Code Quality Expert
 ---
 
 # Code Quality Expert

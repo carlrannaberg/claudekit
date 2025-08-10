@@ -711,7 +711,19 @@ async function parseComponentFile(
         color: rawMetadata['color'] as string,
       }),
       ...(type === 'agent' && rawMetadata['bundle'] !== undefined && {
-        bundle: rawMetadata['bundle'],
+        bundle: ((): string[] => {
+          if (typeof rawMetadata['bundle'] === 'string') {
+            // Parse string format like "[typescript-type-expert, typescript-build-expert]"
+            return rawMetadata['bundle']
+              .replace(/^\[|\]$/g, '')
+              .split(',')
+              .map((s: string) => s.trim());
+          }
+          if (Array.isArray(rawMetadata['bundle'])) {
+            return rawMetadata['bundle'] as string[];
+          }
+          return [];
+        })(),
       }),
       ...(type === 'agent' && rawMetadata['defaultSelected'] !== undefined && {
         defaultSelected: rawMetadata['defaultSelected'],

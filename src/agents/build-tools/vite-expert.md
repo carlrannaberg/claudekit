@@ -4,6 +4,7 @@ description: Vite build optimization expert with deep knowledge of ESM-first dev
 tools: Read, Edit, MultiEdit, Bash, Grep, Glob
 category: optional
 color: purple
+displayName: Vite Expert
 ---
 
 # Vite Expert

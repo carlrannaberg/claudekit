@@ -4,6 +4,7 @@ description: Testing expert with comprehensive knowledge of test structure, mock
 tools: Read, Edit, Bash, Grep, Glob
 category: optional
 color: lime
+displayName: Testing Expert
 ---
 
 # Testing Expert

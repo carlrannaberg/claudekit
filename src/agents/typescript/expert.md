@@ -5,7 +5,7 @@ category: technology
 universal: false
 defaultSelected: false
 bundle: [typescript-type-expert, typescript-build-expert]
-displayName: TypeScript (3 agents)
+displayName: TypeScript
 color: blue
 ---
 

@@ -18,6 +18,7 @@ allowed-tools:
   - Grep
   - Edit
 color: violet
+displayName: Database Expert
 ---
 
 # Database Expert

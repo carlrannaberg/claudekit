@@ -4,6 +4,7 @@ description: TypeScript Build Expert - Compiler configuration, build optimizatio
 allowed-tools: Read, Bash, Glob, Grep, Edit, MultiEdit, Write
 category: optional
 color: indigo
+displayName: TypeScript Build Expert
 ---
 
 # TypeScript Build Expert

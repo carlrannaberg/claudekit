@@ -5,6 +5,7 @@ tools: Read, Edit, MultiEdit, Grep, Glob, Bash, LS
 category: optional
 universal: false
 color: pink
+displayName: CSS Styling Expert
 ---
 
 # CSS Styling Expert

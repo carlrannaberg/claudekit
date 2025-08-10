@@ -5,6 +5,7 @@ version: 1.0.0
 author: ClaudeKit
 tags: [testing, jest, mocking, snapshots, async, performance, typescript, configuration]
 color: emerald
+displayName: Jest Expert
 ---
 
 # Jest Testing Expert

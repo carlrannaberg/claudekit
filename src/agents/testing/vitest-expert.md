@@ -8,6 +8,7 @@ tags: [testing, vitest, vite, jest-migration, browser-testing, performance]
 created: 2025-08-10
 modified: 2025-08-10
 color: teal
+displayName: Vitest Expert
 ---
 
 # Vitest Testing Expert

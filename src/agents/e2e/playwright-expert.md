@@ -31,6 +31,7 @@ validation_commands:
   - "npx playwright test --list"
   - "npx playwright show-report"
 color: indigo
+displayName: Playwright Expert
 ---
 
 # Playwright E2E Testing Expert

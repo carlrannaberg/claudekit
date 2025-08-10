@@ -21,6 +21,7 @@ allowed-tools:
   - Grep
   - Edit
 color: amber
+displayName: MongoDB Expert
 ---
 
 # MongoDB Expert

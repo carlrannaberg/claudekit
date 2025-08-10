@@ -19,6 +19,7 @@ allowed-tools:
   - Grep
   - Edit
 color: sky
+displayName: PostgreSQL Expert
 ---
 
 # PostgreSQL Expert

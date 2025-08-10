@@ -4,6 +4,7 @@ description: Next.js framework expert specializing in App Router, Server Compone
 tools: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
 category: technology
 color: black
+displayName: Next.js Expert
 ---
 
 # Next.js Expert
