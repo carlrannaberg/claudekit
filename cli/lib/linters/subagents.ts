@@ -168,7 +168,7 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     if (!validation.success) {
       result.valid = false;
       
-      // Parse Zod errors
+      // Parse Zod errors (but skip generic "received array" for tools since we handle it specially)
       for (const issue of validation.error.issues) {
         const field = issue.path.join('.');
         
@@ -193,8 +193,13 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     
     // Additional validations
     if (frontmatter['tools'] !== undefined && frontmatter['tools'] !== null) {
-      const toolWarnings = validateTools(frontmatter['tools'] as string);
-      result.warnings.push(...toolWarnings);
+      // Check if tools is an array (incorrect format)
+      if (Array.isArray(frontmatter['tools'])) {
+        result.errors.push('tools field must be a comma-separated string, not an array');
+      } else {
+        const toolWarnings = validateTools(frontmatter['tools'] as string);
+        result.warnings.push(...toolWarnings);
+      }
     }
     
     // Check bundle field format
