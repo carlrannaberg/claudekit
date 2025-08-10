@@ -170,7 +170,7 @@ program
 program
   .command('lint-subagents [directory]')
   .description('Lint subagent markdown files for frontmatter issues')
-  .action(async (directory = 'src/agents', options) => {
+  .action(async (directory = '.claude/agents', options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options, root: directory };
       const { lintSubagents } = await import('./commands/lint-subagents.js');
@@ -185,7 +185,7 @@ program
 program
   .command('lint-commands [directory]')
   .description('Lint slash command markdown files for frontmatter issues')
-  .action(async (directory = 'src/commands', options) => {
+  .action(async (directory = '.claude/commands', options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options, root: directory };
       const { lintCommands } = await import('./commands/lint-commands.js');
