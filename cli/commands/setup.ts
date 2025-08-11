@@ -365,6 +365,7 @@ export interface SetupOptions {
   yes?: boolean;
   commands?: string;
   hooks?: string;
+  agents?: string;  // Comma-separated list of agent IDs
   project?: string;
   user?: boolean;
   selectIndividual?: boolean; // Flag for power users to select individual components
@@ -402,6 +403,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       options.all === true ||
       options.commands !== undefined ||
       options.hooks !== undefined ||
+      options.agents !== undefined ||
       options.user === true;
 
     // Show welcome message (unless in non-interactive mode)
@@ -587,7 +589,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // Step 4: Component selection - Two-step process with groups
     let selectedComponents: string[];
 
-    if (options.commands !== undefined || options.hooks !== undefined) {
+    if (options.commands !== undefined || options.hooks !== undefined || options.agents !== undefined) {
       // Parse component lists from flags
       const requestedCommands =
         options.commands !== undefined && options.commands !== ''
@@ -597,15 +599,35 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         options.hooks !== undefined && options.hooks !== ''
           ? options.hooks.split(',').map((s) => s.trim())
           : [];
+      const requestedAgents =
+        options.agents !== undefined && options.agents !== ''
+          ? options.agents.split(',').map((s) => s.trim())
+          : [];
 
       selectedComponents = [];
 
-      // Validate and add requested components
+      // Validate and add commands and hooks
       for (const id of [...requestedCommands, ...requestedHooks]) {
         if (registry.components.has(id)) {
           selectedComponents.push(id);
         } else {
           throw new Error(`Component not found: ${id}`);
+        }
+      }
+
+      // Validate agents
+      for (const id of requestedAgents) {
+        if (!registry.components.has(id)) {
+          throw new Error(`Agent not found: ${id}`);
+        }
+      }
+
+      // Calculate final agent list (including bundled/specialized agents)
+      if (requestedAgents.length > 0) {
+        const finalAgents = calculateSelectedAgents(registry, requestedAgents);
+        selectedComponents.push(...finalAgents);
+        if (options.quiet !== true) {
+          console.log(Colors.success(`Selected ${finalAgents.length} agents (including specialized agents)`));
         }
       }
 
@@ -733,7 +755,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       options.yes !== true &&
       options.all !== true &&
       options.commands === undefined &&
-      options.hooks === undefined
+      options.hooks === undefined &&
+      options.agents === undefined
     ) {
       const proceed = await confirm({
         message: '\nProceed with installation?',
@@ -803,7 +826,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         options.yes === true ||
         options.all === true ||
         options.commands !== undefined ||
-        options.hooks !== undefined;
+        options.hooks !== undefined ||
+        options.agents !== undefined;
 
       const installOptions: InstallOptions = {
         dryRun: options.dryRun ?? false,

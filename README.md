@@ -39,13 +39,20 @@ claudekit setup [options]
 
 Options:
   -f, --force               Overwrite existing .claude directory
-  --skip-recommendations    Skip project analysis and recommendations
+  -y, --yes                 Automatic yes to prompts (use defaults)
+  --all                     Install all features including all agents
+  --skip-agents             Skip subagent installation
+  --commands <list>         Comma-separated list of command IDs to install
+  --hooks <list>            Comma-separated list of hook IDs to install  
+  --agents <list>           Comma-separated list of agent IDs to install
+  --user                    Install in user directory (~/.claude) instead of project
 ```
 
 The setup command:
 - Analyzes your project to detect TypeScript, ESLint, testing frameworks, etc.
 - Creates `.claude/settings.json` with embedded hooks configuration
 - Sets up directories for commands and installs the embedded hooks system
+- Optionally installs specialized AI subagents for enhanced assistance
 - Provides personalized recommendations based on your project
 
 ### `claudekit-hooks`
@@ -105,6 +112,52 @@ Output includes:
 - Installed hooks with descriptions and file sizes
 - Available commands organized by namespace
 - Current settings.json configuration
+
+### `claudekit lint-subagents`
+Lint subagent markdown files for frontmatter issues and validate against official specifications.
+
+```bash
+claudekit lint-subagents [directory] [options]
+
+Options:
+  -q, --quiet      Suppress suggestions, only show errors and warnings
+  -v, --verbose    Show all files including valid ones
+
+Examples:
+  claudekit lint-subagents                    # Lint .claude/agents directory
+  claudekit lint-subagents src/agents         # Lint specific directory
+  claudekit lint-subagents --verbose          # Show all files, even valid ones
+```
+
+The linter validates:
+- Required fields (name, description)
+- Field formats and naming conventions
+- Tool declarations and patterns
+- CSS color values for UI theming
+- Unused or unrecognized fields
+
+### `claudekit lint-commands`
+Lint slash command markdown files for frontmatter issues and validate configurations.
+
+```bash
+claudekit lint-commands [directory] [options]
+
+Options:
+  -q, --quiet      Suppress suggestions, only show errors and warnings
+  -v, --verbose    Show all files including valid ones
+
+Examples:
+  claudekit lint-commands                     # Lint .claude/commands directory
+  claudekit lint-commands src/commands        # Lint specific directory
+  claudekit lint-commands --quiet             # Only show errors and warnings
+```
+
+The linter validates:
+- Allowed-tools declarations and patterns
+- MCP tool support (mcp__server__tool format)
+- Model specifications (claude-3.5-sonnet, etc.)
+- Argument hints for commands using $ARGUMENTS
+- File reference declarations (@file usage)
 
 
 ## Hooks System
@@ -196,34 +249,73 @@ Claudekit includes a library of specialized subagents that enhance Claude Code w
 
 ### Available Agents
 
-- **TypeScript Expert**: Comprehensive TypeScript/JavaScript guidance
-  - Type system debugging
-  - Build configuration
-  - Module resolution
-  - Best practices
+#### TypeScript & JavaScript
+- **typescript-expert**: Type system, modules, bundling, performance
+  - Includes specialized agents: typescript-type-expert, typescript-build-expert
+- **nodejs-expert**: Server-side Node.js, APIs, runtime optimization
+
+#### Frontend Development
+- **react-expert**: React components, hooks, state management
+  - Includes: react-performance-expert for rendering optimization
+- **css-styling-expert**: CSS, Tailwind, styled-components, theming
+- **accessibility-expert**: WCAG compliance, ARIA, screen readers
+
+#### Testing
+- **testing-expert**: General testing strategies and patterns
+- **jest-expert**: Jest testing framework specialist
+- **vitest-expert**: Vitest testing and Vite integration
+- **playwright-expert**: E2E testing with Playwright
+
+#### Database
+- **database-expert**: General database design and optimization
+- **postgresql-expert**: PostgreSQL-specific expertise
+- **mongodb-expert**: MongoDB and NoSQL patterns
+
+#### Infrastructure & DevOps
+- **docker-expert**: Containerization and Docker best practices
+- **github-actions-expert**: CI/CD with GitHub Actions
+- **devops-expert**: General DevOps and deployment strategies
+
+#### Code Quality & Tools
+- **code-quality-expert**: Linting, formatting, code standards
+- **git-expert**: Git workflows, branching strategies
+- **performance-expert**: Runtime and build optimization
+- **webpack-expert**: Webpack configuration and optimization
+- **vite-expert**: Vite build tool expertise
 
 ### Installation
 
-Subagents are installed during initial setup:
+Subagents can be installed interactively or non-interactively:
 
 ```bash
-# Interactive setup (select Subagents when prompted)
+# Interactive setup (select agents through UI)
 claudekit setup
 
-# Install everything including agents
+# Install all agents
 claudekit setup --all
 
-# Skip agents if not needed
+# Install specific agents non-interactively
+claudekit setup --agents typescript-expert,react-expert,testing-expert --yes
+
+# Install frontend stack
+claudekit setup --agents react-expert,typescript-expert,css-styling-expert --yes
+
+# Install backend stack
+claudekit setup --agents nodejs-expert,postgresql-expert,docker-expert --yes
+
+# Skip agents entirely
 claudekit setup --skip-agents
 ```
+
+**Note**: When you install a broad domain expert (e.g., `typescript-expert`), it automatically includes its specialized agents (e.g., `typescript-type-expert`, `typescript-build-expert`).
 
 ### Usage
 
 Once installed, Claude Code automatically delegates to appropriate subagents based on your task. For example:
 
 - "Fix this TypeScript error" → Delegates to typescript-expert
-- "Optimize my build" → Delegates to typescript-expert
-- "Help with React hooks" → Uses general assistance (React agent coming soon)
+- "Optimize React rendering" → Delegates to react-performance-expert  
+- "Write Playwright tests" → Delegates to playwright-expert
 
 ### Custom Agents
 
