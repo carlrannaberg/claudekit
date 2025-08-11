@@ -40,20 +40,23 @@ claudekit setup [options]
 Options:
   -f, --force               Overwrite existing .claude directory
   -y, --yes                 Automatic yes to prompts (use defaults)
-  --all                     Install all features including all agents
+  --all                     Install all features including all 24+ agents
   --skip-agents             Skip subagent installation
   --commands <list>         Comma-separated list of command IDs to install
   --hooks <list>            Comma-separated list of hook IDs to install  
-  --agents <list>           Comma-separated list of agent IDs to install
+  --agents <list>           Comma-separated list of agent IDs to install (e.g., typescript-expert,react-expert)
   --user                    Install in user directory (~/.claude) instead of project
+  --project <path>          Target directory for project installation
+  --select-individual       Use legacy individual component selection instead of groups
 ```
 
 The setup command:
 - Analyzes your project to detect TypeScript, ESLint, testing frameworks, etc.
 - Creates `.claude/settings.json` with embedded hooks configuration
 - Sets up directories for commands and installs the embedded hooks system
-- Optionally installs specialized AI subagents for enhanced assistance
-- Provides personalized recommendations based on your project
+- Installs specialized AI subagents for enhanced domain expertise (24+ agents available)
+- Provides three-step selection process: Commands → Hooks → Agents
+- Supports non-interactive installation for CI/CD workflows
 
 ### `claudekit-hooks`
 Manage and execute embedded hooks system.
@@ -159,6 +162,27 @@ The linter validates:
 - Argument hints for commands using $ARGUMENTS
 - File reference declarations (@file usage)
 
+### `claudekit validate`
+Validate your claudekit installation and configuration.
+
+```bash
+claudekit validate [options]
+
+Options:
+  -q, --quiet      Only show errors
+  -v, --verbose    Show detailed validation information
+
+Examples:
+  claudekit validate           # Check installation and configuration
+  claudekit validate --verbose # Show detailed validation results
+```
+
+The validate command checks:
+- Claudekit installation integrity
+- Hook configuration syntax
+- Command frontmatter validation
+- Agent configuration validation
+- File permissions and accessibility
 
 ## Hooks System
 
@@ -245,43 +269,53 @@ claudekit-hooks recent 5
 
 ## Subagents
 
-Claudekit includes a library of specialized subagents that enhance Claude Code with domain expertise:
+Claudekit includes a comprehensive library of 24+ specialized subagents that enhance Claude Code with deep domain expertise across 7 major categories:
 
-### Available Agents
+### Available Agents by Category
 
-#### TypeScript & JavaScript
-- **typescript-expert**: Type system, modules, bundling, performance
-  - Includes specialized agents: typescript-type-expert, typescript-build-expert
-- **nodejs-expert**: Server-side Node.js, APIs, runtime optimization
+#### 🔧 Build Tools
+- **vite-expert**: Vite build optimization, ESM-first development, HMR optimization, plugin ecosystem
+- **webpack-expert**: Webpack build optimization, configuration patterns, bundle analysis, code splitting
 
-#### Frontend Development
-- **react-expert**: React components, hooks, state management
-  - Includes: react-performance-expert for rendering optimization
-- **css-styling-expert**: CSS, Tailwind, styled-components, theming
-- **accessibility-expert**: WCAG compliance, ARIA, screen readers
+#### 🎯 Code Quality  
+- **linting-expert**: Code linting, formatting, static analysis across multiple languages and tools
 
-#### Testing
-- **testing-expert**: General testing strategies and patterns
-- **jest-expert**: Jest testing framework specialist
-- **vitest-expert**: Vitest testing and Vite integration
-- **playwright-expert**: E2E testing with Playwright
+#### 🗄️ Database
+- **database-expert**: General database performance, schema design, query optimization across SQL and NoSQL
+- **postgres-expert**: PostgreSQL query optimization, JSONB operations, advanced indexing, partitioning  
+- **mongodb-expert**: MongoDB document modeling, aggregation pipelines, sharding, replica sets
 
-#### Database
-- **database-expert**: General database design and optimization
-- **postgresql-expert**: PostgreSQL-specific expertise
-- **mongodb-expert**: MongoDB and NoSQL patterns
+#### 🚀 DevOps & Infrastructure
+- **devops-expert**: CI/CD pipelines, containerization, infrastructure as code, monitoring
+- **docker-expert**: Multi-stage builds, image optimization, container security, Docker Compose
+- **github-actions-expert**: GitHub Actions CI/CD optimization, workflow automation, custom actions
 
-#### Infrastructure & DevOps
-- **docker-expert**: Containerization and Docker best practices
-- **github-actions-expert**: CI/CD with GitHub Actions
-- **devops-expert**: General DevOps and deployment strategies
+#### 🎨 Frontend Development
+- **accessibility-expert**: WCAG 2.1/2.2 compliance, WAI-ARIA implementation, screen reader optimization
+- **css-styling-expert**: CSS architecture, responsive design, CSS-in-JS optimization, design systems
 
-#### Code Quality & Tools
-- **code-quality-expert**: Linting, formatting, code standards
-- **git-expert**: Git workflows, branching strategies
-- **performance-expert**: Runtime and build optimization
-- **webpack-expert**: Webpack configuration and optimization
-- **vite-expert**: Vite build tool expertise
+#### 📦 Framework Specialists
+- **nextjs-expert**: Next.js App Router, Server Components, performance optimization, full-stack patterns
+
+#### 🌿 Git Version Control
+- **git-expert**: Merge conflicts, branching strategies, repository recovery, performance optimization
+
+#### ⚙️ Node.js Runtime
+- **nodejs-expert**: Node.js async patterns, module systems, performance optimization, process management
+
+#### ⚛️ React Development
+- **react-expert**: React component patterns, hooks, performance optimization
+- **react-performance-expert**: DevTools Profiler, memoization, Core Web Vitals, bundle optimization
+
+#### 🧪 Testing Frameworks
+- **testing-expert**: Test structure, mocking strategies, async testing, cross-framework debugging
+- **jest-testing-expert**: Jest framework, advanced mocking, snapshot testing, TypeScript integration
+- **vitest-expert**: Vitest testing framework with modern ESM patterns
+
+#### 📘 TypeScript Development
+- **typescript-expert**: General TypeScript expertise and best practices
+- **typescript-build-expert**: TypeScript compiler configuration, build optimization, module resolution
+- **typescript-type-expert**: Advanced type system specialist for complex generics, conditional types
 
 ### Installation
 
@@ -291,17 +325,20 @@ Subagents can be installed interactively or non-interactively:
 # Interactive setup (select agents through UI)
 claudekit setup
 
-# Install all agents
+# Install all 24+ agents
 claudekit setup --all
 
-# Install specific agents non-interactively
+# Install specific agents non-interactively  
 claudekit setup --agents typescript-expert,react-expert,testing-expert --yes
 
-# Install frontend stack
-claudekit setup --agents react-expert,typescript-expert,css-styling-expert --yes
+# Install frontend development stack
+claudekit setup --agents react-expert,typescript-expert,css-styling-expert,accessibility-expert --yes
 
-# Install backend stack
-claudekit setup --agents nodejs-expert,postgresql-expert,docker-expert --yes
+# Install backend development stack  
+claudekit setup --agents nodejs-expert,postgres-expert,docker-expert,github-actions-expert --yes
+
+# Install testing-focused stack
+claudekit setup --agents jest-testing-expert,vitest-expert,testing-expert --yes
 
 # Skip agents entirely
 claudekit setup --skip-agents

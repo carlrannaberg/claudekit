@@ -8,24 +8,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-08-11
+
 ### Added
-- Subagents library with TypeScript expert agent
-- Agent installation in `claudekit setup` command  
-- `.claude/agents/` directory for custom agents
-- `--skip-agents` flag for setup command
-- Interactive agent selection during setup
-- Domain-based organization for future agents (react/, testing/, database/)
+- **Domain Expert Subagents Suite**: Comprehensive library of 24+ specialized AI subagents across 7 categories
+  - **Build Tools**: Vite Expert, Webpack Expert with advanced build optimization expertise
+  - **Code Quality**: General linting expert with cross-language support
+  - **Database**: MongoDB Expert, PostgreSQL Expert, and general database expert
+  - **DevOps**: Docker Expert, GitHub Actions Expert, and general DevOps specialist
+  - **Framework**: Next.js Expert with App Router and Server Components expertise
+  - **Frontend**: Accessibility Expert (WCAG 2.1/2.2), CSS Styling Expert with modern CSS features
+  - **Git**: Git Expert with merge conflicts, branching strategies, and repository management
+  - **Node.js**: Node.js Expert with async patterns, performance optimization, and ecosystem knowledge
+  - **React**: React Expert and React Performance Expert for optimization challenges
+  - **Testing**: Jest Expert, Vitest Expert, and general testing framework specialist
+  - **TypeScript**: TypeScript Expert, TypeScript Build Expert, and TypeScript Type Expert for advanced type system challenges
+- **Agent Selection System**: Intelligent categorized agent selection with radio group interface
+- **Non-Interactive Agent Installation**: `--agents` flag for automated CI/CD workflows (e.g., `--agents typescript-expert,react-expert`)
+- **Subagent Linting Tools**: `claudekit lint-subagents` command with frontmatter validation
+- **Command Linting Tools**: `claudekit lint-commands` command for slash command validation
+- **Agent Registry System**: Dynamic agent grouping and bundled agent selection
+- **Enhanced Setup Wizard**: Three-step selection process (Commands → Hooks → Agents) with improved UX
+- **MCP Tool Support**: Validation for Model Context Protocol tools in slash commands
 
 ### Changed
-- Setup command now includes three features: commands, hooks, and agents
-- Interactive setup menu expanded with agent selection
-- Setup completion message now shows agent count
-- `--all` flag now installs agents in addition to commands and hooks
+- **Setup Command Architecture**: Complete redesign with grouped selection interface
+- **Agent Installation Flow**: Integrated agents into unified component system alongside commands and hooks
+- **CLI Interface**: Added `--skip-agents`, `--agents <list>`, and improved flag handling
+- **Progress Reporting**: Enhanced progress indicators with agent count display
+- **Component Discovery**: Extended registry to handle agent categorization and bundling
+- **Validation System**: Improved frontmatter validation for both commands and subagents
 
-### Internal
-- Added `src/agents/` directory structure for agent library
-- Extended SetupCommand class with agent installation methods
-- Added Agent interface and type definitions
+### Fixed
+- **Frontmatter Issues**: Cleaned up all subagent frontmatter validation problems
+- **Linter Summaries**: Improved linter output formatting and removed redundant self-references
+- **Default Directory Handling**: Corrected default directories for lint commands
+- **Array Tools Field**: Graceful handling of array-based tools field in subagent linter
+- **Agent Validation**: Improved validation to properly check for required fields and complete symlinks
+- **Color Format Validation**: Added hex color format validation with helpful CSS color suggestions
+
+### Security  
+- **Tool Restrictions**: Enhanced allowed-tools validation across all new linting commands
+- **Frontmatter Validation**: Strict validation of subagent and command metadata to prevent malformed configurations
 
 ## [0.2.1] - 2025-08-07
 
