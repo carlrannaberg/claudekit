@@ -1,10 +1,11 @@
 ---
 description: Create a new Claude Code slash command with full feature support
 category: ai-assistant
-allowed-tools: Write, Bash(mkdir:*)
+allowed-tools: Write, Read, Bash(mkdir:*)
+argument-hint: "[command-name] [description]"
 ---
 
-Create a new Claude Code slash command based on the user's requirements.
+Create a new Claude Code slash command based on the user's requirements: $ARGUMENTS
 
 For complete slash command documentation, see: https://docs.anthropic.com/en/docs/claude-code/slash-commands
 

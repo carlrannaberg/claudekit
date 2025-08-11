@@ -96,11 +96,19 @@ export async function lintSubagents(options: LintSubagentsOptions): Promise<void
     }
   }
   
+  // Count total suggestions
+  let totalSuggestions = 0;
+  for (const file of agentFiles) {
+    const result = await lintSubagentFile(file);
+    totalSuggestions += result.suggestions.length;
+  }
+
   // Summary
   console.log(chalk.bold('\n📊 Summary:\n'));
   console.log(`  Files checked: ${agentFiles.length}`);
   console.log(`  Errors: ${totalErrors > 0 ? chalk.red(String(totalErrors)) : chalk.green('0')}`);
   console.log(`  Warnings: ${totalWarnings > 0 ? chalk.yellow(String(totalWarnings)) : chalk.green('0')}`);
+  console.log(`  Suggestions: ${totalSuggestions > 0 ? chalk.cyan(String(totalSuggestions)) : chalk.green('0')}`);
   console.log(`  Unused fields: ${totalUnusedFields > 0 ? chalk.yellow(String(totalUnusedFields)) : chalk.green('0')}`);
   
   if (allUnusedFields.size > 0) {
@@ -114,6 +122,10 @@ export async function lintSubagents(options: LintSubagentsOptions): Promise<void
     console.log(chalk.cyan('\n💡 Review the issues above and fix them manually'));
     throw new Error('Linting failed with errors or warnings');
   } else if (options.quiet !== true) {
-    console.log(chalk.green('\n✨ All subagent files are valid!'));
+    if (totalSuggestions > 0) {
+      console.log(chalk.cyan('\n✨ All files are valid! (with suggestions for improvements)'));
+    } else {
+      console.log(chalk.green('\n✨ All subagent files are valid!'));
+    }
   }
 }

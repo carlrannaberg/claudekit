@@ -1,5 +1,4 @@
 import { promises as fs } from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
 import { z } from 'zod';
 
@@ -235,18 +234,6 @@ export async function lintCommandFile(filePath: string): Promise<LintResult> {
     // Check for $ARGUMENTS usage without argument-hint
     if (markdown.includes('$ARGUMENTS') && frontmatter['argument-hint'] === undefined) {
       result.suggestions.push('Command uses $ARGUMENTS but no argument-hint is provided');
-    }
-    
-    // Validate command naming based on file path
-    const commandName = path.basename(filePath, '.md');
-    const dirName = path.basename(path.dirname(filePath));
-    
-    // Check if it's in a subdirectory (namespaced command)
-    if (dirName !== 'commands' && !['src', 'commands'].includes(dirName)) {
-      const expectedCommandUsage = `/${dirName}:${commandName}`;
-      if (!markdown.includes(expectedCommandUsage) && !markdown.includes(`\`${expectedCommandUsage}\``)) {
-        result.suggestions.push(`Namespaced command should be referenced as ${expectedCommandUsage}`);
-      }
     }
     
   } catch (error) {
