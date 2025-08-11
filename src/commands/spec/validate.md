@@ -1,8 +1,5 @@
 ---
-allowed-tools:
-  - Task
-  - Read
-  - Grep
+allowed-tools: Task, Read, Grep
 description: Analyzes a specification document to determine if it has enough detail for autonomous implementation
 category: validation
 argument-hint: "<path-to-spec-file>"

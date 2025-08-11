@@ -37,6 +37,13 @@ interface ComponentMetadata {
   retries?: number;
   requiredBy?: string[]; // Components that require this one
   optional?: boolean; // Whether this is an optional dependency
+  // Agent-specific fields
+  agentCategory?: string; // Category for agent grouping (universal, framework, testing, etc.)
+  universal?: boolean;
+  displayName?: string;
+  color?: string;
+  bundle?: string[];
+  defaultSelected?: boolean;
 }
 
 interface ComponentFile {
@@ -47,7 +54,7 @@ interface ComponentFile {
   lastModified: Date;
 }
 
-interface ComponentRegistry {
+export interface ComponentRegistry {
   components: Map<string, ComponentFile>;
   dependencies: Map<string, Set<string>>;
   dependents: Map<string, Set<string>>;
@@ -101,7 +108,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-typecheck',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:lint-changed',
@@ -116,22 +123,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-eslint',
-    lastModified: new Date('2024-01-01'),
-  },
-  {
-    path: 'embedded:prettier',
-    type: 'hook',
-    metadata: {
-      id: 'prettier',
-      name: 'Prettier Formatting',
-      description: 'Format code with Prettier on file changes (embedded hook)',
-      category: 'validation',
-      dependencies: ['prettier'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-prettier',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:check-any-changed',
@@ -146,7 +138,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-no-any',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:test-changed',
@@ -161,7 +153,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-run-related-tests',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:create-checkpoint',
@@ -176,7 +168,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-auto-checkpoint',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:check-todos',
@@ -191,7 +183,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-validate-todo-completion',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:typecheck-project',
@@ -206,7 +198,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-typecheck-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:lint-project',
@@ -221,7 +213,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-lint-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
   {
     path: 'embedded:test-project',
@@ -236,7 +228,7 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
       enabled: true,
     },
     hash: 'embedded-test-project',
-    lastModified: new Date('2024-01-01'),
+    lastModified: new Date(),
   },
 ];
 
@@ -625,12 +617,17 @@ function inferCategory(
 /**
  * Create component ID from file path
  */
-function createComponentId(filePath: string, _type: ComponentType): string {
+function createComponentId(filePath: string, type: ComponentType): string {
   const fileName = path.basename(filePath, '.md');
   const parentDir = path.basename(path.dirname(filePath));
 
-  if (parentDir === 'commands') {
+  if (parentDir === 'commands' || parentDir === 'agents') {
     return fileName;
+  }
+
+  // For nested components (e.g., commands/git/status.md or agents/typescript/expert.md)
+  if (type === 'agent') {
+    return `${parentDir}-${fileName}`;
   }
 
   return `${parentDir}:${fileName}`;
@@ -652,7 +649,26 @@ async function parseComponentFile(
     }
 
     // Parse metadata based on file type
-    const rawMetadata = type === 'command' ? parseFrontmatter(content) : parseShellHeader(content);
+    const rawMetadata =
+      type === 'command' || type === 'agent'
+        ? parseFrontmatter(content)
+        : parseShellHeader(content);
+
+    // For agents, validate that required fields are present
+    if (type === 'agent') {
+      // Agent files must have 'name' and 'description' in frontmatter
+      if (
+        rawMetadata['name'] === undefined ||
+        rawMetadata['name'] === null ||
+        rawMetadata['name'] === '' ||
+        rawMetadata['description'] === undefined ||
+        rawMetadata['description'] === null ||
+        rawMetadata['description'] === ''
+      ) {
+        // Skip files without proper agent metadata
+        return null;
+      }
+    }
 
     // Create component ID first so we can use it for dependency extraction
     const id = createComponentId(filePath, type);
@@ -688,6 +704,43 @@ async function parseComponentFile(
         rawMetadata['argument-hint'] !== null && {
           argumentHint: rawMetadata['argument-hint'] as string,
         }),
+      // Preserve custom agent fields for grouping
+      ...(type === 'agent' && rawMetadata['universal'] !== undefined && {
+        universal: rawMetadata['universal'] === true || rawMetadata['universal'] === 'true',
+      }),
+      ...(type === 'agent' && rawMetadata['category'] !== undefined && {
+        agentCategory: rawMetadata['category'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['displayName'] !== undefined && {
+        displayName: rawMetadata['displayName'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['color'] !== undefined && {
+        color: rawMetadata['color'] as string,
+      }),
+      ...(type === 'agent' && rawMetadata['bundle'] !== undefined && {
+        bundle: ((): string[] => {
+          const bundleValue = rawMetadata['bundle'];
+          
+          if (typeof bundleValue === 'string') {
+            // Parse string format like "[typescript-type-expert, typescript-build-expert]"
+            return bundleValue
+              .replace(/^\[|\]$/g, '')
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter((s: string) => s.length > 0); // Filter out empty strings
+          }
+          if (Array.isArray(bundleValue)) {
+            // Ensure all items are non-empty strings
+            const filtered = bundleValue
+              .filter((item): item is string => typeof item === 'string' && item.length > 0);
+            return filtered;
+          }
+          return [];
+        })(),
+      }),
+      ...(type === 'agent' && rawMetadata['defaultSelected'] !== undefined && {
+        defaultSelected: rawMetadata['defaultSelected'] === true || rawMetadata['defaultSelected'] === 'true',
+      }),
       ...(rawMetadata['version'] !== undefined &&
         rawMetadata['version'] !== null && { version: rawMetadata['version'] as string }),
       ...(rawMetadata['author'] !== undefined &&
@@ -740,8 +793,8 @@ async function scanDirectory(dirPath: string, type: ComponentType): Promise<Comp
     return components;
   }
 
-  // Only scan for command files since hooks are embedded
-  if (type !== 'command') {
+  // Only scan for command and agent files since hooks are embedded
+  if (type !== 'command' && type !== 'agent') {
     return [];
   }
   const extension = '.md';
@@ -1178,12 +1231,14 @@ export async function discoverComponents(
   registry.categories.clear();
 
   const commandsDir = path.join(baseDir, 'commands');
+  const agentsDir = path.join(baseDir, 'agents');
 
-  // Scan for command components only
+  // Scan for command and agent components
   const commandFiles = await scanDirectory(commandsDir, 'command');
+  const agentFiles = await scanDirectory(agentsDir, 'agent');
 
-  // Use predefined embedded hooks instead of scanning for hook files
-  const allComponents = [...commandFiles, ...EMBEDDED_HOOK_COMPONENTS];
+  // Use predefined embedded hooks, but scan for actual agent files
+  const allComponents = [...commandFiles, ...agentFiles, ...EMBEDDED_HOOK_COMPONENTS];
 
   // Filter components based on options
   let filteredComponents = allComponents;

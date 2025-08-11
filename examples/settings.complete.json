@@ -15,12 +15,6 @@
         ]
       },
       {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {"type": "command", "command": "claudekit-hooks run prettier"}
-        ]
-      },
-      {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run test-changed"}

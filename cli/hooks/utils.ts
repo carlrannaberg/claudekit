@@ -75,6 +75,14 @@ export interface ExecResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+  /** True when the process was killed due to timeout */
+  timedOut?: boolean;
+  /** Signal used to terminate the process, if any (e.g., SIGTERM) */
+  signal?: string | null;
+  /** Whether the process was killed */
+  killed?: boolean;
+  /** Elapsed time in milliseconds for the executed command */
+  durationMs?: number;
 }
 
 export async function execCommand(
@@ -82,20 +90,47 @@ export async function execCommand(
   args: string[] = [],
   options: { cwd?: string; timeout?: number } = {}
 ): Promise<ExecResult> {
-  const fullCommand = `${command} ${args.join(' ')}`;
+  const fullCommand = `${command} ${args.join(' ')}`.trim();
+  const start = Date.now();
   try {
     const { stdout, stderr } = await execAsync(fullCommand, {
       cwd: options.cwd ?? process.cwd(),
       timeout: options.timeout ?? 30000,
       maxBuffer: 1024 * 1024 * 10, // 10MB
     });
-    return { stdout, stderr, exitCode: 0 };
+    const durationMs = Date.now() - start;
+    return { stdout, stderr, exitCode: 0, durationMs, timedOut: false };
   } catch (error) {
-    const execError = error as { stdout?: string; stderr?: string; code?: number };
+    const durationMs = Date.now() - start;
+    const execError = error as {
+      stdout?: string;
+      stderr?: string;
+      code?: number;
+      killed?: boolean;
+      signal?: string | null;
+      timedOut?: boolean; // some environments
+    };
+
+    // Robust timeout detection:
+    // - child_process.exec sets error.killed=true and error.signal='SIGTERM' when timed out
+    // - some runtimes set error.timedOut=true
+    // - as a fallback, if a timeout was specified and elapsed time >= timeout - small delta, treat as timeout
+    const requestedTimeout = options.timeout ?? 30000;
+    const elapsedNearTimeout = durationMs >= Math.max(0, requestedTimeout - 25);
+    const didTimeOut =
+      execError.timedOut === true ||
+      (execError.killed === true &&
+        (execError.signal === 'SIGTERM' || execError.signal === 'SIGKILL')) ||
+      elapsedNearTimeout;
+
     return {
       stdout: execError.stdout ?? '',
       stderr: execError.stderr ?? '',
       exitCode: execError.code ?? 1,
+      timedOut: didTimeOut,
+      signal: execError.signal ?? null,
+      killed: execError.killed ?? false,
+      durationMs,
     };
   }
 }

@@ -20,6 +20,12 @@ import {
 import { findComponentsDirectory } from '../lib/paths.js';
 import type { Component, Platform, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
+import {
+  groupAgentsByCategory,
+  calculateSelectedAgents,
+  getAgentDisplayName,
+  type AgentComponent,
+} from '../lib/agents/registry-grouping.js';
 
 // Command group definitions for improved setup flow
 interface CommandGroup {
@@ -107,9 +113,11 @@ const HOOK_GROUPS: HookGroup[] = [
 ];
 
 /**
- * Perform improved two-step selection: command groups then hook groups
+ * Perform improved three-step selection: command groups, hook groups, then agents
  */
-async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string[]> {
+async function performThreeStepSelection(
+  projectInfo: ProjectInfo
+): Promise<{ components: string[] }> {
   const selectedComponents: string[] = [];
 
   // Step 1: Command Group Selection
@@ -273,7 +281,79 @@ async function performTwoStepSelection(projectInfo: ProjectInfo): Promise<string
     }
   }
 
-  return selectedComponents;
+  // Step 3: Agent Selection with new grouping system
+  console.log(`\n${Colors.bold('Step 3: Choose AI Assistant Subagents (Optional)')}`);
+  
+  // Ask if user wants agents
+  const agentChoice = await select({
+    message: 'Would you like to install AI assistant subagents?',
+    choices: [
+      { value: 'select', name: '📦 Select Agents ← RECOMMENDED\n  Choose which agents match your tools' },
+      { value: 'all', name: '🌟 Install All\n  Get all 24 available agents' },
+      { value: 'skip', name: '⏭️  Skip Agents\n  Don\'t install any agents' },
+    ],
+    default: 'select',
+  });
+
+  if (agentChoice === 'skip') {
+    console.log(Colors.dim('Skipping agent installation'));
+  } else if (agentChoice === 'all') {
+    // Get all agents from registry
+    const sourceDir = await findComponentsDirectory();
+    const registry = await discoverComponents(sourceDir);
+    const allAgents = Array.from(registry.components.values())
+      .filter(c => c.type === 'agent')
+      .map(c => c.metadata.id);
+    selectedComponents.push(...allAgents);
+    console.log(Colors.success(`Selected all ${allAgents.length} agents`));
+  } else {
+    // Get agents from registry and group them by category
+    const sourceDir = await findComponentsDirectory();
+    const registry = await discoverComponents(sourceDir);
+    const agentCategories = groupAgentsByCategory(registry);
+    
+    // Show the new selection interface
+    console.log(`\n${Colors.bold('Select Your Development Stack')}`);
+    console.log(Colors.dim('━'.repeat(63)));
+    
+    // Collect all selected agent IDs
+    const selectedAgentIds: string[] = [];
+    
+    // Display each category and let user select agents
+    for (const categoryGroup of agentCategories) {
+      // Skip uncategorized group in normal flow
+      if (categoryGroup.category === 'uncategorized') {
+        continue;
+      }
+      
+      console.log(`\n${Colors.accent(categoryGroup.title)}`);
+      if (categoryGroup.description) {
+        console.log(Colors.dim(categoryGroup.description));
+      }
+      
+      const choices = categoryGroup.agents.map((agent: AgentComponent) => ({
+        value: agent.id,
+        name: getAgentDisplayName(agent),
+        checked: categoryGroup.preSelected ?? false,
+      }));
+      
+      const selected = await checkbox({
+        message: `Select ${categoryGroup.title.toLowerCase()}:`,
+        choices,
+        pageSize: Math.min(10, choices.length + 1),
+      }) as string[];
+      
+      selectedAgentIds.push(...selected);
+    }
+    
+    // Calculate final agent list (including bundled agents)
+    const finalAgents = calculateSelectedAgents(registry, selectedAgentIds);
+    
+    selectedComponents.push(...finalAgents);
+    console.log(Colors.success(`\n${finalAgents.length} agents selected`));
+  }
+
+  return { components: selectedComponents };
 }
 
 export interface SetupOptions {
@@ -285,9 +365,12 @@ export interface SetupOptions {
   yes?: boolean;
   commands?: string;
   hooks?: string;
+  agents?: string;  // Comma-separated list of agent IDs
   project?: string;
-  commandsOnly?: boolean;
+  user?: boolean;
   selectIndividual?: boolean; // Flag for power users to select individual components
+  all?: boolean;
+  skipAgents?: boolean;
 }
 
 interface SetupConfig {
@@ -317,9 +400,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
   try {
     const isNonInteractive =
       options.yes === true ||
+      options.all === true ||
       options.commands !== undefined ||
       options.hooks !== undefined ||
-      options.commandsOnly === true;
+      options.agents !== undefined ||
+      options.user === true;
 
     // Show welcome message (unless in non-interactive mode)
     if (!isNonInteractive || options.quiet !== true) {
@@ -352,9 +437,9 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 1: Installation type
     let installationType: string;
-    if (options.yes === true || options.commandsOnly === true) {
-      // Default to project for --yes, user only for --commands-only
-      installationType = options.commandsOnly === true ? 'user' : 'project';
+    if (options.yes === true || options.all === true || options.user === true) {
+      // Default to project for --yes/--all, user only for --user
+      installationType = options.user === true ? 'user' : 'project';
     } else {
       installationType = await select({
         message: 'How would you like to install claudekit?',
@@ -394,7 +479,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         } catch {
           throw new Error(`No write permission for directory: ${options.project}`);
         }
-      } else if (options.yes !== true && options.commandsOnly !== true) {
+      } else if (options.yes !== true && options.all !== true && options.user !== true) {
         const inputPath = await input({
           message: 'Project directory path:',
           default: process.cwd(),
@@ -504,7 +589,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // Step 4: Component selection - Two-step process with groups
     let selectedComponents: string[];
 
-    if (options.commands !== undefined || options.hooks !== undefined) {
+    if (options.commands !== undefined || options.hooks !== undefined || options.agents !== undefined) {
       // Parse component lists from flags
       const requestedCommands =
         options.commands !== undefined && options.commands !== ''
@@ -514,10 +599,14 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         options.hooks !== undefined && options.hooks !== ''
           ? options.hooks.split(',').map((s) => s.trim())
           : [];
+      const requestedAgents =
+        options.agents !== undefined && options.agents !== ''
+          ? options.agents.split(',').map((s) => s.trim())
+          : [];
 
       selectedComponents = [];
 
-      // Validate and add requested components
+      // Validate and add commands and hooks
       for (const id of [...requestedCommands, ...requestedHooks]) {
         if (registry.components.has(id)) {
           selectedComponents.push(id);
@@ -526,15 +615,49 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         }
       }
 
+      // Validate agents
+      for (const id of requestedAgents) {
+        if (!registry.components.has(id)) {
+          throw new Error(`Agent not found: ${id}`);
+        }
+      }
+
+      // Calculate final agent list (including bundled/specialized agents)
+      if (requestedAgents.length > 0) {
+        const finalAgents = calculateSelectedAgents(registry, requestedAgents);
+        selectedComponents.push(...finalAgents);
+        if (options.quiet !== true) {
+          console.log(Colors.success(`Selected ${finalAgents.length} agents (including specialized agents)`));
+        }
+      }
+
       if (selectedComponents.length === 0) {
         throw new Error('No valid components specified');
       }
-    } else if (options.yes === true || options.commandsOnly === true) {
+    } else if (options.yes === true || options.all === true || options.user === true) {
       // Default to essential and recommended components
       selectedComponents = [
         ...recommendations.essential.map((r) => r.component.metadata.id),
         ...recommendations.recommended.map((r) => r.component.metadata.id),
       ];
+
+      // For --all flag, select all agents automatically
+      if (options.all === true && options.skipAgents !== true) {
+        // Get all agent components from registry
+        const agentComponents = Array.from(registry.components.values())
+          .filter((c) => c.type === 'agent')
+          .map((c) => c.metadata.id);
+        selectedComponents.push(...agentComponents);
+      }
+      // For --yes flag, select TypeScript agent by default (unless agents are skipped)
+      else if (options.yes === true && options.skipAgents !== true) {
+        const tsAgent = Array.from(registry.components.values()).find(
+          (c) => c.type === 'agent' && c.metadata.id === 'typescript-expert'
+        );
+        if (tsAgent) {
+          selectedComponents.push(tsAgent.metadata.id);
+        }
+      }
     } else if (options.selectIndividual === true) {
       // Legacy individual component selection for power users
       const allComponents = [
@@ -560,8 +683,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         choices: allComponents,
       })) as string[];
     } else {
-      // New improved two-step selection process
-      selectedComponents = await performTwoStepSelection(projectInfo);
+      // New improved three-step selection process
+      const selectionResult = await performThreeStepSelection(projectInfo);
+      selectedComponents = selectionResult.components;
+
+      // Agents are now part of the unified component system, no special handling needed
     }
 
     // Step 5: Set configuration based on selected components
@@ -625,7 +751,13 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     }
 
     // Ask for confirmation unless non-interactive mode
-    if (options.yes !== true && options.commands === undefined && options.hooks === undefined) {
+    if (
+      options.yes !== true &&
+      options.all !== true &&
+      options.commands === undefined &&
+      options.hooks === undefined &&
+      options.agents === undefined
+    ) {
       const proceed = await confirm({
         message: '\nProceed with installation?',
         default: true,
@@ -691,7 +823,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
       // Install based on installation type
       const isNonInteractive =
-        options.yes === true || options.commands !== undefined || options.hooks !== undefined;
+        options.yes === true ||
+        options.all === true ||
+        options.commands !== undefined ||
+        options.hooks !== undefined ||
+        options.agents !== undefined;
 
       const installOptions: InstallOptions = {
         dryRun: options.dryRun ?? false,
@@ -781,6 +917,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         );
       }
 
+      // Agents are now installed as part of the unified component system
+
       progressReporter.succeed('Installation complete!');
 
       // Clean up settings backup file if it was created
@@ -802,13 +940,36 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         }
       }
 
-      // Complete the install progress reporter
-      installProgressReporter.complete();
+      // Complete the install progress reporter with agent count
+      const agentCount = finalComponents.filter((c) => c.type === 'agent').length;
+      installProgressReporter.complete({ agentCount });
 
-      // Show next steps unless quiet mode
+      // Show completion summary unless quiet mode
       if (options.quiet !== true) {
-        console.log(`\n${Colors.bold(Colors.success('claudekit setup complete!'))}`);
-        console.log(Colors.dim('─'.repeat(40)));
+        const commandCount = finalComponents.filter((c) => c.type === 'command').length;
+        const hookCount = finalComponents.filter((c) => c.type === 'hook').length;
+        const finalAgentCount = finalComponents.filter((c) => c.type === 'agent').length;
+        const totalInstalled = commandCount + hookCount + finalAgentCount;
+
+        console.log(`\n${Colors.bold(Colors.success('✨ Setup complete!'))}`);
+
+        if (totalInstalled > 0) {
+          console.log(`\n${Colors.bold('Installed items:')}`);
+          if (commandCount > 0) {
+            console.log(`• ${commandCount} slash command${commandCount !== 1 ? 's' : ''}`);
+          }
+          if (hookCount > 0) {
+            console.log(`• ${hookCount} automated hook${hookCount !== 1 ? 's' : ''}`);
+          }
+          if (finalAgentCount > 0) {
+            console.log(`• ${finalAgentCount} AI subagent${finalAgentCount !== 1 ? 's' : ''}`);
+          }
+        } else {
+          console.log(`\n${Colors.warn('No items were selected for installation.')}`);
+          console.log(`Run ${Colors.accent('claudekit setup')} again to select components.`);
+        }
+
+        console.log(Colors.dim(`\n${'─'.repeat(40)}`));
         console.log('\nNext steps:');
         console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
         console.log(`  2. ${Colors.accent('claudekit list')} - See available commands`);

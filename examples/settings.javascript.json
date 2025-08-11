@@ -8,12 +8,6 @@
         ]
       },
       {
-        "matcher": "tools:Write AND file_paths:**/*.{js,jsx,json,md,css}",
-        "hooks": [
-          {"type": "command", "command": "claudekit-hooks run prettier"}
-        ]
-      },
-      {
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [
           {"type": "command", "command": "claudekit-hooks run test-changed"}

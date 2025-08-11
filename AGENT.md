@@ -20,6 +20,12 @@ This is a TypeScript-based toolkit. Key commands:
 
 **Important**: After making any changes to TypeScript files (hooks, commands, or library code), you MUST run `npm run build` before testing. The project uses compiled JavaScript from the `dist/` directory, not the source TypeScript files.
 
+### Creating New Components
+
+- **Subagents**: See [Subagent Development Guide](docs/subagent-development-guide.md) for creating AI assistant subagents
+- **Commands**: Use `/create-command` in Claude Code for guidance
+- **Hooks**: Follow self-contained patterns in `src/hooks/`
+
 ### Slash Commands (in Claude Code)
 - `/checkpoint:create [description]` - Create a git stash checkpoint
 - `/checkpoint:restore [n]` - Restore to a previous checkpoint

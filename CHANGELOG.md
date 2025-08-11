@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Subagents library with TypeScript expert agent
+- Agent installation in `claudekit setup` command  
+- `.claude/agents/` directory for custom agents
+- `--skip-agents` flag for setup command
+- Interactive agent selection during setup
+- Domain-based organization for future agents (react/, testing/, database/)
+
+### Changed
+- Setup command now includes three features: commands, hooks, and agents
+- Interactive setup menu expanded with agent selection
+- Setup completion message now shows agent count
+- `--all` flag now installs agents in addition to commands and hooks
+
+### Internal
+- Added `src/agents/` directory structure for agent library
+- Extended SetupCommand class with agent installation methods
+- Added Agent interface and type definitions
+
 ## [0.2.1] - 2025-08-07
 
 ### Fixed

@@ -117,7 +117,6 @@ Hooks are automated checks that run when you interact with files in Claude Code:
 - `typecheck-changed` - TypeScript type checking on changed files
 - `check-any-changed` - Forbid 'any' types in changed files
 - `lint-changed` - ESLint validation on changed files
-- `prettier` - Code formatting
 
 #### Workflow Hooks
 - `create-checkpoint` - Save work automatically
@@ -256,8 +255,7 @@ Slash commands are typed directly in Claude Code:
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run lint-changed"},
-          {"type": "command", "command": "claudekit-hooks run prettier"}
+          {"type": "command", "command": "claudekit-hooks run lint-changed"}
         ]
       }
     ]

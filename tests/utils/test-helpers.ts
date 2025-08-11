@@ -24,7 +24,7 @@ export class TestFileSystem {
   ): Promise<void> {
     for (const [name, content] of Object.entries(structure)) {
       const fullPath = path.join(baseDir, name);
-      
+
       if (typeof content === 'string') {
         // Create file
         await fs.mkdir(path.dirname(fullPath), { recursive: true });
@@ -32,7 +32,10 @@ export class TestFileSystem {
       } else if (typeof content === 'object' && content !== null) {
         // Create directory and recurse
         await fs.mkdir(fullPath, { recursive: true });
-        await this.createFileStructure(fullPath, content as Record<string, string | Record<string, unknown>>);
+        await this.createFileStructure(
+          fullPath,
+          content as Record<string, string | Record<string, unknown>>
+        );
       }
     }
   }
@@ -73,7 +76,7 @@ export class TestFileSystem {
         // Ignore cleanup errors
       }
     });
-    
+
     await Promise.all(promises);
     this.tempDirs.clear();
   }
@@ -92,11 +95,11 @@ export class MockConfigHelper {
                 type: 'command',
                 command: '.claude/hooks/typecheck.sh',
                 enabled: true,
-                retries: 0
-              }
+                retries: 0,
+              },
             ],
-            enabled: true
-          }
+            enabled: true,
+          },
         ],
         Stop: [
           {
@@ -106,14 +109,14 @@ export class MockConfigHelper {
                 type: 'command',
                 command: '.claude/hooks/auto-checkpoint.sh',
                 enabled: true,
-                retries: 0
-              }
+                retries: 0,
+              },
             ],
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       },
-      ...overrides
+      ...overrides,
     };
   }
 
@@ -123,7 +126,7 @@ export class MockConfigHelper {
 
   static createInvalidConfig(): unknown {
     return {
-      hooks: 'this-should-be-an-object'
+      hooks: 'this-should-be-an-object',
     };
   }
 }
@@ -133,7 +136,7 @@ export class CommandTestHelper {
   static mockProcessArgs(args: string[]): () => void {
     const originalArgv = process.argv;
     process.argv = ['node', 'claudekit', ...args];
-    
+
     // Return cleanup function
     return () => {
       process.argv = originalArgv;
@@ -143,23 +146,25 @@ export class CommandTestHelper {
   static mockProcessCwd(cwd: string): () => void {
     // const originalCwd = process.cwd; // Removed unused variable
     vi.spyOn(process, 'cwd').mockReturnValue(cwd);
-    
+
     return () => {
       vi.mocked(process.cwd).mockReset();
     };
   }
 
   static mockProcessExit(): { exit: ReturnType<typeof vi.spyOn>; cleanup: () => void } {
-    const exit = vi.spyOn(process, 'exit').mockImplementation((_code?: string | number | null | undefined) => {
-      // Mock implementation that doesn't actually exit
-      return undefined as never;
-    });
-    
+    const exit = vi
+      .spyOn(process, 'exit')
+      .mockImplementation((_code?: string | number | null | undefined) => {
+        // Mock implementation that doesn't actually exit
+        return undefined as never;
+      });
+
     return {
       exit: exit as ReturnType<typeof vi.spyOn>,
       cleanup: (): void => {
         exit.mockRestore();
-      }
+      },
     };
   }
 }
@@ -192,7 +197,7 @@ export class ConsoleTestHelper {
     if (!mock) {
       throw new Error(`Console ${type} is not mocked`);
     }
-    return mock.mock.calls.map(call => call.join(' '));
+    return mock.mock.calls.map((call) => call.join(' '));
   }
 
   static getLastOutput(type: 'log' | 'warn' | 'error' | 'info'): string | undefined {
@@ -251,8 +256,8 @@ export class TestAssertions {
     expectedOutput: string | RegExp
   ): void {
     const calls = mock.mock.calls;
-    const output = calls.map(call => call.join(' ')).join('\n');
-    
+    const output = calls.map((call) => call.join(' ')).join('\n');
+
     if (typeof expectedOutput === 'string') {
       expect(output).toContain(expectedOutput);
     } else {
@@ -268,7 +273,7 @@ export class TestTimeouts {
   static long = 10000; // 10 seconds
 
   static async delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   static async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {

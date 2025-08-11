@@ -52,6 +52,8 @@
     "coverage:check": "vitest run --coverage --reporter=verbose",
     "coverage:threshold": "vitest run --coverage --reporter=json --outputFile.json=./coverage/coverage-summary.json",
     "lint": "eslint . --ext .ts",
+    "lint:subagents": "./bin/claudekit lint-subagents src/agents",
+    "lint:commands": "./bin/claudekit lint-commands src/commands",
     "format": "prettier --write \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"cli/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit",
@@ -64,10 +66,11 @@
     "@inquirer/prompts": "^7.6.0",
     "commander": "^14.0.0",
     "fs-extra": "^11.3.0",
+    "gray-matter": "^4.0.3",
     "oh-my-logo": "^0.2.1",
     "ora": "^8.2.0",
     "picocolors": "^1.1.0",
-    "zod": "^3.24.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

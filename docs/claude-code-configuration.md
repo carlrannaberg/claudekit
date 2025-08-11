@@ -441,10 +441,6 @@ Make hooks self-contained:
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run cargo-check"}]  # Rust checker
-      },
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run prettier"}]  # Formatter
       }
     ]
   }

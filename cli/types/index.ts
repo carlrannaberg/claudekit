@@ -34,7 +34,7 @@ export type ComponentCategory =
 /**
  * Component types in the ClaudeKit ecosystem
  */
-export type ComponentType = 'command' | 'hook';
+export type ComponentType = 'command' | 'hook' | 'agent';
 
 /**
  * Package managers that can be detected and used
@@ -730,7 +730,7 @@ export function isPlatform(value: unknown): value is Platform {
  * Type guard to check if a value is a valid ComponentType
  */
 export function isComponentType(value: unknown): value is ComponentType {
-  return typeof value === 'string' && ['command', 'hook'].includes(value);
+  return typeof value === 'string' && ['command', 'hook', 'agent'].includes(value);
 }
 
 /**

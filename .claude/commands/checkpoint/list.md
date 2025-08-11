@@ -1,1 +1,0 @@
-../../../src/commands/checkpoint/list.md

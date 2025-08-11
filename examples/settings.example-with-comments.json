@@ -21,13 +21,6 @@
         ]
       },
       {
-        "// Description": "Prettier formatting for all modified files",
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {"type": "command", "command": "claudekit-hooks run prettier"}
-        ]
-      },
-      {
         "// Description": "Run tests related to modified files",
         "matcher": "Write,Edit,MultiEdit",
         "hooks": [

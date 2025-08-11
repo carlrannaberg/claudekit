@@ -50,10 +50,13 @@ program
   .option('-f, --force', 'overwrite existing configuration')
   .option('-t, --template <template>', 'use a specific template', 'default')
   .option('-y, --yes', 'automatic yes to prompts (use default options)')
+  .option('--all', 'install all features without prompting')
+  .option('--skip-agents', 'skip subagent installation')
   .option('--commands <list>', 'comma-separated list of command IDs to install')
   .option('--hooks <list>', 'comma-separated list of hook IDs to install')
+  .option('--agents <list>', 'comma-separated list of agent IDs to install (e.g., typescript-expert,react-expert)')
   .option('--project <path>', 'target directory for project installation')
-  .option('--commands-only', 'install only commands in user directory (~/.claude)')
+  .option('--user', 'install in user directory (~/.claude) instead of project')
   .option('--select-individual', 'use legacy individual component selection instead of groups')
   .action(async (options) => {
     try {
@@ -160,6 +163,36 @@ program
       await validate(mergedOptions);
     } catch (error) {
       logger.error(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    }
+  });
+
+// Lint subagents command
+program
+  .command('lint-subagents [directory]')
+  .description('Lint subagent markdown files for frontmatter issues')
+  .action(async (directory = '.claude/agents', options) => {
+    try {
+      const mergedOptions = { ...globalOptions, ...options, root: directory };
+      const { lintSubagents } = await import('./commands/lint-subagents.js');
+      await lintSubagents(mergedOptions);
+    } catch (error) {
+      logger.error(`Lint subagents failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    }
+  });
+
+// Lint commands command
+program
+  .command('lint-commands [directory]')
+  .description('Lint slash command markdown files for frontmatter issues')
+  .action(async (directory = '.claude/commands', options) => {
+    try {
+      const mergedOptions = { ...globalOptions, ...options, root: directory };
+      const { lintCommands } = await import('./commands/lint-commands.js');
+      await lintCommands(mergedOptions);
+    } catch (error) {
+      logger.error(`Lint commands failed: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });

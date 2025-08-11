@@ -1,1 +1,0 @@
-../../../src/commands/spec/validate.md
