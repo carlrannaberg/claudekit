@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-08-12
+
+### Added
+- **Check Unused Parameters Hook**: New validation hook that detects lazy refactoring where function parameters are prefixed with underscore instead of being properly removed
+  - Analyzes Edit/MultiEdit operations to detect parameter name changes from `param` to `_param`
+  - Provides detailed feedback on proper parameter handling practices
+  - Supports TypeScript/JavaScript function declarations, arrow functions, methods, and constructors
+  - Helps maintain clean function signatures by encouraging proper parameter removal
+
+### Changed
+- **Comment Replacement Hook Scope**: Refined `check-comment-replacement` hook to only trigger on Edit/MultiEdit operations (excluding Write operations for better precision)
+
+### Fixed
+- **Test Suite Robustness**: Updated component discovery tests to be more resilient to changes in embedded hook counts
+  - Tests now use dynamic counts and functional assertions instead of hardcoded numbers
+  - Improved test reliability for component registry validation
+  - Better handling of embedded hook discovery in test scenarios
+
 ## [0.3.1] - 2025-08-12
 
 ### Added

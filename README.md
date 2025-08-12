@@ -205,6 +205,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 - **typecheck-changed** - TypeScript type checking on modified files
 - **check-any-changed** - Forbid `any` types in modified TypeScript files
 - **check-comment-replacement** - Prevent replacing functional code with explanatory comments
+- **check-unused-parameters** - Detect lazy refactoring where parameters are prefixed with underscore instead of being removed
 - **lint-changed** - ESLint validation on modified JavaScript/TypeScript files
 - **test-changed** - Run tests related to modified files
 
@@ -254,6 +255,9 @@ You can test hooks outside of Claude Code using the `claudekit-hooks` command:
 ```bash
 # Run a specific hook (reads stdin for file context)
 echo '{"tool_input": {"file_path": "src/index.ts"}}' | claudekit-hooks run typecheck-changed
+
+# Test parameter validation hook
+echo '{"tool_input": {"file_path": "src/component.ts"}}' | claudekit-hooks run check-unused-parameters
 
 # Run a hook without file context
 claudekit-hooks run create-checkpoint
@@ -407,6 +411,7 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 - **typecheck-changed** - TypeScript type checking on modified files
 - **check-any-changed** - Forbid `any` types in modified TypeScript files
 - **check-comment-replacement** - Prevent replacing functional code with explanatory comments
+- **check-unused-parameters** - Detect lazy refactoring where parameters are prefixed with underscore instead of being removed
 - **lint-changed** - ESLint code style validation on modified files
 - **test-changed** - Auto-run tests for modified files
 
