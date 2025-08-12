@@ -26,6 +26,7 @@ export function createHooksCLI(): Command {
       console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
       console.log('  lint-changed          - ESLint validation on changed files');
       console.log('  test-changed          - Run tests for changed files');
+      console.log('  check-comment-replacement - Detect when code is replaced with comments');
       console.log('  create-checkpoint     - Git auto-checkpoint on stop');
       console.log('  check-todos           - Validate todo completions');
       console.log('  typecheck-project     - TypeScript validation on entire project');
@@ -86,6 +87,7 @@ export function createHooksCLI(): Command {
       console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
       console.log('  lint-changed          - ESLint validation on changed files');
       console.log('  test-changed          - Run tests for changed files');
+      console.log('  check-comment-replacement - Detect when code is replaced with comments');
       console.log('  create-checkpoint     - Git auto-checkpoint on stop');
       console.log('  check-todos           - Validate todo completions');
       console.log('  typecheck-project     - TypeScript validation on entire project');

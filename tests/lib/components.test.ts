@@ -106,7 +106,7 @@ This is a test command that validates functionality.
         'test-project',
       ];
       const foundEmbeddedHooks = allHooks.filter((h) => h.path.startsWith('embedded:'));
-      expect(foundEmbeddedHooks.length).toBe(embeddedHookIds.length);
+      expect(foundEmbeddedHooks.length).toBe(embeddedHookIds.length + 1);
     });
 
     it('should infer category from content when not explicitly provided', async () => {
@@ -189,7 +189,7 @@ description: Git commit command
 
       expect(getComponent('git:commit', registry)).toBeDefined();
       // Should have 1 nested command + 10 embedded hooks = 11 total
-      expect(registry.components.size).toBe(10);
+      expect(registry.components.size).toBe(11);
     });
 
     it('should handle missing directories gracefully', async () => {
@@ -207,7 +207,7 @@ description: Test command
       const registry = await discoverComponents(tempDir);
 
       // Should have 1 command + 10 embedded hooks = 11 total
-      expect(registry.components.size).toBe(10);
+      expect(registry.components.size).toBe(11);
       expect(getComponent('test', registry)).toBeDefined();
     });
 
@@ -232,13 +232,13 @@ enabled: false
 
       const registryAll = await discoverComponents(tempDir, { includeDisabled: true });
       // Should have 2 commands + 10 embedded hooks = 12 total
-      expect(registryAll.components.size).toBe(11);
+      expect(registryAll.components.size).toBe(12);
 
       // Clear cache before second call
       invalidateCache(tempDir);
       const registryEnabled = await discoverComponents(tempDir, { includeDisabled: false });
       // Should have 1 enabled command + 10 embedded hooks (all enabled by default) = 11 total
-      expect(registryEnabled.components.size).toBe(10);
+      expect(registryEnabled.components.size).toBe(11);
       expect(getComponent('enabled', registryEnabled)).toBeDefined();
       expect(getComponent('disabled', registryEnabled)).toBeUndefined();
     });
@@ -266,7 +266,7 @@ category: git
 
       // Test that embedded hooks are included
       const hooks = getComponentsByType('hook', registry);
-      expect(hooks.length).toBe(9); // All 9 embedded hooks
+      expect(hooks.length).toBe(10);
 
       // Test validation category has embedded validation hooks
       const validationComponents = getComponentsByCategory('validation', registry);
@@ -480,10 +480,10 @@ category: validation
       const registry = await discoverComponents(tempDir);
       const stats = getDiscoveryStats(registry);
 
-      // 2 commands + 9 embedded hooks = 11 total
-      expect(stats.totalComponents).toBe(11);
+      // 2 commands + 10 embedded hooks = 12 total
+      expect(stats.totalComponents).toBe(12);
       expect(stats.commandCount).toBe(2);
-      expect(stats.hookCount).toBe(9); // All embedded hooks
+      expect(stats.hookCount).toBe(10);
       expect(stats.categoryCounts.git).toBeGreaterThanOrEqual(1); // git command + create-checkpoint hook
       expect(stats.categoryCounts.validation).toBeGreaterThanOrEqual(1); // validation command + validation hooks
       expect(stats.cacheStatus).toBe('valid');
@@ -507,8 +507,8 @@ author: Test Author
       const registry = await discoverComponents(tempDir);
       const components = registryToComponents(registry);
 
-      // Should have 1 command + 10 embedded hooks
-      expect(components.length).toBe(10);
+      // Should have 1 command + 10 embedded hooks = 11 total
+      expect(components.length).toBe(11);
 
       const testCommand = components.find((c) => c.id === 'test');
       expect(testCommand).toBeDefined();
@@ -592,8 +592,8 @@ category: utility
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(500);
-      // Should have componentCount commands + 9 embedded hooks
-      expect(registry.components.size).toBe(componentCount + 9);
+      // Should have componentCount commands + 10 embedded hooks
+      expect(registry.components.size).toBe(componentCount + 10);
     });
   });
 });

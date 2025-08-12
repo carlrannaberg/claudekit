@@ -7,6 +7,7 @@ import { CheckTodosHook } from './check-todos.js';
 import { TypecheckProjectHook } from './typecheck-project.js';
 import { LintProjectHook } from './lint-project.js';
 import { TestProjectHook } from './test-project.js';
+import { CheckCommentReplacementHook } from './check-comment-replacement.js';
 
 export const HOOK_REGISTRY = {
   // Changed file hooks
@@ -14,6 +15,7 @@ export const HOOK_REGISTRY = {
   'check-any-changed': CheckAnyChangedHook,
   'lint-changed': LintChangedHook,
   'test-changed': TestChangedHook,
+  'check-comment-replacement': CheckCommentReplacementHook,
 
   // Project-wide hooks
   'typecheck-project': TypecheckProjectHook,

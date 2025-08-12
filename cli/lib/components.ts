@@ -230,6 +230,21 @@ const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
     hash: 'embedded-test-project',
     lastModified: new Date(),
   },
+  {
+    path: 'embedded:check-comment-replacement',
+    type: 'hook',
+    metadata: {
+      id: 'check-comment-replacement',
+      name: 'Check Comment Replacement',
+      description: 'Detect when code is replaced with comments instead of being cleanly deleted (embedded hook)',
+      category: 'validation',
+      dependencies: [],
+      platforms: ['all'],
+      enabled: true,
+    },
+    hash: 'embedded-check-comment-replacement',
+    lastModified: new Date(),
+  },
 ];
 
 // ============================================================================

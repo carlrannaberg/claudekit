@@ -15,6 +15,7 @@ import { CheckTodosHook } from './check-todos.js';
 import { TypecheckProjectHook } from './typecheck-project.js';
 import { LintProjectHook } from './lint-project.js';
 import { TestProjectHook } from './test-project.js';
+import { CheckCommentReplacementHook } from './check-comment-replacement.js';
 
 // Configuration schema
 const HookConfigSchema = z
@@ -47,6 +48,7 @@ export class HookRunner {
     this.hooks.set('typecheck-project', TypecheckProjectHook);
     this.hooks.set('lint-project', LintProjectHook);
     this.hooks.set('test-project', TestProjectHook);
+    this.hooks.set('check-comment-replacement', CheckCommentReplacementHook);
   }
 
   async run(hookName: string): Promise<number> {

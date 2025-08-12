@@ -90,7 +90,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',
-    hooks: ['lint-changed', 'typecheck-changed', 'check-any-changed', 'test-changed'],
+    hooks: ['lint-changed', 'typecheck-changed', 'check-any-changed', 'test-changed', 'check-comment-replacement'],
     recommended: true,
     triggerEvent: 'PostToolUse',
   },
@@ -214,40 +214,45 @@ async function performThreeStepSelection(
   // Handle custom selection only if it's the only selection
   if (selectedHookGroups.length === 1 && selectedHookGroups[0] === '__CUSTOM__') {
     const availableHooks = [
-      'auto-checkpoint',
-      'eslint',
-      'typecheck',
-      'run-related-tests',
-      'project-validation',
-      'validate-todo-completion',
+      'create-checkpoint',
+      'lint-changed',
+      'typecheck-changed',
+      'test-changed',
+      'typecheck-project',
+      'check-todos',
+      'check-comment-replacement',
     ];
     const individualHookChoices = availableHooks.map((hook) => {
       let description = '';
       let triggerEvent = '';
       switch (hook) {
-        case 'auto-checkpoint':
+        case 'create-checkpoint':
           description = 'Automatic git checkpoints when stopping';
           triggerEvent = 'Stop';
           break;
-        case 'eslint':
+        case 'lint-changed':
           description = 'ESLint validation for JS/TS files';
           triggerEvent = 'PostToolUse';
           break;
-        case 'typecheck':
+        case 'typecheck-changed':
           description = 'TypeScript type checking';
           triggerEvent = 'PostToolUse';
           break;
-        case 'run-related-tests':
+        case 'test-changed':
           description = 'Run tests related to modified files';
           triggerEvent = 'PostToolUse';
           break;
-        case 'project-validation':
+        case 'typecheck-project':
           description = 'Comprehensive project validation';
           triggerEvent = 'Stop';
           break;
-        case 'validate-todo-completion':
+        case 'check-todos':
           description = 'Ensure todos are completed';
           triggerEvent = 'Stop';
+          break;
+        case 'check-comment-replacement':
+          description = 'Detect when code is replaced with comments instead of being cleanly deleted';
+          triggerEvent = 'PostToolUse';
           break;
       }
       return {
@@ -1143,6 +1148,12 @@ async function createProjectSettings(
           }
           break;
         }
+        case 'check-comment-replacement':
+          settings.hooks.PostToolUse.push({
+            matcher: 'Edit|MultiEdit',
+            hooks: [{ type: 'command', command: hookCommand }],
+          });
+          break;
 
         case 'typecheck-project':
         case 'lint-project':
