@@ -14,6 +14,7 @@ This is a TypeScript-based toolkit. Key commands:
 - **Install**: `npm install -g claudekit` - Install claudekit globally
 - **Setup**: `claudekit setup` - Initialize claudekit in your project
 - **Build**: `npm run build` - **IMPORTANT: Run after any code changes to compile TypeScript**
+- **Symlinks**: `npm run symlinks` - Create/update symlinks from `.claude/` to `src/` for development
 - **Test hooks**: Manually trigger by editing files or using Claude Code
 - **Check shell syntax**: `bash -n script.sh`
 - **Validate JSON**: `jq . settings.json`

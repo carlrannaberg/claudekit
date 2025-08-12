@@ -60,7 +60,8 @@
     "prepublishOnly": "npm run build",
     "release:patch": "./scripts/prepare-release.sh --type patch",
     "release:minor": "./scripts/prepare-release.sh --type minor",
-    "release:major": "./scripts/prepare-release.sh --type major"
+    "release:major": "./scripts/prepare-release.sh --type major",
+    "symlinks": "./scripts/create-symlinks.sh"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
