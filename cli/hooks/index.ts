@@ -13,6 +13,7 @@ export { TypecheckProjectHook } from './typecheck-project.js';
 export { LintProjectHook } from './lint-project.js';
 export { TestProjectHook } from './test-project.js';
 export { CheckCommentReplacementHook } from './check-comment-replacement.js';
+export { CheckUnusedParametersHook } from './check-unused-parameters.js';
 
 // Export base and utils
 export { BaseHook } from './base.js';

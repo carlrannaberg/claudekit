@@ -45,6 +45,15 @@
             "command": "claudekit-hooks run check-comment-replacement"
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run check-unused-parameters"
+          }
+        ]
       }
     ],
     "Stop": [

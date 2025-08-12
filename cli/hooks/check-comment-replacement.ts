@@ -10,7 +10,7 @@ export class CheckCommentReplacementHook extends BaseHook {
     description: 'Detect when code is replaced with comments',
     category: 'validation' as const,
     triggerEvent: 'PostToolUse' as const,
-    matcher: 'Write|Edit|MultiEdit',
+    matcher: 'Edit|MultiEdit',
   };
 
   // Patterns to detect comment lines (any language)
