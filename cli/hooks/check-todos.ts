@@ -9,6 +9,15 @@ interface Todo {
 export class CheckTodosHook extends BaseHook {
   name = 'check-todos';
 
+  static metadata = {
+    id: 'check-todos',
+    displayName: 'Check Todo Completion',
+    description: 'Validate todo completions',
+    category: 'project-management' as const,
+    triggerEvent: 'Stop' as const,
+    matcher: '*',
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { payload } = context;
 

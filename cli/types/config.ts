@@ -107,7 +107,6 @@ export const DependencyInfoSchema = z.object({
   version: z.string().optional(),
   optional: z.boolean().optional().default(false),
   installCommand: z.string().optional(),
-  platforms: z.array(PlatformSchema).optional(),
   description: z.string().optional(),
 });
 
@@ -121,11 +120,9 @@ export const ComponentSchema = z.object({
   description: z.string(),
   path: z.string(),
   dependencies: z.array(z.string()).default([]),
-  platforms: z.array(PlatformSchema).default(['all']),
   category: ComponentCategorySchema,
   version: z.string().optional(),
   author: z.string().optional(),
-  enabled: z.boolean().optional().default(true),
   config: z.record(z.unknown()).optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),

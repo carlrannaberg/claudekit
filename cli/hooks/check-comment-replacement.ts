@@ -4,6 +4,15 @@ import { BaseHook } from './base.js';
 export class CheckCommentReplacementHook extends BaseHook {
   name = 'check-comment-replacement';
 
+  static metadata = {
+    id: 'check-comment-replacement',
+    displayName: 'Check Comment Replacement',
+    description: 'Detect when code is replaced with comments',
+    category: 'validation' as const,
+    triggerEvent: 'PostToolUse' as const,
+    matcher: 'Write|Edit|MultiEdit',
+  };
+
   // Patterns to detect comment lines (any language)
   private readonly COMMENT_PATTERNS = [
     /^\s*\/\/.*/,           // Single-line comments: // comment
@@ -33,10 +42,10 @@ export class CheckCommentReplacementHook extends BaseHook {
     if (violations.length > 0) {
       const feedback = this.generateFeedback(violations);
       this.error('Code Replacement Detected', feedback, [
-        'Keep the existing code intact',
-        'Make only the specific changes needed',
-        'If showing examples, create new files instead of modifying existing ones',
-        'Use code comments to explain changes, not replace code',
+        'Delete the code completely instead of replacing it with comments',
+        'If code is no longer needed, remove it cleanly',
+        'Use git commit messages to document why code was removed',
+        'If the code should stay, keep it and add explanatory comments alongside it',
       ]);
       return { exitCode: 2 };
     }

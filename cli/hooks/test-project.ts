@@ -10,6 +10,15 @@ import { formatTestErrors } from './utils.js';
 export class TestProjectHook extends BaseHook {
   name = 'test-project';
 
+  static metadata = {
+    id: 'test-project',
+    displayName: 'Test Project Suite',
+    description: 'Run full test suite',
+    category: 'testing' as const,
+    triggerEvent: 'Stop' as const,
+    matcher: '*',
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot, packageManager } = context;
 

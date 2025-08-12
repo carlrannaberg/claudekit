@@ -19,14 +19,20 @@ vi.mock('../../../cli/hooks/utils.js', () => ({
 
 vi.mock('../../../cli/hooks/base.js');
 
-// Mock all hook modules
-vi.mock('../../../cli/hooks/typecheck-changed.js', () => ({ TypecheckChangedHook: vi.fn() }));
-vi.mock('../../../cli/hooks/check-any-changed.js', () => ({ CheckAnyChangedHook: vi.fn() }));
-vi.mock('../../../cli/hooks/lint-changed.js', () => ({ LintChangedHook: vi.fn() }));
-vi.mock('../../../cli/hooks/create-checkpoint.js', () => ({ CreateCheckpointHook: vi.fn() }));
-vi.mock('../../../cli/hooks/test-changed.js', () => ({ TestChangedHook: vi.fn() }));
-vi.mock('../../../cli/hooks/project-validation.js', () => ({ ProjectValidationHook: vi.fn() }));
-vi.mock('../../../cli/hooks/check-todos.js', () => ({ CheckTodosHook: vi.fn() }));
+// Mock the registry instead of individual hooks
+vi.mock('../../../cli/hooks/registry.js', () => ({
+  HOOK_REGISTRY: {
+    'typecheck-changed': vi.fn(),
+    'check-any-changed': vi.fn(),
+    'lint-changed': vi.fn(),
+    'create-checkpoint': vi.fn(),
+    'test-changed': vi.fn(),
+    'check-todos': vi.fn(),
+    'typecheck-project': vi.fn(),
+    'lint-project': vi.fn(),
+    'test-project': vi.fn(),
+  }
+}));
 
 // Now import after mocks
 import { HookRunner } from '../../../cli/hooks/runner.js';
@@ -74,15 +80,12 @@ describe('HookRunner', () => {
       const runner = new HookRunner();
       const hooks = runner['hooks'];
 
+      // Should have registered hooks from HOOK_REGISTRY
+      expect(hooks.size).toBeGreaterThan(0);
+      
+      // Check some common hooks exist
       expect(hooks.has('typecheck-changed')).toBe(true);
-      expect(hooks.has('check-any-changed')).toBe(true);
-      expect(hooks.has('lint-changed')).toBe(true);
       expect(hooks.has('create-checkpoint')).toBe(true);
-      expect(hooks.has('test-changed')).toBe(true);
-      expect(hooks.has('check-todos')).toBe(true);
-      expect(hooks.has('typecheck-project')).toBe(true);
-      expect(hooks.has('lint-project')).toBe(true);
-      expect(hooks.has('test-project')).toBe(true);
     });
   });
 

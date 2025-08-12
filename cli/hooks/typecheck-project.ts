@@ -10,6 +10,16 @@ import { checkToolAvailable, formatTypeScriptErrors } from './utils.js';
 export class TypecheckProjectHook extends BaseHook {
   name = 'typecheck-project';
 
+  static metadata = {
+    id: 'typecheck-project',
+    displayName: 'TypeScript Project Validation',
+    description: 'TypeScript validation on entire project',
+    category: 'validation' as const,
+    triggerEvent: 'Stop' as const,
+    matcher: '*',
+    dependencies: ['typescript', 'tsc'],
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot, packageManager } = context;
 

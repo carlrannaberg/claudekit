@@ -6,6 +6,16 @@ import type { ExecResult, PackageManager } from './utils.js';
 export class LintChangedHook extends BaseHook {
   name = 'lint-changed';
 
+  static metadata = {
+    id: 'lint-changed',
+    displayName: 'ESLint Validation (Changed Files)',
+    description: 'Run ESLint validation on changed files',
+    category: 'validation' as const,
+    triggerEvent: 'PostToolUse' as const,
+    matcher: 'Write|Edit|MultiEdit',
+    dependencies: ['eslint'],
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;
 

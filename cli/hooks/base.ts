@@ -37,6 +37,16 @@ export interface HookConfig {
   [key: string]: unknown; // Hook-specific config
 }
 
+export interface HookMetadata {
+  id: string;
+  displayName: string;
+  description: string;
+  category: 'validation' | 'testing' | 'git' | 'project-management' | 'utility';
+  triggerEvent: 'PostToolUse' | 'Stop';
+  matcher?: string; // Tool patterns that trigger this hook (e.g., "Write|Edit|MultiEdit")
+  dependencies?: string[];
+}
+
 export abstract class BaseHook {
   abstract name: string;
   protected config: HookConfig;

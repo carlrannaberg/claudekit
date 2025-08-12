@@ -6,8 +6,8 @@ import type {
   ComponentType,
   ComponentCategory,
   ProjectInfo,
-  Platform,
 } from '../types/config.js';
+import { HOOK_REGISTRY } from '../hooks/registry.js';
 
 /**
  * Component Discovery System
@@ -26,12 +26,11 @@ interface ComponentMetadata {
   description: string;
   category: ComponentCategory;
   dependencies: string[];
-  platforms: Platform[];
+  enabled?: boolean; // Whether this component is enabled (defaults to true)
   allowedTools?: string[];
   argumentHint?: string;
   version?: string;
   author?: string;
-  enabled?: boolean;
   shellOptions?: string[];
   timeout?: number;
   retries?: number;
@@ -91,161 +90,41 @@ interface ScanOptions {
 // ============================================================================
 
 /**
- * Embedded hook component definitions
+ * Generate embedded hook component definitions from the hook registry
  * These hooks are built into the claudekit-hooks command
  */
-const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = [
-  {
-    path: 'embedded:typecheck-changed',
-    type: 'hook',
-    metadata: {
-      id: 'typecheck-changed',
-      name: 'TypeScript Type Checking (Changed Files)',
-      description: 'Run TypeScript type checking on file changes (embedded hook)',
-      category: 'validation',
-      dependencies: ['typescript', 'tsc'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-typecheck',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:lint-changed',
-    type: 'hook',
-    metadata: {
-      id: 'lint-changed',
-      name: 'ESLint Validation (Changed Files)',
-      description: 'Run ESLint validation on JavaScript/TypeScript files (embedded hook)',
-      category: 'validation',
-      dependencies: ['eslint'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-eslint',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:check-any-changed',
-    type: 'hook',
-    metadata: {
-      id: 'check-any-changed',
-      name: 'TypeScript Any Detector',
-      description: 'Detect forbidden any types in TypeScript files (embedded hook)',
-      category: 'validation',
-      dependencies: [],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-no-any',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:test-changed',
-    type: 'hook',
-    metadata: {
-      id: 'test-changed',
-      name: 'Run Related Tests',
-      description: 'Automatically run tests related to changed files (embedded hook)',
-      category: 'testing',
-      dependencies: [],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-run-related-tests',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:create-checkpoint',
-    type: 'hook',
-    metadata: {
-      id: 'create-checkpoint',
-      name: 'Create Checkpoint',
-      description: 'Automatically create git checkpoints on Claude Code stop (embedded hook)',
-      category: 'git',
-      dependencies: ['git'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-auto-checkpoint',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:check-todos',
-    type: 'hook',
-    metadata: {
-      id: 'check-todos',
-      name: 'Check Todo Completion',
-      description: 'Ensure all in-progress todos are completed or updated (embedded hook)',
-      category: 'project-management',
-      dependencies: [],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-validate-todo-completion',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:typecheck-project',
-    type: 'hook',
-    metadata: {
-      id: 'typecheck-project',
-      name: 'TypeScript Project Validation',
-      description: 'Run TypeScript validation on entire project (embedded hook)',
-      category: 'validation',
-      dependencies: ['typescript', 'tsc'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-typecheck-project',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:lint-project',
-    type: 'hook',
-    metadata: {
-      id: 'lint-project',
-      name: 'ESLint Project Validation',
-      description: 'Run ESLint validation on entire project (embedded hook)',
-      category: 'validation',
-      dependencies: ['eslint'],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-lint-project',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:test-project',
-    type: 'hook',
-    metadata: {
-      id: 'test-project',
-      name: 'Test Project Suite',
-      description: 'Run full test suite for entire project (embedded hook)',
-      category: 'testing',
-      dependencies: [],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-test-project',
-    lastModified: new Date(),
-  },
-  {
-    path: 'embedded:check-comment-replacement',
-    type: 'hook',
-    metadata: {
-      id: 'check-comment-replacement',
-      name: 'Check Comment Replacement',
-      description: 'Detect when code is replaced with comments instead of being cleanly deleted (embedded hook)',
-      category: 'validation',
-      dependencies: [],
-      platforms: ['all'],
-      enabled: true,
-    },
-    hash: 'embedded-check-comment-replacement',
-    lastModified: new Date(),
-  },
-];
+function generateEmbeddedHookComponents(): ComponentFile[] {
+  const components: ComponentFile[] = [];
+  
+  for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
+    const metadata = HookClass.metadata;
+    if (metadata === undefined) {
+      continue;
+    }
+    
+    components.push({
+      path: `embedded:${id}`,
+      type: 'hook',
+      metadata: {
+        id: metadata.id,
+        name: metadata.displayName,
+        description: metadata.description,
+        category: metadata.category,
+        dependencies: metadata.dependencies ?? [],
+      },
+      hash: `embedded-${id}`,
+      lastModified: new Date(),
+    });
+  }
+  
+  return components;
+}
+
+/**
+ * Embedded hook component definitions
+ * Generated from HOOK_REGISTRY at runtime
+ */
+const EMBEDDED_HOOK_COMPONENTS: ComponentFile[] = generateEmbeddedHookComponents();
 
 // ============================================================================
 // Dependency Definitions
@@ -696,19 +575,10 @@ async function parseComponentFile(
       description: (rawMetadata['description'] as string) || 'No description available',
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
-      platforms:
-        rawMetadata['platforms'] !== undefined && rawMetadata['platforms'] !== null
-          ? (rawMetadata['platforms'] as string)
-              .split(',')
-              .map((p: string) => p.trim())
-              .filter((p): p is Platform =>
-                ['darwin', 'linux', 'win32', 'all'].includes(p as Platform)
-              )
-          : (['all'] as Platform[]),
-      enabled:
-        rawMetadata['enabled'] === undefined
-          ? true
-          : rawMetadata['enabled'] !== 'false' && rawMetadata['enabled'] !== false,
+      // Parse enabled field (defaults to true if not specified)
+      enabled: rawMetadata['enabled'] !== undefined ? 
+        (rawMetadata['enabled'] === true || rawMetadata['enabled'] === 'true') : 
+        true,
       ...(rawMetadata['allowed-tools'] !== undefined &&
         rawMetadata['allowed-tools'] !== null && {
           allowedTools: (rawMetadata['allowed-tools'] as string)
@@ -1266,8 +1136,11 @@ export async function discoverComponents(
   // Filter components based on options
   let filteredComponents = allComponents;
 
+  // Filter by enabled status first
   if (options.includeDisabled === false) {
-    filteredComponents = filteredComponents.filter((c) => c.metadata.enabled === true);
+    filteredComponents = filteredComponents.filter(
+      (c) => c.metadata.enabled !== false
+    );
   }
 
   if (options.filterByType !== undefined && options.filterByType.length > 0) {
@@ -1522,7 +1395,7 @@ export function registryToComponents(registry: ComponentRegistry): Component[] {
     description: componentFile.metadata.description,
     path: componentFile.path,
     dependencies: componentFile.metadata.dependencies,
-    platforms: componentFile.metadata.platforms as Platform[],
+    platforms: [],
     category: componentFile.metadata.category,
     version: componentFile.metadata.version,
     author: componentFile.metadata.author,

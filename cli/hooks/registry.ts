@@ -1,30 +1,33 @@
-import { TypecheckChangedHook } from './typecheck-changed.js';
-import { CheckAnyChangedHook } from './check-any-changed.js';
-import { LintChangedHook } from './lint-changed.js';
-import { CreateCheckpointHook } from './create-checkpoint.js';
-import { TestChangedHook } from './test-changed.js';
-import { CheckTodosHook } from './check-todos.js';
-import { TypecheckProjectHook } from './typecheck-project.js';
-import { LintProjectHook } from './lint-project.js';
-import { TestProjectHook } from './test-project.js';
-import { CheckCommentReplacementHook } from './check-comment-replacement.js';
+/**
+ * Hook Registry
+ * Builds registry from hooks exported in index.ts
+ */
 
-export const HOOK_REGISTRY = {
-  // Changed file hooks
-  'typecheck-changed': TypecheckChangedHook,
-  'check-any-changed': CheckAnyChangedHook,
-  'lint-changed': LintChangedHook,
-  'test-changed': TestChangedHook,
-  'check-comment-replacement': CheckCommentReplacementHook,
+import * as Hooks from './index.js';
+import type { BaseHook, HookConfig, HookMetadata } from './base.js';
 
-  // Project-wide hooks
-  'typecheck-project': TypecheckProjectHook,
-  'lint-project': LintProjectHook,
-  'test-project': TestProjectHook,
+// Type for hook constructors with optional metadata
+export interface HookConstructor {
+  new (config: HookConfig): BaseHook;
+  metadata?: HookMetadata;
+}
 
-  // Action hooks
-  'create-checkpoint': CreateCheckpointHook,
-  'check-todos': CheckTodosHook,
-};
+// Build registry from all exported hooks in index.ts
+export const HOOK_REGISTRY: Record<string, HookConstructor> = {};
+
+// Get all exports from index.ts and register hooks
+for (const [exportName, exported] of Object.entries(Hooks)) {
+  // Filter for hook classes (end with 'Hook' and are constructors)
+  if (
+    exportName.endsWith('Hook') && 
+    typeof exported === 'function' &&
+    exported !== Hooks.BaseHook
+  ) {
+    const HookClass = exported as HookConstructor;
+    // Get ID from metadata or instance
+    const id = HookClass.metadata?.id ?? new HookClass({}).name;
+    HOOK_REGISTRY[id] = HookClass;
+  }
+}
 
 export type HookName = keyof typeof HOOK_REGISTRY;

@@ -5,6 +5,16 @@ import { checkToolAvailable } from './utils.js';
 export class TypecheckChangedHook extends BaseHook {
   name = 'typecheck-changed';
 
+  static metadata = {
+    id: 'typecheck-changed',
+    displayName: 'TypeScript Type Checking (Changed Files)',
+    description: 'Run TypeScript type checking on file changes',
+    category: 'validation' as const,
+    triggerEvent: 'PostToolUse' as const,
+    matcher: 'Write|Edit|MultiEdit',
+    dependencies: ['typescript', 'tsc'],
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;
 

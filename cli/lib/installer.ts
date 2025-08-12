@@ -30,7 +30,6 @@ import type {
   // ComponentType,
   InstallTarget,
   TemplateType,
-  Platform,
 } from '../types/config.js';
 
 /**
@@ -265,11 +264,9 @@ export async function createInstallPlan(
           description: registryComponent.metadata.description,
           path: registryComponent.path,
           dependencies: registryComponent.metadata.dependencies,
-          platforms: registryComponent.metadata.platforms as Platform[],
           category: registryComponent.metadata.category,
           version: registryComponent.metadata.version,
           author: registryComponent.metadata.author,
-          enabled: registryComponent.metadata.enabled ?? true,
           config: {
             allowedTools: registryComponent.metadata.allowedTools,
             argumentHint: registryComponent.metadata.argumentHint,

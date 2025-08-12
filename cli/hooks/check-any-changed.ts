@@ -4,6 +4,15 @@ import { BaseHook } from './base.js';
 export class CheckAnyChangedHook extends BaseHook {
   name = 'check-any-changed';
 
+  static metadata = {
+    id: 'check-any-changed',
+    displayName: 'TypeScript Any Detector',
+    description: 'Forbid any types in changed TypeScript files',
+    category: 'validation' as const,
+    triggerEvent: 'PostToolUse' as const,
+    matcher: 'Write|Edit|MultiEdit',
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath } = context;
 

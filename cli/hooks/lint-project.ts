@@ -10,6 +10,16 @@ import { checkToolAvailable, formatESLintErrors } from './utils.js';
 export class LintProjectHook extends BaseHook {
   name = 'lint-project';
 
+  static metadata = {
+    id: 'lint-project',
+    displayName: 'ESLint Project Validation',
+    description: 'ESLint validation on entire project',
+    category: 'validation' as const,
+    triggerEvent: 'Stop' as const,
+    matcher: '*',
+    dependencies: ['eslint'],
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot, packageManager } = context;
 

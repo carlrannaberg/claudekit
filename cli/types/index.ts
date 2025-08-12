@@ -92,9 +92,6 @@ export interface Component {
   /** List of dependencies required by this component */
   dependencies: string[];
 
-  /** Supported platforms */
-  platforms: Platform[];
-
   /** Category for organization */
   category: ComponentCategory;
 
@@ -103,9 +100,6 @@ export interface Component {
 
   /** Author information */
   author?: string;
-
-  /** Whether the component is enabled */
-  enabled?: boolean;
 
   /** Configuration options specific to this component */
   config?: Record<string, unknown>;
@@ -764,7 +758,6 @@ export function isComponent(value: unknown): value is Component {
     typeof obj['description'] === 'string' &&
     typeof obj['path'] === 'string' &&
     Array.isArray(obj['dependencies']) &&
-    Array.isArray(obj['platforms']) &&
     typeof obj['category'] === 'string'
   );
 }

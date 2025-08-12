@@ -4,6 +4,16 @@ import { BaseHook } from './base.js';
 export class CreateCheckpointHook extends BaseHook {
   name = 'create-checkpoint';
 
+  static metadata = {
+    id: 'create-checkpoint',
+    displayName: 'Create Checkpoint',
+    description: 'Git auto-checkpoint on stop',
+    category: 'git' as const,
+    triggerEvent: 'Stop' as const,
+    matcher: '*',
+    dependencies: ['git'],
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;
     const prefix = (this.config['prefix'] as string) || 'claude';

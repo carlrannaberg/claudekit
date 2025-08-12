@@ -20,18 +20,14 @@ export function createHooksCLI(): Command {
   program
     .command('list')
     .description('List available hooks')
-    .action(() => {
+    .action(async () => {
+      const { HOOK_REGISTRY } = await import('./hooks/registry.js');
       console.log('Available hooks:');
-      console.log('  typecheck-changed     - TypeScript type checking on changed files');
-      console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
-      console.log('  lint-changed          - ESLint validation on changed files');
-      console.log('  test-changed          - Run tests for changed files');
-      console.log('  check-comment-replacement - Detect when code is replaced with comments');
-      console.log('  create-checkpoint     - Git auto-checkpoint on stop');
-      console.log('  check-todos           - Validate todo completions');
-      console.log('  typecheck-project     - TypeScript validation on entire project');
-      console.log('  lint-project          - ESLint validation on entire project');
-      console.log('  test-project          - Run full test suite');
+      for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
+        const description = HookClass.metadata?.description ?? `${id} hook`;
+        const padding = ' '.repeat(Math.max(0, 30 - id.length));
+        console.log(`  ${id}${padding}- ${description}`);
+      }
     });
 
   // Add stats command
@@ -80,19 +76,15 @@ export function createHooksCLI(): Command {
     });
 
   // Handle --list option
-  program.hook('preAction', (thisCommand) => {
+  program.hook('preAction', async (thisCommand) => {
     if (thisCommand.opts()['list'] === true) {
+      const { HOOK_REGISTRY } = await import('./hooks/registry.js');
       console.log('Available hooks:');
-      console.log('  typecheck-changed     - TypeScript type checking on changed files');
-      console.log('  check-any-changed     - Forbid any types in changed TypeScript files');
-      console.log('  lint-changed          - ESLint validation on changed files');
-      console.log('  test-changed          - Run tests for changed files');
-      console.log('  check-comment-replacement - Detect when code is replaced with comments');
-      console.log('  create-checkpoint     - Git auto-checkpoint on stop');
-      console.log('  check-todos           - Validate todo completions');
-      console.log('  typecheck-project     - TypeScript validation on entire project');
-      console.log('  lint-project          - ESLint validation on entire project');
-      console.log('  test-project          - Run full test suite');
+      for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
+        const description = HookClass.metadata?.description ?? `${id} hook`;
+        const padding = ' '.repeat(Math.max(0, 30 - id.length));
+        console.log(`  ${id}${padding}- ${description}`);
+      }
       process.exit(0);
     }
   });

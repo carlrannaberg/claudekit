@@ -4,18 +4,7 @@ import { z } from 'zod';
 import { readStdin } from './utils.js';
 import type { BaseHook, HookConfig } from './base.js';
 import { appendHookExecution, getHookStats } from './logging.js';
-
-// Import all hooks
-import { TypecheckChangedHook } from './typecheck-changed.js';
-import { CheckAnyChangedHook } from './check-any-changed.js';
-import { LintChangedHook } from './lint-changed.js';
-import { CreateCheckpointHook } from './create-checkpoint.js';
-import { TestChangedHook } from './test-changed.js';
-import { CheckTodosHook } from './check-todos.js';
-import { TypecheckProjectHook } from './typecheck-project.js';
-import { LintProjectHook } from './lint-project.js';
-import { TestProjectHook } from './test-project.js';
-import { CheckCommentReplacementHook } from './check-comment-replacement.js';
+import { HOOK_REGISTRY } from './registry.js';
 
 // Configuration schema
 const HookConfigSchema = z
@@ -38,17 +27,10 @@ export class HookRunner {
     this.configPath = configPath;
     this.debug = debug;
 
-    // Register all hooks
-    this.hooks.set('typecheck-changed', TypecheckChangedHook);
-    this.hooks.set('check-any-changed', CheckAnyChangedHook);
-    this.hooks.set('lint-changed', LintChangedHook);
-    this.hooks.set('create-checkpoint', CreateCheckpointHook);
-    this.hooks.set('test-changed', TestChangedHook);
-    this.hooks.set('check-todos', CheckTodosHook);
-    this.hooks.set('typecheck-project', TypecheckProjectHook);
-    this.hooks.set('lint-project', LintProjectHook);
-    this.hooks.set('test-project', TestProjectHook);
-    this.hooks.set('check-comment-replacement', CheckCommentReplacementHook);
+    // Register all hooks from the registry
+    for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
+      this.hooks.set(id, HookClass);
+    }
   }
 
   async run(hookName: string): Promise<number> {

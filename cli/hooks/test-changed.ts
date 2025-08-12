@@ -5,6 +5,15 @@ import { BaseHook } from './base.js';
 export class TestChangedHook extends BaseHook {
   name = 'test-changed';
 
+  static metadata = {
+    id: 'test-changed',
+    displayName: 'Run Related Tests',
+    description: 'Run tests for changed files',
+    category: 'testing' as const,
+    triggerEvent: 'PostToolUse' as const,
+    matcher: 'Write|Edit|MultiEdit',
+  };
+
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;
 

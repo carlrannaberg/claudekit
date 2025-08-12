@@ -283,9 +283,7 @@ describe('Installer', () => {
     description: 'A test command',
     path: '/source/commands/test.md',
     dependencies: [],
-    platforms: ['all'],
     category: 'validation',
-    enabled: true,
   };
 
   const mockInstallation: Installation = {

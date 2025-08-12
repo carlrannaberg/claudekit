@@ -127,9 +127,7 @@ async function customInstallationExample(): Promise<void> {
       description: 'Custom validation for our project',
       path: './custom-hooks/validate.sh',
       dependencies: ['node', 'eslint'],
-      platforms: ['darwin', 'linux'],
       category: 'validation',
-      enabled: true,
     },
   ];
 

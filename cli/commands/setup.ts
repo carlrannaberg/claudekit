@@ -18,7 +18,7 @@ import {
   installComponents,
 } from '../lib/index.js';
 import { findComponentsDirectory } from '../lib/paths.js';
-import type { Component, Platform, ProjectInfo } from '../types/index.js';
+import type { Component, ProjectInfo } from '../types/index.js';
 import type { InstallOptions } from '../lib/installer.js';
 import {
   groupAgentsByCategory,
@@ -26,6 +26,7 @@ import {
   getAgentDisplayName,
   type AgentComponent,
 } from '../lib/agents/registry-grouping.js';
+import { HOOK_REGISTRY } from '../hooks/registry.js';
 
 // Command group definitions for improved setup flow
 interface CommandGroup {
@@ -213,51 +214,17 @@ async function performThreeStepSelection(
 
   // Handle custom selection only if it's the only selection
   if (selectedHookGroups.length === 1 && selectedHookGroups[0] === '__CUSTOM__') {
-    const availableHooks = [
-      'create-checkpoint',
-      'lint-changed',
-      'typecheck-changed',
-      'test-changed',
-      'typecheck-project',
-      'check-todos',
-      'check-comment-replacement',
-    ];
-    const individualHookChoices = availableHooks.map((hook) => {
-      let description = '';
-      let triggerEvent = '';
-      switch (hook) {
-        case 'create-checkpoint':
-          description = 'Automatic git checkpoints when stopping';
-          triggerEvent = 'Stop';
-          break;
-        case 'lint-changed':
-          description = 'ESLint validation for JS/TS files';
-          triggerEvent = 'PostToolUse';
-          break;
-        case 'typecheck-changed':
-          description = 'TypeScript type checking';
-          triggerEvent = 'PostToolUse';
-          break;
-        case 'test-changed':
-          description = 'Run tests related to modified files';
-          triggerEvent = 'PostToolUse';
-          break;
-        case 'typecheck-project':
-          description = 'Comprehensive project validation';
-          triggerEvent = 'Stop';
-          break;
-        case 'check-todos':
-          description = 'Ensure todos are completed';
-          triggerEvent = 'Stop';
-          break;
-        case 'check-comment-replacement':
-          description = 'Detect when code is replaced with comments instead of being cleanly deleted';
-          triggerEvent = 'PostToolUse';
-          break;
-      }
+    const availableHooks = Object.keys(HOOK_REGISTRY).sort();
+    const individualHookChoices = availableHooks.map((hookId) => {
+      const HookClass = HOOK_REGISTRY[hookId];
+      const metadata = HookClass?.metadata;
+      
+      const description = metadata?.description ?? 'Hook description';
+      const triggerEvent = metadata?.triggerEvent ?? 'Unknown';
+      
       return {
-        value: hook,
-        name: `${hook} (${triggerEvent})\n  ${Colors.dim(description)}`,
+        value: hookId,
+        name: `${hookId} (${triggerEvent})\n  ${Colors.dim(description)}`,
         checked: false,
       };
     });
@@ -808,11 +775,9 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
             description: componentFile.metadata.description,
             path: componentFile.path,
             dependencies: componentFile.metadata.dependencies,
-            platforms: componentFile.metadata.platforms as Platform[],
             category: componentFile.metadata.category,
             version: componentFile.metadata.version,
             author: componentFile.metadata.author,
-            enabled: componentFile.metadata.enabled ?? true,
             config: {
               allowedTools: componentFile.metadata.allowedTools,
               argumentHint: componentFile.metadata.argumentHint,
@@ -878,7 +843,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
         const userResult = await installComponents(
-          finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
+          finalComponents,
           'user',
           userInstallOptions
         );
@@ -907,7 +872,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
           customPath: claudeDir, // Use the .claude directory as the custom path
         };
         const projectResult = await installComponents(
-          finalComponents.map((c) => ({ ...c, enabled: c.enabled ?? true })),
+          finalComponents,
           'project',
           projectInstallOptions
         );
@@ -1087,89 +1052,40 @@ async function createProjectSettings(
         continue;
       }
 
-      switch (component.id) {
-        case 'typecheck-changed':
+      // Use metadata from HOOK_REGISTRY to configure the hook
+      const HookClass = HOOK_REGISTRY[component.id];
+      const metadata = HookClass?.metadata;
+      
+      if (metadata !== undefined) {
+        const matcher = metadata.matcher ?? 'Write|Edit|MultiEdit';
+        const triggerEvent = metadata.triggerEvent;
+        
+        if (triggerEvent === 'PostToolUse') {
           settings.hooks.PostToolUse.push({
-            matcher: 'Write|Edit|MultiEdit',
+            matcher,
             hooks: [{ type: 'command', command: hookCommand }],
           });
-          break;
-
-        case 'lint-changed':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Write|Edit|MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
-
-        case 'prettier':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Write|Edit|MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
-
-        case 'check-any-changed':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Write|Edit|MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
-
-        case 'test-changed':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Write,Edit,MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
-
-        case 'create-checkpoint': {
-          const stopEntry = settings.hooks.Stop.find((e) => e.matcher === '*');
-          if (stopEntry !== undefined) {
-            stopEntry.hooks.push({ type: 'command', command: hookCommand });
+        } else if (triggerEvent === 'Stop') {
+          // For Stop hooks, check if we can merge with existing entry
+          const existingEntry = settings.hooks.Stop.find((e) => e.matcher === matcher);
+          if (existingEntry !== undefined) {
+            existingEntry.hooks.push({ type: 'command', command: hookCommand });
           } else {
             settings.hooks.Stop.push({
-              matcher: '*',
+              matcher,
               hooks: [{ type: 'command', command: hookCommand }],
             });
           }
-          break;
         }
-
-        case 'check-todos': {
-          const stopEntryTodo = settings.hooks.Stop.find((e) => e.matcher === '*');
-          if (stopEntryTodo !== undefined) {
-            stopEntryTodo.hooks.push({ type: 'command', command: hookCommand });
-          } else {
-            settings.hooks.Stop.push({
-              matcher: '*',
-              hooks: [{ type: 'command', command: hookCommand }],
-            });
-          }
-          break;
-        }
-        case 'check-comment-replacement':
-          settings.hooks.PostToolUse.push({
-            matcher: 'Edit|MultiEdit',
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-          break;
-
-        case 'typecheck-project':
-        case 'lint-project':
-        case 'test-project': {
-          // Add project-wide hooks to Stop hooks
-          const stopEntryValidation = settings.hooks.Stop.find((e) => e.matcher === '*');
-          if (stopEntryValidation !== undefined) {
-            stopEntryValidation.hooks.push({ type: 'command', command: hookCommand });
-          } else {
-            settings.hooks.Stop.push({
-              matcher: '*',
-              hooks: [{ type: 'command', command: hookCommand }],
-            });
-          }
-          break;
-        }
+      } else if (component.id === 'prettier') {
+        // Handle non-registry hooks (e.g., prettier)
+        settings.hooks.PostToolUse.push({
+          matcher: 'Write|Edit|MultiEdit',
+          hooks: [{ type: 'command', command: hookCommand }],
+        });
+      } else {
+        // Fallback for hooks not in registry (shouldn't happen with embedded hooks)
+        console.warn(`Hook ${component.id} not found in registry, skipping settings generation`);
       }
     }
   }

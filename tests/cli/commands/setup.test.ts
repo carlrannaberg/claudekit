@@ -5,7 +5,6 @@ import type {
   Component,
   ComponentType,
   ComponentCategory,
-  Platform,
   InstallOptions,
 } from '../../../cli/types/index';
 
@@ -319,11 +318,9 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     description: `Description for ${id}`,
     path: `/src/hooks/${id}.sh`,
     dependencies: [],
-    platforms: ['darwin', 'linux'] as Platform[],
     category: 'validation' as ComponentCategory,
     version: '1.0.0',
     author: 'ClaudeKit',
-    enabled: true,
     config: {},
   });
 
