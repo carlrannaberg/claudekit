@@ -1,8 +1,8 @@
 # Adding New Hooks to ClaudeKit
 
-## Current Process (2 Steps Only!)
+## Current Process (2 Steps)
 
-Adding a new hook to ClaudeKit now requires just **2 simple steps**:
+Adding a new hook to ClaudeKit requires just 2 steps:
 
 ### Step 1: Create Your Hook Implementation
 
@@ -45,15 +45,13 @@ Add one export line to `cli/hooks/index.ts`:
 export { MyNewHook } from './my-new-hook.js';
 ```
 
-## That's It! 🎉
-
 Everything else is handled automatically:
-- ✅ Hook registry is built from exports
-- ✅ Runner automatically discovers hooks via registry
-- ✅ CLI commands (`list`, `run`) work immediately
-- ✅ Setup command includes it automatically
-- ✅ Settings are generated from hook metadata
-- ✅ Component discovery happens automatically
+- Hook registry is built from exports
+- Runner automatically discovers hooks via registry
+- CLI commands (`list`, `run`) work immediately
+- Setup command includes it automatically
+- Settings are generated from hook metadata
+- Component discovery happens automatically
 
 ## Optional Steps
 
@@ -176,5 +174,3 @@ Previously, adding a hook required changes in 8 different places:
 6. Setup Command  
 7. Component Registry
 8. Tests
-
-This has been simplified to just **2 required steps** as shown above!
