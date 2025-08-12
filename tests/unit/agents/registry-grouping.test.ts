@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { 
-  groupAgentsByCategory, 
+import {
+  groupAgentsByCategory,
   calculateSelectedAgents,
   getAgentDisplayName,
   type AgentComponent,
-  type AgentCategoryGroup 
+  type AgentCategoryGroup,
 } from '../../../cli/lib/agents/registry-grouping.js';
 import { discoverComponents } from '../../../cli/lib/components.js';
 import { findComponentsDirectory } from '../../../cli/lib/paths.js';
@@ -12,7 +12,7 @@ import type { ComponentRegistry } from '../../../cli/lib/components.js';
 
 describe('Agent Grouping', () => {
   let registry: ComponentRegistry;
-  
+
   beforeAll(async () => {
     const sourceDir = await findComponentsDirectory();
     registry = await discoverComponents(sourceDir);
@@ -21,13 +21,13 @@ describe('Agent Grouping', () => {
   describe('Category-based grouping', () => {
     it('should group agents by their categories', async () => {
       const groups = groupAgentsByCategory(registry);
-      
+
       // Should have various category groups
       expect(groups).toBeDefined();
       expect(groups.length).toBeGreaterThan(0);
-      
+
       const categoryNames = groups.map((g: AgentCategoryGroup) => g.category);
-      
+
       // Check for expected categories
       expect(categoryNames).toContain('general');
       expect(categoryNames).toContain('framework');
@@ -39,16 +39,16 @@ describe('Agent Grouping', () => {
     it('should include all testing agents in testing category', async () => {
       const groups = groupAgentsByCategory(registry);
       const testGroup = groups.find((g: AgentCategoryGroup) => g.category === 'testing');
-      
+
       expect(testGroup).toBeDefined();
       if (testGroup) {
         const agentIds = testGroup.agents.map((a: AgentComponent) => a.id);
-        
+
         // Testing category should contain all test frameworks
         expect(agentIds).toContain('testing-jest-expert');
         expect(agentIds).toContain('testing-vitest-expert');
         expect(agentIds).toContain('testing-expert');
-        
+
         // Should now include Playwright in testing category
         expect(agentIds).toContain('e2e-playwright-expert');
       }
@@ -57,7 +57,7 @@ describe('Agent Grouping', () => {
     it('should have build tools in build category', async () => {
       const groups = groupAgentsByCategory(registry);
       const buildGroup = groups.find((g: AgentCategoryGroup) => g.category === 'build');
-      
+
       expect(buildGroup).toBeDefined();
       if (buildGroup) {
         const agentIds = buildGroup.agents.map((a: AgentComponent) => a.id);
@@ -69,7 +69,7 @@ describe('Agent Grouping', () => {
     it('should have database agents in database category', async () => {
       const groups = groupAgentsByCategory(registry);
       const dbGroup = groups.find((g: AgentCategoryGroup) => g.category === 'database');
-      
+
       expect(dbGroup).toBeDefined();
       if (dbGroup) {
         const agentIds = dbGroup.agents.map((a: AgentComponent) => a.id);
@@ -82,10 +82,10 @@ describe('Agent Grouping', () => {
     it('should mark general category as pre-selected', async () => {
       const groups = groupAgentsByCategory(registry);
       const generalGroup = groups.find((g: AgentCategoryGroup) => g.category === 'general');
-      
+
       expect(generalGroup).toBeDefined();
       expect(generalGroup?.preSelected).toBe(true);
-      
+
       // Other categories should not be pre-selected by default
       const frameworkGroup = groups.find((g: AgentCategoryGroup) => g.category === 'framework');
       expect(frameworkGroup?.preSelected).toBe(false);
@@ -95,19 +95,19 @@ describe('Agent Grouping', () => {
   describe('Bundle handling', () => {
     it('should not show bundled agents in main lists', async () => {
       const groups = groupAgentsByCategory(registry);
-      
+
       // Flatten all visible agents
-      const allVisibleAgents = groups.flatMap((g: AgentCategoryGroup) => 
+      const allVisibleAgents = groups.flatMap((g: AgentCategoryGroup) =>
         g.agents.map((a: AgentComponent) => a.id)
       );
-      
+
       // TypeScript bundles type-expert and build-expert - they should not appear in main list
       expect(allVisibleAgents).not.toContain('typescript-type-expert');
       expect(allVisibleAgents).not.toContain('typescript-build-expert');
-      
-      // React bundles performance-expert - it should not appear in main list  
+
+      // React bundles performance-expert - it should not appear in main list
       expect(allVisibleAgents).not.toContain('react-performance-expert');
-      
+
       // But the parent agents should be visible
       expect(allVisibleAgents).toContain('typescript-expert');
       expect(allVisibleAgents).toContain('react-expert');
@@ -116,7 +116,7 @@ describe('Agent Grouping', () => {
     it('should include bundled agents when parent is selected', async () => {
       const selectedIds = ['typescript-expert'];
       const finalAgents = calculateSelectedAgents(registry, selectedIds);
-      
+
       // Should include the parent and bundled agents
       expect(finalAgents).toContain('typescript-expert');
       expect(finalAgents).toContain('typescript-type-expert');
@@ -134,7 +134,7 @@ describe('Agent Grouping', () => {
         bundle: ['bundled-1', 'bundled-2'],
         displayName: undefined,
       };
-      
+
       const displayName = getAgentDisplayName(agent);
       expect(displayName).toBe('Test Agent (3 agents)');
     });
@@ -148,7 +148,7 @@ describe('Agent Grouping', () => {
         bundle: undefined,
         displayName: 'Custom Display Name',
       };
-      
+
       const displayName = getAgentDisplayName(agent);
       expect(displayName).toBe('Custom Display Name');
     });

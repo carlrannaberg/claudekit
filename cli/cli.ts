@@ -54,7 +54,10 @@ program
   .option('--skip-agents', 'skip subagent installation')
   .option('--commands <list>', 'comma-separated list of command IDs to install')
   .option('--hooks <list>', 'comma-separated list of hook IDs to install')
-  .option('--agents <list>', 'comma-separated list of agent IDs to install (e.g., typescript-expert,react-expert)')
+  .option(
+    '--agents <list>',
+    'comma-separated list of agent IDs to install (e.g., typescript-expert,react-expert)'
+  )
   .option('--project <path>', 'target directory for project installation')
   .option('--user', 'install in user directory (~/.claude) instead of project')
   .option('--select-individual', 'use legacy individual component selection instead of groups')
@@ -177,7 +180,9 @@ program
       const { lintSubagents } = await import('./commands/lint-subagents.js');
       await lintSubagents(mergedOptions);
     } catch (error) {
-      logger.error(`Lint subagents failed: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Lint subagents failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       process.exit(1);
     }
   });
@@ -192,7 +197,9 @@ program
       const { lintCommands } = await import('./commands/lint-commands.js');
       await lintCommands(mergedOptions);
     } catch (error) {
-      logger.error(`Lint commands failed: ${error instanceof Error ? error.message : String(error)}`);
+      logger.error(
+        `Lint commands failed: ${error instanceof Error ? error.message : String(error)}`
+      );
       process.exit(1);
     }
   });

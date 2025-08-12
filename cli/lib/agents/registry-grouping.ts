@@ -93,7 +93,7 @@ function toAgentComponent(component: unknown): AgentComponent {
     };
   };
   const metadata = comp.metadata;
-  
+
   return {
     id: metadata.id,
     name: metadata.name,
@@ -109,12 +109,12 @@ function toAgentComponent(component: unknown): AgentComponent {
  */
 export function getAgentDisplayName(agent: AgentComponent): string {
   let displayName = agent.displayName ?? agent.name;
-  
+
   // If this agent bundles other agents, indicate how many
   if (agent.bundle !== undefined && agent.bundle.length > 0) {
     displayName += ` (${agent.bundle.length + 1} agents)`;
   }
-  
+
   return displayName;
 }
 
@@ -128,21 +128,21 @@ export function groupAgentsByCategory(registry: ComponentRegistry): AgentCategor
 
   // Build a set of all bundled agent IDs (agents that are included in bundles)
   const bundledAgentIds = new Set<string>();
-  agentComponents.forEach(agent => {
+  agentComponents.forEach((agent) => {
     if (agent.bundle && Array.isArray(agent.bundle)) {
       agent.bundle.forEach((bundledId: string) => bundledAgentIds.add(bundledId));
     }
   });
 
   // Filter out bundled agents from the main list
-  const visibleAgents = agentComponents.filter(agent => !bundledAgentIds.has(agent.id));
+  const visibleAgents = agentComponents.filter((agent) => !bundledAgentIds.has(agent.id));
 
   // Group agents by category
   const groups: AgentCategoryGroup[] = [];
-  
+
   for (const categoryDef of AGENT_CATEGORIES) {
-    const categoryAgents = visibleAgents.filter(agent => agent.category === categoryDef.category);
-    
+    const categoryAgents = visibleAgents.filter((agent) => agent.category === categoryDef.category);
+
     if (categoryAgents.length > 0) {
       groups.push({
         ...categoryDef,
@@ -152,7 +152,9 @@ export function groupAgentsByCategory(registry: ComponentRegistry): AgentCategor
   }
 
   // Add a group for uncategorized agents (for debugging/migration)
-  const uncategorized = visibleAgents.filter(agent => agent.category === undefined || agent.category === '');
+  const uncategorized = visibleAgents.filter(
+    (agent) => agent.category === undefined || agent.category === ''
+  );
   if (uncategorized.length > 0) {
     groups.push({
       category: 'uncategorized',
@@ -174,19 +176,19 @@ export function calculateSelectedAgents(
   selectedAgentIds: string[]
 ): string[] {
   const finalAgents = new Set<string>(selectedAgentIds);
-  
+
   // Get all agent components
   const agentComponents = Array.from(registry.components.values())
     .filter((c) => c.type === 'agent')
     .map(toAgentComponent);
-  
+
   // Add bundled agents for any selected agents that have bundles
-  selectedAgentIds.forEach(agentId => {
-    const agent = agentComponents.find(a => a.id === agentId);
+  selectedAgentIds.forEach((agentId) => {
+    const agent = agentComponents.find((a) => a.id === agentId);
     if (agent && agent.bundle && Array.isArray(agent.bundle)) {
-      agent.bundle.forEach(bundledId => finalAgents.add(bundledId));
+      agent.bundle.forEach((bundledId) => finalAgents.add(bundledId));
     }
   });
-  
+
   return Array.from(finalAgents);
 }

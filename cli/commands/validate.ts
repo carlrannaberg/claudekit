@@ -265,7 +265,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
 
       // Count agents recursively
       let agentCount = 0;
-      
+
       // Helper function to check if a file is a valid agent
       async function isValidAgent(filePath: string): Promise<boolean> {
         try {
@@ -283,12 +283,12 @@ export async function validate(options: ValidateOptions): Promise<void> {
         }
         return false;
       }
-      
+
       async function countAgents(dir: string): Promise<void> {
         const entries = await fs.readdir(dir, { withFileTypes: true });
         for (const entry of entries) {
           const fullPath = path.join(dir, entry.name);
-          
+
           // Handle both regular directories and symlinks to directories
           if (entry.isDirectory()) {
             await countAgents(fullPath);

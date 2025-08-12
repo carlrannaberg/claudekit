@@ -157,7 +157,6 @@ async function createProjectSettings(
           });
           break;
 
-
         case 'check-any-changed':
           settings.hooks.PostToolUse.push({
             matcher: 'Write|Edit|MultiEdit',
@@ -406,7 +405,6 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         command: 'claudekit-hooks run lint-changed',
       });
     });
-
 
     it('should handle check-any-changed hook with correct matcher', async () => {
       const components = [createMockComponent('check-any-changed')];

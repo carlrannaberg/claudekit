@@ -16,14 +16,15 @@ const AgentCategorySchema = z.enum([
   'build',
   'linting',
   'tools',
-  'universal' // For agents that apply universally
+  'universal', // For agents that apply universally
 ]);
 
 /**
  * Valid color schemes for UI display
  * Claude Code supports both named colors and hex codes
  */
-const ColorSchema = z.string()
+const ColorSchema = z
+  .string()
   .optional()
   .describe('Named color (e.g., "indigo", "amber") or hex code (e.g., "#3b82f6")');
 
@@ -31,53 +32,185 @@ const ColorSchema = z.string()
  * Standard CSS named colors (from CSS specification)
  */
 const CSS_NAMED_COLORS = new Set([
-  'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black',
-  'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
-  'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue',
-  'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkgrey', 'darkkhaki',
-  'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon',
-  'darkseagreen', 'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise',
-  'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
-  'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod',
-  'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo',
-  'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue',
-  'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightgrey',
-  'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray',
-  'lightslategrey', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen',
-  'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple',
-  'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
-  'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite',
-  'navy', 'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
-  'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink',
-  'plum', 'powderblue', 'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue',
-  'saddlebrown', 'salmon', 'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver',
-  'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue',
-  'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
-  'yellow', 'yellowgreen'
+  'aliceblue',
+  'antiquewhite',
+  'aqua',
+  'aquamarine',
+  'azure',
+  'beige',
+  'bisque',
+  'black',
+  'blanchedalmond',
+  'blue',
+  'blueviolet',
+  'brown',
+  'burlywood',
+  'cadetblue',
+  'chartreuse',
+  'chocolate',
+  'coral',
+  'cornflowerblue',
+  'cornsilk',
+  'crimson',
+  'cyan',
+  'darkblue',
+  'darkcyan',
+  'darkgoldenrod',
+  'darkgray',
+  'darkgreen',
+  'darkgrey',
+  'darkkhaki',
+  'darkmagenta',
+  'darkolivegreen',
+  'darkorange',
+  'darkorchid',
+  'darkred',
+  'darksalmon',
+  'darkseagreen',
+  'darkslateblue',
+  'darkslategray',
+  'darkslategrey',
+  'darkturquoise',
+  'darkviolet',
+  'deeppink',
+  'deepskyblue',
+  'dimgray',
+  'dimgrey',
+  'dodgerblue',
+  'firebrick',
+  'floralwhite',
+  'forestgreen',
+  'fuchsia',
+  'gainsboro',
+  'ghostwhite',
+  'gold',
+  'goldenrod',
+  'gray',
+  'green',
+  'greenyellow',
+  'grey',
+  'honeydew',
+  'hotpink',
+  'indianred',
+  'indigo',
+  'ivory',
+  'khaki',
+  'lavender',
+  'lavenderblush',
+  'lawngreen',
+  'lemonchiffon',
+  'lightblue',
+  'lightcoral',
+  'lightcyan',
+  'lightgoldenrodyellow',
+  'lightgray',
+  'lightgreen',
+  'lightgrey',
+  'lightpink',
+  'lightsalmon',
+  'lightseagreen',
+  'lightskyblue',
+  'lightslategray',
+  'lightslategrey',
+  'lightsteelblue',
+  'lightyellow',
+  'lime',
+  'limegreen',
+  'linen',
+  'magenta',
+  'maroon',
+  'mediumaquamarine',
+  'mediumblue',
+  'mediumorchid',
+  'mediumpurple',
+  'mediumseagreen',
+  'mediumslateblue',
+  'mediumspringgreen',
+  'mediumturquoise',
+  'mediumvioletred',
+  'midnightblue',
+  'mintcream',
+  'mistyrose',
+  'moccasin',
+  'navajowhite',
+  'navy',
+  'oldlace',
+  'olive',
+  'olivedrab',
+  'orange',
+  'orangered',
+  'orchid',
+  'palegoldenrod',
+  'palegreen',
+  'paleturquoise',
+  'palevioletred',
+  'papayawhip',
+  'peachpuff',
+  'peru',
+  'pink',
+  'plum',
+  'powderblue',
+  'purple',
+  'rebeccapurple',
+  'red',
+  'rosybrown',
+  'royalblue',
+  'saddlebrown',
+  'salmon',
+  'sandybrown',
+  'seagreen',
+  'seashell',
+  'sienna',
+  'silver',
+  'skyblue',
+  'slateblue',
+  'slategray',
+  'slategrey',
+  'snow',
+  'springgreen',
+  'steelblue',
+  'tan',
+  'teal',
+  'thistle',
+  'tomato',
+  'turquoise',
+  'violet',
+  'wheat',
+  'white',
+  'whitesmoke',
+  'yellow',
+  'yellowgreen',
 ]);
 
 /**
  * Frontmatter schema for subagent markdown files
  * Based on official Claude Code subagent documentation + claudekit-specific fields
  */
-export const SubagentFrontmatterSchema = z.object({
-  // Required fields per official documentation
-  name: z.string()
-    .min(1, 'name is required')
-    .regex(/^[a-z0-9-]+$/, 'name must use only lowercase letters, numbers, and hyphens'),
-  description: z.string()
-    .min(1, 'description is required')
-    .describe('Natural language description of when this subagent should be invoked'),
-  
-  // Optional field per official documentation
-  tools: z.string().optional().describe('Comma-separated list of tools (inherits all if omitted)'),
-  
-  // Claudekit-specific fields for UI and organization
-  category: AgentCategorySchema.optional().describe('Claudekit: category for grouping agents'),
-  color: ColorSchema.describe('Claudekit: UI color scheme'),
-  displayName: z.string().optional().describe('Claudekit: display name for UI'),
-  bundle: z.array(z.string()).optional().describe('Claudekit: bundled subagent names'),
-}).strict(); // Strict mode will catch any extra fields
+export const SubagentFrontmatterSchema = z
+  .object({
+    // Required fields per official documentation
+    name: z
+      .string()
+      .min(1, 'name is required')
+      .regex(/^[a-z0-9-]+$/, 'name must use only lowercase letters, numbers, and hyphens'),
+    description: z
+      .string()
+      .min(1, 'description is required')
+      .describe('Natural language description of when this subagent should be invoked'),
+
+    // Optional field per official documentation
+    tools: z
+      .string()
+      .optional()
+      .describe('Comma-separated list of tools (inherits all if omitted)'),
+
+    // Claudekit-specific fields for UI and organization
+    category: AgentCategorySchema.optional().describe('Claudekit: category for grouping agents'),
+    color: ColorSchema.describe('Claudekit: UI color scheme'),
+    displayName: z.string().optional().describe('Claudekit: display name for UI'),
+    bundle: z.array(z.string()).optional().describe('Claudekit: bundled subagent names'),
+  })
+  .strict(); // Strict mode will catch any extra fields
 
 /**
  * Result of linting a single file
@@ -105,27 +238,41 @@ interface UnrecognizedKeysIssue {
  */
 function validateTools(tools: string | undefined): string[] {
   const warnings: string[] = [];
-  
+
   if (tools === undefined || tools === '') {
     return warnings;
   }
-  
-  const toolList = tools.split(',').map(t => t.trim());
+
+  const toolList = tools.split(',').map((t) => t.trim());
   const validTools = new Set<string>([
-    'Read', 'Write', 'Edit', 'MultiEdit', 'Bash', 'Grep', 'Glob', 'LS',
-    'Task', 'NotebookEdit', 'WebFetch', 'WebSearch', 'TodoWrite',
-    'BashOutput', 'KillBash', 'ExitPlanMode', '*'
+    'Read',
+    'Write',
+    'Edit',
+    'MultiEdit',
+    'Bash',
+    'Grep',
+    'Glob',
+    'LS',
+    'Task',
+    'NotebookEdit',
+    'WebFetch',
+    'WebSearch',
+    'TodoWrite',
+    'BashOutput',
+    'KillBash',
+    'ExitPlanMode',
+    '*',
   ]);
-  
+
   for (const tool of toolList) {
     // Extract base tool name (e.g., "Bash(git status:*)" -> "Bash")
     const baseTool = tool.split('(')[0]?.trim() ?? '';
-    
+
     if (baseTool !== '' && !validTools.has(baseTool) && baseTool !== '*') {
       warnings.push(`Unknown tool: ${baseTool}`);
     }
   }
-  
+
   return warnings;
 }
 
@@ -148,42 +295,47 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     warnings: [],
     unusedFields: [],
     missingFields: [],
-    suggestions: []
+    suggestions: [],
   };
-  
+
   try {
     // Read and parse file
     const content = await fs.readFile(filePath, 'utf-8');
-    
+
     // Skip files without frontmatter
     if (!hasFrontmatter(content)) {
       // Return valid result for non-agent files
       return result;
     }
-    
+
     const { data: frontmatter, content: markdown } = matter(content);
-    
+
     // Track which fields are present but not in schema
     // Official docs fields: name, description, tools
     // Claudekit-specific: category, color, displayName, bundle
     const schemaFields = new Set([
-      'name', 'description', 'tools',  // Official spec
-      'category', 'color', 'displayName', 'bundle'  // Claudekit extensions
+      'name',
+      'description',
+      'tools', // Official spec
+      'category',
+      'color',
+      'displayName',
+      'bundle', // Claudekit extensions
     ]);
-    
+
     const presentFields = Object.keys(frontmatter);
-    result.unusedFields = presentFields.filter(field => !schemaFields.has(field));
-    
+    result.unusedFields = presentFields.filter((field) => !schemaFields.has(field));
+
     // Validate against schema
     const validation = SubagentFrontmatterSchema.safeParse(frontmatter);
-    
+
     if (!validation.success) {
       result.valid = false;
-      
+
       // Parse Zod errors (but skip generic "received array" for tools since we handle it specially)
       for (const issue of validation.error.issues) {
         const field = issue.path.join('.');
-        
+
         if (issue.code === 'invalid_type' && issue.received === 'undefined') {
           result.missingFields.push(field);
           result.errors.push(`Missing required field: ${field}`);
@@ -202,7 +354,7 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
         }
       }
     }
-    
+
     // Additional validations
     if (frontmatter['tools'] !== undefined && frontmatter['tools'] !== null) {
       // Check if tools is an array (incorrect format)
@@ -213,51 +365,74 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
         result.warnings.push(...toolWarnings);
       }
     }
-    
+
     // Check bundle field format
-    if (frontmatter['bundle'] !== undefined && frontmatter['bundle'] !== null && typeof frontmatter['bundle'] === 'string') {
+    if (
+      frontmatter['bundle'] !== undefined &&
+      frontmatter['bundle'] !== null &&
+      typeof frontmatter['bundle'] === 'string'
+    ) {
       result.suggestions.push('bundle field should be an array, not a string');
     }
-    
+
     // Naming convention checks
-    if (frontmatter['name'] !== undefined && frontmatter['name'] !== null && typeof frontmatter['name'] === 'string') {
+    if (
+      frontmatter['name'] !== undefined &&
+      frontmatter['name'] !== null &&
+      typeof frontmatter['name'] === 'string'
+    ) {
       // Check if name matches filename
       const expectedName = path.basename(filePath, '.md');
       if (frontmatter['name'] !== expectedName && !frontmatter['name'].endsWith('-expert')) {
-        result.suggestions.push(`name "${frontmatter['name']}" doesn't match filename "${expectedName}"`);
+        result.suggestions.push(
+          `name "${frontmatter['name']}" doesn't match filename "${expectedName}"`
+        );
       }
     }
-    
+
     // Check displayName
-    if (frontmatter['displayName'] === undefined && frontmatter['name'] !== undefined && frontmatter['name'] !== null) {
+    if (
+      frontmatter['displayName'] === undefined &&
+      frontmatter['name'] !== undefined &&
+      frontmatter['name'] !== null
+    ) {
       result.suggestions.push('Consider adding displayName for better UI presentation');
     }
-    
+
     // Check color validity
-    if (frontmatter['color'] !== undefined && frontmatter['color'] !== null && typeof frontmatter['color'] === 'string') {
+    if (
+      frontmatter['color'] !== undefined &&
+      frontmatter['color'] !== null &&
+      typeof frontmatter['color'] === 'string'
+    ) {
       const color = frontmatter['color'] as string;
       const hexColorRegex = /^#[0-9A-F]{6}([0-9A-F]{2})?$/i;
-      
+
       if (color.startsWith('#')) {
         // Validate hex color format
         if (!hexColorRegex.test(color)) {
-          result.warnings.push(`Invalid hex color format: "${color}" (should be #RRGGBB or #RRGGBBAA)`);
+          result.warnings.push(
+            `Invalid hex color format: "${color}" (should be #RRGGBB or #RRGGBBAA)`
+          );
         }
       } else if (!CSS_NAMED_COLORS.has(color.toLowerCase())) {
         // Not a standard CSS named color
         result.suggestions.push(`Color "${color}" is not a standard CSS named color`);
       }
     }
-    
+
     // Check for duplicate content in description
-    if (frontmatter['description'] !== undefined && frontmatter['description'] !== null && markdown.trim().startsWith(frontmatter['description'] as string)) {
+    if (
+      frontmatter['description'] !== undefined &&
+      frontmatter['description'] !== null &&
+      markdown.trim().startsWith(frontmatter['description'] as string)
+    ) {
       result.suggestions.push('Description is duplicated in markdown content');
     }
-    
   } catch (error) {
     result.valid = false;
     result.errors.push(`Failed to parse file: ${error}`);
   }
-  
+
   return result;
 }

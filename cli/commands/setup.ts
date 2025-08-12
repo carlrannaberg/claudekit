@@ -283,14 +283,17 @@ async function performThreeStepSelection(
 
   // Step 3: Agent Selection with new grouping system
   console.log(`\n${Colors.bold('Step 3: Choose AI Assistant Subagents (Optional)')}`);
-  
+
   // Ask if user wants agents
   const agentChoice = await select({
     message: 'Would you like to install AI assistant subagents?',
     choices: [
-      { value: 'select', name: '📦 Select Agents ← RECOMMENDED\n  Choose which agents match your tools' },
+      {
+        value: 'select',
+        name: '📦 Select Agents ← RECOMMENDED\n  Choose which agents match your tools',
+      },
       { value: 'all', name: '🌟 Install All\n  Get all 24 available agents' },
-      { value: 'skip', name: '⏭️  Skip Agents\n  Don\'t install any agents' },
+      { value: 'skip', name: "⏭️  Skip Agents\n  Don't install any agents" },
     ],
     default: 'select',
   });
@@ -302,8 +305,8 @@ async function performThreeStepSelection(
     const sourceDir = await findComponentsDirectory();
     const registry = await discoverComponents(sourceDir);
     const allAgents = Array.from(registry.components.values())
-      .filter(c => c.type === 'agent')
-      .map(c => c.metadata.id);
+      .filter((c) => c.type === 'agent')
+      .map((c) => c.metadata.id);
     selectedComponents.push(...allAgents);
     console.log(Colors.success(`Selected all ${allAgents.length} agents`));
   } else {
@@ -311,44 +314,44 @@ async function performThreeStepSelection(
     const sourceDir = await findComponentsDirectory();
     const registry = await discoverComponents(sourceDir);
     const agentCategories = groupAgentsByCategory(registry);
-    
+
     // Show the new selection interface
     console.log(`\n${Colors.bold('Select Your Development Stack')}`);
     console.log(Colors.dim('━'.repeat(63)));
-    
+
     // Collect all selected agent IDs
     const selectedAgentIds: string[] = [];
-    
+
     // Display each category and let user select agents
     for (const categoryGroup of agentCategories) {
       // Skip uncategorized group in normal flow
       if (categoryGroup.category === 'uncategorized') {
         continue;
       }
-      
+
       console.log(`\n${Colors.accent(categoryGroup.title)}`);
       if (categoryGroup.description) {
         console.log(Colors.dim(categoryGroup.description));
       }
-      
+
       const choices = categoryGroup.agents.map((agent: AgentComponent) => ({
         value: agent.id,
         name: getAgentDisplayName(agent),
         checked: categoryGroup.preSelected ?? false,
       }));
-      
-      const selected = await checkbox({
+
+      const selected = (await checkbox({
         message: `Select ${categoryGroup.title.toLowerCase()}:`,
         choices,
         pageSize: Math.min(10, choices.length + 1),
-      }) as string[];
-      
+      })) as string[];
+
       selectedAgentIds.push(...selected);
     }
-    
+
     // Calculate final agent list (including bundled agents)
     const finalAgents = calculateSelectedAgents(registry, selectedAgentIds);
-    
+
     selectedComponents.push(...finalAgents);
     console.log(Colors.success(`\n${finalAgents.length} agents selected`));
   }
@@ -365,7 +368,7 @@ export interface SetupOptions {
   yes?: boolean;
   commands?: string;
   hooks?: string;
-  agents?: string;  // Comma-separated list of agent IDs
+  agents?: string; // Comma-separated list of agent IDs
   project?: string;
   user?: boolean;
   selectIndividual?: boolean; // Flag for power users to select individual components
@@ -589,7 +592,11 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
     // Step 4: Component selection - Two-step process with groups
     let selectedComponents: string[];
 
-    if (options.commands !== undefined || options.hooks !== undefined || options.agents !== undefined) {
+    if (
+      options.commands !== undefined ||
+      options.hooks !== undefined ||
+      options.agents !== undefined
+    ) {
       // Parse component lists from flags
       const requestedCommands =
         options.commands !== undefined && options.commands !== ''
@@ -627,7 +634,9 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         const finalAgents = calculateSelectedAgents(registry, requestedAgents);
         selectedComponents.push(...finalAgents);
         if (options.quiet !== true) {
-          console.log(Colors.success(`Selected ${finalAgents.length} agents (including specialized agents)`));
+          console.log(
+            Colors.success(`Selected ${finalAgents.length} agents (including specialized agents)`)
+          );
         }
       }
 

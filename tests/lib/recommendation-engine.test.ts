@@ -387,7 +387,6 @@ describe('Component Recommendation Engine', () => {
     });
   });
 
-
   describe('Combined project recommendations', () => {
     it('should handle projects with multiple tools', async () => {
       const projectInfo: ProjectInfo = {
