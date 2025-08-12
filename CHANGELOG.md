@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-08-12
+
+### Added
+- **Check Comment Replacement Hook**: New validation hook that detects when functional code is replaced with comments during edits, helping maintain clean codebases
+- **Symlinks Management Script**: New `npm run symlinks` command and `scripts/create-symlinks.sh` for creating/updating symlinks from `.claude/` to `src/` directories for development
+
+### Changed
+- **Hook Registration System**: Simplified hook registration from 8 manual steps to just 2 steps using metadata-driven approach
+  - Hooks now use a single source of truth pattern with automatic registry building
+  - Settings generation automated from hook metadata via matcher field
+  - Components discovery now fully automated
+  - Eliminated 60+ line switch statement in favor of metadata-driven logic
+
+### Fixed
+- **TypeScript 'any' Detection**: Improved `check-any-changed` hook to avoid false positives in strings, comments, and test utilities
+  - Added `removeStringsAndComments()` method to strip content before validation
+  - Uses dynamic regex construction to prevent self-detection
+  - Preserves original line content in error messages while analyzing cleaned content
+  - Handles single/double quotes, template literals, and both comment styles
+- **Code Formatting**: Applied prettier formatting across 12+ files to ensure consistent code style
+
+### Security
+- Enhanced comment replacement detection to prevent code being hidden behind explanatory comments instead of clean deletion
+
 ## [0.3.0] - 2025-08-11
 
 ### Added

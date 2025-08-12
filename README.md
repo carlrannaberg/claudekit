@@ -204,6 +204,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 #### File-Scoped Hooks (operate on changed files only)
 - **typecheck-changed** - TypeScript type checking on modified files
 - **check-any-changed** - Forbid `any` types in modified TypeScript files
+- **check-comment-replacement** - Prevent replacing functional code with explanatory comments
 - **lint-changed** - ESLint validation on modified JavaScript/TypeScript files
 - **test-changed** - Run tests related to modified files
 
@@ -404,7 +405,8 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 
 #### File-Scoped Validation (operates on changed files only)
 - **typecheck-changed** - TypeScript type checking on modified files
-- **check-any-changed** - Forbid `any` types in modified TypeScript files  
+- **check-any-changed** - Forbid `any` types in modified TypeScript files
+- **check-comment-replacement** - Prevent replacing functional code with explanatory comments
 - **lint-changed** - ESLint code style validation on modified files
 - **test-changed** - Auto-run tests for modified files
 
@@ -586,6 +588,9 @@ npm install
 
 # Build the project
 npm run build
+
+# Create/update symlinks for development (links .claude/ to src/)
+npm run symlinks
 
 # Run tests
 npm test
