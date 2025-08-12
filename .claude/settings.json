@@ -36,6 +36,15 @@
             "command": "claudekit-hooks run test-changed"
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run check-comment-replacement"
+          }
+        ]
       }
     ],
     "Stop": [
