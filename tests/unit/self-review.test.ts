@@ -25,11 +25,10 @@ describe('SelfReviewHook', () => {
     
     hookWithPrivateMethods = hook as unknown as {
       jsonOutput: (data: unknown) => void;
-      hasRecentCodeChanges: () => boolean;
+      hasRecentCodeChanges: (transcriptPath?: string) => boolean;
     };
     
     jsonOutputSpy = vi.spyOn(hookWithPrivateMethods, 'jsonOutput').mockImplementation(() => {});
-    vi.spyOn(hookWithPrivateMethods, 'hasRecentCodeChanges').mockReturnValue(true);
     
     // Mock Math.random to control probability
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
@@ -37,7 +36,9 @@ describe('SelfReviewHook', () => {
 
   const createMockContext = (): HookContext => ({
     projectRoot: '/test/project',
-    payload: {},
+    payload: {
+      transcript_path: '/tmp/test-transcript.jsonl'
+    },
     packageManager: {
       name: 'npm',
       exec: 'npx',
@@ -178,11 +179,13 @@ describe('SelfReviewHook', () => {
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
-    it('should not trigger if no recent code changes', async () => {
+    it('should not trigger if no transcript path provided', async () => {
       mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
-      vi.spyOn(hookWithPrivateMethods, 'hasRecentCodeChanges').mockReturnValue(false);
       
-      const context = createMockContext();
+      const context: HookContext = {
+        ...createMockContext(),
+        payload: {} // No transcript_path
+      };
       const result = await hook.execute(context);
       
       expect(result.exitCode).toBe(0);

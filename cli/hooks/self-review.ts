@@ -1,22 +1,10 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import { getHookConfig } from '../utils/claudekit-config.js';
 
 interface FocusArea {
   name: string;
   questions: string[];
-}
-
-interface ConversationMessage {
-  role: string;
-  content: unknown;
-  tool_uses?: Array<{
-    name: string;
-    input?: unknown;
-  }>;
 }
 
 interface SelfReviewConfig {
@@ -91,74 +79,20 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private hasRecentCodeChanges(): boolean {
-    try {
-      // Look for conversation transcript in standard location
-      const claudeDir = join(homedir(), '.claude');
-      const conversationFile = join(claudeDir, 'conversation.json');
-      
-      if (!existsSync(conversationFile)) {
-        // If no conversation file, assume there might be changes to be safe
-        return true;
-      }
-      
-      const conversationData = readFileSync(conversationFile, 'utf-8');
-      const conversation = JSON.parse(conversationData) as { messages: ConversationMessage[] };
-      
-      if (!Array.isArray(conversation.messages) || conversation.messages.length === 0) {
-        return false;
-      }
-      
-      // Check last 5 messages for code editing tools
-      const recentMessages = conversation.messages.slice(-5);
-      const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-      
-      // Code file extensions to trigger on
-      const codeExtensions = [
-        '.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', 
-        '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj',
-        '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'
-      ];
-      
-      // Documentation/config files to ignore
-      const ignorePatterns = [
-        'README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', 
-        '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore'
-      ];
-      
-      for (const message of recentMessages) {
-        if (message.role === 'assistant' && message.tool_uses) {
-          for (const toolUse of message.tool_uses) {
-            if (codeEditingTools.includes(toolUse.name)) {
-              // Check if the edited file is a code file
-              const input = toolUse.input as unknown as { file_path?: string; path?: string };
-              const filePath = (input?.file_path ?? input?.path ?? '').toString();
-              
-              // Skip if it's a documentation or config file
-              const shouldIgnore = ignorePatterns.some(pattern => 
-                filePath.toUpperCase().includes(pattern.toUpperCase())
-              );
-              if (shouldIgnore) {
-                continue;
-              }
-              
-              // Check if it's a code file
-              const isCodeFile = codeExtensions.some(ext => 
-                filePath.toLowerCase().endsWith(ext)
-              );
-              if (isCodeFile) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-      
+  private hasRecentCodeChanges(transcriptPath?: string): boolean {
+    // For now, we'll use a simpler heuristic:
+    // If a transcript path is provided, assume there might be code changes
+    // This is safer than trying to parse the transcript format which may vary
+    // The probability setting will still control whether the hook actually triggers
+    
+    if (transcriptPath === undefined || transcriptPath === '') {
+      // No transcript path means we're not in a Claude Code session that would have changes
       return false;
-    } catch {
-      // If we can't read the conversation, assume there might be changes
-      return true;
     }
+    
+    // If we have a transcript path, there's likely been some activity
+    // Let the probability setting determine if we should trigger
+    return true;
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -174,7 +108,8 @@ export class SelfReviewHook extends BaseHook {
     }
 
     // Check if there were recent code changes
-    if (!this.hasRecentCodeChanges()) {
+    const transcriptPath = context.payload?.transcript_path as string | undefined;
+    if (!this.hasRecentCodeChanges(transcriptPath)) {
       return { exitCode: 0, suppressOutput: true };
     }
 
