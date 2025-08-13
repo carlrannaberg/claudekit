@@ -96,7 +96,6 @@ describe('SelfReviewHook', () => {
 
     it('should use custom focus areas when configured', async () => {
       const customConfig = {
-        triggerProbability: 1.0,
         focusAreas: [
           {
             name: 'Performance',
@@ -128,31 +127,27 @@ describe('SelfReviewHook', () => {
       expect(message).not.toMatch(/\*\*Consistency & Completeness/);
     });
 
-    it('should respect trigger probability configuration', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 0.3 });
+    it('should detect changes and trigger review', async () => {
+      // Create a transcript with recent code changes
+      const entries = [];
       
-      // Mock random to be above threshold
-      vi.mocked(Math.random).mockReturnValue(0.5);
+      // Add a recent code change
+      entries.push(JSON.stringify({ 
+        type: 'assistant', 
+        message: { 
+          content: [
+            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/recent.ts' } }
+          ] 
+        } 
+      }));
       
-      const context = createMockContext();
-      const result = await hook.execute(context);
-      
-      // Should not trigger (0.5 > 0.3)
-      expect(result.exitCode).toBe(0);
-      expect(result.suppressOutput).toBe(true);
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
-    });
-
-    it('should trigger when probability is met', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 0.7 });
-      
-      // Mock random to be below threshold
-      vi.mocked(Math.random).mockReturnValue(0.5);
+      mockReadFileSync.mockReturnValue(entries.join('\n'));
+      mockGetHookConfig.mockReturnValue({});
       
       const context = createMockContext();
       await hook.execute(context);
       
-      // Should trigger (0.5 <= 0.7)
+      // Should trigger because there are recent code changes
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(jsonOutputSpy).toHaveBeenCalledWith({
         decision: 'block',
@@ -160,74 +155,45 @@ describe('SelfReviewHook', () => {
       });
     });
 
-    it('should respect messageWindow configuration', async () => {
-      // Create a transcript with code changes far back
+    it('should limit lookback to 200 entries when no previous marker', async () => {
+      // Create a transcript with >200 entries
       const entries = [];
       
-      // Add a code change at the beginning (old)
+      // Add an old code change (beyond 200 entries)
       entries.push(JSON.stringify({ 
         type: 'assistant', 
         message: { 
           content: [
-            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/old-change.ts' } }
+            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/old.ts' } }
           ] 
         } 
       }));
       
-      // Add 10 user-assistant message pairs (20 messages total) without code changes
-      for (let i = 0; i < 10; i++) {
-        entries.push(JSON.stringify({ 
-          type: 'user', 
-          message: { 
-            content: [{ type: 'text', text: `User message ${i}` }] 
-          } 
-        }));
+      // Add 250 non-code entries
+      for (let i = 0; i < 250; i++) {
         entries.push(JSON.stringify({ 
           type: 'assistant', 
           message: { 
-            content: [{ type: 'text', text: `Assistant response ${i}` }] 
+            content: [{ type: 'text', text: `Message ${i}` }]
           } 
         }));
       }
       
       mockReadFileSync.mockReturnValue(entries.join('\n'));
+      mockGetHookConfig.mockReturnValue({});
       
-      // Test with small window (5 messages) - should not find the old code change
-      mockGetHookConfig.mockReturnValue({ 
-        triggerProbability: 1.0,
-        messageWindow: 5 
-      });
-      
-      let context = createMockContext();
+      const context = createMockContext();
       const result = await hook.execute(context);
       
-      // Should not trigger because code change is beyond the 5-message window
+      // Should not trigger because the only code change is beyond the 200-entry lookback
       expect(result.suppressOutput).toBe(true);
       expect(consoleErrorSpy).not.toHaveBeenCalled();
-      
-      // Test with large window (25 messages) - should find the old code change
-      vi.clearAllMocks();
-      mockGetHookConfig.mockReturnValue({ 
-        triggerProbability: 1.0,
-        messageWindow: 25 
-      });
-      
-      context = createMockContext();
-      await hook.execute(context);
-      
-      // Should trigger because code change is within the 25-message window
-      expect(consoleErrorSpy).toHaveBeenCalled();
-      expect(jsonOutputSpy).toHaveBeenCalledWith({
-        decision: 'block',
-        reason: expect.any(String)
-      });
     });
   });
 
   describe('message variation', () => {
     it('should select random questions from each focus area', async () => {
       const customConfig = {
-        triggerProbability: 1.0,
         focusAreas: [
           {
             name: 'Area1',
@@ -258,7 +224,7 @@ describe('SelfReviewHook', () => {
 
   describe('stop hook behavior', () => {
     it('should not trigger if already in stop hook loop', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      mockGetHookConfig.mockReturnValue({});
       
       const context: HookContext = {
         ...createMockContext(),
@@ -273,7 +239,7 @@ describe('SelfReviewHook', () => {
     });
 
     it('should not trigger if no transcript path provided', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      mockGetHookConfig.mockReturnValue({});
       
       const context: HookContext = {
         ...createMockContext(),
@@ -287,7 +253,7 @@ describe('SelfReviewHook', () => {
     });
 
     it('should not trigger if transcript contains only documentation changes', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      mockGetHookConfig.mockReturnValue({});
       
       // Mock transcript with only documentation changes
       const mockTranscript = [
@@ -319,7 +285,7 @@ describe('SelfReviewHook', () => {
     });
 
     it('should trigger if transcript contains code file changes', async () => {
-      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      mockGetHookConfig.mockReturnValue({});
       
       // Mock transcript with code changes
       const mockTranscript = [

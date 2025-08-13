@@ -29,8 +29,6 @@ const PrettierConfigSchema = z.object({
 });
 
 const SelfReviewConfigSchema = z.object({
-  triggerProbability: z.number().min(0).max(1).optional(),
-  messageWindow: z.number().min(1).max(1000).optional(),
   timeout: z.number().min(1000).max(300000).optional(),
   targetPatterns: z.array(z.string()).optional(),
   focusAreas: z.array(z.object({

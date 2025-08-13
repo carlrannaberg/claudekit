@@ -9,10 +9,8 @@ interface FocusArea {
 }
 
 interface SelfReviewConfig {
-  triggerProbability?: number | undefined;
   timeout?: number | undefined;
   focusAreas?: FocusArea[] | undefined;
-  messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for changes
   targetPatterns?: string[] | undefined;  // Glob patterns to match files (e.g., ['**/*.ts', '!**/*.test.ts'])
 }
 
@@ -85,7 +83,7 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private async hasRecentFileChanges(messageWindow: number, targetPatterns: string[] | undefined, transcriptPath?: string): Promise<boolean> {
+  private async hasRecentFileChanges(targetPatterns: string[] | undefined, transcriptPath?: string): Promise<boolean> {
     if (transcriptPath === undefined || transcriptPath === '') {
       // No transcript path means we're not in a Claude Code session
       return false;
@@ -97,17 +95,17 @@ export class SelfReviewHook extends BaseHook {
       return false;
     }
     
-    // First check if there are any new file changes since the last review
-    const hasNewChanges = parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetPatterns);
-    if (!hasNewChanges) {
-      if (process.env['DEBUG'] === 'true') {
-        console.error('Self-review: No new file changes since last review');
-      }
-      return false;
+    // Check if there's a previous review marker
+    const lastMarkerIndex = parser.findLastMessageWithMarker(SELF_REVIEW_MARKER);
+    
+    if (lastMarkerIndex === -1) {
+      // No previous review - check last 200 entries (reasonable default)
+      const DEFAULT_LOOKBACK = 200;
+      return parser.hasRecentFileChanges(DEFAULT_LOOKBACK, targetPatterns);
     }
     
-    // Then check if changes are within the message window
-    return parser.hasRecentFileChanges(messageWindow, targetPatterns);
+    // Check for changes since the last review marker
+    return parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetPatterns);
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -130,28 +128,18 @@ export class SelfReviewHook extends BaseHook {
 
     // Load configuration
     const config = this.loadConfig();
-    const messageWindow = config.messageWindow ?? 15; // Default: check last 15 UI-visible messages (user/assistant turns)
-    const triggerProbability = config.triggerProbability ?? 0.7;
     
     if (process.env['DEBUG'] === 'true') {
-      console.error(`Self-review: Config loaded - messageWindow=${messageWindow}, probability=${triggerProbability}`);
+      console.error('Self-review: Checking for file changes since last review');
     }
 
     // Check if there were recent file changes matching target patterns
     const transcriptPath = context.payload?.transcript_path as string | undefined;
     const targetPatterns = config.targetPatterns;
-    const hasChanges = await this.hasRecentFileChanges(messageWindow, targetPatterns, transcriptPath);
+    const hasChanges = await this.hasRecentFileChanges(targetPatterns, transcriptPath);
     if (!hasChanges) {
       if (process.env['DEBUG'] === 'true') {
-        console.error(`Self-review: No recent file changes detected in last ${messageWindow} messages`);
-      }
-      return { exitCode: 0, suppressOutput: true };
-    }
-
-    // Randomly decide whether to trigger based on configured probability
-    if (Math.random() > triggerProbability) {
-      if (process.env['DEBUG'] === 'true') {
-        console.error(`Self-review: Skipped due to probability (${triggerProbability})`);
+        console.error('Self-review: No new file changes since last review');
       }
       return { exitCode: 0, suppressOutput: true };
     }

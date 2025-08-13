@@ -484,18 +484,6 @@ echo '{}' | claudekit-hooks run my-new-hook
 
 ### Common Configuration Patterns
 
-#### Probability/Chance Configuration
-```typescript
-const MyHookConfigSchema = z.object({
-  triggerProbability: z.number().min(0).max(1).optional(),
-});
-
-// In execute():
-const triggerProbability = config.triggerProbability ?? 0.7;
-if (Math.random() > triggerProbability) {
-  return { exitCode: 0, suppressOutput: true };
-}
-```
 
 #### Command Override Configuration
 ```typescript

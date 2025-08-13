@@ -49,6 +49,7 @@ export interface ToolUse {
 export class TranscriptParser {
   private readonly transcriptPath: string;
   private entries: TranscriptEntry[] | null = null;
+  private static readonly EDITING_TOOLS = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
 
   constructor(transcriptPath: string) {
     this.transcriptPath = transcriptPath.replace(/^~/, homedir());
@@ -303,21 +304,12 @@ export class TranscriptParser {
   }
 
   /**
-   * Check if there are file changes since a specific marker position
+   * Check if there are file changes in a specific range of entries
    */
-  hasFileChangesSinceMarker(marker: string, targetPatterns?: string[]): boolean {
+  private hasFileChangesInRange(startIndex: number, endIndex: number, targetPatterns?: string[]): boolean {
     const entries = this.loadEntries();
-    const lastMarkerIndex = this.findLastMessageWithMarker(marker);
     
-    // If no previous marker, check if there are any file changes at all
-    if (lastMarkerIndex === -1) {
-      return this.hasRecentFileChanges(999999, targetPatterns);
-    }
-    
-    // Check for file changes after the last marker
-    const editingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-    
-    for (let i = lastMarkerIndex + 1; i < entries.length; i++) {
+    for (let i = startIndex; i < endIndex && i < entries.length; i++) {
       const entry = entries[i];
       if (!entry || entry.type !== 'assistant' || !entry.message?.content) {
         continue;
@@ -327,7 +319,7 @@ export class TranscriptParser {
         if (content.type === 'tool_use' && 
             content.name !== undefined && 
             content.name !== null &&
-            editingTools.includes(content.name)) {
+            TranscriptParser.EDITING_TOOLS.includes(content.name)) {
           const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
           
           if (this.matchesTargetPatterns(filePath, targetPatterns)) {
@@ -341,11 +333,26 @@ export class TranscriptParser {
   }
 
   /**
+   * Check if there are file changes since a specific marker position
+   */
+  hasFileChangesSinceMarker(marker: string, targetPatterns?: string[]): boolean {
+    const entries = this.loadEntries();
+    const lastMarkerIndex = this.findLastMessageWithMarker(marker);
+    
+    // If no previous marker, return false (caller should handle this case)
+    if (lastMarkerIndex === -1) {
+      return false;
+    }
+    
+    // Check for file changes after the last marker
+    return this.hasFileChangesInRange(lastMarkerIndex + 1, entries.length, targetPatterns);
+  }
+
+  /**
    * Check if there are file changes in recent messages
    */
   hasRecentFileChanges(messageCount: number, targetPatterns?: string[]): boolean {
-    const editingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-    const toolUses = this.findToolUsesInRecentMessages(messageCount, editingTools);
+    const toolUses = this.findToolUsesInRecentMessages(messageCount, TranscriptParser.EDITING_TOOLS);
     
     for (const toolUse of toolUses) {
       const filePath = (toolUse.input?.file_path ?? toolUse.input?.path ?? '').toString();
