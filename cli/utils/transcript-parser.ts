@@ -255,22 +255,21 @@ export class TranscriptParser {
   }
 
   /**
-   * Check if a file path represents a code file
+   * Check if a file path represents a code file based on extension
    */
-  private isCodeFile(
-    filePath: string,
-    codeExtensions: string[] = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj', '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'],
-    ignorePatterns: string[] = ['README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore']
-  ): boolean {
-    // Skip if it's a documentation or config file
-    const shouldIgnore = ignorePatterns.some(pattern => 
-      filePath.toUpperCase().includes(pattern.toUpperCase())
-    );
-    if (shouldIgnore) {
-      return false;
-    }
+  private isCodeFile(filePath: string): boolean {
+    const codeExtensions = [
+      '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',  // JavaScript/TypeScript
+      '.py', '.pyw', '.pyx',                          // Python
+      '.java', '.kt', '.scala', '.clj',               // JVM languages
+      '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp',      // C/C++
+      '.cs', '.fs', '.vb',                            // .NET languages
+      '.go', '.rs', '.swift', '.m', '.mm',            // System languages
+      '.rb', '.php', '.pl', '.lua', '.r',             // Scripting languages
+      '.vue', '.svelte', '.astro',                    // Framework files
+      '.sol', '.dart', '.elm', '.ex', '.exs'          // Other languages
+    ];
     
-    // Check if it's a code file
     return codeExtensions.some(ext => 
       filePath.toLowerCase().endsWith(ext)
     );
@@ -279,17 +278,13 @@ export class TranscriptParser {
   /**
    * Check if there are code file changes since a specific marker position
    */
-  hasCodeChangesSinceMarker(
-    marker: string,
-    codeExtensions?: string[],
-    ignorePatterns?: string[]
-  ): boolean {
+  hasCodeChangesSinceMarker(marker: string): boolean {
     const entries = this.loadEntries();
     const lastMarkerIndex = this.findLastMessageWithMarker(marker);
     
     // If no previous marker, check if there are any code changes at all
     if (lastMarkerIndex === -1) {
-      return this.hasRecentCodeChanges(999999, codeExtensions, ignorePatterns);
+      return this.hasRecentCodeChanges(999999);
     }
     
     // Check for code changes after the last marker
@@ -308,7 +303,7 @@ export class TranscriptParser {
             codeEditingTools.includes(content.name)) {
           const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
           
-          if (this.isCodeFile(filePath, codeExtensions, ignorePatterns)) {
+          if (this.isCodeFile(filePath)) {
             return true;
           }
         }
@@ -321,18 +316,14 @@ export class TranscriptParser {
   /**
    * Check if there are code file changes in recent messages
    */
-  hasRecentCodeChanges(
-    messageCount: number,
-    codeExtensions?: string[],
-    ignorePatterns?: string[]
-  ): boolean {
+  hasRecentCodeChanges(messageCount: number): boolean {
     const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
     const toolUses = this.findToolUsesInRecentMessages(messageCount, codeEditingTools);
     
     for (const toolUse of toolUses) {
       const filePath = (toolUse.input?.file_path ?? toolUse.input?.path ?? '').toString();
       
-      if (this.isCodeFile(filePath, codeExtensions, ignorePatterns)) {
+      if (this.isCodeFile(filePath)) {
         return true;
       }
     }
