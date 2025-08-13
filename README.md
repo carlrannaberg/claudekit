@@ -264,7 +264,30 @@ Some hooks support additional configuration through `.claudekit/config.json`:
 ```
 
 Available configurations:
-- **selfReview.triggerProbability**: Controls how often the self-review hook triggers (0 = never, 1 = always, 0.7 = 70% of the time)
+
+**Self-Review Hook:**
+- **self-review.triggerProbability**: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
+
+**TypeScript Hooks:**
+- **typecheck-changed.command**: Custom TypeScript command (default: uses package manager's tsc)
+- **typecheck-changed.timeout**: Execution timeout in ms (default: 30000)
+- **typecheck-project.command**: Custom TypeScript command for full project check
+
+**ESLint Hooks:**
+- **lint-changed.command**: Custom ESLint command (default: uses package manager's eslint)
+- **lint-changed.fix**: Auto-fix issues (default: false)
+- **lint-changed.extensions**: File extensions to lint (default: [".js", ".jsx", ".ts", ".tsx"])
+- **lint-changed.timeout**: Execution timeout in ms (default: 30000)
+- **lint-project.command**: Custom ESLint command for full project
+
+**Test Hooks:**
+- **test-changed.command**: Custom test command (default: uses package manager's test script)
+- **test-project.command**: Custom test command for full suite
+- **test-project.timeout**: Execution timeout in ms (default: 50000)
+
+**Checkpoint Hook:**
+- **create-checkpoint.prefix**: Git stash prefix (default: "claude")
+- **create-checkpoint.maxCheckpoints**: Maximum checkpoints to keep (default: 10)
 
 ### Testing Hooks
 

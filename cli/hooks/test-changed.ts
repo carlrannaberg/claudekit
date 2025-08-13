@@ -1,9 +1,19 @@
 import * as path from 'path';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface TestChangedConfig {
+  command?: string | undefined;
+  timeout?: number | undefined;
+}
 
 export class TestChangedHook extends BaseHook {
   name = 'test-changed';
+
+  private loadConfig(): TestChangedConfig {
+    return getHookConfig<TestChangedConfig>('test-changed') ?? {};
+  }
 
   static metadata = {
     id: 'test-changed',
@@ -49,7 +59,8 @@ export class TestChangedHook extends BaseHook {
     this.progress(`Found related test files: ${testFiles.join(', ')}`);
 
     // Run tests
-    const testCommand = this.config.command ?? packageManager.test;
+    const config = this.loadConfig();
+    const testCommand = config.command ?? packageManager.test;
     const result = await this.execCommand(testCommand, ['--', ...testFiles], {
       cwd: projectRoot,
     });

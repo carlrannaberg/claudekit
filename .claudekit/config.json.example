@@ -1,7 +1,34 @@
 {
   "hooks": {
-    "selfReview": {
+    "self-review": {
       "triggerProbability": 0.7
+    },
+    "typecheck-changed": {
+      "command": "npx tsc --noEmit",
+      "timeout": 30000
+    },
+    "typecheck-project": {
+      "command": "npx tsc --noEmit"
+    },
+    "lint-changed": {
+      "command": "npx eslint",
+      "fix": false,
+      "extensions": [".js", ".jsx", ".ts", ".tsx"],
+      "timeout": 30000
+    },
+    "lint-project": {
+      "command": "npx eslint . --ext .js,.jsx,.ts,.tsx"
+    },
+    "test-changed": {
+      "command": "npm test"
+    },
+    "test-project": {
+      "command": "npm test",
+      "timeout": 50000
+    },
+    "create-checkpoint": {
+      "prefix": "claude",
+      "maxCheckpoints": 10
     }
   }
 }

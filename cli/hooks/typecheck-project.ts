@@ -6,6 +6,12 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { checkToolAvailable, formatTypeScriptErrors } from './utils.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface TypecheckConfig {
+  command?: string | undefined;
+  timeout?: number | undefined;
+}
 
 export class TypecheckProjectHook extends BaseHook {
   name = 'typecheck-project';
@@ -29,8 +35,8 @@ export class TypecheckProjectHook extends BaseHook {
 
     this.progress('Running project-wide TypeScript validation...');
 
-    const tsCommand =
-      (this.config['typescriptCommand'] as string) || `${packageManager.exec} tsc --noEmit`;
+    const config = this.loadConfig();
+    const tsCommand = config.command ?? `${packageManager.exec} tsc --noEmit`;
 
     const result = await this.execCommand(tsCommand, [], { cwd: projectRoot });
 
@@ -43,5 +49,9 @@ export class TypecheckProjectHook extends BaseHook {
     const errorOutput = formatTypeScriptErrors(result);
     console.error(errorOutput);
     return { exitCode: 2 };
+  }
+
+  private loadConfig(): TypecheckConfig {
+    return getHookConfig<TypecheckConfig>('typecheck-project') ?? {};
   }
 }

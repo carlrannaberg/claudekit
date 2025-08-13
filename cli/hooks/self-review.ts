@@ -5,16 +5,9 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { getHookConfig } from '../utils/claudekit-config.js';
 
-interface ReviewPrompt {
-  framework: string;
-  questions: string[];
-  focus: string;
-}
-
-interface SeniorPersona {
+interface FocusArea {
   name: string;
-  style: string;
-  catchphrase: string;
+  questions: string[];
 }
 
 interface ConversationMessage {
@@ -37,140 +30,63 @@ export class SelfReviewHook extends BaseHook {
   static metadata = {
     id: 'self-review',
     displayName: 'Self Review',
-    description: 'Prompts a critical self-review as if a senior developer will examine the code',
+    description: 'Prompts a critical self-review to catch integration and refactoring issues',
     category: 'validation' as const,
     triggerEvent: 'Stop' as const,
     matcher: '*',
   };
 
-  private readonly reviewPrompts: ReviewPrompt[] = [
+  private readonly focusAreas: FocusArea[] = [
     {
-      framework: "thorough code review",
-      focus: "code coherence and cleanliness",
+      name: "Refactoring & Integration",
       questions: [
-        "Looking at the code now, does it need refactoring to be more coherent?",
-        "Did your changes make the existing code messier?",
-        "Should you extract the new functionality into cleaner abstractions?",
-        "Is there duplicated logic that emerged from your changes?",
         "Did you just add code on top without integrating it properly?",
-        "Would refactoring the surrounding code make everything simpler?"
-      ]
-    },
-    {
-      framework: "careful analysis",
-      focus: "integration and simplicity",
-      questions: [
+        "Should you extract the new functionality into cleaner abstractions?",
+        "Would refactoring the surrounding code make everything simpler?",
         "Does the code structure still make sense after your additions?",
         "Should you consolidate similar functions that now exist?",
-        "Did you leave any temporary workarounds or hacks?",
-        "Is the code more complex now than it needs to be?",
-        "Can you see patterns that should be unified?",
-        "Did you clean up after making your changes work?"
+        "Did you leave any temporary workarounds or hacks?"
       ]
     },
     {
-      framework: "quality assessment",
-      focus: "overall code health",
+      name: "Code Quality",
       questions: [
-        "Is there old code that should now be removed or refactored?",
         "Did you leave the code better than you found it?",
+        "Is there duplicated logic that should be extracted?",
         "Are you using different patterns than the existing code uses?",
-        "Should similar logic be consolidated into shared functions?",
-        "Is every piece of code still serving a clear purpose?",
-        "Does the code tell a coherent story or is it a patchwork?"
+        "Is the code more complex now than it needs to be?",
+        "Did you clean up after making your changes work?",
+        "Is every piece of code still serving a clear purpose?"
       ]
     },
     {
-      framework: "consistency check",
-      focus: "patterns and conventions",
+      name: "Consistency & Completeness",
       questions: [
-        "Are other similar components using the same patterns you just added?",
         "Should other parts of the codebase be updated to match your improvements?",
-        "Did you create a utility that existing code could benefit from?",
-        "Are there inconsistent approaches to the same problem in the codebase?",
-        "Should your solution be applied elsewhere for consistency?",
-        "Did you check if similar code exists that should use your new approach?"
-      ]
-    },
-    {
-      framework: "completeness review",
-      focus: "follow-through and impact",
-      questions: [
-        "Did you finish what you started or leave work half-done?",
-        "Are there related files that need the same changes?",
         "Did you update all the places that depend on what you changed?",
-        "Should documentation or examples be updated to reflect your changes?",
-        "Are there other hooks or components that could use your improvements?",
-        "Did you consider the broader impact of your changes?"
+        "Are there related files that need the same changes?",
+        "Did you create a utility that existing code could benefit from?",
+        "Should your solution be applied elsewhere for consistency?",
+        "Did you finish what you started or leave work half-done?"
       ]
     }
   ];
 
-  private readonly seniorPersonas: SeniorPersona[] = [
-    {
-      name: "a pragmatic senior engineer",
-      style: "values simplicity above all",
-      catchphrase: "Perfection is achieved when there is nothing left to take away."
-    },
-    {
-      name: "a seasoned tech lead",
-      style: "focused on clean, maintainable code",
-      catchphrase: "Simple code is debuggable code."
-    },
-    {
-      name: "an experienced developer",
-      style: "allergic to over-engineering",
-      catchphrase: "YAGNI - You Aren't Gonna Need It."
-    },
-    {
-      name: "a practical code reviewer",
-      style: "looking for clarity and purpose",
-      catchphrase: "If it's not being used, it shouldn't be there."
-    },
-    {
-      name: "a minimalist architect",
-      style: "believes less is more",
-      catchphrase: "The best code is no code."
+  private selectRandomQuestionFromArea(area: FocusArea): string {
+    const index = Math.floor(Math.random() * area.questions.length);
+    const question = area.questions[index];
+    if (question === undefined || question === null || question === '') {
+      // Fallback to first question if somehow index is invalid
+      return area.questions[0] ?? "Is the code clean and well-integrated?";
     }
-  ];
-
-  private selectRandomPrompt(): ReviewPrompt {
-    if (this.reviewPrompts.length === 0) {
-      throw new Error('No review prompts available');
-    }
-    const index = Math.floor(Math.random() * this.reviewPrompts.length);
-    const selected = this.reviewPrompts[index];
-    if (!selected) {
-      // This shouldn't happen with valid index, but TypeScript needs the check
-      const fallback = this.reviewPrompts[0];
-      if (!fallback) {
-        throw new Error('No review prompts available');
-      }
-      return fallback;
-    }
-    return selected;
+    return question;
   }
 
-  private selectRandomPersona(): SeniorPersona {
-    if (this.seniorPersonas.length === 0) {
-      throw new Error('No senior personas available');
-    }
-    const index = Math.floor(Math.random() * this.seniorPersonas.length);
-    const selected = this.seniorPersonas[index];
-    if (!selected) {
-      // This shouldn't happen with valid index, but TypeScript needs the check
-      const fallback = this.seniorPersonas[0];
-      if (!fallback) {
-        throw new Error('No senior personas available');
-      }
-      return fallback;
-    }
-    return selected;
-  }
-
-  private selectRandomQuestions(questions: string[], count = 3): string[] {
-    const shuffled = [...questions].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, Math.min(count, questions.length));
+  private getReviewQuestions(): Array<{ area: string; question: string }> {
+    return this.focusAreas.map(area => ({
+      area: area.name,
+      question: this.selectRandomQuestionFromArea(area)
+    }));
   }
 
   private hasRecentCodeChanges(): boolean {
@@ -269,11 +185,8 @@ export class SelfReviewHook extends BaseHook {
       return { exitCode: 0, suppressOutput: true };
     }
 
-    const prompt = this.selectRandomPrompt();
-    const persona = this.selectRandomPersona();
-    const questions = this.selectRandomQuestions(prompt.questions, 2);
-
-    const reviewMessage = this.constructReviewMessage(persona, prompt, questions);
+    const questions = this.getReviewQuestions();
+    const reviewMessage = this.constructReviewMessage(questions);
 
     // For Stop hooks, use exit code 0 with JSON output to control decision
     console.error(reviewMessage);
@@ -287,61 +200,45 @@ export class SelfReviewHook extends BaseHook {
     };
   }
 
-  private constructReviewMessage(persona: SeniorPersona, prompt: ReviewPrompt, questions: string[]): string {
+  private constructReviewMessage(questions: Array<{ area: string; question: string }>): string {
     const templates: Array<() => string> = [
       (): string => `⚠️ **Stop and Review Your Work**
 
-Before it's reviewed by ${persona.name} (${persona.style}):
+Before your code is reviewed, consider these critical questions:
 
-"${persona.catchphrase}"
-
-**Consider:**
-${questions.map(q => `• ${q}`).join('\n')}
+${questions.map(q => `**${q.area}:**\n• ${q.question}`).join('\n\n')}
 
 Take a moment to address any issues you notice.`,
 
-      (): string => `🔍 **Code Review Required**
+      (): string => `🔍 **Self-Review Required**
 
-Before proceeding, ${persona.name} needs these questions answered.
-They're ${persona.style}.
+Please review these aspects of your changes:
 
-Remember: "${persona.catchphrase}"
-
-**Review questions:**
-${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+${questions.map((q, i) => `**${i + 1}. ${q.area}:**\n   ${q.question}`).join('\n\n')}
 
 Address any concerns before proceeding.`,
 
-      (): string => `📋 **Quality Check**
+      (): string => `📋 **Code Quality Check**
 
-${persona.catchphrase}
+Review your work against these criteria:
 
-Focus: ${prompt.focus}
-
-**Self-review checklist:**
-${questions.map(q => `□ ${q}`).join('\n')}
+${questions.map(q => `**${q.area}:**\n□ ${q.question}`).join('\n\n')}
 
 Consider addressing these points.`,
 
-      (): string => `🎯 **Required Improvements**
+      (): string => `🎯 **Review Checklist**
 
-${persona.name} would look for these during their ${prompt.framework}:
+Critical questions to consider:
 
-"${persona.catchphrase}"
-
-**Points to review:**
-${questions.map(q => `→ ${q}`).join('\n')}
+${questions.map(q => `**${q.area}:**\n→ ${q.question}`).join('\n\n')}
 
 Please review and improve where needed.`,
 
-      (): string => `⚡ **Code Issues Detected**
+      (): string => `⚡ **Self-Review Time**
 
-${persona.name} (${persona.style}) would check:
+Check these aspects of your implementation:
 
-"${persona.catchphrase}"
-
-**Review points:**
-${questions.map(q => `- ${q}`).join('\n')}
+${questions.map(q => `**${q.area}:**\n- ${q.question}`).join('\n\n')}
 
 Consider improvements in these areas.`
     ];

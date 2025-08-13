@@ -2,22 +2,26 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TypecheckProjectHook } from '../../cli/hooks/typecheck-project.js';
 import type { HookContext } from '../../cli/hooks/base.js';
 import * as utils from '../../cli/hooks/utils.js';
+import * as configUtils from '../../cli/utils/claudekit-config.js';
 
 describe('TypecheckProjectHook', () => {
   let hook: TypecheckProjectHook;
   let mockCheckToolAvailable: ReturnType<typeof vi.fn>;
   let mockExecCommand: ReturnType<typeof vi.fn>;
+  let mockGetHookConfig: ReturnType<typeof vi.fn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     hook = new TypecheckProjectHook();
     mockCheckToolAvailable = vi.fn();
     mockExecCommand = vi.fn();
+    mockGetHookConfig = vi.fn().mockReturnValue({});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Mock the utils functions
     vi.spyOn(utils, 'checkToolAvailable').mockImplementation(mockCheckToolAvailable);
     vi.spyOn(utils, 'formatTypeScriptErrors').mockReturnValue('Formatted TypeScript errors');
+    vi.spyOn(configUtils, 'getHookConfig').mockImplementation(mockGetHookConfig);
 
     // Mock the execCommand method on the hook instance
     vi.spyOn(
@@ -108,12 +112,12 @@ describe('TypecheckProjectHook', () => {
       });
     });
 
-    it('should respect custom typescriptCommand', async () => {
+    it('should respect custom command', async () => {
       mockCheckToolAvailable.mockResolvedValue(true);
       mockExecCommand.mockResolvedValue({ exitCode: 0, stdout: '', stderr: '' });
-      (hook as unknown as { config: { typescriptCommand: string } }).config = {
-        typescriptCommand: 'pnpm tsc --noEmit --strict',
-      };
+      mockGetHookConfig.mockReturnValue({
+        command: 'pnpm tsc --noEmit --strict',
+      });
       const context = createMockContext();
 
       await hook.execute(context);

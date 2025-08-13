@@ -2,19 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TestProjectHook } from '../../cli/hooks/test-project.js';
 import type { HookContext } from '../../cli/hooks/base.js';
 import * as utils from '../../cli/hooks/utils.js';
+import * as configUtils from '../../cli/utils/claudekit-config.js';
 
 describe('TestProjectHook', () => {
   let hook: TestProjectHook;
   let mockExecCommand: ReturnType<typeof vi.fn>;
+  let mockGetHookConfig: ReturnType<typeof vi.fn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     hook = new TestProjectHook();
     mockExecCommand = vi.fn();
+    mockGetHookConfig = vi.fn().mockReturnValue({});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Mock the utils functions
     vi.spyOn(utils, 'formatTestErrors').mockReturnValue('Formatted test errors');
+    vi.spyOn(configUtils, 'getHookConfig').mockImplementation(mockGetHookConfig);
 
     // Mock the execCommand method on the hook instance
     vi.spyOn(
@@ -167,9 +171,9 @@ describe('TestProjectHook', () => {
         }
         return Promise.resolve({ exitCode: 0, stdout: '', stderr: '' });
       });
-      (hook as unknown as { config: { testCommand: string } }).config = {
-        testCommand: 'custom test command',
-      };
+      mockGetHookConfig.mockReturnValue({
+        command: 'custom test command',
+      });
       const context = createMockContext();
 
       await hook.execute(context);

@@ -1,6 +1,12 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { checkToolAvailable } from './utils.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface TypecheckConfig {
+  command?: string | undefined;
+  timeout?: number | undefined;
+}
 
 export class TypecheckChangedHook extends BaseHook {
   name = 'typecheck-changed';
@@ -32,7 +38,8 @@ export class TypecheckChangedHook extends BaseHook {
     this.progress(`📘 Type-checking ${filePath}`);
 
     // Run TypeScript compiler
-    const command = this.config.command ?? `${packageManager.exec} tsc --noEmit`;
+    const config = this.loadConfig();
+    const command = config.command ?? `${packageManager.exec} tsc --noEmit`;
     const result = await this.execCommand(command, [], {
       cwd: projectRoot,
     });
@@ -48,5 +55,9 @@ export class TypecheckChangedHook extends BaseHook {
 
     this.success('TypeScript check passed!');
     return { exitCode: 0 };
+  }
+
+  private loadConfig(): TypecheckConfig {
+    return getHookConfig<TypecheckConfig>('typecheck-changed') ?? {};
   }
 }

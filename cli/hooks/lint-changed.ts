@@ -2,6 +2,14 @@ import * as path from 'path';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import type { ExecResult, PackageManager } from './utils.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface LintChangedConfig {
+  command?: string | undefined;
+  extensions?: string[] | undefined;
+  fix?: boolean | undefined;
+  timeout?: number | undefined;
+}
 
 export class LintChangedHook extends BaseHook {
   name = 'lint-changed';
@@ -44,6 +52,10 @@ export class LintChangedHook extends BaseHook {
     return { exitCode: 0 };
   }
 
+  private loadConfig(): LintChangedConfig {
+    return getHookConfig<LintChangedConfig>('lint-changed') || {};
+  }
+
   private async hasEslint(projectRoot: string): Promise<boolean> {
     // Check for ESLint config files
     const configFiles = [
@@ -69,19 +81,19 @@ export class LintChangedHook extends BaseHook {
     projectRoot: string,
     packageManager: PackageManager
   ): Promise<ExecResult> {
-    const eslintCommand = this.config.command ?? `${packageManager.exec} eslint`;
+    const config = this.loadConfig();
+    const eslintCommand = config.command ?? `${packageManager.exec} eslint`;
 
     // Build ESLint arguments
     const eslintArgs: string[] = [];
 
     // Add file extensions if configured
-    const extensions = this.config['extensions'];
-    if (extensions !== undefined && extensions !== null) {
-      eslintArgs.push('--ext', (extensions as string[]).join(','));
+    if (config.extensions !== undefined) {
+      eslintArgs.push('--ext', config.extensions.join(','));
     }
 
     // Add fix flag if configured
-    if (this.config['fix'] === true) {
+    if (config.fix === true) {
       eslintArgs.push('--fix');
     }
 
@@ -90,7 +102,7 @@ export class LintChangedHook extends BaseHook {
 
     return await this.execCommand(eslintCommand, eslintArgs, {
       cwd: projectRoot,
-      timeout: (this.config.timeout as number) || 30000,
+      timeout: config.timeout ?? 30000,
     });
   }
 

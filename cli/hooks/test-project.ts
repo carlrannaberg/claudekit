@@ -6,9 +6,19 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { formatTestErrors } from './utils.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface TestProjectConfig {
+  command?: string | undefined;
+  timeout?: number | undefined;
+}
 
 export class TestProjectHook extends BaseHook {
   name = 'test-project';
+
+  private loadConfig(): TestProjectConfig {
+    return getHookConfig<TestProjectConfig>('test-project') ?? {};
+  }
 
   static metadata = {
     id: 'test-project',
@@ -33,12 +43,14 @@ export class TestProjectHook extends BaseHook {
 
     this.progress('Running project test suite...');
 
-    const testCommand = (this.config['testCommand'] as string) || packageManager.test;
+    const config = this.loadConfig();
+    const testCommand = config.command ?? packageManager.test;
 
-    // Use a timeout just under Claude Code's 60s limit
+    // Use a timeout just under Claude Code's 60s limit, or from config
+    const timeout = config.timeout ?? 55000; // 55 seconds (under Claude Code's 60s limit)
     const result = await this.execCommand(testCommand, [], {
       cwd: projectRoot,
-      timeout: 55000, // 55 seconds (under Claude Code's 60s limit)
+      timeout,
     });
 
     if (result.exitCode === 0) {
@@ -54,12 +66,12 @@ export class TestProjectHook extends BaseHook {
         `The test suite was terminated${durationText} due to the hook timeout limit.\n`
       );
 
-      const customCommand = this.config['testCommand'] as string;
-      if (customCommand) {
-        console.error(`Current command: ${customCommand}\n`);
+      const config = this.loadConfig();
+      if (config.command !== undefined && config.command !== '') {
+        console.error(`Current command: ${config.command}\n`);
         console.error('RECOMMENDED ACTIONS:');
         console.error('1. Use a faster test command in .claudekit/config.json:');
-        console.error('   Example: "testCommand": "npm run test:unit"  (skip integration tests)\n');
+        console.error('   Example: "command": "npm run test:unit"  (skip integration tests)\n');
       } else {
         console.error(`Current command: ${packageManager.test}\n`);
         console.error('RECOMMENDED ACTIONS:');
@@ -67,7 +79,7 @@ export class TestProjectHook extends BaseHook {
         console.error('   {');
         console.error('     "hooks": {');
         console.error('       "test-project": {');
-        console.error('         "testCommand": "npm run test:fast"');
+        console.error('         "command": "npm run test:fast"');
         console.error('       }');
         console.error('     }');
         console.error('   }\n');

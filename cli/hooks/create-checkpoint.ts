@@ -1,5 +1,11 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+interface CreateCheckpointConfig {
+  prefix?: string;
+  maxCheckpoints?: number;
+}
 
 export class CreateCheckpointHook extends BaseHook {
   name = 'create-checkpoint';
@@ -14,10 +20,15 @@ export class CreateCheckpointHook extends BaseHook {
     dependencies: ['git'],
   };
 
+  private loadConfig(projectRoot: string): CreateCheckpointConfig {
+    return getHookConfig<CreateCheckpointConfig>('create-checkpoint', projectRoot) || {};
+  }
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;
-    const prefix = (this.config['prefix'] as string) || 'claude';
-    const maxCheckpoints = (this.config['maxCheckpoints'] as number) || 10;
+    const config = this.loadConfig(projectRoot);
+    const prefix = config.prefix ?? 'claude';
+    const maxCheckpoints = config.maxCheckpoints ?? 10;
 
     // Check if there are any changes to checkpoint
     const { stdout } = await this.execCommand('git', ['status', '--porcelain'], {
