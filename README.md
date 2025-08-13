@@ -217,6 +217,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 #### Action Hooks
 - **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
 - **check-todos** - Ensure all todos are completed before stopping
+- **self-review** - Prompt critical self-review with randomized senior developer personas and questions
 
 ### Hook Configuration
 
@@ -423,6 +424,7 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 #### Action Hooks
 - **create-checkpoint** - Save work automatically when Claude Code stops
 - **check-todos** - Prevent stopping with incomplete todos
+- **self-review** - Prompt critical self-review with randomized senior developer personas and questions
 
 #### Hook Management & Monitoring
 - Built-in execution logging with statistics tracking

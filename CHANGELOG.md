@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2025-08-13
+
+### Added
+- **Self Review Hook**: New validation hook that prompts critical self-review with randomized senior developer personas and questions
+  - Triggers on Stop events after code file modifications with 70% probability
+  - Features 5 senior developer personas with distinct styles and catchphrases
+  - Includes 3 review frameworks focusing on code coherence, integration, and overall health
+  - Smart detection of code file changes vs documentation/config files
+  - Analyzes conversation history to only trigger when actual code files were modified
+  - Supports 20+ programming languages (.ts, .tsx, .js, .jsx, .py, .java, .cpp, .go, .rs, .swift, .kt, .rb, .php, .scala, .vue, .svelte, etc.)
+  - Prevents hook loops and provides structured feedback with randomized question selection
+
+### Fixed
+- **Self Review Hook Targeting**: Improved hook to only trigger on actual code file changes, ignoring documentation and configuration files
+  - Excludes README, CHANGELOG, LICENSE, .md, .txt, .json, .yaml, .yml, .toml, .ini, .env, .gitignore, .dockerignore files
+  - Uses conversation transcript analysis to detect recent code editing tool usage
+  - Prevents false triggers on non-code modifications
+
 ## [0.3.2] - 2025-08-12
 
 ### Added
