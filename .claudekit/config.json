@@ -1,7 +1,7 @@
 {
   "hooks": {
     "self-review": {
-      "triggerProbability": 0.7,
+      "triggerProbability": 1.0,
       "focusAreas": [
         {
           "name": "Refactoring & Integration",
