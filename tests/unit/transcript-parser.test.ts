@@ -303,6 +303,106 @@ describe('TranscriptParser', () => {
     });
   });
 
+  describe('findLastMessageWithMarker', () => {
+    it('should find the last message with marker', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'user',
+          message: { 
+            content: [{ type: 'text', text: 'Some message' }]
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'user',
+          message: { 
+            content: [{ type: 'text', text: '📋 **Self-Review**' }]
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [{ type: 'text', text: 'Response' }]
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      expect(parser.findLastMessageWithMarker('📋 **Self-Review**')).toBe(1);
+    });
+
+    it('should return -1 when marker not found', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'user',
+          message: { 
+            content: [{ type: 'text', text: 'Some message' }]
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      expect(parser.findLastMessageWithMarker('📋 **Self-Review**')).toBe(-1);
+    });
+  });
+
+  describe('hasCodeChangesSinceMarker', () => {
+    it('should detect code changes after marker', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'user',
+          message: { 
+            content: [{ type: 'text', text: '📋 **Self-Review**' }]
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.ts' } }
+            ] 
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      expect(parser.hasCodeChangesSinceMarker('📋 **Self-Review**')).toBe(true);
+    });
+
+    it('should return false when no changes since marker', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.ts' } }
+            ] 
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'user',
+          message: { 
+            content: [{ type: 'text', text: '📋 **Self-Review**' }]
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      expect(parser.hasCodeChangesSinceMarker('📋 **Self-Review**')).toBe(false);
+    });
+  });
+
   describe('hasRecentCodeChanges', () => {
     it('should detect code file changes', () => {
       const mockTranscript = [

@@ -224,6 +224,91 @@ export class TranscriptParser {
   }
 
   /**
+   * Find the most recent message containing a specific marker
+   * Returns the index of the message containing the marker, or -1 if not found
+   */
+  findLastMessageWithMarker(marker: string): number {
+    const entries = this.loadEntries();
+    
+    // Search backwards for the most recent message with the marker
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const entry = entries[i];
+      if (!entry) {
+        continue;
+      }
+      
+      // Check user messages (which often contain hook output)
+      if (entry.type === 'user' && entry.message?.content) {
+        const content = Array.isArray(entry.message.content) 
+          ? entry.message.content.map(c => 
+              typeof c === 'object' && 'text' in c ? c.text : ''
+            ).join(' ')
+          : '';
+        
+        if (content.includes(marker)) {
+          return i;
+        }
+      }
+    }
+    
+    return -1;
+  }
+
+  /**
+   * Check if there are code file changes since a specific marker position
+   */
+  hasCodeChangesSinceMarker(
+    marker: string,
+    codeExtensions: string[] = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj', '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'],
+    ignorePatterns: string[] = ['README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore']
+  ): boolean {
+    const entries = this.loadEntries();
+    const lastMarkerIndex = this.findLastMessageWithMarker(marker);
+    
+    // If no previous marker, check if there are any code changes at all
+    if (lastMarkerIndex === -1) {
+      return this.hasRecentCodeChanges(999999); // Check all messages
+    }
+    
+    // Check for code changes after the last marker
+    const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
+    
+    for (let i = lastMarkerIndex + 1; i < entries.length; i++) {
+      const entry = entries[i];
+      if (!entry || entry.type !== 'assistant' || !entry.message?.content) {
+        continue;
+      }
+      
+      for (const content of entry.message.content) {
+        if (content.type === 'tool_use' && 
+            content.name !== undefined && 
+            content.name !== null &&
+            codeEditingTools.includes(content.name)) {
+          const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
+          
+          // Skip if it's a documentation or config file
+          const shouldIgnore = ignorePatterns.some(pattern => 
+            filePath.toUpperCase().includes(pattern.toUpperCase())
+          );
+          if (shouldIgnore) {
+            continue;
+          }
+          
+          // Check if it's a code file
+          const isCodeFile = codeExtensions.some(ext => 
+            filePath.toLowerCase().endsWith(ext)
+          );
+          if (isCodeFile) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * Check if there are code file changes in recent messages
    */
   hasRecentCodeChanges(

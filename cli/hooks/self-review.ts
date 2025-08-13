@@ -2,6 +2,7 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
+import { SELF_REVIEW_MARKER } from '../constants/self-review.js';
 
 interface FocusArea {
   name: string;
@@ -93,7 +94,16 @@ export class SelfReviewHook extends BaseHook {
       return false;
     }
     
-    // Use the parser to check for code changes in recent messages
+    // First check if there are any new code changes since the last review
+    const hasNewChanges = parser.hasCodeChangesSinceMarker(SELF_REVIEW_MARKER);
+    if (!hasNewChanges) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Self-review: No new code changes since last review');
+      }
+      return false;
+    }
+    
+    // Then check if changes are within the message window
     return parser.hasRecentCodeChanges(messageWindow);
   }
 
@@ -158,61 +168,13 @@ export class SelfReviewHook extends BaseHook {
   }
 
   private constructReviewMessage(questions: Array<{ area: string; question: string }>): string {
-    const templates: Array<() => string> = [
-      (): string => `⚠️ **Stop and Review Your Work**
-
-Before your code is reviewed, consider these critical questions:
-
-${questions.map(q => `**${q.area}:**\n• ${q.question}`).join('\n\n')}
-
-Take a moment to address any issues you notice.`,
-
-      (): string => `🔍 **Self-Review Required**
+    // Use consistent header for easy detection in transcript
+    return `${SELF_REVIEW_MARKER}
 
 Please review these aspects of your changes:
 
-${questions.map((q, i) => `**${i + 1}. ${q.area}:**\n   ${q.question}`).join('\n\n')}
+${questions.map(q => `**${q.area}:**\n• ${q.question}`).join('\n\n')}
 
-Address any concerns before proceeding.`,
-
-      (): string => `📋 **Code Quality Check**
-
-Review your work against these criteria:
-
-${questions.map(q => `**${q.area}:**\n□ ${q.question}`).join('\n\n')}
-
-Consider addressing these points.`,
-
-      (): string => `🎯 **Review Checklist**
-
-Critical questions to consider:
-
-${questions.map(q => `**${q.area}:**\n→ ${q.question}`).join('\n\n')}
-
-Please review and improve where needed.`,
-
-      (): string => `⚡ **Self-Review Time**
-
-Check these aspects of your implementation:
-
-${questions.map(q => `**${q.area}:**\n- ${q.question}`).join('\n\n')}
-
-Consider improvements in these areas.`
-    ];
-
-    if (templates.length === 0) {
-      throw new Error('No templates available');
-    }
-    const index = Math.floor(Math.random() * templates.length);
-    const template = templates[index];
-    if (!template) {
-      // This shouldn't happen with valid index, but TypeScript needs the check
-      const fallback = templates[0];
-      if (!fallback) {
-        throw new Error('No templates available');
-      }
-      return fallback();
-    }
-    return template();
+Address any concerns before proceeding.`;
   }
 }

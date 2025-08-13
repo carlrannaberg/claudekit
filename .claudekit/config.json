@@ -18,7 +18,9 @@
             "Would refactoring the surrounding code make everything simpler?",
             "Does the code structure still make sense after your additions?",
             "Should you consolidate similar functions that now exist?",
-            "Did you leave any temporary workarounds or hacks?"
+            "Did you leave any temporary workarounds or hacks?",
+            "Are there hardcoded constants that should be shared across modules?",
+            "Did you create module-specific methods that should be generic?"
           ]
         },
         {
