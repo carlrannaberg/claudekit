@@ -251,43 +251,68 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
 
 ### Hook Configuration
 
-Some hooks support additional configuration through `.claudekit/config.json`:
+Hooks support additional configuration through `.claudekit/config.json` in your project root. This file provides centralized hook configuration with JSON schema validation and graceful fallbacks to sensible defaults:
 
 ```json
 {
   "hooks": {
-    "selfReview": {
-      "triggerProbability": 0.7  // Probability (0-1) that self-review triggers (default: 0.7)
+    "self-review": {
+      "triggerProbability": 0.7,
+      "timeout": 30000
+    },
+    "typecheck-changed": {
+      "command": "pnpm tsc --noEmit",
+      "timeout": 45000
+    },
+    "lint-changed": {
+      "command": "pnpm eslint",
+      "extensions": [".ts", ".tsx", ".js", ".jsx"],
+      "fix": true,
+      "timeout": 30000
+    },
+    "test-project": {
+      "command": "npm run test:fast",
+      "timeout": 50000
+    },
+    "create-checkpoint": {
+      "prefix": "claude",
+      "maxCheckpoints": 15
     }
   }
 }
 ```
 
-Available configurations:
+#### Available Hook Configurations
 
-**Self-Review Hook:**
-- **self-review.triggerProbability**: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
+**Self-Review Hook (`self-review`):**
+- `triggerProbability`: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
+- `timeout`: Execution timeout in milliseconds (default: 30000)
 
-**TypeScript Hooks:**
-- **typecheck-changed.command**: Custom TypeScript command (default: uses package manager's tsc)
-- **typecheck-changed.timeout**: Execution timeout in ms (default: 30000)
-- **typecheck-project.command**: Custom TypeScript command for full project check
+**TypeScript Hooks (`typecheck-changed`, `typecheck-project`):**
+- `command`: Custom TypeScript command (default: uses package manager's tsc)
+- `timeout`: Execution timeout in milliseconds (default: 30000)
 
-**ESLint Hooks:**
-- **lint-changed.command**: Custom ESLint command (default: uses package manager's eslint)
-- **lint-changed.fix**: Auto-fix issues (default: false)
-- **lint-changed.extensions**: File extensions to lint (default: [".js", ".jsx", ".ts", ".tsx"])
-- **lint-changed.timeout**: Execution timeout in ms (default: 30000)
-- **lint-project.command**: Custom ESLint command for full project
+**ESLint Hooks (`lint-changed`, `lint-project`):**
+- `command`: Custom ESLint command (default: uses package manager's eslint)
+- `fix`: Auto-fix issues when possible (default: false)
+- `extensions`: File extensions to lint (default: [".js", ".jsx", ".ts", ".tsx"])
+- `timeout`: Execution timeout in milliseconds (default: 30000)
 
-**Test Hooks:**
-- **test-changed.command**: Custom test command (default: uses package manager's test script)
-- **test-project.command**: Custom test command for full suite
-- **test-project.timeout**: Execution timeout in ms (default: 50000)
+**Test Hooks (`test-changed`, `test-project`):**
+- `command`: Custom test command (default: uses package manager's test script)
+- `timeout`: Execution timeout in milliseconds (default: 55000 for test-project, 30000 for test-changed)
 
-**Checkpoint Hook:**
-- **create-checkpoint.prefix**: Git stash prefix (default: "claude")
-- **create-checkpoint.maxCheckpoints**: Maximum checkpoints to keep (default: 10)
+**Checkpoint Hook (`create-checkpoint`):**
+- `prefix`: Git stash prefix for checkpoints (default: "claude")
+- `maxCheckpoints`: Maximum number of checkpoints to keep (default: 10)
+
+#### Configuration Loading
+
+The configuration system provides robust loading with:
+- **JSON Schema Validation**: Ensures configuration format is correct
+- **Graceful Fallbacks**: Uses sensible defaults when config is missing or invalid
+- **Debug Logging**: Set `DEBUG=true` to see configuration loading details
+- **Type Safety**: Full TypeScript interfaces for each hook's configuration options
 
 ### Testing Hooks
 
@@ -602,7 +627,8 @@ Enables `/spec:create` to fetch up-to-date library documentation.
    {
      "hooks": {
        "test-project": {
-         "testCommand": "npm run test:unit"  // Run only unit tests
+         "command": "npm run test:unit",  // Run only unit tests
+         "timeout": 50000  // Optional: adjust timeout
        }
      }
    }

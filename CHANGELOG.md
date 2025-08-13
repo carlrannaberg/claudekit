@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2025-08-13
+
+### Added
+- **Claudekit Configuration System**: New centralized configuration system with `.claudekit/config.json` support
+  - Added `cli/utils/claudekit-config.ts` with `loadClaudekitConfig()` and `getHookConfig()` functions
+  - Supports JSON schema validation for configuration files
+  - Enables project-specific hook configuration with fallback to sensible defaults
+  - Added configuration example file at `.claudekit/config.json.example`
+
+### Changed
+- **Hook Configuration Architecture**: Standardized all hooks to use the new configuration system
+  - All hooks now use `getHookConfig<T>()` instead of accessing `this.config` directly
+  - Improved type safety with proper TypeScript interfaces for each hook's configuration
+  - Configuration loading with graceful fallback when config files are missing or invalid
+  - Updated hooks: `create-checkpoint`, `lint-changed`, `lint-project`, `test-changed`, `test-project`, `typecheck-changed`, `typecheck-project`, `self-review`
+- **Self-Review Hook Improvements**: Simplified and enhanced the self-review hook functionality  
+  - Replaced persona-based system with structured focus areas (Refactoring & Integration, Code Quality, Consistency & Completeness)
+  - Added configurable trigger probability (defaults to 70%, configurable via `triggerProbability` in config)
+  - Improved question selection with one question per focus area for better coverage
+  - Streamlined message templates with clearer, more actionable feedback
+  - Enhanced configuration support for timeout and trigger probability settings
+
+### Fixed
+- **Configuration Loading**: Robust configuration loading with proper error handling and debug logging
+- **Hook Parameter Interfaces**: All hooks now have properly typed configuration interfaces
+- **Test Suite Updates**: Updated all hook tests to mock the new configuration system properly
+
 ## [0.3.3] - 2025-08-13
 
 ### Added
