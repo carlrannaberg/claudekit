@@ -8,6 +8,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2025-08-13
+
+### Added
+- **TranscriptParser Utility**: New comprehensive transcript analysis system for Claude Code session parsing
+  - Added `cli/utils/transcript-parser.ts` with intelligent conversation message grouping
+  - Supports complex transcript parsing with UI message detection and tool use analysis  
+  - File pattern matching with glob support and negative patterns (e.g., `['**/*.ts', '!**/*.test.ts']`)
+  - Smart message windowing that matches Claude Code UI behavior (dots in conversation view)
+  - Functions for detecting file changes, finding markers, and analyzing recent activities
+- **Self-Review Hook Enhancements**: Major improvements to the self-review system
+  - Added configurable `messageWindow` setting (default: 15 UI messages)
+  - Added `targetPatterns` configuration for glob-based file filtering
+  - Enhanced `focusAreas` configuration with custom question sets
+  - Intelligent duplicate prevention with marker-based tracking (`📋 **Self-Review**`)
+  - Smart file change detection that respects time windows and file patterns
+- **Comprehensive Test Suite**: Added extensive test coverage for new functionality
+  - `tests/unit/transcript-parser.test.ts` with 25+ test cases covering all parser features
+  - `tests/unit/transcript-parser-grouping.test.ts` with real-world transcript parsing scenarios  
+  - `tests/unit/self-review.test.ts` with comprehensive hook behavior validation
+  - Tests cover message grouping, glob patterns, probability triggers, and configuration scenarios
+- **Configuration Examples**: Added `examples/settings.self-review.json` with documented configuration options
+
+### Changed
+- **Self-Review Hook Architecture**: Complete rewrite using the new TranscriptParser system
+  - Replaced manual conversation parsing with robust TranscriptParser utility
+  - Improved file change detection accuracy with configurable target patterns
+  - Enhanced message windowing to match Claude Code UI behavior exactly
+  - Simplified hook logic by delegating transcript analysis to dedicated parser
+  - Better duplicate prevention using consistent marker detection
+- **TypeScript Hook Error Messages**: Enhanced error feedback with specific command information
+  - TypeScript hooks now include the exact command (e.g., `npm run typecheck`) in error messages
+  - Updated `formatTypeScriptErrors()` utility to accept optional command parameter
+  - More actionable error messages that tell users exactly what to run for verification
+- **Hook Utilities**: Enhanced `check-todos` hook to use new TranscriptParser system
+  - Replaced manual transcript parsing with centralized parser utility
+  - Improved reliability and consistency across transcript-reading hooks
+
+### Fixed
+- **Message Counting Accuracy**: Fixed UI message counting to match Claude Code interface
+  - Messages are now grouped correctly (text + tools = one UI message)
+  - Accurate detection of when assistant messages get dots in the conversation view
+  - Proper handling of standalone tool-only messages (like TodoWrite)
+- **Self-Review Trigger Logic**: Improved trigger conditions and duplicate detection
+  - Fixed probability-based triggering with proper random number generation
+  - Enhanced file pattern matching to avoid false positives on documentation files  
+  - Corrected transcript path handling and validation
+  - Better debug logging for troubleshooting trigger behavior
+- **Test Infrastructure**: Improved test reliability and coverage
+  - Fixed vitest reporter configuration (switched from 'verbose' to 'default')
+  - Enhanced mock system for filesystem operations and transcript parsing
+  - Better test assertions that actually validate functionality rather than side effects
+
+### Security
+- **File Pattern Validation**: Enhanced glob pattern validation to prevent path traversal issues
+- **Transcript Access**: Secure transcript file access with proper path expansion and validation
+
 ## [0.3.4] - 2025-08-13
 
 ### Added

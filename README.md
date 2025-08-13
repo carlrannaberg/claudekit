@@ -217,7 +217,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 #### Action Hooks
 - **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
 - **check-todos** - Ensure all todos are completed before stopping
-- **self-review** - Prompt critical self-review with randomized senior developer personas and questions (configurable probability in `.claudekit/config.json`)
+- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports message windows, glob patterns, and trigger probability in `.claudekit/config.json`)
 
 ### Hook Configuration
 
@@ -286,19 +286,33 @@ Hooks support additional configuration through `.claudekit/config.json` in your 
 
 **Self-Review Hook (`self-review`):**
 - `triggerProbability`: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
+- `messageWindow`: Number of UI-visible messages (user/assistant turns) to check for code changes (default: 15)
+- `targetPatterns`: Glob patterns to match files for triggering reviews (default: code files only)
 - `timeout`: Execution timeout in milliseconds (default: 30000)
 - `focusAreas`: Custom focus areas and questions (optional, replaces defaults)
   ```json
-  "focusAreas": [
-    {
-      "name": "Performance",
-      "questions": [
-        "Did you consider the performance impact?",
-        "Are there unnecessary re-renders?",
-        "Could this benefit from caching?"
-      ]
-    }
-  ]
+  "self-review": {
+    "triggerProbability": 0.8,
+    "messageWindow": 20,
+    "targetPatterns": [
+      "**/*.ts",
+      "**/*.tsx", 
+      "**/*.js",
+      "**/*.jsx",
+      "!**/*.test.*",
+      "!**/*.spec.*"
+    ],
+    "focusAreas": [
+      {
+        "name": "Performance",
+        "questions": [
+          "Did you consider the performance impact?",
+          "Are there unnecessary re-renders?",
+          "Could this benefit from caching?"
+        ]
+      }
+    ]
+  }
   ```
 
 **TypeScript Hooks (`typecheck-changed`, `typecheck-project`):**
@@ -502,13 +516,20 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 #### Action Hooks
 - **create-checkpoint** - Save work automatically when Claude Code stops
 - **check-todos** - Prevent stopping with incomplete todos
-- **self-review** - Prompt critical self-review with randomized senior developer personas and questions (configurable probability in `.claudekit/config.json`)
+- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports message windows, glob patterns, and trigger probability in `.claudekit/config.json`)
 
 #### Hook Management & Monitoring
 - Built-in execution logging with statistics tracking
 - Performance monitoring with `claudekit-hooks stats`
 - Recent activity viewing with `claudekit-hooks recent`
 - Debug mode for troubleshooting hook issues
+
+#### Intelligent Transcript Analysis
+- **TranscriptParser**: Advanced Claude Code session analysis with UI message grouping
+- **Smart File Detection**: Glob pattern matching with negative patterns (e.g., exclude test files)
+- **Message Windowing**: Analyzes conversation history matching Claude Code UI behavior
+- **Duplicate Prevention**: Marker-based tracking prevents redundant hook triggers
+- **Change Detection**: Identifies recent file modifications within configurable time windows
 
 ### 📝 Slash Commands
 
