@@ -317,7 +317,7 @@ export function formatDuration(ms: number): string {
 /**
  * Format TypeScript errors with proper indentation
  */
-export function formatTypeScriptErrors(result: ExecResult): string {
+export function formatTypeScriptErrors(result: ExecResult, command?: string): string {
   const header = '████ TypeScript Validation Failed ████\n\n';
   const message = 'TypeScript compilation errors must be fixed:\n\n';
   const output = result.stderr || result.stdout;
@@ -326,12 +326,17 @@ export function formatTypeScriptErrors(result: ExecResult): string {
     .map((line) => `  ${line}`)
     .join('\n');
 
-  const actions =
-    '\n\nREQUIRED ACTIONS:\n' +
-    '1. Fix all TypeScript errors shown above\n' +
-    '2. Run type checking command to verify fixes\n' +
-    '3. Make necessary corrections\n' +
-    '4. The validation will run again automatically';
+  const step2 = command !== undefined && command !== null && command.length > 0
+    ? `2. Run '${command}' to verify fixes`
+    : '2. Run type checking command to verify fixes';
+  
+  const actions = `
+
+REQUIRED ACTIONS:
+1. Fix all TypeScript errors shown above
+${step2}
+3. Make necessary corrections
+4. The validation will run again automatically`;
 
   return header + message + indentedOutput + actions;
 }

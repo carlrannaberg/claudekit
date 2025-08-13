@@ -47,8 +47,7 @@ export class TypecheckChangedHook extends BaseHook {
     if (result.exitCode !== 0) {
       this.error('TypeScript compilation failed', result.stderr || result.stdout, [
         'Fix ALL TypeScript errors shown above',
-        "Run the project's type check command to verify all errors are resolved",
-        '(Check AGENT.md/CLAUDE.md or package.json scripts for the exact command)',
+        `Run '${command}' to verify all errors are resolved`,
       ]);
       return { exitCode: 2 };
     }

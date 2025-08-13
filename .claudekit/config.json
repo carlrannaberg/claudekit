@@ -39,12 +39,12 @@
         {
           "name": "Test Coverage",
           "questions": [
-            "Did you add tests for your new functionality?",
-            "Are error conditions and edge cases tested?",
-            "Do the tests verify actual behavior, not just that code runs?",
-            "Did you update tests affected by your changes?",
-            "Can you break your code and verify the tests catch it?",
-            "Are there untested code paths that could fail silently?"
+            "Did you write automated tests for the code you just added?",
+            "Should you add unit tests before moving on?",
+            "Are there integration tests that should be written?",
+            "Did you verify your tests fail when the code is broken?",
+            "Would another developer be confident this code works based on the tests?",
+            "Should you add tests now to prevent regressions later?"
           ]
         }
       ]

@@ -46,7 +46,7 @@ export class TypecheckProjectHook extends BaseHook {
     }
 
     // Format error output similar to current project-validation
-    const errorOutput = formatTypeScriptErrors(result);
+    const errorOutput = formatTypeScriptErrors(result, tsCommand);
     console.error(errorOutput);
     return { exitCode: 2 };
   }

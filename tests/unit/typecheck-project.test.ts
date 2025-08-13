@@ -140,7 +140,7 @@ describe('TypecheckProjectHook', () => {
       const result = await hook.execute(context);
 
       expect(result.exitCode).toBe(2);
-      expect(utils.formatTypeScriptErrors).toHaveBeenCalledWith(mockResult);
+      expect(utils.formatTypeScriptErrors).toHaveBeenCalledWith(mockResult, 'npx tsc --noEmit');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Formatted TypeScript errors');
     });
 
