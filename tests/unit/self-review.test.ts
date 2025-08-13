@@ -59,9 +59,6 @@ describe('SelfReviewHook', () => {
       }),
     ].join('\n');
     mockReadFileSync.mockReturnValue(mockTranscript);
-    
-    // Mock Math.random to control probability
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
   });
 
   const createMockContext = (): HookContext => ({
@@ -307,9 +304,6 @@ describe('SelfReviewHook', () => {
         }),
       ].join('\n');
       mockReadFileSync.mockReturnValue(mockTranscript);
-      
-      // Set random to trigger
-      vi.mocked(Math.random).mockReturnValue(0.5);
       
       const context = createMockContext();
       await hook.execute(context);

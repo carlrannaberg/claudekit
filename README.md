@@ -217,7 +217,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 #### Action Hooks
 - **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
 - **check-todos** - Ensure all todos are completed before stopping
-- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports message windows, glob patterns, and trigger probability in `.claudekit/config.json`)
+- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports glob patterns and custom focus areas in `.claudekit/config.json`)
 
 ### Hook Configuration
 
@@ -257,7 +257,6 @@ Hooks support additional configuration through `.claudekit/config.json` in your 
 {
   "hooks": {
     "self-review": {
-      "triggerProbability": 0.7,
       "timeout": 30000
     },
     "typecheck-changed": {
@@ -285,15 +284,11 @@ Hooks support additional configuration through `.claudekit/config.json` in your 
 #### Available Hook Configurations
 
 **Self-Review Hook (`self-review`):**
-- `triggerProbability`: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
-- `messageWindow`: Number of UI-visible messages (user/assistant turns) to check for code changes (default: 15)
 - `targetPatterns`: Glob patterns to match files for triggering reviews (default: code files only)
 - `timeout`: Execution timeout in milliseconds (default: 30000)
 - `focusAreas`: Custom focus areas and questions (optional, replaces defaults)
   ```json
   "self-review": {
-    "triggerProbability": 0.8,
-    "messageWindow": 20,
     "targetPatterns": [
       "**/*.ts",
       "**/*.tsx", 
@@ -516,7 +511,7 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 #### Action Hooks
 - **create-checkpoint** - Save work automatically when Claude Code stops
 - **check-todos** - Prevent stopping with incomplete todos
-- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports message windows, glob patterns, and trigger probability in `.claudekit/config.json`)
+- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports glob patterns and custom focus areas in `.claudekit/config.json`)
 
 #### Hook Management & Monitoring
 - Built-in execution logging with statistics tracking

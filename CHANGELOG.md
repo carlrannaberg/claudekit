@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.6] - 2025-08-14
+
+### Changed
+- **Self-Review Hook Configuration**: Simplified the self-review hook by removing complexity and focusing on essential functionality
+  - Removed `triggerProbability` configuration option - hook now triggers deterministically when code changes are detected
+  - Removed `messageWindow` configuration parameter - replaced with intelligent change detection since last review
+  - Enhanced change detection logic to check for new file modifications since the last self-review marker
+  - Added default 200-entry lookback limit when no previous review marker exists to prevent excessive history scanning
+  - Improved transcript parsing logic for more reliable file change detection
+
+### Fixed
+- **TranscriptParser Logic**: Enhanced transcript analysis methods for better change detection
+  - Added `hasFileChangesInRange()` method for checking changes within specific entry ranges
+  - Improved `hasFileChangesSinceMarker()` to properly handle cases where no previous marker exists
+  - Fixed file change detection to be more precise and reduce false positives
+- **Self-Review Configuration Schema**: Updated TypeScript configuration schema to remove deprecated options
+  - Removed `triggerProbability` and `messageWindow` from `SelfReviewConfigSchema`
+  - Streamlined configuration interface to focus on essential settings (timeout, targetPatterns, focusAreas)
+- **Test Suite Updates**: Updated test cases to reflect simplified configuration and behavior
+  - Removed tests for probability-based triggering and message window configuration
+  - Enhanced tests for new change detection logic and marker-based tracking
+  - Improved test coverage for transcript parsing edge cases
+
 ## [0.3.5] - 2025-08-13
 
 ### Added
