@@ -165,11 +165,42 @@ export class SelfReviewHook extends BaseHook {
       const recentMessages = conversation.messages.slice(-5);
       const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
       
+      // Code file extensions to trigger on
+      const codeExtensions = [
+        '.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', 
+        '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj',
+        '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'
+      ];
+      
+      // Documentation/config files to ignore
+      const ignorePatterns = [
+        'README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', 
+        '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore'
+      ];
+      
       for (const message of recentMessages) {
         if (message.role === 'assistant' && message.tool_uses) {
           for (const toolUse of message.tool_uses) {
             if (codeEditingTools.includes(toolUse.name)) {
-              return true;
+              // Check if the edited file is a code file
+              const input = toolUse.input as unknown as { file_path?: string; path?: string };
+              const filePath = (input?.file_path ?? input?.path ?? '').toString();
+              
+              // Skip if it's a documentation or config file
+              const shouldIgnore = ignorePatterns.some(pattern => 
+                filePath.toUpperCase().includes(pattern.toUpperCase())
+              );
+              if (shouldIgnore) {
+                continue;
+              }
+              
+              // Check if it's a code file
+              const isCodeFile = codeExtensions.some(ext => 
+                filePath.toLowerCase().endsWith(ext)
+              );
+              if (isCodeFile) {
+                return true;
+              }
             }
           }
         }
