@@ -28,6 +28,16 @@ const PrettierConfigSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional(),
 });
 
+const SelfReviewConfigSchema = z.object({
+  triggerProbability: z.number().min(0).max(1).optional(),
+  messageWindow: z.number().min(1).max(1000).optional(),
+  timeout: z.number().min(1000).max(300000).optional(),
+  focusAreas: z.array(z.object({
+    name: z.string(),
+    questions: z.array(z.string())
+  })).optional(),
+});
+
 // Global configuration that applies to all hooks
 const GlobalHookConfigSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional(),
@@ -49,6 +59,7 @@ const HooksConfigurationSchema = z.object({
   'test-changed': TestConfigSchema.optional(),
   'test-project': TestConfigSchema.optional(),
   prettier: PrettierConfigSchema.optional(),
+  'self-review': SelfReviewConfigSchema.optional(),
   'check-any-changed': z
     .object({
       timeout: z.number().min(1000).max(300000).optional(),
@@ -57,16 +68,6 @@ const HooksConfigurationSchema = z.object({
   'check-todos': z
     .object({
       timeout: z.number().min(1000).max(300000).optional(),
-    })
-    .optional(),
-  'self-review': z
-    .object({
-      triggerProbability: z.number().min(0).max(1).optional(),
-      timeout: z.number().min(1000).max(300000).optional(),
-      focusAreas: z.array(z.object({
-        name: z.string(),
-        questions: z.array(z.string()).min(1)
-      })).optional(),
     })
     .optional(),
 

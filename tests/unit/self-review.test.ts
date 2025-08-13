@@ -41,8 +41,22 @@ describe('SelfReviewHook', () => {
     
     // Mock transcript with recent code changes
     const mockTranscript = [
-      JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'src/test.ts' } }),
-      JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'README.md' } }),
+      JSON.stringify({ 
+        type: 'assistant', 
+        message: { 
+          content: [
+            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/test.ts' } }
+          ] 
+        } 
+      }),
+      JSON.stringify({ 
+        type: 'assistant', 
+        message: { 
+          content: [
+            { type: 'tool_use', name: 'Write', input: { file_path: 'README.md' } }
+          ] 
+        } 
+      }),
     ].join('\n');
     mockReadFileSync.mockReturnValue(mockTranscript);
     
@@ -145,6 +159,69 @@ describe('SelfReviewHook', () => {
         reason: expect.any(String)
       });
     });
+
+    it('should respect messageWindow configuration', async () => {
+      // Create a transcript with code changes far back
+      const entries = [];
+      
+      // Add a code change at the beginning (old)
+      entries.push(JSON.stringify({ 
+        type: 'assistant', 
+        message: { 
+          content: [
+            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/old-change.ts' } }
+          ] 
+        } 
+      }));
+      
+      // Add 10 user-assistant message pairs (20 messages total) without code changes
+      for (let i = 0; i < 10; i++) {
+        entries.push(JSON.stringify({ 
+          type: 'user', 
+          message: { 
+            content: [{ type: 'text', text: `User message ${i}` }] 
+          } 
+        }));
+        entries.push(JSON.stringify({ 
+          type: 'assistant', 
+          message: { 
+            content: [{ type: 'text', text: `Assistant response ${i}` }] 
+          } 
+        }));
+      }
+      
+      mockReadFileSync.mockReturnValue(entries.join('\n'));
+      
+      // Test with small window (5 messages) - should not find the old code change
+      mockGetHookConfig.mockReturnValue({ 
+        triggerProbability: 1.0,
+        messageWindow: 5 
+      });
+      
+      let context = createMockContext();
+      const result = await hook.execute(context);
+      
+      // Should not trigger because code change is beyond the 5-message window
+      expect(result.suppressOutput).toBe(true);
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      
+      // Test with large window (25 messages) - should find the old code change
+      vi.clearAllMocks();
+      mockGetHookConfig.mockReturnValue({ 
+        triggerProbability: 1.0,
+        messageWindow: 25 
+      });
+      
+      context = createMockContext();
+      await hook.execute(context);
+      
+      // Should trigger because code change is within the 25-message window
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(jsonOutputSpy).toHaveBeenCalledWith({
+        decision: 'block',
+        reason: expect.any(String)
+      });
+    });
   });
 
   describe('message variation', () => {
@@ -214,8 +291,22 @@ describe('SelfReviewHook', () => {
       
       // Mock transcript with only documentation changes
       const mockTranscript = [
-        JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'README.md' } }),
-        JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'docs/guide.md' } }),
+        JSON.stringify({ 
+          type: 'assistant', 
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'README.md' } }
+            ] 
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant', 
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Write', input: { file_path: 'docs/guide.md' } }
+            ] 
+          } 
+        }),
       ].join('\n');
       mockReadFileSync.mockReturnValue(mockTranscript);
       
@@ -232,8 +323,22 @@ describe('SelfReviewHook', () => {
       
       // Mock transcript with code changes
       const mockTranscript = [
-        JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'src/index.ts' } }),
-        JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'test/unit.test.js' } }),
+        JSON.stringify({ 
+          type: 'assistant', 
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.ts' } }
+            ] 
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant', 
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Write', input: { file_path: 'test/unit.test.js' } }
+            ] 
+          } 
+        }),
       ].join('\n');
       mockReadFileSync.mockReturnValue(mockTranscript);
       

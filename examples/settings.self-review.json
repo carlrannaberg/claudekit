@@ -1,0 +1,42 @@
+{
+  "_comment": "Example configuration for the self-review hook",
+  "hooks": {
+    "self-review": {
+      "triggerProbability": 0.7,
+      "_comment_probability": "0.7 = 70% chance to trigger when code changes detected",
+      
+      "messageWindow": 15,
+      "_comment_window": "Number of UI-visible messages (user/assistant turns) to check for code changes. Default: 15",
+      
+      "timeout": 30000,
+      "_comment_timeout": "Maximum time in milliseconds for the hook to run",
+      
+      "focusAreas": [
+        {
+          "name": "Refactoring & Integration",
+          "questions": [
+            "Did you just add code on top without integrating it properly?",
+            "Should you extract the new functionality into cleaner abstractions?",
+            "Would refactoring the surrounding code make everything simpler?"
+          ]
+        },
+        {
+          "name": "Code Quality",
+          "questions": [
+            "Did you leave the code better than you found it?",
+            "Is there duplicated logic that should be extracted?",
+            "Are you using different patterns than the existing code uses?"
+          ]
+        },
+        {
+          "name": "Test Coverage",
+          "questions": [
+            "Did you add tests for your new functionality?",
+            "Are the critical paths covered by tests?",
+            "Would another developer trust this code based on its tests?"
+          ]
+        }
+      ]
+    }
+  }
+}

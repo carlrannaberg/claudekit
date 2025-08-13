@@ -1,8 +1,7 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
-import { readFileSync, existsSync } from 'fs';
-import { homedir } from 'os';
+import { TranscriptParser } from '../utils/transcript-parser.js';
 
 interface FocusArea {
   name: string;
@@ -13,6 +12,7 @@ interface SelfReviewConfig {
   triggerProbability?: number | undefined;
   timeout?: number | undefined;
   focusAreas?: FocusArea[] | undefined;
+  messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for code changes
 }
 
 export class SelfReviewHook extends BaseHook {
@@ -81,89 +81,20 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private async hasRecentCodeChanges(transcriptPath?: string): Promise<boolean> {
+  private async hasRecentCodeChanges(messageWindow: number, transcriptPath?: string): Promise<boolean> {
     if (transcriptPath === undefined || transcriptPath === '') {
       // No transcript path means we're not in a Claude Code session
       return false;
     }
     
-    try {
-      // Expand ~ to home directory
-      const expandedPath = transcriptPath.replace(/^~/, homedir());
-      
-      if (!existsSync(expandedPath)) {
-        // Transcript doesn't exist, no changes
-        return false;
-      }
-      
-      // Read the JSONL transcript
-      const content = readFileSync(expandedPath, 'utf-8');
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      // Code editing tools to look for
-      const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-      
-      // Code file extensions to trigger on
-      const codeExtensions = [
-        '.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', 
-        '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj',
-        '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'
-      ];
-      
-      // Documentation/config files to ignore
-      const ignorePatterns = [
-        'README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', 
-        '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore'
-      ];
-      
-      // Check last 20 entries for code edits (reading from end)
-      const recentLineCount = Math.min(20, lines.length);
-      for (let i = lines.length - 1; i >= lines.length - recentLineCount; i--) {
-        const line = lines[i];
-        if (line === undefined || line === '') {
-          continue;
-        }
-        
-        try {
-          const entry = JSON.parse(line) as { 
-            toolName?: string; 
-            toolInput?: { file_path?: string; path?: string } 
-          };
-          
-          // Check if this is a code editing tool
-          if (entry.toolName !== undefined && codeEditingTools.includes(entry.toolName)) {
-            const filePath = (entry.toolInput?.file_path ?? entry.toolInput?.path ?? '').toString();
-            
-            // Skip if it's a documentation or config file
-            const shouldIgnore = ignorePatterns.some(pattern => 
-              filePath.toUpperCase().includes(pattern.toUpperCase())
-            );
-            if (shouldIgnore) {
-              continue;
-            }
-            
-            // Check if it's a code file
-            const isCodeFile = codeExtensions.some(ext => 
-              filePath.toLowerCase().endsWith(ext)
-            );
-            if (isCodeFile) {
-              return true;
-            }
-          }
-        } catch {
-          // Not valid JSON, skip this line
-          continue;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      // If we can't read or parse the transcript, assume no changes
-      if (process.env['DEBUG'] === 'true') {
-        console.error('Error reading transcript:', error);
-      }
+    const parser = new TranscriptParser(transcriptPath);
+    if (!parser.exists()) {
+      // Transcript doesn't exist, no changes
       return false;
     }
+    
+    // Use the parser to check for code changes in recent messages
+    return parser.hasRecentCodeChanges(messageWindow);
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -171,26 +102,43 @@ export class SelfReviewHook extends BaseHook {
   }
 
   async execute(context: HookContext): Promise<HookResult> {
+    if (process.env['DEBUG'] === 'true') {
+      console.error('Self-review: Hook starting');
+    }
     const stopHookActive = context.payload?.stop_hook_active;
     
     // Don't trigger if already in a stop hook loop
     if (stopHookActive === true) {
-      return { exitCode: 0, suppressOutput: true };
-    }
-
-    // Check if there were recent code changes
-    const transcriptPath = context.payload?.transcript_path as string | undefined;
-    const hasChanges = await this.hasRecentCodeChanges(transcriptPath);
-    if (!hasChanges) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Self-review: Skipping due to stop_hook_active');
+      }
       return { exitCode: 0, suppressOutput: true };
     }
 
     // Load configuration
     const config = this.loadConfig();
+    const messageWindow = config.messageWindow ?? 15; // Default: check last 15 UI-visible messages (user/assistant turns)
     const triggerProbability = config.triggerProbability ?? 0.7;
+    
+    if (process.env['DEBUG'] === 'true') {
+      console.error(`Self-review: Config loaded - messageWindow=${messageWindow}, probability=${triggerProbability}`);
+    }
+
+    // Check if there were recent code changes
+    const transcriptPath = context.payload?.transcript_path as string | undefined;
+    const hasChanges = await this.hasRecentCodeChanges(messageWindow, transcriptPath);
+    if (!hasChanges) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error(`Self-review: No recent code changes detected in last ${messageWindow} messages`);
+      }
+      return { exitCode: 0, suppressOutput: true };
+    }
 
     // Randomly decide whether to trigger based on configured probability
     if (Math.random() > triggerProbability) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error(`Self-review: Skipped due to probability (${triggerProbability})`);
+      }
       return { exitCode: 0, suppressOutput: true };
     }
 

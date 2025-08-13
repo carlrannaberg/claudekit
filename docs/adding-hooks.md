@@ -113,22 +113,160 @@ if (transcriptPath) {
 ```
 
 **Important:** The transcript is in JSONL format, NOT a single JSON object. Each line contains:
-- Tool use entries with `toolName`, `toolInput`, and results
+- Various entry types: user messages, assistant messages, system updates, and tool uses
 - The most recent entries are at the end of the file
 - Read from the end backwards to find the most recent state
+- **Message Boundaries**: You can track conversation turns by counting `type: 'user'` and `type: 'assistant'` entries
+- **Tool Uses**: Found in assistant entries with `content[].type === 'tool_use'`
+- **Grouping**: Assistant entries with the same `message.id` are parts of the same response
 
-Example of checking for recent file edits:
+#### JSONL Entry Schema
+
+The transcript contains various types of entries. Each line is a JSON object that can be one of several types:
+
 ```typescript
-// Read from end to find recent tool uses
-for (let i = lines.length - 1; i >= Math.max(0, lines.length - 10); i--) {
+// Base fields shared by all entries
+interface BaseEntry {
+  uuid: string;                    // Unique identifier for this entry
+  parentUuid: string | null;       // Links to previous entry in conversation
+  sessionId: string;               // Session identifier (consistent across conversation)
+  timestamp: string;               // ISO 8601 timestamp
+  type: 'user' | 'assistant' | 'system';
+  isSidechain: boolean;            // Whether this is a side conversation
+  userType: 'external';           // Type of user
+  cwd: string;                    // Current working directory
+  version: string;                // Claude Code version (e.g., "1.0.77")
+  gitBranch: string;              // Current git branch
+}
+
+// User entry - can include tool results
+interface UserEntry extends BaseEntry {
+  type: 'user';
+  message: {
+    role: 'user';
+    content: Array<{
+      type: 'text' | 'tool_result';
+      text?: string;              // For text content
+      tool_use_id?: string;       // Links to tool use
+      content?: any;              // Tool result content
+      is_error?: boolean;         // Whether tool failed
+    }>;
+  };
+  toolUseResult?: {               // Rich tool output data
+    filePath?: string;
+    oldString?: string;
+    newString?: string;
+    structuredPatch?: any[];
+    newTodos?: Array<{
+      content: string;
+      status: 'pending' | 'in_progress' | 'completed';
+      id: string;
+    }>;
+    // ... varies by tool type
+  };
+}
+
+// Assistant entry - contains tool uses
+interface AssistantEntry extends BaseEntry {
+  type: 'assistant';
+  requestId: string;
+  message: {
+    id: string;                   // Message ID (same across related entries)
+    type: 'message';
+    role: 'assistant';
+    model: string;                // e.g., "claude-opus-4-1-20250805"
+    content: Array<{
+      type: 'text' | 'tool_use';
+      text?: string;              // For text content
+      // For tool_use:
+      id?: string;                // Tool use ID
+      name?: string;              // Tool name (Edit, Write, Bash, etc.)
+      input?: {                   // Tool parameters
+        file_path?: string;
+        old_string?: string;
+        new_string?: string;
+        command?: string;
+        todos?: any[];
+        // ... tool-specific fields
+      };
+    }>;
+    stop_reason: null | string;
+    usage: {
+      input_tokens: number;
+      output_tokens: number;
+      // ... token usage details
+    };
+  };
+}
+
+// System entry - status updates and hook results
+interface SystemEntry extends BaseEntry {
+  type: 'system';
+  content: string;                // e.g., "Stop [claudekit-hooks run typecheck-project] completed"
+  isMeta: boolean;               // Whether this is meta information
+  level: 'info' | 'warning' | 'error';
+  toolUseID?: string;            // Associated tool use ID
+}
+```
+
+**Key Insights:**
+- **Message Boundaries**: Assistant entries with the same `message.id` are parts of one response
+- **Tool Pattern**: Tool uses in assistant entries, results in subsequent user entries
+- **Conversation Chain**: Follow `parentUuid` to traverse conversation order
+- **Session Consistency**: `sessionId` stays constant for entire conversation
+
+#### Example JSONL Entries
+
+Here are actual examples from a transcript:
+
+```jsonl
+// Assistant entries with tool uses
+{"type":"assistant","message":{"id":"msg_01...","role":"assistant","content":[{"type":"tool_use","name":"Edit","input":{"file_path":"src/index.ts","old_string":"const foo = 1;","new_string":"const foo = 2;"}}]},"timestamp":"2025-08-13T12:58:30.044Z"}
+
+// User entries with tool results  
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"toolu_01...","content":"File updated successfully"}]},"toolUseResult":{"filePath":"src/index.ts"},"timestamp":"2025-08-13T12:58:35.123Z"}
+
+// System entries (hook execution results)
+{"type":"system","content":"Stop [claudekit-hooks run typecheck-project] completed successfully","level":"info","toolUseID":"13d484b7-cd07-4319-8248-b56e10cc26a6","timestamp":"2025-08-13T12:58:16.459Z"}
+
+// User message entries
+{"type":"user","message":{"role":"user","content":"Please fix the bug in the login function"},"timestamp":"2025-08-13T12:58:23.099Z"}
+
+// Assistant message entries
+{"type":"assistant","message":{"role":"assistant","model":"claude-opus-4-1-20250805","content":[{"type":"text","text":"I'll fix that bug now."}]},"timestamp":"2025-08-13T12:58:30.044Z"}
+```
+
+
+Example of checking for recent code changes in last 5 messages:
+```typescript
+// Parse transcript to find code changes in recent messages
+let messageCount = 0;
+const targetMessages = 5;
+
+for (let i = lines.length - 1; i >= 0 && messageCount < targetMessages; i--) {
   const line = lines[i];
   if (!line) continue;
   
   try {
     const entry = JSON.parse(line);
-    if (entry.toolName === 'Edit' || entry.toolName === 'Write') {
-      const filePath = entry.toolInput?.file_path;
-      // Check if it's a code file...
+    
+    // Count conversation turns
+    if (entry.type === 'user' || entry.type === 'assistant') {
+      messageCount++;
+    }
+    
+    // Check for tool uses in assistant messages
+    if (entry.type === 'assistant' && entry.message?.content) {
+      for (const content of entry.message.content) {
+        if (content.type === 'tool_use' && 
+            ['Edit', 'Write', 'MultiEdit'].includes(content.name)) {
+          const filePath = content.input?.file_path;
+          // Check if it's a code file...
+          if (filePath?.endsWith('.ts') || filePath?.endsWith('.js')) {
+            return true; // Found code change in recent messages
+          }
+        }
+      }
     }
   } catch {
     // Skip invalid lines

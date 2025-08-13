@@ -1,10 +1,6 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
-
-interface Todo {
-  content: string;
-  status: 'pending' | 'in_progress' | 'completed';
-}
+import { TranscriptParser } from '../utils/transcript-parser.js';
 
 export class CheckTodosHook extends BaseHook {
   name = 'check-todos';
@@ -22,22 +18,20 @@ export class CheckTodosHook extends BaseHook {
     const { payload } = context;
 
     // Get transcript path
-    let transcriptPath = payload.transcript_path;
+    const transcriptPath = payload.transcript_path as string | undefined;
     if (transcriptPath === undefined || transcriptPath === '') {
       // Allow stop - no transcript to check
       return { exitCode: 0 };
     }
 
-    // Expand ~ to home directory
-    transcriptPath = transcriptPath.replace(/^~/, process.env['HOME'] ?? '');
-
-    if (!(await this.fileExists(transcriptPath))) {
+    const parser = new TranscriptParser(transcriptPath);
+    if (!parser.exists()) {
       // Allow stop - transcript not found
       return { exitCode: 0 };
     }
 
     // Find the most recent todo state
-    const todoState = await this.findLatestTodoState(transcriptPath);
+    const todoState = parser.findLatestTodoState();
 
     if (!todoState) {
       // No todos found, allow stop
@@ -67,33 +61,5 @@ export class CheckTodosHook extends BaseHook {
 
     // All todos complete, allow stop
     return { exitCode: 0 };
-  }
-
-  private async findLatestTodoState(transcriptPath: string): Promise<Todo[] | null> {
-    const content = await this.readFile(transcriptPath);
-    const lines = content.split('\n').filter((line) => line.trim());
-
-    // Read from end to find most recent todo state
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const line = lines[i];
-      if (line === undefined || line === '') {
-        continue;
-      } // Handle undefined from noUncheckedIndexedAccess
-
-      try {
-        const entry = JSON.parse(line);
-        if (
-          entry.toolUseResult?.newTodos !== null &&
-          entry.toolUseResult?.newTodos !== undefined &&
-          Array.isArray(entry.toolUseResult.newTodos)
-        ) {
-          return entry.toolUseResult.newTodos;
-        }
-      } catch {
-        // Not valid JSON, continue
-      }
-    }
-
-    return null;
   }
 }
