@@ -39,12 +39,12 @@
         {
           "name": "Test Coverage",
           "questions": [
-            "Did you add tests for your new code?",
-            "Are all edge cases covered by tests?",
-            "Do the tests actually verify the intended functionality?",
-            "Did you update existing tests that might be affected?",
-            "Are the test descriptions clear and meaningful?",
-            "Would these tests catch regressions in the future?"
+            "Did you add tests for your new functionality?",
+            "Are error conditions and edge cases tested?",
+            "Do the tests verify actual behavior, not just that code runs?",
+            "Did you update tests affected by your changes?",
+            "Can you break your code and verify the tests catch it?",
+            "Are there untested code paths that could fail silently?"
           ]
         }
       ]
