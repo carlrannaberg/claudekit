@@ -13,7 +13,7 @@ interface SelfReviewConfig {
   timeout?: number | undefined;
   focusAreas?: FocusArea[] | undefined;
   messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for changes
-  targetExtensions?: string[] | undefined;  // File extensions to review (e.g., ['.ts', '.js'] for code, ['.md'] for docs)
+  targetPatterns?: string[] | undefined;  // Glob patterns to match files (e.g., ['**/*.ts', '!**/*.test.ts'])
 }
 
 // Unique marker to identify self-review messages in the transcript
@@ -85,7 +85,7 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private async hasRecentFileChanges(messageWindow: number, targetExtensions: string[] | undefined, transcriptPath?: string): Promise<boolean> {
+  private async hasRecentFileChanges(messageWindow: number, targetPatterns: string[] | undefined, transcriptPath?: string): Promise<boolean> {
     if (transcriptPath === undefined || transcriptPath === '') {
       // No transcript path means we're not in a Claude Code session
       return false;
@@ -98,7 +98,7 @@ export class SelfReviewHook extends BaseHook {
     }
     
     // First check if there are any new file changes since the last review
-    const hasNewChanges = parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetExtensions);
+    const hasNewChanges = parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetPatterns);
     if (!hasNewChanges) {
       if (process.env['DEBUG'] === 'true') {
         console.error('Self-review: No new file changes since last review');
@@ -107,7 +107,7 @@ export class SelfReviewHook extends BaseHook {
     }
     
     // Then check if changes are within the message window
-    return parser.hasRecentFileChanges(messageWindow, targetExtensions);
+    return parser.hasRecentFileChanges(messageWindow, targetPatterns);
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -137,10 +137,10 @@ export class SelfReviewHook extends BaseHook {
       console.error(`Self-review: Config loaded - messageWindow=${messageWindow}, probability=${triggerProbability}`);
     }
 
-    // Check if there were recent file changes matching target extensions
+    // Check if there were recent file changes matching target patterns
     const transcriptPath = context.payload?.transcript_path as string | undefined;
-    const targetExtensions = config.targetExtensions;
-    const hasChanges = await this.hasRecentFileChanges(messageWindow, targetExtensions, transcriptPath);
+    const targetPatterns = config.targetPatterns;
+    const hasChanges = await this.hasRecentFileChanges(messageWindow, targetPatterns, transcriptPath);
     if (!hasChanges) {
       if (process.env['DEBUG'] === 'true') {
         console.error(`Self-review: No recent file changes detected in last ${messageWindow} messages`);

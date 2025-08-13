@@ -9,6 +9,14 @@
     "self-review": {
       "triggerProbability": 1.0,
       "messageWindow": 20,
+      "targetPatterns": [
+        "**/*.ts",
+        "**/*.tsx", 
+        "**/*.js",
+        "**/*.jsx",
+        "!**/*.test.*",
+        "!**/*.spec.*"
+      ],
       "focusAreas": [
         {
           "name": "Refactoring & Integration",

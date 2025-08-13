@@ -351,7 +351,7 @@ describe('TranscriptParser', () => {
     });
   });
 
-  describe('hasCodeChangesSinceMarker', () => {
+  describe('hasFileChangesSinceMarker', () => {
     it('should detect code changes after marker', () => {
       const mockTranscript = [
         JSON.stringify({ 
@@ -374,7 +374,7 @@ describe('TranscriptParser', () => {
       mockReadFileSync.mockReturnValue(mockTranscript);
       
       const parser = new TranscriptParser('/tmp/transcript.jsonl');
-      expect(parser.hasCodeChangesSinceMarker('📋 **Self-Review**')).toBe(true);
+      expect(parser.hasFileChangesSinceMarker('📋 **Self-Review**')).toBe(true);
     });
 
     it('should return false when no changes since marker', () => {
@@ -399,11 +399,11 @@ describe('TranscriptParser', () => {
       mockReadFileSync.mockReturnValue(mockTranscript);
       
       const parser = new TranscriptParser('/tmp/transcript.jsonl');
-      expect(parser.hasCodeChangesSinceMarker('📋 **Self-Review**')).toBe(false);
+      expect(parser.hasFileChangesSinceMarker('📋 **Self-Review**')).toBe(false);
     });
   });
 
-  describe('hasRecentCodeChanges', () => {
+  describe('hasRecentFileChanges', () => {
     it('should detect code file changes', () => {
       const mockTranscript = [
         JSON.stringify({ 
@@ -420,7 +420,7 @@ describe('TranscriptParser', () => {
       mockReadFileSync.mockReturnValue(mockTranscript);
       
       const parser = new TranscriptParser('/tmp/transcript.jsonl');
-      expect(parser.hasRecentCodeChanges(5)).toBe(true);
+      expect(parser.hasRecentFileChanges(5)).toBe(true);
     });
 
     it('should ignore documentation files', () => {
@@ -439,7 +439,7 @@ describe('TranscriptParser', () => {
       mockReadFileSync.mockReturnValue(mockTranscript);
       
       const parser = new TranscriptParser('/tmp/transcript.jsonl');
-      expect(parser.hasRecentCodeChanges(5)).toBe(false);
+      expect(parser.hasRecentFileChanges(5)).toBe(false);
     });
 
     it('should ignore non-code editing tools', () => {
@@ -458,7 +458,89 @@ describe('TranscriptParser', () => {
       mockReadFileSync.mockReturnValue(mockTranscript);
       
       const parser = new TranscriptParser('/tmp/transcript.jsonl');
-      expect(parser.hasRecentCodeChanges(5)).toBe(false);
+      expect(parser.hasRecentFileChanges(5)).toBe(false);
+    });
+
+    it('should respect custom glob patterns', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/components/Button.tsx' } }
+            ] 
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/utils/helper.ts' } }
+            ] 
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      
+      // Should match only tsx files
+      expect(parser.hasRecentFileChanges(5, ['**/*.tsx'])).toBe(true);
+      
+      // Should not match when only looking for .md files
+      expect(parser.hasRecentFileChanges(5, ['**/*.md'])).toBe(false);
+      
+      // Should match with multiple patterns
+      expect(parser.hasRecentFileChanges(5, ['**/*.ts', '**/*.tsx'])).toBe(true);
+    });
+
+    it('should handle negative glob patterns', () => {
+      const mockTranscript = [
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.test.ts' } }
+            ] 
+          } 
+        }),
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.ts' } }
+            ] 
+          } 
+        }),
+      ].join('\n');
+      
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const parser = new TranscriptParser('/tmp/transcript.jsonl');
+      
+      // Should exclude test files
+      const patterns = ['**/*.ts', '!**/*.test.ts'];
+      expect(parser.hasRecentFileChanges(5, patterns)).toBe(true); // index.ts matches
+      
+      // Should not match if only test file changed
+      const testOnlyTranscript = [
+        JSON.stringify({ 
+          type: 'assistant',
+          message: { 
+            content: [
+              { type: 'tool_use', name: 'Edit', input: { file_path: 'src/index.test.ts' } }
+            ] 
+          } 
+        }),
+      ].join('\n');
+      
+      mockReadFileSync.mockReturnValue(testOnlyTranscript);
+      // Create a new parser instance since the old one cached the entries
+      const parser2 = new TranscriptParser('/tmp/transcript.jsonl');
+      expect(parser2.hasRecentFileChanges(5, patterns)).toBe(false);
     });
   });
 });

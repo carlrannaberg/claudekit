@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'fs';
 import { homedir } from 'os';
+import picomatch from 'picomatch';
 
 export interface ToolInput {
   file_path?: string;
@@ -255,43 +256,62 @@ export class TranscriptParser {
   }
 
   /**
-   * Check if a file path matches the target file extensions
+   * Check if a file path matches the target patterns (glob patterns or extensions)
    */
-  private matchesTargetExtensions(filePath: string, extensions?: string[]): boolean {
-    // If no extensions specified, use default code extensions
-    if (!extensions || extensions.length === 0) {
-      const defaultExtensions = [
-        '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',  // JavaScript/TypeScript
-        '.py', '.pyw', '.pyx',                          // Python
-        '.java', '.kt', '.scala', '.clj',               // JVM languages
-        '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp',      // C/C++
-        '.cs', '.fs', '.vb',                            // .NET languages
-        '.go', '.rs', '.swift', '.m', '.mm',            // System languages
-        '.rb', '.php', '.pl', '.lua', '.r',             // Scripting languages
-        '.vue', '.svelte', '.astro',                    // Framework files
-        '.sol', '.dart', '.elm', '.ex', '.exs'          // Other languages
+  private matchesTargetPatterns(filePath: string, patterns?: string[]): boolean {
+    // If no patterns specified, use default code extensions
+    if (!patterns || patterns.length === 0) {
+      const defaultPatterns = [
+        '**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs',  // JavaScript/TypeScript
+        '**/*.py', '**/*.pyw', '**/*.pyx',                                      // Python
+        '**/*.java', '**/*.kt', '**/*.scala', '**/*.clj',                      // JVM languages
+        '**/*.c', '**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.h', '**/*.hpp',     // C/C++
+        '**/*.cs', '**/*.fs', '**/*.vb',                                        // .NET languages
+        '**/*.go', '**/*.rs', '**/*.swift', '**/*.m', '**/*.mm',                // System languages
+        '**/*.rb', '**/*.php', '**/*.pl', '**/*.lua', '**/*.r',                 // Scripting languages
+        '**/*.vue', '**/*.svelte', '**/*.astro',                                // Framework files
+        '**/*.sol', '**/*.dart', '**/*.elm', '**/*.ex', '**/*.exs'              // Other languages
       ];
-      return defaultExtensions.some(ext => 
-        filePath.toLowerCase().endsWith(ext)
-      );
+      // Create a matcher for all patterns
+      const isMatch = picomatch(defaultPatterns);
+      return isMatch(filePath);
     }
     
-    // Check if file matches any of the extensions
-    return extensions.some(ext => 
-      filePath.toLowerCase().endsWith(ext.toLowerCase())
-    );
+    // Separate positive and negative patterns
+    const positivePatterns: string[] = [];
+    const negativePatterns: string[] = [];
+    
+    for (const pattern of patterns) {
+      if (pattern.startsWith('!')) {
+        negativePatterns.push(pattern.slice(1));
+      } else {
+        positivePatterns.push(pattern);
+      }
+    }
+    
+    // If no positive patterns, use a match-all pattern
+    if (positivePatterns.length === 0) {
+      positivePatterns.push('**/*');
+    }
+    
+    // Create matchers
+    const isMatch = picomatch(positivePatterns);
+    const isExcluded = negativePatterns.length > 0 ? picomatch(negativePatterns) : (): boolean => false;
+    
+    // Check if file matches positive patterns and is not excluded
+    return isMatch(filePath) && !isExcluded(filePath);
   }
 
   /**
    * Check if there are file changes since a specific marker position
    */
-  hasFileChangesSinceMarker(marker: string, targetExtensions?: string[]): boolean {
+  hasFileChangesSinceMarker(marker: string, targetPatterns?: string[]): boolean {
     const entries = this.loadEntries();
     const lastMarkerIndex = this.findLastMessageWithMarker(marker);
     
     // If no previous marker, check if there are any file changes at all
     if (lastMarkerIndex === -1) {
-      return this.hasRecentFileChanges(999999, targetExtensions);
+      return this.hasRecentFileChanges(999999, targetPatterns);
     }
     
     // Check for file changes after the last marker
@@ -310,7 +330,7 @@ export class TranscriptParser {
             editingTools.includes(content.name)) {
           const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
           
-          if (this.matchesTargetExtensions(filePath, targetExtensions)) {
+          if (this.matchesTargetPatterns(filePath, targetPatterns)) {
             return true;
           }
         }
@@ -323,27 +343,18 @@ export class TranscriptParser {
   /**
    * Check if there are file changes in recent messages
    */
-  hasRecentFileChanges(messageCount: number, targetExtensions?: string[]): boolean {
+  hasRecentFileChanges(messageCount: number, targetPatterns?: string[]): boolean {
     const editingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
     const toolUses = this.findToolUsesInRecentMessages(messageCount, editingTools);
     
     for (const toolUse of toolUses) {
       const filePath = (toolUse.input?.file_path ?? toolUse.input?.path ?? '').toString();
       
-      if (this.matchesTargetExtensions(filePath, targetExtensions)) {
+      if (this.matchesTargetPatterns(filePath, targetPatterns)) {
         return true;
       }
     }
     
     return false;
-  }
-  
-  // Keep old methods for backward compatibility
-  hasCodeChangesSinceMarker(marker: string, codeExtensions?: string[]): boolean {
-    return this.hasFileChangesSinceMarker(marker, codeExtensions);
-  }
-  
-  hasRecentCodeChanges(messageCount: number, codeExtensions?: string[]): boolean {
-    return this.hasRecentFileChanges(messageCount, codeExtensions);
   }
 }
