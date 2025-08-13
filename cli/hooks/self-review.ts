@@ -2,7 +2,6 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
-import { SELF_REVIEW_MARKER } from '../constants/self-review.js';
 
 interface FocusArea {
   name: string;
@@ -15,6 +14,9 @@ interface SelfReviewConfig {
   focusAreas?: FocusArea[] | undefined;
   messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for code changes
 }
+
+// Unique marker to identify self-review messages in the transcript
+const SELF_REVIEW_MARKER = '📋 **Self-Review**';
 
 export class SelfReviewHook extends BaseHook {
   name = 'self-review';

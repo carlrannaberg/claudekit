@@ -255,19 +255,41 @@ export class TranscriptParser {
   }
 
   /**
+   * Check if a file path represents a code file
+   */
+  private isCodeFile(
+    filePath: string,
+    codeExtensions: string[] = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj', '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'],
+    ignorePatterns: string[] = ['README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore']
+  ): boolean {
+    // Skip if it's a documentation or config file
+    const shouldIgnore = ignorePatterns.some(pattern => 
+      filePath.toUpperCase().includes(pattern.toUpperCase())
+    );
+    if (shouldIgnore) {
+      return false;
+    }
+    
+    // Check if it's a code file
+    return codeExtensions.some(ext => 
+      filePath.toLowerCase().endsWith(ext)
+    );
+  }
+
+  /**
    * Check if there are code file changes since a specific marker position
    */
   hasCodeChangesSinceMarker(
     marker: string,
-    codeExtensions: string[] = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj', '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'],
-    ignorePatterns: string[] = ['README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore']
+    codeExtensions?: string[],
+    ignorePatterns?: string[]
   ): boolean {
     const entries = this.loadEntries();
     const lastMarkerIndex = this.findLastMessageWithMarker(marker);
     
     // If no previous marker, check if there are any code changes at all
     if (lastMarkerIndex === -1) {
-      return this.hasRecentCodeChanges(999999); // Check all messages
+      return this.hasRecentCodeChanges(999999, codeExtensions, ignorePatterns);
     }
     
     // Check for code changes after the last marker
@@ -286,19 +308,7 @@ export class TranscriptParser {
             codeEditingTools.includes(content.name)) {
           const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
           
-          // Skip if it's a documentation or config file
-          const shouldIgnore = ignorePatterns.some(pattern => 
-            filePath.toUpperCase().includes(pattern.toUpperCase())
-          );
-          if (shouldIgnore) {
-            continue;
-          }
-          
-          // Check if it's a code file
-          const isCodeFile = codeExtensions.some(ext => 
-            filePath.toLowerCase().endsWith(ext)
-          );
-          if (isCodeFile) {
+          if (this.isCodeFile(filePath, codeExtensions, ignorePatterns)) {
             return true;
           }
         }
@@ -313,8 +323,8 @@ export class TranscriptParser {
    */
   hasRecentCodeChanges(
     messageCount: number,
-    codeExtensions: string[] = ['.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj', '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'],
-    ignorePatterns: string[] = ['README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore']
+    codeExtensions?: string[],
+    ignorePatterns?: string[]
   ): boolean {
     const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
     const toolUses = this.findToolUsesInRecentMessages(messageCount, codeEditingTools);
@@ -322,19 +332,7 @@ export class TranscriptParser {
     for (const toolUse of toolUses) {
       const filePath = (toolUse.input?.file_path ?? toolUse.input?.path ?? '').toString();
       
-      // Skip if it's a documentation or config file
-      const shouldIgnore = ignorePatterns.some(pattern => 
-        filePath.toUpperCase().includes(pattern.toUpperCase())
-      );
-      if (shouldIgnore) {
-        continue;
-      }
-      
-      // Check if it's a code file
-      const isCodeFile = codeExtensions.some(ext => 
-        filePath.toLowerCase().endsWith(ext)
-      );
-      if (isCodeFile) {
+      if (this.isCodeFile(filePath, codeExtensions, ignorePatterns)) {
         return true;
       }
     }
