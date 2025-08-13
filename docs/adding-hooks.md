@@ -120,6 +120,18 @@ if (transcriptPath) {
 - **Tool Uses**: Found in assistant entries with `content[].type === 'tool_use'`
 - **Grouping**: Assistant entries with the same `message.id` are parts of the same response
 
+#### Understanding UI Message Counting
+
+**Important:** Claude Code UI dots (⏺) don't map 1:1 to transcript entries. When users say "5 messages ago", they mean 5 dots in the UI, not 5 transcript entries.
+
+**UI Message Grouping Rules:**
+- Assistant message with text starts a new UI message (gets a dot)
+- Following tool-only assistant messages belong to the same UI message
+- Standalone tool uses (TodoWrite) get their own dot
+- User messages are included but don't create dots
+
+A single UI message can contain dozens of transcript entries. When implementing "last N messages" logic, you must group transcript entries to match what users see in the UI.
+
 #### JSONL Entry Schema
 
 The transcript contains various types of entries. Each line is a JSON object that can be one of several types:
@@ -498,10 +510,13 @@ const command = config.command ?? 'default-command';
 #### File Pattern Configuration
 ```typescript
 const MyHookConfigSchema = z.object({
-  includePatterns: z.array(z.string()).optional(),
-  excludePatterns: z.array(z.string()).optional(),
+  targetPatterns: z.array(z.string()).optional(), // Supports glob patterns with ! for negation
 });
 ```
+
+### Preventing Duplicate Hook Triggers
+
+For Stop hooks that should only trigger once per set of changes, use marker-based detection: include a unique marker in your hook's output, then check for that marker in the transcript on subsequent runs to avoid duplicate triggers for the same changes.
 
 ### Configuration Best Practices
 
