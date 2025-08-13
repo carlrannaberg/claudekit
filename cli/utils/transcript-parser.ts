@@ -255,40 +255,47 @@ export class TranscriptParser {
   }
 
   /**
-   * Check if a file path represents a code file based on extension
+   * Check if a file path matches the target file extensions
    */
-  private isCodeFile(filePath: string): boolean {
-    const codeExtensions = [
-      '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',  // JavaScript/TypeScript
-      '.py', '.pyw', '.pyx',                          // Python
-      '.java', '.kt', '.scala', '.clj',               // JVM languages
-      '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp',      // C/C++
-      '.cs', '.fs', '.vb',                            // .NET languages
-      '.go', '.rs', '.swift', '.m', '.mm',            // System languages
-      '.rb', '.php', '.pl', '.lua', '.r',             // Scripting languages
-      '.vue', '.svelte', '.astro',                    // Framework files
-      '.sol', '.dart', '.elm', '.ex', '.exs'          // Other languages
-    ];
+  private matchesTargetExtensions(filePath: string, extensions?: string[]): boolean {
+    // If no extensions specified, use default code extensions
+    if (!extensions || extensions.length === 0) {
+      const defaultExtensions = [
+        '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',  // JavaScript/TypeScript
+        '.py', '.pyw', '.pyx',                          // Python
+        '.java', '.kt', '.scala', '.clj',               // JVM languages
+        '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp',      // C/C++
+        '.cs', '.fs', '.vb',                            // .NET languages
+        '.go', '.rs', '.swift', '.m', '.mm',            // System languages
+        '.rb', '.php', '.pl', '.lua', '.r',             // Scripting languages
+        '.vue', '.svelte', '.astro',                    // Framework files
+        '.sol', '.dart', '.elm', '.ex', '.exs'          // Other languages
+      ];
+      return defaultExtensions.some(ext => 
+        filePath.toLowerCase().endsWith(ext)
+      );
+    }
     
-    return codeExtensions.some(ext => 
-      filePath.toLowerCase().endsWith(ext)
+    // Check if file matches any of the extensions
+    return extensions.some(ext => 
+      filePath.toLowerCase().endsWith(ext.toLowerCase())
     );
   }
 
   /**
-   * Check if there are code file changes since a specific marker position
+   * Check if there are file changes since a specific marker position
    */
-  hasCodeChangesSinceMarker(marker: string): boolean {
+  hasFileChangesSinceMarker(marker: string, targetExtensions?: string[]): boolean {
     const entries = this.loadEntries();
     const lastMarkerIndex = this.findLastMessageWithMarker(marker);
     
-    // If no previous marker, check if there are any code changes at all
+    // If no previous marker, check if there are any file changes at all
     if (lastMarkerIndex === -1) {
-      return this.hasRecentCodeChanges(999999);
+      return this.hasRecentFileChanges(999999, targetExtensions);
     }
     
-    // Check for code changes after the last marker
-    const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
+    // Check for file changes after the last marker
+    const editingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
     
     for (let i = lastMarkerIndex + 1; i < entries.length; i++) {
       const entry = entries[i];
@@ -300,10 +307,10 @@ export class TranscriptParser {
         if (content.type === 'tool_use' && 
             content.name !== undefined && 
             content.name !== null &&
-            codeEditingTools.includes(content.name)) {
+            editingTools.includes(content.name)) {
           const filePath = (content.input?.file_path ?? content.input?.path ?? '').toString();
           
-          if (this.isCodeFile(filePath)) {
+          if (this.matchesTargetExtensions(filePath, targetExtensions)) {
             return true;
           }
         }
@@ -314,20 +321,29 @@ export class TranscriptParser {
   }
 
   /**
-   * Check if there are code file changes in recent messages
+   * Check if there are file changes in recent messages
    */
-  hasRecentCodeChanges(messageCount: number): boolean {
-    const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-    const toolUses = this.findToolUsesInRecentMessages(messageCount, codeEditingTools);
+  hasRecentFileChanges(messageCount: number, targetExtensions?: string[]): boolean {
+    const editingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
+    const toolUses = this.findToolUsesInRecentMessages(messageCount, editingTools);
     
     for (const toolUse of toolUses) {
       const filePath = (toolUse.input?.file_path ?? toolUse.input?.path ?? '').toString();
       
-      if (this.isCodeFile(filePath)) {
+      if (this.matchesTargetExtensions(filePath, targetExtensions)) {
         return true;
       }
     }
     
     return false;
+  }
+  
+  // Keep old methods for backward compatibility
+  hasCodeChangesSinceMarker(marker: string, codeExtensions?: string[]): boolean {
+    return this.hasFileChangesSinceMarker(marker, codeExtensions);
+  }
+  
+  hasRecentCodeChanges(messageCount: number, codeExtensions?: string[]): boolean {
+    return this.hasRecentFileChanges(messageCount, codeExtensions);
   }
 }

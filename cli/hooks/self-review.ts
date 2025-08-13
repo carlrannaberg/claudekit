@@ -12,7 +12,8 @@ interface SelfReviewConfig {
   triggerProbability?: number | undefined;
   timeout?: number | undefined;
   focusAreas?: FocusArea[] | undefined;
-  messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for code changes
+  messageWindow?: number | undefined;  // Number of UI-visible messages (user/assistant turns) to check for changes
+  targetExtensions?: string[] | undefined;  // File extensions to review (e.g., ['.ts', '.js'] for code, ['.md'] for docs)
 }
 
 // Unique marker to identify self-review messages in the transcript
@@ -84,7 +85,7 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private async hasRecentCodeChanges(messageWindow: number, transcriptPath?: string): Promise<boolean> {
+  private async hasRecentFileChanges(messageWindow: number, targetExtensions: string[] | undefined, transcriptPath?: string): Promise<boolean> {
     if (transcriptPath === undefined || transcriptPath === '') {
       // No transcript path means we're not in a Claude Code session
       return false;
@@ -96,17 +97,17 @@ export class SelfReviewHook extends BaseHook {
       return false;
     }
     
-    // First check if there are any new code changes since the last review
-    const hasNewChanges = parser.hasCodeChangesSinceMarker(SELF_REVIEW_MARKER);
+    // First check if there are any new file changes since the last review
+    const hasNewChanges = parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetExtensions);
     if (!hasNewChanges) {
       if (process.env['DEBUG'] === 'true') {
-        console.error('Self-review: No new code changes since last review');
+        console.error('Self-review: No new file changes since last review');
       }
       return false;
     }
     
     // Then check if changes are within the message window
-    return parser.hasRecentCodeChanges(messageWindow);
+    return parser.hasRecentFileChanges(messageWindow, targetExtensions);
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -136,12 +137,13 @@ export class SelfReviewHook extends BaseHook {
       console.error(`Self-review: Config loaded - messageWindow=${messageWindow}, probability=${triggerProbability}`);
     }
 
-    // Check if there were recent code changes
+    // Check if there were recent file changes matching target extensions
     const transcriptPath = context.payload?.transcript_path as string | undefined;
-    const hasChanges = await this.hasRecentCodeChanges(messageWindow, transcriptPath);
+    const targetExtensions = config.targetExtensions;
+    const hasChanges = await this.hasRecentFileChanges(messageWindow, targetExtensions, transcriptPath);
     if (!hasChanges) {
       if (process.env['DEBUG'] === 'true') {
-        console.error(`Self-review: No recent code changes detected in last ${messageWindow} messages`);
+        console.error(`Self-review: No recent file changes detected in last ${messageWindow} messages`);
       }
       return { exitCode: 0, suppressOutput: true };
     }
