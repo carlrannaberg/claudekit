@@ -57,8 +57,9 @@ Everything else is handled automatically:
 
 For a production-ready hook, you may also want to:
 
-3. **Add tests** in `tests/unit/hooks/my-new-hook.test.sh`
-4. **Update documentation** in `docs/hooks-documentation.md`
+3. **Add configuration support** (see "Making Hooks Configurable" section below)
+4. **Add tests** in `tests/unit/hooks/my-new-hook.test.sh`
+5. **Update documentation** in `docs/hooks-documentation.md`
 
 ## Hook Metadata Fields
 
@@ -162,6 +163,165 @@ export class TypecheckChangedHook extends BaseHook {
   }
 }
 ```
+
+## Making Hooks Configurable
+
+To add configuration support to your hook, follow these steps:
+
+### Step 1: Add Configuration to Schema
+
+Edit `cli/types/claudekit-config.ts` to add your hook's configuration:
+
+```typescript
+// Add your hook's config schema (before HooksConfigurationSchema)
+const MyHookConfigSchema = z.object({
+  myOption: z.string().optional(),
+  timeout: z.number().min(1000).max(300000).optional(),
+  enabled: z.boolean().optional(),
+});
+
+// Add to HooksConfigurationSchema
+const HooksConfigurationSchema = z.object({
+  // ... existing hooks ...
+  'my-new-hook': MyHookConfigSchema.optional(),
+  // ... rest of hooks ...
+});
+```
+
+### Step 2: Define Config Interface in Your Hook
+
+```typescript
+// In your hook file
+interface MyHookConfig {
+  myOption?: string | undefined;
+  timeout?: number | undefined;
+  enabled?: boolean | undefined;
+}
+```
+
+**Important:** Use `| undefined` for optional properties when using `exactOptionalPropertyTypes: true` in TypeScript.
+
+### Step 3: Load Configuration in Your Hook
+
+Use the `getHookConfig` utility to load your hook's configuration:
+
+```typescript
+import { getHookConfig } from '../utils/claudekit-config.js';
+
+export class MyNewHook extends BaseHook {
+  private loadConfig(): MyHookConfig {
+    return getHookConfig<MyHookConfig>('my-new-hook') ?? {};
+  }
+
+  async execute(context: HookContext): Promise<HookResult> {
+    const config = this.loadConfig();
+    const myOption = config.myOption ?? 'default-value';
+    const timeout = config.timeout ?? 30000;
+    
+    // Use your configuration values
+    // ...
+  }
+}
+```
+
+The `getHookConfig` utility handles:
+- Loading the `.claudekit/config.json` file
+- Validating the configuration with Zod
+- Returning your hook's specific configuration
+- Graceful fallback to empty object if not found
+
+### Step 4: Document Configuration Options
+
+1. Create an example config file `.claudekit/config.json.example`:
+
+```json
+{
+  "hooks": {
+    "my-new-hook": {
+      "myOption": "value",
+      "timeout": 30000,
+      "enabled": true
+    }
+  }
+}
+```
+
+2. Update README.md to document the configuration:
+
+```markdown
+### Hook Configuration
+
+Some hooks support additional configuration through `.claudekit/config.json`:
+
+- **my-new-hook.myOption**: Description of what this option does (default: "default-value")
+- **my-new-hook.timeout**: Maximum execution time in milliseconds (default: 30000)
+- **my-new-hook.enabled**: Enable/disable the hook (default: true)
+```
+
+### Step 5: Build and Test
+
+```bash
+npm run build
+```
+
+Test with a config file:
+```bash
+# Create test config
+cat > .claudekit/config.json << EOF
+{
+  "hooks": {
+    "my-new-hook": {
+      "myOption": "test-value"
+    }
+  }
+}
+EOF
+
+# Test the hook
+echo '{}' | claudekit-hooks run my-new-hook
+```
+
+### Common Configuration Patterns
+
+#### Probability/Chance Configuration
+```typescript
+const MyHookConfigSchema = z.object({
+  triggerProbability: z.number().min(0).max(1).optional(),
+});
+
+// In execute():
+const triggerProbability = config.triggerProbability ?? 0.7;
+if (Math.random() > triggerProbability) {
+  return { exitCode: 0, suppressOutput: true };
+}
+```
+
+#### Command Override Configuration
+```typescript
+const MyHookConfigSchema = z.object({
+  command: z.string().optional(),
+});
+
+// In execute():
+const command = config.command ?? 'default-command';
+```
+
+#### File Pattern Configuration
+```typescript
+const MyHookConfigSchema = z.object({
+  includePatterns: z.array(z.string()).optional(),
+  excludePatterns: z.array(z.string()).optional(),
+});
+```
+
+### Configuration Best Practices
+
+1. **Always provide defaults** - Hooks should work without configuration
+2. **Validate ranges** - Use Zod's min/max for numeric values
+3. **Use proper types** - Avoid `any`, use specific interfaces
+4. **Document defaults** - Clearly state default values in documentation
+5. **Test both cases** - Test with and without configuration
+6. **Fail gracefully** - If config is invalid, use defaults and continue
 
 ## Previous Process (Historical Reference)
 

@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "selfReview": {
+      "triggerProbability": 0.7
+    }
+  }
+}

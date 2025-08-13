@@ -217,7 +217,7 @@ Claudekit uses clear suffixes to indicate hook scope:
 #### Action Hooks
 - **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
 - **check-todos** - Ensure all todos are completed before stopping
-- **self-review** - Prompt critical self-review with randomized senior developer personas and questions
+- **self-review** - Prompt critical self-review with randomized senior developer personas and questions (configurable probability in `.claudekit/config.json`)
 
 ### Hook Configuration
 
@@ -248,6 +248,23 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
   }
 }
 ```
+
+### Hook Configuration
+
+Some hooks support additional configuration through `.claudekit/config.json`:
+
+```json
+{
+  "hooks": {
+    "selfReview": {
+      "triggerProbability": 0.7  // Probability (0-1) that self-review triggers (default: 0.7)
+    }
+  }
+}
+```
+
+Available configurations:
+- **selfReview.triggerProbability**: Controls how often the self-review hook triggers (0 = never, 1 = always, 0.7 = 70% of the time)
 
 ### Testing Hooks
 
@@ -424,7 +441,7 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 #### Action Hooks
 - **create-checkpoint** - Save work automatically when Claude Code stops
 - **check-todos** - Prevent stopping with incomplete todos
-- **self-review** - Prompt critical self-review with randomized senior developer personas and questions
+- **self-review** - Prompt critical self-review with randomized senior developer personas and questions (configurable probability in `.claudekit/config.json`)
 
 #### Hook Management & Monitoring
 - Built-in execution logging with statistics tracking

@@ -59,6 +59,12 @@ const HooksConfigurationSchema = z.object({
       timeout: z.number().min(1000).max(300000).optional(),
     })
     .optional(),
+  'self-review': z
+    .object({
+      triggerProbability: z.number().min(0).max(1).optional(),
+      timeout: z.number().min(1000).max(300000).optional(),
+    })
+    .optional(),
 
   // Global config
   global: GlobalHookConfigSchema.optional(),

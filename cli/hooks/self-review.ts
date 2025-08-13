@@ -3,6 +3,7 @@ import { BaseHook } from './base.js';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import { getHookConfig } from '../utils/claudekit-config.js';
 
 interface ReviewPrompt {
   framework: string;
@@ -23,6 +24,11 @@ interface ConversationMessage {
     name: string;
     input?: unknown;
   }>;
+}
+
+interface SelfReviewConfig {
+  triggerProbability?: number | undefined;
+  timeout?: number | undefined;
 }
 
 export class SelfReviewHook extends BaseHook {
@@ -213,6 +219,10 @@ export class SelfReviewHook extends BaseHook {
     }
   }
 
+  private loadConfig(): SelfReviewConfig {
+    return getHookConfig<SelfReviewConfig>('self-review') ?? {};
+  }
+
   async execute(context: HookContext): Promise<HookResult> {
     const stopHookActive = context.payload?.stop_hook_active;
     
@@ -226,8 +236,12 @@ export class SelfReviewHook extends BaseHook {
       return { exitCode: 0, suppressOutput: true };
     }
 
-    // Randomly decide whether to trigger (70% chance)
-    if (Math.random() > 0.7) {
+    // Load configuration
+    const config = this.loadConfig();
+    const triggerProbability = config.triggerProbability ?? 0.7;
+
+    // Randomly decide whether to trigger based on configured probability
+    if (Math.random() > triggerProbability) {
       return { exitCode: 0, suppressOutput: true };
     }
 
