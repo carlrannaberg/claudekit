@@ -79,6 +79,30 @@ export class SelfReviewHook extends BaseHook {
         "Is every piece of code still serving a clear purpose?",
         "Does the code tell a coherent story or is it a patchwork?"
       ]
+    },
+    {
+      framework: "consistency check",
+      focus: "patterns and conventions",
+      questions: [
+        "Are other similar components using the same patterns you just added?",
+        "Should other parts of the codebase be updated to match your improvements?",
+        "Did you create a utility that existing code could benefit from?",
+        "Are there inconsistent approaches to the same problem in the codebase?",
+        "Should your solution be applied elsewhere for consistency?",
+        "Did you check if similar code exists that should use your new approach?"
+      ]
+    },
+    {
+      framework: "completeness review",
+      focus: "follow-through and impact",
+      questions: [
+        "Did you finish what you started or leave work half-done?",
+        "Are there related files that need the same changes?",
+        "Did you update all the places that depend on what you changed?",
+        "Should documentation or examples be updated to reflect your changes?",
+        "Are there other hooks or components that could use your improvements?",
+        "Did you consider the broader impact of your changes?"
+      ]
     }
   ];
 
