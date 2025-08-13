@@ -1,0 +1,53 @@
+{
+  "hooks": {
+    "self-review": {
+      "triggerProbability": 0.7,
+      "focusAreas": [
+        {
+          "name": "Refactoring & Integration",
+          "questions": [
+            "Did you just add code on top without integrating it properly?",
+            "Should you extract the new functionality into cleaner abstractions?",
+            "Would refactoring the surrounding code make everything simpler?",
+            "Does the code structure still make sense after your additions?",
+            "Should you consolidate similar functions that now exist?",
+            "Did you leave any temporary workarounds or hacks?"
+          ]
+        },
+        {
+          "name": "Code Quality",
+          "questions": [
+            "Did you leave the code better than you found it?",
+            "Is there duplicated logic that should be extracted?",
+            "Are you using different patterns than the existing code uses?",
+            "Is the code more complex now than it needs to be?",
+            "Did you clean up after making your changes work?",
+            "Is every piece of code still serving a clear purpose?"
+          ]
+        },
+        {
+          "name": "Consistency & Completeness",
+          "questions": [
+            "Should other parts of the codebase be updated to match your improvements?",
+            "Did you update all the places that depend on what you changed?",
+            "Are there related files that need the same changes?",
+            "Did you create a utility that existing code could benefit from?",
+            "Should your solution be applied elsewhere for consistency?",
+            "Did you finish what you started or leave work half-done?"
+          ]
+        },
+        {
+          "name": "Test Coverage",
+          "questions": [
+            "Did you add tests for your new code?",
+            "Are all edge cases covered by tests?",
+            "Do the tests actually verify the intended functionality?",
+            "Did you update existing tests that might be affected?",
+            "Are the test descriptions clear and meaningful?",
+            "Would these tests catch regressions in the future?"
+          ]
+        }
+      ]
+    }
+  }
+}
