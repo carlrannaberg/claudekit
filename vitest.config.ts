@@ -73,8 +73,8 @@ export default defineConfig({
         isolate: true
       }
     },
-    // Better error reporting
-    reporters: process.env['CI'] !== undefined ? ['verbose', 'junit'] : ['verbose'],
+    // Better error reporting - use 'default' reporter for less verbose output
+    reporters: process.env['CI'] !== undefined ? ['default', 'junit'] : ['default'],
     outputFile: {
       junit: './coverage/junit.xml'
     }
