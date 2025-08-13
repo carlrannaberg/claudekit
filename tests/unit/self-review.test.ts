@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, type MockInstance } from 'vitest'
 import { SelfReviewHook } from '../../cli/hooks/self-review.js';
 import type { HookContext } from '../../cli/hooks/base.js';
 import * as configUtils from '../../cli/utils/claudekit-config.js';
+import * as fs from 'fs';
+import * as os from 'os';
 
 vi.mock('../../cli/utils/claudekit-config.js');
 vi.mock('fs');
@@ -12,10 +14,9 @@ describe('SelfReviewHook', () => {
   let mockGetHookConfig: MockInstance;
   let consoleErrorSpy: MockInstance;
   let jsonOutputSpy: MockInstance;
-  let hookWithPrivateMethods: {
-    jsonOutput: (data: unknown) => void;
-    hasRecentCodeChanges: () => boolean;
-  };
+  let mockReadFileSync: MockInstance;
+  let mockExistsSync: MockInstance;
+  let mockHomedir: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,12 +24,27 @@ describe('SelfReviewHook', () => {
     mockGetHookConfig = vi.mocked(configUtils.getHookConfig);
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    hookWithPrivateMethods = hook as unknown as {
+    const hookWithPrivateMethods = hook as unknown as {
       jsonOutput: (data: unknown) => void;
-      hasRecentCodeChanges: (transcriptPath?: string) => boolean;
     };
     
     jsonOutputSpy = vi.spyOn(hookWithPrivateMethods, 'jsonOutput').mockImplementation(() => {});
+    
+    // Mock filesystem operations
+    mockReadFileSync = vi.mocked(fs.readFileSync);
+    mockExistsSync = vi.mocked(fs.existsSync);
+    mockHomedir = vi.mocked(os.homedir);
+    
+    // Default mock implementations
+    mockHomedir.mockReturnValue('/home/user');
+    mockExistsSync.mockReturnValue(true);
+    
+    // Mock transcript with recent code changes
+    const mockTranscript = [
+      JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'src/test.ts' } }),
+      JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'README.md' } }),
+    ].join('\n');
+    mockReadFileSync.mockReturnValue(mockTranscript);
     
     // Mock Math.random to control probability
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
@@ -191,6 +207,47 @@ describe('SelfReviewHook', () => {
       expect(result.exitCode).toBe(0);
       expect(result.suppressOutput).toBe(true);
       expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger if transcript contains only documentation changes', async () => {
+      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      
+      // Mock transcript with only documentation changes
+      const mockTranscript = [
+        JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'README.md' } }),
+        JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'docs/guide.md' } }),
+      ].join('\n');
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      const context = createMockContext();
+      const result = await hook.execute(context);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.suppressOutput).toBe(true);
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should trigger if transcript contains code file changes', async () => {
+      mockGetHookConfig.mockReturnValue({ triggerProbability: 1.0 });
+      
+      // Mock transcript with code changes
+      const mockTranscript = [
+        JSON.stringify({ toolName: 'Edit', toolInput: { file_path: 'src/index.ts' } }),
+        JSON.stringify({ toolName: 'Write', toolInput: { file_path: 'test/unit.test.js' } }),
+      ].join('\n');
+      mockReadFileSync.mockReturnValue(mockTranscript);
+      
+      // Set random to trigger
+      vi.mocked(Math.random).mockReturnValue(0.5);
+      
+      const context = createMockContext();
+      await hook.execute(context);
+      
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(jsonOutputSpy).toHaveBeenCalledWith({
+        decision: 'block',
+        reason: expect.any(String)
+      });
     });
   });
 });

@@ -85,6 +85,57 @@ Your hook receives a context object with:
 - `payload`: The full Claude payload
 - `packageManager`: Detected package manager with utilities
 
+### Working with Transcripts (Stop Hooks)
+
+Stop hooks receive a `transcript_path` in the payload that points to a JSONL (JSON Lines) file containing the conversation history. This is different from a regular JSON file - each line is a separate JSON object.
+
+```typescript
+// Access transcript path in Stop hooks
+const transcriptPath = context.payload?.transcript_path as string | undefined;
+if (transcriptPath) {
+  // Expand ~ to home directory
+  const expandedPath = transcriptPath.replace(/^~/, process.env['HOME'] ?? '');
+  
+  // Read JSONL format (one JSON object per line)
+  const content = await this.readFile(expandedPath);
+  const lines = content.split('\n').filter(line => line.trim());
+  
+  // Parse each line as separate JSON
+  for (const line of lines) {
+    try {
+      const entry = JSON.parse(line);
+      // Process entry...
+    } catch {
+      // Not valid JSON, skip line
+    }
+  }
+}
+```
+
+**Important:** The transcript is in JSONL format, NOT a single JSON object. Each line contains:
+- Tool use entries with `toolName`, `toolInput`, and results
+- The most recent entries are at the end of the file
+- Read from the end backwards to find the most recent state
+
+Example of checking for recent file edits:
+```typescript
+// Read from end to find recent tool uses
+for (let i = lines.length - 1; i >= Math.max(0, lines.length - 10); i--) {
+  const line = lines[i];
+  if (!line) continue;
+  
+  try {
+    const entry = JSON.parse(line);
+    if (entry.toolName === 'Edit' || entry.toolName === 'Write') {
+      const filePath = entry.toolInput?.file_path;
+      // Check if it's a code file...
+    }
+  } catch {
+    // Skip invalid lines
+  }
+}
+```
+
 ## Hook Results
 
 Return an object with:

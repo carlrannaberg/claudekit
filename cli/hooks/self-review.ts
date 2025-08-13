@@ -1,6 +1,8 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
+import { readFileSync, existsSync } from 'fs';
+import { homedir } from 'os';
 
 interface FocusArea {
   name: string;
@@ -79,20 +81,89 @@ export class SelfReviewHook extends BaseHook {
     }));
   }
 
-  private hasRecentCodeChanges(transcriptPath?: string): boolean {
-    // For now, we'll use a simpler heuristic:
-    // If a transcript path is provided, assume there might be code changes
-    // This is safer than trying to parse the transcript format which may vary
-    // The probability setting will still control whether the hook actually triggers
-    
+  private async hasRecentCodeChanges(transcriptPath?: string): Promise<boolean> {
     if (transcriptPath === undefined || transcriptPath === '') {
-      // No transcript path means we're not in a Claude Code session that would have changes
+      // No transcript path means we're not in a Claude Code session
       return false;
     }
     
-    // If we have a transcript path, there's likely been some activity
-    // Let the probability setting determine if we should trigger
-    return true;
+    try {
+      // Expand ~ to home directory
+      const expandedPath = transcriptPath.replace(/^~/, homedir());
+      
+      if (!existsSync(expandedPath)) {
+        // Transcript doesn't exist, no changes
+        return false;
+      }
+      
+      // Read the JSONL transcript
+      const content = readFileSync(expandedPath, 'utf-8');
+      const lines = content.split('\n').filter(line => line.trim());
+      
+      // Code editing tools to look for
+      const codeEditingTools = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
+      
+      // Code file extensions to trigger on
+      const codeExtensions = [
+        '.ts', '.tsx', '.js', '.jsx', '.py', '.java', '.cpp', '.c', '.cs', 
+        '.go', '.rs', '.swift', '.kt', '.rb', '.php', '.scala', '.clj',
+        '.vue', '.svelte', '.astro', '.sol', '.dart', '.lua', '.r', '.m'
+      ];
+      
+      // Documentation/config files to ignore
+      const ignorePatterns = [
+        'README', 'CHANGELOG', 'LICENSE', '.md', '.txt', '.json', '.yaml', 
+        '.yml', '.toml', '.ini', '.env', '.gitignore', '.dockerignore'
+      ];
+      
+      // Check last 20 entries for code edits (reading from end)
+      const recentLineCount = Math.min(20, lines.length);
+      for (let i = lines.length - 1; i >= lines.length - recentLineCount; i--) {
+        const line = lines[i];
+        if (line === undefined || line === '') {
+          continue;
+        }
+        
+        try {
+          const entry = JSON.parse(line) as { 
+            toolName?: string; 
+            toolInput?: { file_path?: string; path?: string } 
+          };
+          
+          // Check if this is a code editing tool
+          if (entry.toolName !== undefined && codeEditingTools.includes(entry.toolName)) {
+            const filePath = (entry.toolInput?.file_path ?? entry.toolInput?.path ?? '').toString();
+            
+            // Skip if it's a documentation or config file
+            const shouldIgnore = ignorePatterns.some(pattern => 
+              filePath.toUpperCase().includes(pattern.toUpperCase())
+            );
+            if (shouldIgnore) {
+              continue;
+            }
+            
+            // Check if it's a code file
+            const isCodeFile = codeExtensions.some(ext => 
+              filePath.toLowerCase().endsWith(ext)
+            );
+            if (isCodeFile) {
+              return true;
+            }
+          }
+        } catch {
+          // Not valid JSON, skip this line
+          continue;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      // If we can't read or parse the transcript, assume no changes
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Error reading transcript:', error);
+      }
+      return false;
+    }
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -109,7 +180,8 @@ export class SelfReviewHook extends BaseHook {
 
     // Check if there were recent code changes
     const transcriptPath = context.payload?.transcript_path as string | undefined;
-    if (!this.hasRecentCodeChanges(transcriptPath)) {
+    const hasChanges = await this.hasRecentCodeChanges(transcriptPath);
+    if (!hasChanges) {
       return { exitCode: 0, suppressOutput: true };
     }
 
