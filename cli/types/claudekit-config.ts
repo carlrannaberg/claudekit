@@ -63,6 +63,10 @@ const HooksConfigurationSchema = z.object({
     .object({
       triggerProbability: z.number().min(0).max(1).optional(),
       timeout: z.number().min(1000).max(300000).optional(),
+      focusAreas: z.array(z.object({
+        name: z.string(),
+        questions: z.array(z.string()).min(1)
+      })).optional(),
     })
     .optional(),
 

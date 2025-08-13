@@ -1,7 +1,33 @@
 {
   "hooks": {
     "self-review": {
-      "triggerProbability": 0.7
+      "triggerProbability": 0.7,
+      "focusAreas": [
+        {
+          "name": "Performance",
+          "questions": [
+            "Did you consider the performance impact of your changes?",
+            "Are there any unnecessary re-renders or computations?",
+            "Could this code benefit from memoization or caching?"
+          ]
+        },
+        {
+          "name": "Security",
+          "questions": [
+            "Have you validated all user inputs?",
+            "Are there any potential security vulnerabilities?",
+            "Did you handle sensitive data appropriately?"
+          ]
+        },
+        {
+          "name": "Maintainability",
+          "questions": [
+            "Is the code self-documenting and easy to understand?",
+            "Did you add appropriate error handling?",
+            "Would another developer understand this code?"
+          ]
+        }
+      ]
     },
     "typecheck-changed": {
       "command": "npx tsc --noEmit",

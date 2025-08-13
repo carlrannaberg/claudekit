@@ -287,6 +287,19 @@ Hooks support additional configuration through `.claudekit/config.json` in your 
 **Self-Review Hook (`self-review`):**
 - `triggerProbability`: Controls how often the self-review hook triggers (0 = never, 1 = always, default: 0.7)
 - `timeout`: Execution timeout in milliseconds (default: 30000)
+- `focusAreas`: Custom focus areas and questions (optional, replaces defaults)
+  ```json
+  "focusAreas": [
+    {
+      "name": "Performance",
+      "questions": [
+        "Did you consider the performance impact?",
+        "Are there unnecessary re-renders?",
+        "Could this benefit from caching?"
+      ]
+    }
+  ]
+  ```
 
 **TypeScript Hooks (`typecheck-changed`, `typecheck-project`):**
 - `command`: Custom TypeScript command (default: uses package manager's tsc)

@@ -22,6 +22,7 @@ interface ConversationMessage {
 interface SelfReviewConfig {
   triggerProbability?: number | undefined;
   timeout?: number | undefined;
+  focusAreas?: FocusArea[] | undefined;
 }
 
 export class SelfReviewHook extends BaseHook {
@@ -36,7 +37,7 @@ export class SelfReviewHook extends BaseHook {
     matcher: '*',
   };
 
-  private readonly focusAreas: FocusArea[] = [
+  private readonly defaultFocusAreas: FocusArea[] = [
     {
       name: "Refactoring & Integration",
       questions: [
@@ -82,8 +83,9 @@ export class SelfReviewHook extends BaseHook {
     return question;
   }
 
-  private getReviewQuestions(): Array<{ area: string; question: string }> {
-    return this.focusAreas.map(area => ({
+  private getReviewQuestions(config: SelfReviewConfig): Array<{ area: string; question: string }> {
+    const focusAreas = config.focusAreas ?? this.defaultFocusAreas;
+    return focusAreas.map(area => ({
       area: area.name,
       question: this.selectRandomQuestionFromArea(area)
     }));
@@ -185,7 +187,7 @@ export class SelfReviewHook extends BaseHook {
       return { exitCode: 0, suppressOutput: true };
     }
 
-    const questions = this.getReviewQuestions();
+    const questions = this.getReviewQuestions(config);
     const reviewMessage = this.constructReviewMessage(questions);
 
     // For Stop hooks, use exit code 0 with JSON output to control decision
