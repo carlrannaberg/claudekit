@@ -1,5 +1,11 @@
 {
   "hooks": {
+    "typecheck-changed": {
+      "command": "npm run typecheck"
+    },
+    "typecheck-project": {
+      "command": "npm run typecheck"
+    },
     "self-review": {
       "triggerProbability": 1.0,
       "focusAreas": [
