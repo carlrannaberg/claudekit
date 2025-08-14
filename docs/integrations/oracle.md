@@ -10,7 +10,7 @@ Oracle will automatically detect and use one of these tools (in order of prefere
 
 - **cursor-agent** - Cursor's terminal-based AI coding agent (beta)
 - **codex** - OpenAI's official CLI coding agent (`npm install -g @openai/codex`)
-- **opencode** - SST's provider-agnostic AI coding agent (`brew install sst/tap/opencode`)
+- **opencode** - SST's provider-agnostic AI coding agent (`npm i -g opencode-ai@latest`)
 
 If none are installed, oracle falls back to Claude's own capabilities.
 
