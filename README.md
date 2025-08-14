@@ -273,7 +273,9 @@ Prompts Claude Code to critically evaluate its code changes before finishing. As
 
 ### Hook Configuration
 
-Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <hook>` command format:
+#### Event Registration (`.claude/settings.json`)
+
+Hooks are registered to Claude Code events in `.claude/settings.json` using the `claudekit-hooks run <hook>` command format:
 
 ```json
 {
@@ -301,7 +303,7 @@ Hooks are configured in `.claude/settings.json` using the `claudekit-hooks run <
 }
 ```
 
-### Hook Configuration
+#### Hook-Specific Settings (`.claudekit/config.json`)
 
 Hooks support additional configuration through `.claudekit/config.json` in your project root. This file provides centralized hook configuration with JSON schema validation and graceful fallbacks to sensible defaults:
 
@@ -394,14 +396,6 @@ Control checkpoint naming and retention:
   "maxCheckpoints": 15               // How many to keep (older ones deleted)
 }
 ```
-
-#### Configuration Loading
-
-The configuration system provides robust loading with:
-- **JSON Schema Validation**: Ensures configuration format is correct
-- **Graceful Fallbacks**: Uses sensible defaults when config is missing or invalid
-- **Debug Logging**: Set `DEBUG=true` to see configuration loading details
-- **Type Safety**: Full TypeScript interfaces for each hook's configuration options
 
 ### Testing Hooks
 
