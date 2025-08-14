@@ -182,11 +182,6 @@ claudekit validate              # Check configuration
 npm list -g claudekit           # Verify installation
 ```
 
-**TypeScript/ESLint not found?**
-```bash
-npm install --save-dev typescript eslint
-```
-
 **Tests timing out?**
 Configure faster test command in `.claudekit/config.json`:
 ```json
