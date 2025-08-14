@@ -49,6 +49,13 @@ claudekit-hooks list
 
 # Show help
 claudekit-hooks --help
+
+# Show hook execution statistics
+claudekit-hooks stats
+
+# View recent hook executions
+claudekit-hooks recent 10
+claudekit-hooks --help
 ```
 
 ### Integration with Claude Code
@@ -135,11 +142,77 @@ These hooks run when Claude Code stops or completes a task:
 
 #### create-checkpoint
 
-**Purpose:** Automatically creates git checkpoints to preserve your work.
+**Purpose:** Automatically saves your work as a git stash when Claude Code stops.
 
 **Features:**
 - Creates checkpoint only if there are uncommitted changes
 - Uses descriptive messages with timestamps
+- Maintains configurable number of recent checkpoints (default: 10)
+- Non-destructive - keeps changes in working directory
+
+#### check-todos
+
+**Purpose:** Ensures all TodoWrite tasks are completed before allowing Claude Code to stop.
+
+**Features:**
+- Blocks if incomplete todos exist in current session
+- Helps maintain task completion discipline
+- Prevents accidental task abandonment
+
+#### self-review
+
+**Purpose:** Prompts Claude Code to critically evaluate its code changes before finishing.
+
+**Features:**
+- Asks 3 random questions from focus areas (Refactoring, Code Quality, Consistency)
+- Configurable question sets and file patterns
+- Only triggers after code changes
+- Helps catch issues before they become problems
+
+#### check-comment-replacement
+
+**Purpose:** Detects when code is replaced with comments instead of being deleted cleanly.
+
+**Features:**
+- Identifies suspicious comment patterns that might indicate deleted code
+- Helps maintain clean codebase
+- Prevents code rot from commented-out sections
+
+#### check-unused-parameters
+
+**Purpose:** Catches lazy refactoring where parameters are prefixed with underscore.
+
+**Features:**
+- Identifies function parameters starting with underscore
+- Encourages proper parameter removal instead of prefixing
+- Helps maintain clean function signatures
+
+#### typecheck-project
+
+**Purpose:** Validates TypeScript types across the entire project.
+
+**Features:**
+- Comprehensive type checking for all TypeScript files
+- Useful for final validation before commits
+- Catches cross-file type issues
+
+#### lint-project
+
+**Purpose:** Runs ESLint across the entire project.
+
+**Features:**
+- Comprehensive linting for code quality
+- Auto-fix capability (configurable)
+- Useful for maintaining consistent code style
+
+#### test-project
+
+**Purpose:** Runs the complete test suite.
+
+**Features:**
+- Executes all tests in the project
+- Configurable timeout for large test suites
+- Final validation before commits
 - Manages checkpoint count (configurable limit)
 - Silent operation - doesn't interrupt workflow
 - Preserves complete working directory state
@@ -191,6 +264,30 @@ Please complete these tasks before stopping.
 - Ensures code quality before stopping
 - Configurable validation commands
 - Can be run individually or together
+
+## Testing Hooks
+
+You can test hooks outside of Claude Code using the `claudekit-hooks` command:
+
+```bash
+# Run a specific hook (reads stdin for file context)
+echo '{"tool_input": {"file_path": "src/index.ts"}}' | claudekit-hooks run typecheck-changed
+
+# Test parameter validation hook
+echo '{"tool_input": {"file_path": "src/component.ts"}}' | claudekit-hooks run check-unused-parameters
+
+# Run a hook without file context
+claudekit-hooks run create-checkpoint
+
+# List all available hooks
+claudekit-hooks list
+
+# Show hook execution statistics
+claudekit-hooks stats
+
+# View recent hook activity
+claudekit-hooks recent 5
+```
 
 ## Hook Configuration in settings.json
 
