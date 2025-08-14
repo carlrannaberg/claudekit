@@ -81,11 +81,11 @@ claudekit validate [options]
 
 Options:
   -q, --quiet      Only show errors
-  -v, --verbose    Show detailed validation information
+  --detailed       Show detailed validation information
 
 Examples:
   claudekit validate           # Check installation
-  claudekit validate --verbose # Show detailed results
+  claudekit validate --detailed # Show detailed results
   claudekit validate --quiet   # Only show problems
 ```
 
@@ -267,7 +267,7 @@ claudekit install git:commit checkpoint:create
 ### Debugging Issues
 ```bash
 # Check installation status
-claudekit validate --verbose
+claudekit validate --detailed
 
 # View recent hook executions
 claudekit-hooks recent
@@ -293,7 +293,7 @@ echo '{"tool_input": {"file_path": "test.ts"}}' | claudekit-hooks run typecheck-
 claudekit setup --force
 
 # Check for conflicts
-claudekit validate --verbose
+claudekit validate --detailed
 ```
 
 ### Hook Not Triggering

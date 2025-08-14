@@ -136,7 +136,7 @@
 
 If you encounter issues not covered here:
 
-1. Run `claudekit validate --verbose` for detailed diagnostics
+1. Run `claudekit validate --detailed` for detailed diagnostics
 2. Check debug output: `DEBUG=true claudekit-hooks run <hook-name>`
 3. Search [existing issues](https://github.com/carlrannaberg/claudekit/issues)
 4. Open a new issue with:
