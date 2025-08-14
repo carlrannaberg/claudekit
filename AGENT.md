@@ -27,6 +27,71 @@ This is a TypeScript-based toolkit. Key commands:
 - **Commands**: Use `/create-command` in Claude Code for guidance
 - **Hooks**: Follow self-contained patterns in `src/hooks/`
 
+## Using Subagents
+
+This project includes specialized subagents in `.claude/agents/` that provide deep expertise in specific technical domains. You should proactively use the Task tool to delegate to these subagents when working on relevant tasks.
+
+### Available Subagents
+
+**Build Tools:**
+- `webpack-expert` - Webpack configuration, bundle optimization, plugins/loaders
+- `vite-expert` - Vite development, ESM patterns, HMR optimization
+
+**TypeScript:**
+- `typescript-expert` - General TypeScript/JavaScript expertise
+- `typescript-build-expert` - Compiler configuration, module resolution
+- `typescript-type-expert` - Advanced type system, generics, conditional types
+
+**React & Frontend:**
+- `react-expert` - React components, hooks, patterns
+- `react-performance-expert` - React optimization, DevTools Profiler, memoization
+- `css-styling-expert` - CSS architecture, responsive design, CSS-in-JS
+- `accessibility-expert` - WCAG compliance, ARIA, screen readers
+- `nextjs-expert` - Next.js App Router, Server Components, deployment
+
+**Testing:**
+- `testing-expert` - Test structure, mocking, coverage analysis
+- `jest-testing-expert` - Jest framework, snapshots, async patterns
+- `vitest-expert` - Vitest configuration and optimization
+- `playwright-expert` - E2E testing, cross-browser automation
+
+**Database:**
+- `database-expert` - Cross-database optimization, schema design
+- `postgres-expert` - PostgreSQL queries, indexing, partitioning
+- `mongodb-expert` - MongoDB document modeling, aggregation pipelines
+
+**Infrastructure:**
+- `docker-expert` - Containerization, multi-stage builds, orchestration
+- `github-actions-expert` - CI/CD pipelines, workflow automation
+- `devops-expert` - Infrastructure as code, monitoring, security
+
+**Other:**
+- `git-expert` - Merge conflicts, branching, repository management
+- `nodejs-expert` - Node.js runtime, async patterns, streams
+- `linting-expert` - Code linting, formatting, static analysis
+- `oracle` - General-purpose oracle for complex queries
+
+### When to Use Subagents
+
+Use the Task tool to delegate to subagents proactively when:
+- Working on domain-specific tasks (e.g., React performance → `react-performance-expert`)
+- Encountering complex technical issues (e.g., TypeScript type errors → `typescript-type-expert`)
+- Optimizing build configurations (e.g., Webpack issues → `webpack-expert`)
+- Setting up testing frameworks (e.g., Jest configuration → `jest-testing-expert`)
+- Dealing with database queries (e.g., PostgreSQL optimization → `postgres-expert`)
+
+Example usage:
+```
+When user asks about React performance issues:
+→ Use Task tool with subagent_type: "react-performance-expert"
+
+When encountering complex TypeScript type errors:
+→ Use Task tool with subagent_type: "typescript-type-expert"
+
+When configuring Webpack or build tools:
+→ Use Task tool with subagent_type: "webpack-expert"
+```
+
 ### Slash Commands (in Claude Code)
 - `/checkpoint:create [description]` - Create a git stash checkpoint
 - `/checkpoint:restore [n]` - Restore to a previous checkpoint
