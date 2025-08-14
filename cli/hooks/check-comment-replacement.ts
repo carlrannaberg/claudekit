@@ -17,9 +17,9 @@ export class CheckCommentReplacementHook extends BaseHook {
   private readonly COMMENT_PATTERNS = [
     /^\s*\/\/.*/,           // Single-line comments: // comment
     /^\s*\/\*.*\*\/\s*$/,   // Single-line block comments: /* comment */
-    /^\s*#.*/,              // Hash comments: # comment (Python, Ruby, Shell)
+    /^\s*#(?!#).*/,         // Hash comments: # comment (but not markdown headers ##)
     /^\s*--.*/,             // SQL/Lua style: -- comment
-    /^\s*\*.*/,             // Continuation of block comments: * comment
+    /^\s*\*\s+.*/,          // Continuation of block comments: * comment (with space after *)
     /^\s*<!--.*-->\s*$/,    // HTML comments: <!-- comment -->
   ];
 
@@ -93,7 +93,7 @@ export class CheckCommentReplacementHook extends BaseHook {
       const oldNonEmptyLines = oldLines.filter(line => line.trim() !== '');
       const newNonEmptyLines = newLines.filter(line => line.trim() !== '');
 
-      // Skip if no meaningful content
+      // Skip if no meaningful content or if deleting content (empty replacement)
       if (oldNonEmptyLines.length === 0 || newNonEmptyLines.length === 0) {
         continue;
       }
@@ -117,8 +117,14 @@ export class CheckCommentReplacementHook extends BaseHook {
       // Check if new content is all comments (after removing empty lines)
       const newIsAllComments = newNonEmptyLines.every(line => isComment(line));
 
+      // Additional check: ensure the replacement is roughly the same size
+      // If new content is significantly smaller, it's likely a deletion, not a replacement
+      const sizeDifference = Math.abs(oldNonEmptyLines.length - newNonEmptyLines.length);
+      const isLikelyReplacement = sizeDifference <= Math.max(2, oldNonEmptyLines.length * 0.5);
+
       // Violation: code (non-comments with content) replaced with only comments
-      if (newIsAllComments) {
+      // AND it looks like a replacement (not a deletion of a section)
+      if (newIsAllComments && isLikelyReplacement) {
         violations.push({
           oldContent: this.truncateContent(edit.oldString),
           newContent: this.truncateContent(edit.newString),
