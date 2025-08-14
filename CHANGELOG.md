@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.8] - 2025-08-14
+
+### Changed
+- **Validate Command Flag Standardization**: Replaced `--detailed` flag with universal `--verbose` flag for consistency
+  - Removed the `--detailed` option from the validate command CLI interface
+  - Updated validation output logic to use `--verbose` instead of `--detailed` for enhanced details
+  - Changed output header from "Detailed Validation:" to "Validation Details:" for clarity
+  - Maintains same functionality while providing consistent flag naming across the CLI
+
+### Fixed
+- **Comment Replacement Detection**: Enhanced the check-comment-replacement hook to reduce false positives
+  - Improved hash comment pattern to exclude markdown headers (e.g., `##`) from comment detection
+  - Enhanced block comment continuation pattern to require space after `*` for more precise matching
+  - Added size difference analysis to distinguish between content replacement and content deletion
+  - Improved replacement detection logic to avoid flagging legitimate content removal as violations
+  - Reduced false positives when users delete sections of code rather than replacing them with comments
+
 ## [0.3.7] - 2025-08-14
 
 ### Added
