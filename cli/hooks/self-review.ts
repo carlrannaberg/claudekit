@@ -98,14 +98,26 @@ export class SelfReviewHook extends BaseHook {
     // Check if there's a previous review marker
     const lastMarkerIndex = parser.findLastMessageWithMarker(SELF_REVIEW_MARKER);
     
+    if (process.env['DEBUG'] === 'true') {
+      console.error(`Self-review: Last marker index: ${lastMarkerIndex}`);
+    }
+    
     if (lastMarkerIndex === -1) {
       // No previous review - check last 200 entries (reasonable default)
       const DEFAULT_LOOKBACK = 200;
-      return parser.hasRecentFileChanges(DEFAULT_LOOKBACK, targetPatterns);
+      const hasChanges = parser.hasRecentFileChanges(DEFAULT_LOOKBACK, targetPatterns);
+      if (process.env['DEBUG'] === 'true') {
+        console.error(`Self-review: No marker found, checking last ${DEFAULT_LOOKBACK} entries: ${hasChanges}`);
+      }
+      return hasChanges;
     }
     
     // Check for changes since the last review marker
-    return parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetPatterns);
+    const hasChanges = parser.hasFileChangesSinceMarker(SELF_REVIEW_MARKER, targetPatterns);
+    if (process.env['DEBUG'] === 'true') {
+      console.error(`Self-review: Checking changes since marker at ${lastMarkerIndex}: ${hasChanges}`);
+    }
+    return hasChanges;
   }
 
   private loadConfig(): SelfReviewConfig {
@@ -160,7 +172,7 @@ export class SelfReviewHook extends BaseHook {
   }
 
   private constructReviewMessage(questions: Array<{ area: string; question: string }>): string {
-    // Use consistent header for easy detection in transcript
+    // Use consistent header for easy detection in transcript  
     return `${SELF_REVIEW_MARKER}
 
 Please review these aspects of your changes:

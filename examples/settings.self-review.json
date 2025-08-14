@@ -2,14 +2,11 @@
   "_comment": "Example configuration for the self-review hook",
   "hooks": {
     "self-review": {
-      "triggerProbability": 0.7,
-      "_comment_probability": "0.7 = 70% chance to trigger when code changes detected",
-      
-      "messageWindow": 15,
-      "_comment_window": "Number of UI-visible messages (user/assistant turns) to check for code changes. Default: 15",
-      
       "timeout": 30000,
       "_comment_timeout": "Maximum time in milliseconds for the hook to run",
+      
+      "targetPatterns": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "_comment_patterns": "Glob patterns for files to monitor. Empty array or omit to monitor all code files",
       
       "focusAreas": [
         {

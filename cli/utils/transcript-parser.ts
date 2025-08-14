@@ -239,13 +239,35 @@ export class TranscriptParser {
         continue;
       }
       
-      // Check user messages (which often contain hook output)
+      // Check tool results (where Stop hook JSON output is captured)
+      if (entry.type === 'user' && entry.toolUseResult) {
+        // Check in reason field where the marker is included
+        const reason = entry.toolUseResult['reason'];
+        if (typeof reason === 'string' && reason.includes(marker)) {
+          return i;
+        }
+      }
+      
+      // Check user messages (where Stop hook feedback appears in Claude Code)
       if (entry.type === 'user' && entry.message?.content) {
-        const content = Array.isArray(entry.message.content) 
-          ? entry.message.content.map(c => 
-              typeof c === 'object' && 'text' in c ? c.text : ''
-            ).join(' ')
-          : '';
+        let content = '';
+        if (Array.isArray(entry.message.content)) {
+          content = entry.message.content.map(c => {
+            if (typeof c === 'object') {
+              // Check for tool_result type which contains Stop hook output
+              if ('type' in c && c.type === 'tool_result' && 'content' in c) {
+                return String(c.content);
+              } else if ('text' in c) {
+                return c.text;
+              }
+            } else if (typeof c === 'string') {
+              return c;
+            }
+            return '';
+          }).join(' ');
+        } else if (typeof entry.message.content === 'string') {
+          content = entry.message.content;
+        }
         
         if (content.includes(marker)) {
           return i;

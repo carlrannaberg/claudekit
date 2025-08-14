@@ -148,7 +148,7 @@ describe('SelfReviewHook', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(jsonOutputSpy).toHaveBeenCalledWith({
         decision: 'block',
-        reason: expect.any(String)
+        reason: expect.stringContaining('📋 **Self-Review**')
       });
     });
 
@@ -311,7 +311,7 @@ describe('SelfReviewHook', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
       expect(jsonOutputSpy).toHaveBeenCalledWith({
         decision: 'block',
-        reason: expect.any(String)
+        reason: expect.stringContaining('📋 **Self-Review**')
       });
     });
   });

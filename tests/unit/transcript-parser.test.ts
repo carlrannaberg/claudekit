@@ -314,8 +314,9 @@ describe('TranscriptParser', () => {
         }),
         JSON.stringify({ 
           type: 'user',
-          message: { 
-            content: [{ type: 'text', text: '📋 **Self-Review**' }]
+          toolUseResult: { 
+            decision: 'block',
+            reason: '📋 **Self-Review**\n\nReview message'
           } 
         }),
         JSON.stringify({ 
