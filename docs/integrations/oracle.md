@@ -9,8 +9,8 @@ The oracle subagent provides deep debugging and analysis capabilities using GPT-
 Oracle will automatically detect and use one of these tools (in order of preference):
 
 - **cursor-agent** - Cursor's AI agent CLI
-- **codex** - OpenAI Codex CLI  
-- **opencode** - Alternative OpenAI interface
+- **codex** - OpenAI's official CLI coding agent (`npm install -g @openai/codex`)
+- **opencode** - SST's provider-agnostic AI coding agent (`brew install sst/tap/opencode`)
 
 If none are installed, oracle falls back to Claude's own capabilities.
 
