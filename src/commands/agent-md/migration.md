@@ -156,7 +156,7 @@ After successful migration and git commit:
 1. **Review backup files** (.bak extensions) to ensure nothing important was missed
 2. **Delete backup files** once satisfied with AGENT.md content
 3. **Test with different AI assistants** to ensure all symlinks work correctly
-4. **Run `/agent:init`** if you want to add directory structure and latest best practices
+4. **Run `/agent-md:init`** if you want to add directory structure and latest best practices
 
 ## Why AGENT.md?
 

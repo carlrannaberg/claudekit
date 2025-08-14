@@ -32,7 +32,7 @@ This document provides a comprehensive checklist for releasing new versions of c
   - [ ] `/checkpoint:*` commands
   - [ ] `/spec:*` commands
   - [ ] `/git:*` commands
-  - [ ] `/agent:*` commands
+  - [ ] `/agent-md:*` commands
   - [ ] `/validate-and-fix` command
 - [ ] Verify hook configuration loading works
 - [ ] Test error handling and exit codes

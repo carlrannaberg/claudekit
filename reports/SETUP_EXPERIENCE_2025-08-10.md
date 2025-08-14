@@ -20,7 +20,7 @@ Users can select from organized groups of slash commands:
 - Purpose: Comprehensive code quality validation and automatic fixes
 
 **🤖 AI Assistant Configuration**
-- Commands: `/agent:init`, `/agent:migration`, `/agent:cli`, `/create-command`, `/config:bash-timeout`
+- Commands: `/agent-md:init`, `/agent-md:migration`, `/agent-md:cli`, `/create-command`, `/config:bash-timeout`
 - Purpose: Configure and customize Claude Code behavior and create custom commands
 
 **📋 Specification Management**

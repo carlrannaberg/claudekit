@@ -10,12 +10,12 @@ argument-hint: "<cli-tool-name>"
 Capture help documentation from CLI tools and add it to CLAUDE.md for future reference.
 
 ## Usage
-`/agent:cli <tool-name>`
+`/agent-md:cli <tool-name>`
 
 Examples:
-- `/agent:cli npm`
-- `/agent:cli git`
-- `/agent:cli cargo`
+- `/agent-md:cli npm`
+- `/agent-md:cli git`
+- `/agent-md:cli cargo`
 
 ## Task
 

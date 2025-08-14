@@ -209,7 +209,7 @@ Clean up debug files and development artifacts.
 
 ## Agent Management
 
-### `/agent:init`
+### `/agent-md:init`
 Initialize or improve AGENT.md file with intelligent codebase analysis.
 
 **What it does:**
@@ -236,7 +236,7 @@ Initialize or improve AGENT.md file with intelligent codebase analysis.
 ✅ **Can be run multiple times** to keep AGENT.md updated
 ✅ **Preserves existing content** while adding enhancements
 
-### `/agent:migration`
+### `/agent-md:migration`
 Convert other AI config files to AGENT.md standard.
 
 **What it does:**
@@ -258,18 +258,18 @@ Convert other AI config files to AGENT.md standard.
 - You have existing **CLAUDE.md** or **.cursorrules** files
 - Want to migrate from tool-specific configs to universal AGENT.md standard
 - **Multiple AI config files** with different content that need merging
-- **DO NOT use** if you already have AGENT.md (use `/agent:init` instead)
+- **DO NOT use** if you already have AGENT.md (use `/agent-md:init` instead)
 
 **Not for:**
-❌ Projects that already have AGENT.md (use `/agent:init` instead)
-❌ Creating AGENT.md from scratch (use `/agent:init` instead)
+❌ Projects that already have AGENT.md (use `/agent-md:init` instead)
+❌ Creating AGENT.md from scratch (use `/agent-md:init` instead)
 
-### `/agent:cli [tool]`
+### `/agent-md:cli [tool]`
 Capture CLI tool help and add to AGENT.md.
 - Documents CLI tools in AGENT.md
 - Preserves formatting
 - Creates collapsible sections
-- Example: `/agent:cli npm`
+- Example: `/agent-md:cli npm`
 
 ### `/create-subagent`
 Create custom AI assistant.
@@ -319,7 +319,7 @@ Profile hook execution times.
 
 ## Agent Commands Comparison
 
-| Feature | `/agent:init` | `/agent:migration` |
+| Feature | `/agent-md:init` | `/agent-md:migration` |
 |---------|--------------|-------------------|
 | Analyzes codebase | ✅ Smart analysis | ❌ Simple rename |
 | Creates new AGENT.md | ✅ Based on analysis | ❌ Uses existing content |

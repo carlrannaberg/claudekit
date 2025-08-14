@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.7] - 2025-08-14
 
 ### Added
-- **Agent Discovery Documentation**: Enhanced `/agent:init` command with comprehensive subagent documentation
+- **Agent Discovery Documentation**: Enhanced `/agent-md:init` command with comprehensive subagent documentation
   - Added automatic discovery of available subagents in the project
   - Integrated detailed subagent usage guidelines into generated AGENT.md files
   - Included proactive delegation patterns and examples for 24+ specialized agents across 7 categories

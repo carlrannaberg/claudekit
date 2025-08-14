@@ -60,7 +60,7 @@ After:  Tests break silently → ✅ Tests run automatically on file changes
 
 ### 🤖 24+ AI Subagents
 - **Domain experts**: TypeScript, React, database, testing specialists
-- **Proactive help**: Configure with `/agent:init` for automatic assistance
+- **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
 - **Deep debugging**: Oracle agent for complex problem analysis
 
 ### 📝 Smart Commands
@@ -93,7 +93,7 @@ claudekit validate           # Check your installation
 **Development Tools**
 - `/validate-and-fix` - Run all quality checks
 - `/spec:create [feature]` - Generate specifications
-- `/agent:init` - Configure AI assistants
+- `/agent-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
 

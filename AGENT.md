@@ -105,10 +105,10 @@ When configuring Webpack or build tools:
 - `/git:status` - Intelligent git status analysis with insights
 - `/git:push` - Safe push with pre-flight checks
 - `/gh:repo-init [name]` - Create GitHub repository
-- `/agent:init` - Initialize AGENT.md file
-- `/agent:migration` - Migrate from other AI configs
+- `/agent-md:init` - Initialize AGENT.md file
+- `/agent-md:migration` - Migrate from other AI configs
 - `/create-command` - Guide for new commands
-- `/agent:cli [tool]` - Capture CLI tool help and add to AGENT.md
+- `/agent-md:cli [tool]` - Capture CLI tool help and add to AGENT.md
 - `/dev:cleanup` - Clean up debug files and development artifacts
 
 ## Code Style
@@ -381,7 +381,7 @@ temp/                       # Temporary files (gitignored)
 - Reports outside reports/: `*_SUMMARY.md`, `*_REPORT.md`
 
 #### Integration with Commands
-- **`/agent:init`** - Creates reports/ structure and documents these conventions
+- **`/agent-md:init`** - Creates reports/ structure and documents these conventions
 - **`/dev:cleanup`** - Identifies and cleans files not following these patterns
 
 See [File Organization Guide](docs/guides/project-organization.md) for detailed patterns and examples.
