@@ -41,8 +41,8 @@ After:  Claude adds 'any' type → ✅ Instant block: "Use specific type: User |
 Before: Risky refactor fails → ❌ Git archaeology to find working version  
 After:  Risky refactor fails → ✅ One command: /checkpoint:restore
 
-Before: Breaking change merged → ❌ CI pipeline fails 10 minutes later
-After:  Breaking change saved → ✅ Tests run instantly, error shown in 2 seconds
+Before: Claude breaks tests → ❌ You discover it after Claude finishes
+After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 ```
 
 ## Key Features
