@@ -548,12 +548,28 @@ For manual creation, agents are markdown files in `.claude/agents/` with YAML fr
 
 ### Oracle Setup
 
-The **oracle** subagent requires external CLI tools to be installed separately:
+The **oracle** subagent requires special configuration:
 
-```bash
-# Install the oracle CLI tool
-npm install -g oracle-cli  # or your preferred installation method
-```
+1. **Install external CLI tools:**
+   ```bash
+   # Install the oracle CLI tool
+   npm install -g oracle-cli  # or your preferred installation method
+   ```
+
+2. **Increase bash timeout** (oracle needs more time for deep analysis):
+   ```bash
+   # Set 20-minute timeout for oracle operations
+   /config:bash-timeout 20min
+   ```
+   Or manually configure in `~/.claude/settings.json`:
+   ```json
+   {
+     "env": {
+       "BASH_DEFAULT_TIMEOUT_MS": "1200000",
+       "BASH_MAX_TIMEOUT_MS": "1200000"
+     }
+   }
+   ```
 
 The oracle agent provides advanced capabilities for:
 - Deep debugging of complex issues
