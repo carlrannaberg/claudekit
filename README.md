@@ -548,13 +548,14 @@ For manual creation, agents are markdown files in `.claude/agents/` with YAML fr
 
 ### Oracle Setup
 
-The **oracle** subagent requires special configuration:
+The **oracle** subagent uses external AI CLI tools for enhanced reasoning with GPT-5:
 
-1. **Install external CLI tools:**
-   ```bash
-   # Install the oracle CLI tool
-   npm install -g oracle-cli  # or your preferred installation method
-   ```
+1. **Install one of these CLI tools** (oracle will detect which is available):
+   - `cursor-agent` - Cursor's AI agent CLI
+   - `codex` - OpenAI Codex CLI
+   - `opencode` - Alternative OpenAI interface
+   
+   Note: If none are installed, oracle will fall back to Claude's own capabilities.
 
 2. **Increase bash timeout** (oracle needs more time for deep analysis):
    ```bash
