@@ -27,6 +27,12 @@ export class CheckCommentReplacementHook extends BaseHook {
     // Extract tool name from payload
     const toolName = context.payload['tool_name'] as string | undefined;
     
+    // Debug: Log the full context to see what we have
+    if (process.env['DEBUG'] !== undefined && process.env['DEBUG'] !== '') {
+      console.error('[DEBUG] Full context.payload:', JSON.stringify(context.payload, null, 2));
+      console.error('[DEBUG] Tool input:', JSON.stringify(context.payload.tool_input, null, 2));
+    }
+    
     // Only process Edit and MultiEdit tools
     if (toolName === undefined || !['Edit', 'MultiEdit'].includes(toolName)) {
       return { exitCode: 0 };
@@ -53,25 +59,35 @@ export class CheckCommentReplacementHook extends BaseHook {
     return { exitCode: 0 };
   }
 
-  private extractEdits(context: HookContext, toolName: string): Array<{ oldString: string; newString: string }> {
-    const edits: Array<{ oldString: string; newString: string }> = [];
+  private extractEdits(context: HookContext, toolName: string): Array<{ oldString: string; newString: string; filePath?: string }> {
+    const edits: Array<{ oldString: string; newString: string; filePath?: string }> = [];
     const toolInput = context.payload.tool_input;
 
     if (toolName === 'Edit' && toolInput !== undefined) {
       const oldString = toolInput['old_string'] as string | undefined;
       const newString = toolInput['new_string'] as string | undefined;
+      const filePath = toolInput['file_path'] as string | undefined;
       if (oldString !== undefined && oldString !== '' && newString !== undefined && newString !== '') {
-        edits.push({ oldString, newString });
+        if (filePath !== undefined) {
+          edits.push({ oldString, newString, filePath });
+        } else {
+          edits.push({ oldString, newString });
+        }
       }
     } else if (toolName === 'MultiEdit' && toolInput !== undefined) {
       const multiEdits = toolInput['edits'] as
         | Array<{ old_string: string; new_string: string }>
         | undefined;
+      const filePath = toolInput['file_path'] as string | undefined;
       if (multiEdits !== undefined) {
         for (const edit of multiEdits) {
           if (edit.old_string !== undefined && edit.old_string !== '' && 
               edit.new_string !== undefined && edit.new_string !== '') {
-            edits.push({ oldString: edit.old_string, newString: edit.new_string });
+            if (filePath !== undefined) {
+              edits.push({ oldString: edit.old_string, newString: edit.new_string, filePath });
+            } else {
+              edits.push({ oldString: edit.old_string, newString: edit.new_string });
+            }
           }
         }
       }
@@ -81,11 +97,19 @@ export class CheckCommentReplacementHook extends BaseHook {
   }
 
   private analyzeEdits(
-    edits: Array<{ oldString: string; newString: string }>
+    edits: Array<{ oldString: string; newString: string; filePath?: string }>
   ): Array<{ oldContent: string; newContent: string; reason: string }> {
     const violations: Array<{ oldContent: string; newContent: string; reason: string }> = [];
 
     for (const edit of edits) {
+      // Skip check for markdown and documentation files
+      if (edit.filePath !== undefined) {
+        const ext = edit.filePath.toLowerCase().split('.').pop();
+        if (ext === 'md' || ext === 'mdx' || ext === 'txt' || ext === 'rst') {
+          continue; // Skip validation for documentation files
+        }
+      }
+
       const oldLines = edit.oldString.split('\n');
       const newLines = edit.newString.split('\n');
 
