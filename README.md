@@ -445,6 +445,10 @@ Claudekit includes a comprehensive library of 24+ specialized subagents that enh
 
 ### Available Agents by Category
 
+#### 🧠 Advanced Analysis
+- **oracle**: Deep debugging, audits, architectural decisions, and complex problem analysis
+  - *Requires*: External CLI tool installation (see [Oracle Setup](#oracle-setup))
+
 #### 🔧 Build Tools
 - **vite-expert**: Vite build optimization, ESM-first development, HMR optimization, plugin ecosystem
 - **webpack-expert**: Webpack build optimization, configuration patterns, bundle analysis, code splitting
@@ -541,6 +545,22 @@ This command will guide you through:
 - Creating the agent with best practices
 
 For manual creation, agents are markdown files in `.claude/agents/` with YAML frontmatter. See `src/agents/` for examples.
+
+### Oracle Setup
+
+The **oracle** subagent requires external CLI tools to be installed separately:
+
+```bash
+# Install the oracle CLI tool
+npm install -g oracle-cli  # or your preferred installation method
+```
+
+The oracle agent provides advanced capabilities for:
+- Deep debugging of complex issues
+- Code audits and security reviews
+- Architectural decision analysis
+- Getting second opinions on approaches
+- Reviewing commits for correctness
 
 ### How It Works
 
