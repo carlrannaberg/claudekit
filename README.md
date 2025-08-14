@@ -510,19 +510,19 @@ Once installed, Claude Code automatically delegates to appropriate subagents bas
 
 ### Custom Agents
 
-Create your own agents by adding markdown files to `.claude/agents/`:
+Use the `/create-subagent` command in Claude Code to create specialized AI agents with guided setup:
 
-```markdown
----
-name: my-expert
-description: My domain expertise
-tools: Read, Grep, Edit
----
-
-# System prompt here
+```bash
+/create-subagent
 ```
 
-See `src/agents/` for examples.
+This command will guide you through:
+- Choosing project vs user-level agent
+- Defining domain expertise and coverage
+- Setting appropriate tool permissions
+- Creating the agent with best practices
+
+For manual creation, agents are markdown files in `.claude/agents/` with YAML frontmatter. See `src/agents/` for examples.
 
 ### How It Works
 
