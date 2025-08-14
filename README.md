@@ -194,30 +194,58 @@ The embedded hooks system allows you to run validation and automation hooks with
 
 ### Available Embedded Hooks
 
-#### Hook Naming Convention
+#### Code Quality Hooks
 
-Claudekit uses clear suffixes to indicate hook scope:
-- `-changed`: Operates only on files that were created or modified
-- `-project`: Operates on the entire project
-- Action verbs (e.g., `create-checkpoint`): Perform specific actions
+**typecheck-changed** / **typecheck-project**  
+Runs TypeScript compiler to catch type errors. The `-changed` variant only checks modified files for faster feedback, while `-project` validates the entire codebase.
+- Triggers on: File edits (changed) or manual run (project)
+- Blocks on: Type errors, missing types, or invalid TypeScript syntax
 
-#### File-Scoped Hooks (operate on changed files only)
-- **typecheck-changed** - TypeScript type checking on modified files
-- **check-any-changed** - Forbid `any` types in modified TypeScript files
-- **check-comment-replacement** - Prevent replacing functional code with explanatory comments
-- **check-unused-parameters** - Detect lazy refactoring where parameters are prefixed with underscore instead of being removed
-- **lint-changed** - ESLint validation on modified JavaScript/TypeScript files
-- **test-changed** - Run tests related to modified files
+**lint-changed** / **lint-project**  
+Enforces code style and catches potential bugs with ESLint. Auto-fixes issues when possible if configured.
+- Triggers on: File edits (changed) or manual run (project)  
+- Blocks on: ESLint errors (warnings are shown but don't block)
 
-#### Project-Wide Hooks (operate on entire project)
-- **typecheck-project** - TypeScript type checking on entire project
-- **lint-project** - ESLint validation on entire project
-- **test-project** - Run complete test suite
+**test-changed** / **test-project**  
+Runs your test suite to ensure changes don't break functionality. The `-changed` variant runs only tests related to modified files.
+- Triggers on: File edits (changed) or manual run (project)
+- Blocks on: Failing tests
 
-#### Action Hooks
-- **create-checkpoint** - Automatically create git checkpoints when Claude Code stops
-- **check-todos** - Ensure all todos are completed before stopping
-- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports glob patterns and custom focus areas in `.claudekit/config.json`)
+#### Code Pattern Detection
+
+**check-any-changed**  
+Prevents TypeScript `any` types from creeping into your codebase. Catches both explicit and implicit any usage.
+- Triggers on: TypeScript file edits
+- Blocks on: Use of `any` type (except in .test.ts files and specific utilities)
+
+**check-comment-replacement**  
+Detects when functional code is replaced with explanatory comments like "// ... rest of implementation".
+- Triggers on: File edits
+- Blocks on: Suspicious comment patterns that might indicate deleted code
+
+**check-unused-parameters**  
+Catches lazy refactoring where parameters are prefixed with underscore instead of being properly removed.
+- Triggers on: File edits
+- Blocks on: Function parameters starting with underscore
+
+#### Workflow Automation
+
+**create-checkpoint**  
+Automatically saves your work as a git stash when Claude Code stops. Creates named checkpoints you can restore later.
+- Triggers on: Stop event
+- Creates: Git stash with timestamp and optional description
+- Maintains: Configurable number of recent checkpoints (default: 10)
+
+**check-todos**  
+Ensures all TodoWrite tasks are completed before allowing Claude Code to stop.
+- Triggers on: Stop event
+- Blocks on: Incomplete todos in the current session
+
+**self-review**  
+Prompts Claude Code to critically evaluate its code changes before finishing. Asks targeted questions from different focus areas to catch issues.
+- Triggers on: Stop event after code changes
+- Asks: 3 random questions from focus areas (Refactoring, Code Quality, Consistency)
+- Configurable: Custom question sets and file patterns to monitor
 
 ### Hook Configuration
 
@@ -281,52 +309,67 @@ Hooks support additional configuration through `.claudekit/config.json` in your 
 }
 ```
 
-#### Available Hook Configurations
+#### Hook-Specific Configuration
 
-**Self-Review Hook (`self-review`):**
-- `targetPatterns`: Glob patterns to match files for triggering reviews (default: code files only)
-- `timeout`: Execution timeout in milliseconds (default: 30000)
-- `focusAreas`: Custom focus areas and questions (optional, replaces defaults)
-  ```json
-  "self-review": {
-    "targetPatterns": [
-      "**/*.ts",
-      "**/*.tsx", 
-      "**/*.js",
-      "**/*.jsx",
-      "!**/*.test.*",
-      "!**/*.spec.*"
-    ],
-    "focusAreas": [
-      {
-        "name": "Performance",
-        "questions": [
-          "Did you consider the performance impact?",
-          "Are there unnecessary re-renders?",
-          "Could this benefit from caching?"
-        ]
-      }
-    ]
-  }
-  ```
+**self-review**  
+Customize which files trigger reviews and what questions get asked:
+```json
+"self-review": {
+  "targetPatterns": [        // Which files to monitor for changes
+    "**/*.ts",
+    "**/*.tsx",
+    "!**/*.test.*"          // Exclude test files
+  ],
+  "focusAreas": [           // Replace default question sets
+    {
+      "name": "Performance",
+      "questions": [
+        "Did you consider the performance impact?",
+        "Are there unnecessary re-renders?",
+        "Could this benefit from caching?"
+      ]
+    }
+  ]
+}
+```
 
-**TypeScript Hooks (`typecheck-changed`, `typecheck-project`):**
-- `command`: Custom TypeScript command (default: uses package manager's tsc)
-- `timeout`: Execution timeout in milliseconds (default: 30000)
+**typecheck-changed / typecheck-project**  
+Override TypeScript compiler settings:
+```json
+"typecheck-changed": {
+  "command": "pnpm tsc --noEmit",  // Custom command if not using npm
+  "timeout": 45000                  // Increase timeout for large codebases
+}
+```
 
-**ESLint Hooks (`lint-changed`, `lint-project`):**
-- `command`: Custom ESLint command (default: uses package manager's eslint)
-- `fix`: Auto-fix issues when possible (default: false)
-- `extensions`: File extensions to lint (default: [".js", ".jsx", ".ts", ".tsx"])
-- `timeout`: Execution timeout in milliseconds (default: 30000)
+**lint-changed / lint-project**  
+Configure ESLint behavior and auto-fixing:
+```json
+"lint-changed": {
+  "command": "pnpm eslint",         // Custom command
+  "fix": true,                      // Auto-fix issues
+  "extensions": [".ts", ".tsx"],    // Which files to lint
+  "timeout": 30000
+}
+```
 
-**Test Hooks (`test-changed`, `test-project`):**
-- `command`: Custom test command (default: uses package manager's test script)
-- `timeout`: Execution timeout in milliseconds (default: 55000 for test-project, 30000 for test-changed)
+**test-changed / test-project**  
+Customize test execution:
+```json
+"test-project": {
+  "command": "npm run test:fast",   // Use faster test suite
+  "timeout": 60000                  // Increase timeout for integration tests
+}
+```
 
-**Checkpoint Hook (`create-checkpoint`):**
-- `prefix`: Git stash prefix for checkpoints (default: "claude")
-- `maxCheckpoints`: Maximum number of checkpoints to keep (default: 10)
+**create-checkpoint**  
+Control checkpoint naming and retention:
+```json
+"create-checkpoint": {
+  "prefix": "claude",                // Prefix for stash messages
+  "maxCheckpoints": 15               // How many to keep (older ones deleted)
+}
+```
 
 #### Configuration Loading
 
