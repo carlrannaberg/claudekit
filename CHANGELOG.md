@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.9] - 2025-08-14
+
+### Fixed
+- **Comment Replacement Hook File Path Integration**: Enhanced the check-comment-replacement hook to use file path information for smarter validation
+  - Added file path extraction for both Edit and MultiEdit operations to enable file-type-aware validation
+  - Added automatic exclusion of documentation files (`.md`, `.mdx`, `.txt`, `.rst`) from comment replacement validation
+  - Enhanced debug logging with detailed context payload information when DEBUG environment variable is set
+  - Improved validation accuracy by skipping comment replacement checks on documentation files where such patterns are legitimate
+  - Reduced false positives for documentation edits while maintaining code quality enforcement for actual source files
+
 ## [0.3.8] - 2025-08-14
 
 ### Changed
