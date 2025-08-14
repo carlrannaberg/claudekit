@@ -9,15 +9,15 @@ A powerful CLI toolkit for enhancing Claude Code with custom commands, hooks, an
 Claude Code is powerful, but without guardrails it can introduce issues into your codebase. Claudekit solves these problems:
 
 ### Without Claudekit
-- ❌ Claude adds `any` types that break your strict TypeScript
-- ❌ Work gets lost when Claude Code stops or crashes  
-- ❌ Claude replaces code with comments like "// ... rest of implementation"
+- ❌ TypeScript and linting errors accumulate without immediate feedback
+- ❌ No way to undo changes if Claude goes in the wrong direction  
+- ❌ Claude replaces code with comments instead of deleting it cleanly
 - ❌ Tests aren't run, breaking changes slip through
 - ❌ No review of changes before finishing
 
 ### With Claudekit
-- ✅ Immediately blocks `any` types and other anti-patterns
-- ✅ Auto-saves git checkpoints you can restore anytime
+- ✅ Immediately blocks `any` types and catches TypeScript/linting errors as Claude makes changes
+- ✅ Auto-saves git checkpoints so you can undo if Claude goes off track
 - ✅ Detects and prevents code replacement with comments
 - ✅ Runs tests automatically on file changes
 - ✅ Prompts Claude to review its own work before finishing
@@ -245,7 +245,7 @@ Prevents TypeScript `any` types from creeping into your codebase. Catches both e
 - Blocks on: Use of `any` type (except in .test.ts files and specific utilities)
 
 **check-comment-replacement**  
-Detects when functional code is replaced with explanatory comments like "// ... rest of implementation".
+Detects when code is replaced with comments instead of being deleted cleanly.
 - Triggers on: File edits
 - Blocks on: Suspicious comment patterns that might indicate deleted code
 
