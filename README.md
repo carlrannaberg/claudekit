@@ -24,6 +24,8 @@ Claude Code is powerful, but without guardrails it can introduce issues into you
 
 ## Installation
 
+> **⚠️ Important:** Claudekit is designed for Claude Code **Max plan**. It's not optimized for Pro plan usage due to the significant token consumption from hooks and subagents. Max plan offers 5-20x more tokens in usage limits.
+
 ```bash
 npm install -g claudekit
 ```
@@ -544,128 +546,6 @@ We welcome community contributions! To add a new agent:
 
 See [Agent Authoring Guide](src/agents/README.md) for detailed guidelines.
 
-## Features
-
-### 🤖 Subagents
-Specialized domain expert AI assistants:
-- **TypeScript Expert** - Comprehensive TypeScript/JavaScript guidance
-- **Custom Agents** - Create your own domain experts
-- **Automatic Delegation** - Claude routes tasks to the best expert
-- **Agent Library** - Growing collection of community agents
-
-### 🛡️ Embedded Hooks System
-Automatically enforce code quality and run tests with the built-in TypeScript hooks system:
-
-#### File-Scoped Validation (operates on changed files only)
-- **typecheck-changed** - TypeScript type checking on modified files
-- **check-any-changed** - Forbid `any` types in modified TypeScript files
-- **check-comment-replacement** - Prevent replacing functional code with explanatory comments
-- **check-unused-parameters** - Detect lazy refactoring where parameters are prefixed with underscore instead of being removed
-- **lint-changed** - ESLint code style validation on modified files
-- **test-changed** - Auto-run tests for modified files
-
-#### Project-Wide Validation
-- **typecheck-project** - TypeScript validation on entire project
-- **lint-project** - ESLint validation on entire project  
-- **test-project** - Run complete test suite
-
-#### Action Hooks
-- **create-checkpoint** - Save work automatically when Claude Code stops
-- **check-todos** - Prevent stopping with incomplete todos
-- **self-review** - Prompt critical self-review with configurable focus areas and intelligent duplicate prevention (supports glob patterns and custom focus areas in `.claudekit/config.json`)
-
-#### Hook Management & Monitoring
-- Built-in execution logging with statistics tracking
-- Performance monitoring with `claudekit-hooks stats`
-- Recent activity viewing with `claudekit-hooks recent`
-- Debug mode for troubleshooting hook issues
-
-#### Intelligent Transcript Analysis
-- **TranscriptParser**: Advanced Claude Code session analysis with UI message grouping
-- **Smart File Detection**: Glob pattern matching with negative patterns (e.g., exclude test files)
-- **Message Windowing**: Analyzes conversation history matching Claude Code UI behavior
-- **Duplicate Prevention**: Marker-based tracking prevents redundant hook triggers
-- **Change Detection**: Identifies recent file modifications within configurable time windows
-
-### 📝 Slash Commands
-
-#### Development Tools
-- `/spec:create [feature]` - Generate comprehensive specification documents
-- `/spec:validate [file]` - Analyze specification completeness and quality
-- `/spec:decompose [file]` - Decompose specification into TaskMaster tasks
-- `/spec:execute [file]` - Execute specification with concurrent agents
-- `/validate-and-fix` - Run quality checks and auto-fix discovered issues
-- `/dev:cleanup` - Clean up debug files and development artifacts
-- `/config:bash-timeout [duration] [scope]` - Configure bash command timeout values
-
-#### AGENT.md Configuration
-- `/agent:init` - Create or improve AGENT.md with intelligent codebase analysis and automatic subagent discovery
-- `/agent:migration` - Convert other AI config files to AGENT.md
-- `/agent:cli [tool]` - Capture CLI tool help documentation and add it to AGENT.md
-
-#### Git & GitHub Integration
-- `/git:commit` - Create commits following project conventions with diff statistics and smart truncation
-- `/git:status` - Intelligently analyze git status and provide insights about current state
-- `/git:push` - Push commits to remote with safety checks and branch management
-- `/gh:repo-init [name]` - Create new GitHub repository with full setup
-
-#### Git Checkpoint System
-- `/checkpoint:create [description]` - Save current state
-- `/checkpoint:restore [n]` - Restore previous state
-- `/checkpoint:list` - List all checkpoints
-
-#### Command Creation
-- `/create-command` - Interactive guide for creating new slash commands
-
-## Configuration
-
-### Settings Structure
-
-claudekit uses a two-level configuration system:
-
-**Project Settings** (`.claude/settings.json`):
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
-          {"type": "command", "command": "claudekit-hooks run check-todos"}
-        ]
-      }
-    ]
-  }
-}
-```
-
-**User Settings** (`~/.claude/settings.json`):
-```json
-{
-  "env": {
-    "GITHUB_TOKEN": "your-token",
-    "OPENAI_API_KEY": "your-key"
-  }
-}
-```
-
-### Hook Matchers
-
-The hook system supports sophisticated matching patterns:
-
-- **Exact Match**: `"Write"` (matches only Write tool)
-- **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
-- **Regex Patterns**: `"Notebook.*"` (matches all Notebook tools)
-- **Conditional Logic**: `"Write|Edit|MultiEdit"` (specific files)
-- **Universal Match**: `"*"` (matches all tools/events)
-
 ## Platform & Language Support
 
 **Currently optimized for:**
@@ -702,43 +582,6 @@ Enables `/spec:create` to fetch up-to-date library documentation.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Test Suite Timeout in Claude Code
-
-**Problem:** The `test-project` hook fails with a timeout when running tests through Claude Code's Stop hook.
-
-**Cause:** Claude Code has a 60-second timeout limit for hooks. Test suites that include building and running comprehensive tests often exceed this limit.
-
-**Solutions:**
-
-1. **Configure a faster test command** in `.claudekit/config.json`:
-   ```json
-   {
-     "hooks": {
-       "test-project": {
-         "command": "npm run test:unit",  // Run only unit tests
-         "timeout": 50000  // Optional: adjust timeout
-       }
-     }
-   }
-   ```
-
-2. **Disable the test-project hook** if your test suite is too large:
-   - Remove `test-project` from your `.claude/settings.json` Stop hooks
-   - Run tests manually when needed with `npm test`
-
-3. **Create a custom fast test script** in your `package.json`:
-   ```json
-   {
-     "scripts": {
-       "test:fast": "vitest run --reporter=dot --bail=1"
-     }
-   }
-   ```
-
-## Troubleshooting
-
 ### Common Issues and Solutions
 
 #### Hooks Not Triggering
@@ -767,6 +610,36 @@ Enables `/spec:create` to fetch up-to-date library documentation.
        "typecheck-changed": {
          "command": "npx tsc --noEmit"  // Use npx if not in PATH
        }
+     }
+   }
+   ```
+
+#### Test Suite Timeout in Claude Code
+
+**Problem**: The `test-project` hook fails with a timeout when running tests through Claude Code's Stop hook.
+
+**Cause**: Claude Code has a 60-second timeout limit for hooks. Test suites that include building and running comprehensive tests often exceed this limit.
+
+**Solutions**:
+1. **Configure a faster test command** in `.claudekit/config.json`:
+   ```json
+   {
+     "hooks": {
+       "test-project": {
+         "command": "npm run test:unit",  // Run only unit tests
+         "timeout": 50000  // Optional: adjust timeout
+       }
+     }
+   }
+   ```
+2. **Disable the test-project hook** if your test suite is too large:
+   - Remove `test-project` from your `.claude/settings.json` Stop hooks
+   - Run tests manually when needed with `npm test`
+3. **Create a custom fast test script** in your `package.json`:
+   ```json
+   {
+     "scripts": {
+       "test:fast": "vitest run --reporter=dot --bail=1"
      }
    }
    ```
