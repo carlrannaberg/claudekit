@@ -13,7 +13,6 @@ import { validateClaudekitConfig } from '../types/claudekit-config.js';
 interface ValidateOptions {
   type?: string;
   prerequisites?: boolean;
-  detailed?: boolean;
   verbose?: boolean;
   quiet?: boolean;
 }
@@ -354,13 +353,13 @@ export async function validate(options: ValidateOptions): Promise<void> {
       }
     }
 
-    // Display enhanced validation results if detailed mode or if there are issues
+    // Display enhanced validation results if verbose mode or if there are issues
     if (
-      options.detailed === true ||
+      options.verbose === true ||
       !projectValidation.isValid ||
       (options.prerequisites === true && validationResults.some((r) => !r.isValid))
     ) {
-      console.log('\nDetailed Validation:\n');
+      console.log('\nValidation Details:\n');
 
       for (const result of validationResults) {
         if (!result.isValid || result.warnings.length > 0) {
@@ -383,7 +382,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
       console.log(Colors.bold(Colors.success('All validation checks passed!')));
 
       // Show summary of what was checked
-      if (options.detailed === true) {
+      if (options.verbose === true) {
         console.log(Colors.dim('\nChecked:'));
         console.log(Colors.dim('• claudekit directory structure'));
         console.log(Colors.dim('• Configuration file validity'));

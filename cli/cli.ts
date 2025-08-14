@@ -158,7 +158,6 @@ program
   .description('Run project validation checks')
   .option('-t, --type <type>', 'validation type', 'all')
   .option('--prerequisites', 'check development prerequisites')
-  .option('--detailed', 'show detailed validation results')
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
