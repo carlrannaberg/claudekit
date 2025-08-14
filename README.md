@@ -4,6 +4,22 @@
 
 A powerful CLI toolkit for enhancing Claude Code with custom commands, hooks, and development workflow utilities.
 
+## Table of Contents
+
+- [Why Claudekit?](#why-claudekit)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Commands](#cli-commands)
+- [Hooks System](#hooks-system)
+- [Subagents](#subagents)
+- [Platform & Language Support](#platform--language-support)
+- [MCP Integration](#mcp-integration)
+- [Documentation](#documentation)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Why Claudekit?
 
 Claude Code is powerful, but without guardrails it can introduce issues into your codebase. Claudekit solves these problems:
@@ -571,14 +587,9 @@ Enables `/spec:create` to fetch up-to-date library documentation.
 
 ## Documentation
 
-- [Claude Code Configuration](docs/claude-code-configuration.md) - Comprehensive configuration guide
-- [Checkpoint System](docs/checkpoint-system.md) - Detailed checkpoint documentation
-- [Hooks Documentation](docs/hooks-documentation.md) - Information about all hooks
-- [Hooks Reference](docs/hooks-reference.md) - Complete hook configuration options
-- [Migration from Shell Hooks](docs/migration-from-shell-hooks.md) - Migrating from shell script hooks
-- [File Organization](docs/file-organization.md) - Project structure best practices
+- [Checkpoint System](docs/checkpoint-system.md) - How to use git checkpoints
+- [Hooks Documentation](docs/hooks-documentation.md) - Available hooks and configuration
 - [Create Command](docs/create-command-documentation.md) - How to create custom slash commands
-- [Testing Guide](tests/README.md) - Running the test suite
 
 ## Troubleshooting
 
