@@ -40,7 +40,8 @@ Quick reference documentation:
 
 | Reference | Description |
 |-----------|-------------|
-| [Commands Reference](reference/commands.md) | Complete list of available slash commands |
+| [CLI Reference](reference/cli.md) | Command-line tools and utilities |
+| [Slash Commands](reference/commands.md) | Complete list of Claude Code slash commands |
 | [Hooks Reference](reference/hooks.md) | All available hooks and their configurations |
 | [Subagents Reference](reference/subagents.md) | Available AI subagents and their specialties |
 

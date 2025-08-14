@@ -241,4 +241,4 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT © [claudekit contributors](https://github.com/claudekit/claudekit/graphs/contributors)
+MIT © claudekit contributors
