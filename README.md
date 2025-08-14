@@ -524,11 +524,16 @@ claudekit setup --skip-agents
 
 ### Usage
 
-Once installed, Claude Code automatically delegates to appropriate subagents based on your task. For example:
+Once installed, subagents can be used in two ways:
 
-- "Fix this TypeScript error" → Delegates to typescript-expert
-- "Optimize React rendering" → Delegates to react-performance-expert  
-- "Write Playwright tests" → Delegates to playwright-expert
+**Option 1: Explicit Request** (always works)
+- "Use the oracle agent to debug this issue"
+- "Ask the typescript-expert about this type error"  
+- "Have the react-performance-expert optimize this component"
+
+**Option 2: Automatic Delegation** (requires configuration)
+- Run `/agent:init` to configure AGENT.md for proactive subagent usage
+- Then Claude will automatically use the right expert for tasks like TypeScript errors or React optimization
 
 ### Custom Agents
 
@@ -583,9 +588,11 @@ The oracle agent provides advanced capabilities for:
 
 1. During setup, agents are copied from `src/agents/` to `.claude/agents/`
 2. Claude Code automatically discovers agents in `.claude/agents/`
-3. When you ask a question, Claude evaluates if any agent matches
-4. If a match is found, Claude delegates to that agent's expertise
-5. The agent operates in a clean context with focused knowledge
+3. **Usage requires one of:**
+   - Explicitly asking Claude to use a specific agent (e.g., "Use the oracle agent to debug this")
+   - Running `/agent:init` to configure AGENT.md with proactive subagent usage
+   - Manually adding instructions to AGENT.md/CLAUDE.md
+4. The agent operates in a clean context with focused knowledge
 
 ### Contributing Agents
 
