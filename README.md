@@ -35,14 +35,14 @@ claudekit setup
 Claudekit acts as your safety net while coding with Claude:
 
 ```
-Before: Claude adds 'any' types → ❌ TypeScript breaks later
-After:  Claude adds 'any' types → ✅ Blocked immediately with fix instructions
+Before: Claude adds 'any' type → ❌ Lost type safety discovered in code review
+After:  Claude adds 'any' type → ✅ Instant block: "Use specific type: User | null"
 
-Before: Claude goes off track → ❌ Manual git reset needed  
-After:  Claude goes off track → ✅ Restore from checkpoint: /checkpoint:restore
+Before: Risky refactor fails → ❌ Git archaeology to find working version  
+After:  Risky refactor fails → ✅ One command: /checkpoint:restore
 
-Before: Tests break silently → ❌ Discover issues in production
-After:  Tests break silently → ✅ Tests run automatically on file changes
+Before: Breaking change merged → ❌ CI pipeline fails 10 minutes later
+After:  Breaking change saved → ✅ Tests run instantly, error shown in 2 seconds
 ```
 
 ## Key Features
