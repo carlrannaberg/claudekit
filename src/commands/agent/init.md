@@ -32,6 +32,7 @@ Use Task tool with description "Gather repository information" to run these Glob
 - `.cursor/rules/**` - Cursor rules
 - `.cursorrules` - Cursor rules (alternate location)
 - `.github/copilot-instructions.md` - GitHub Copilot rules
+- `.claude/agents/**/*.md` - Specialized AI subagents
 - `requirements.txt`, `setup.py`, `pyproject.toml` - Python projects
 - `go.mod` - Go projects
 - `Cargo.toml` - Rust projects
@@ -51,6 +52,7 @@ Also examine:
 - GitHub workflows to identify CI/CD commands
 - A few source files to infer coding conventions
 - Test files to understand testing patterns
+- `.claude/agents/` directory to discover available subagents
 
 **Script Consistency Check**: When documenting npm scripts from package.json, verify they match references in:
 - GitHub Actions workflows (npm run, npm test, etc.)
@@ -63,6 +65,7 @@ Also examine:
 - If .cursorrules or .cursor/rules/* exist, incorporate them
 - If .github/copilot-instructions.md exists, include its content
 - If other AI configs exist (.clinerules, .windsurfrules), merge them
+- If `.claude/agents/` directory exists, document available subagents with their descriptions and usage examples
 
 ### 3. Create AGENT.md
 Based on your analysis, create AGENT.md with this structure:
@@ -250,6 +253,46 @@ The `.claude` directory contains Claude Code configuration files with specific v
 - Configuration files and their purposes
 - Development environment setup
 - Dependencies and version requirements
+
+## Available AI Subagents
+
+[Check if the project has specialized subagents in `.claude/agents/` directory. If present, document them organized by category. Include:]
+
+### Discovering Subagents
+[List any subagents found in `.claude/agents/` or document that Claude Code has built-in specialized agents]
+
+### When to Use Subagents
+AI assistants should proactively use the Task tool to delegate to specialized subagents when:
+- Working on domain-specific tasks that match a subagent's expertise
+- Encountering complex technical issues requiring specialized knowledge
+- Optimizing build configurations or performance
+- Setting up testing frameworks or CI/CD pipelines
+- Dealing with database queries or infrastructure
+
+### Usage Examples
+```
+When user asks about React performance issues:
+→ Use Task tool with subagent_type: "react-performance-expert"
+
+When encountering complex TypeScript type errors:
+→ Use Task tool with subagent_type: "typescript-type-expert"
+
+When configuring Webpack or build tools:
+→ Use Task tool with subagent_type: "webpack-expert"
+
+When setting up Docker containers:
+→ Use Task tool with subagent_type: "docker-expert"
+
+When debugging Jest tests:
+→ Use Task tool with subagent_type: "jest-testing-expert"
+```
+
+### Project-Specific Recommendations
+[Based on the project's technology stack, recommend which subagents would be most useful. For example:]
+- For React projects: Recommend react-expert, react-performance-expert
+- For Node.js backends: Recommend nodejs-expert, database experts
+- For TypeScript projects: Recommend typescript-expert, typescript-type-expert
+- For projects with CI/CD: Recommend github-actions-expert, docker-expert
 ```
 
 Think about what you'd tell a new team member on their first day. Include these key sections:
@@ -260,6 +303,7 @@ Think about what you'd tell a new team member on their first day. Include these 
 4. **Testing** - Testing frameworks, conventions, execution guidelines
 5. **Security** - Security considerations and data protection
 6. **Configuration** - Environment setup and configuration management
+7. **Available AI Subagents** - Document relevant specialized agents for the project
 
 Additional sections based on project needs:
 - Architecture details for complex projects
