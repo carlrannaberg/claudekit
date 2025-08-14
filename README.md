@@ -538,7 +538,7 @@ Automatically enforce code quality and run tests with the built-in TypeScript ho
 - `/config:bash-timeout [duration] [scope]` - Configure bash command timeout values
 
 #### AGENT.md Configuration
-- `/agent:init` - Create or improve AGENT.md with intelligent codebase analysis
+- `/agent:init` - Create or improve AGENT.md with intelligent codebase analysis and automatic subagent discovery
 - `/agent:migration` - Convert other AI config files to AGENT.md
 - `/agent:cli [tool]` - Capture CLI tool help documentation and add it to AGENT.md
 

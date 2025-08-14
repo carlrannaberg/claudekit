@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2025-08-14
+
+### Added
+- **Agent Discovery Documentation**: Enhanced `/agent:init` command with comprehensive subagent documentation
+  - Added automatic discovery of available subagents in the project
+  - Integrated detailed subagent usage guidelines into generated AGENT.md files
+  - Included proactive delegation patterns and examples for 24+ specialized agents across 7 categories
+  - Added when-to-use guidance for domain-specific tasks (React performance, TypeScript errors, build optimization, etc.)
+
+### Fixed
+- **Self-Review Duplicate Detection**: Improved reliability of self-review hook duplicate prevention
+  - Enhanced transcript parsing to properly detect Stop hook output in tool_result content
+  - Fixed marker detection to check both user message content and toolUseResult.reason fields
+  - Improved parsing of tool results where self-review markers are embedded in JSON responses
+  - Added debug logging for self-review trigger analysis to aid troubleshooting
+- **TranscriptParser Tool Result Handling**: Enhanced transcript analysis for better hook integration
+  - Added support for parsing tool_result type content blocks in user messages
+  - Improved detection of Stop hook feedback that appears in Claude Code UI
+  - Better handling of structured JSON content within tool results
+  - Enhanced marker finding logic to work reliably with embedded hook system output
+
+### Changed
+- **Self-Review Configuration**: Updated example configuration to reflect current best practices
+  - Simplified configuration example with focus on essential settings (timeout, targetPatterns, focusAreas)
+  - Updated example targetPatterns to show TypeScript/JavaScript file filtering
+  - Enhanced focusAreas example configuration with clear structure and purpose
+
 ## [0.3.6] - 2025-08-14
 
 ### Changed
