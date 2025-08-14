@@ -23,7 +23,7 @@ This is a TypeScript-based toolkit. Key commands:
 
 ### Creating New Components
 
-- **Subagents**: See [Subagent Development Guide](docs/subagent-development-guide.md) for creating AI assistant subagents
+- **Subagents**: See [Subagent Development Guide](docs/guides/creating-subagents.md) for creating AI assistant subagents
 - **Commands**: Use `/create-command` in Claude Code for guidance
 - **Hooks**: Follow self-contained patterns in `src/hooks/`
 
@@ -253,7 +253,7 @@ echo '{"tool_input": {"file_path": "/path/to/file.js"}}' | claudekit-hooks run l
 # Test auto-checkpoint (no input needed)
 claudekit-hooks run create-checkpoint
 ```
-See `docs/hooks-documentation.md` for detailed testing examples.
+See `docs/reference/hooks.md` for detailed testing examples.
 
 ## Security
 
@@ -384,7 +384,7 @@ temp/                       # Temporary files (gitignored)
 - **`/agent:init`** - Creates reports/ structure and documents these conventions
 - **`/dev:cleanup`** - Identifies and cleans files not following these patterns
 
-See [File Organization Guide](docs/file-organization.md) for detailed patterns and examples.
+See [File Organization Guide](docs/guides/project-organization.md) for detailed patterns and examples.
 
 ### Hook Configuration
 Edit `.claude/settings.json` using the new matcher format:

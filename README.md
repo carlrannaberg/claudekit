@@ -97,7 +97,7 @@ claudekit validate           # Check your installation
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
 
-[View all commands →](docs/commands-reference.md)
+[View all commands →](docs/reference/commands.md)
 
 ## Hooks
 
@@ -115,14 +115,14 @@ Hooks automatically enforce quality as Claude works:
 - `test-project` - Run full test suite
 - `self-review` - Prompt code review
 
-[Hook configuration →](docs/hooks-documentation.md)
+[Hook configuration →](docs/reference/hooks.md)
 
 ## Subagents
 
 Specialized AI assistants for different domains:
 
 **Popular Agents**
-- `oracle` - Deep debugging with GPT-5 ([requires setup](docs/oracle-setup.md))
+- `oracle` - Deep debugging with GPT-5 ([requires setup](docs/integrations/oracle.md))
 - `typescript-expert` - TypeScript/JavaScript specialist
 - `react-expert` - React patterns and performance
 - `testing-expert` - Test architecture and patterns
@@ -137,7 +137,7 @@ claudekit setup --agents typescript-expert,react-expert
 "Use the oracle agent to debug this issue"
 ```
 
-[View all 24+ agents →](docs/subagents-list.md)
+[View all 24+ agents →](docs/reference/subagents.md)
 
 ## Configuration
 
@@ -166,7 +166,7 @@ Claudekit uses two configuration files:
 }
 ```
 
-[Configuration guide →](docs/configuration.md)
+[Configuration guide →](docs/getting-started/configuration.md)
 
 ## Getting Help
 
@@ -200,7 +200,7 @@ Configure faster test command in `.claudekit/config.json`:
 }
 ```
 
-[Full troubleshooting →](docs/troubleshooting.md)
+[Full troubleshooting →](docs/getting-started/troubleshooting.md)
 
 ## MCP Integration
 

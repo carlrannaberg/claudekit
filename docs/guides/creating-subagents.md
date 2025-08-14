@@ -4,8 +4,8 @@ This guide provides comprehensive instructions for creating research-driven, hig
 
 ## Related Documentation
 
-- [Domain Expert Principles](./subagents-principles.md) - Core principles for designing domain experts
-- [Official Subagents Documentation](./official-subagents-documentation.md) - Claude's official subagent capabilities
+- [Domain Expert Principles](../internals/principles.md) - Core principles for designing domain experts
+- [Official Subagents Documentation](../official/subagents.md) - Claude's official subagent capabilities
 - [Feature Specification](../specs/feat-domain-expert-subagents-suite.md) - Complete subagent suite specification
 - [Agent Research Reports](../reports/agent-research/) - Examples of comprehensive domain research
 
@@ -40,7 +40,7 @@ A successful subagent combines:
 
 ## Core Principles
 
-Based on [Domain Expert Principles](./subagents-principles.md) and proven patterns from 22 production agents:
+Based on [Domain Expert Principles](../internals/principles.md) and proven patterns from 22 production agents:
 
 ### 1. Complete Domain Coverage
 Cover an entire problem domain comprehensively. Avoid overly narrow agents (❌ "React useState expert") in favor of coherent domains (✅ "React expert", "TypeScript expert").

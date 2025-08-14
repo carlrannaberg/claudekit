@@ -210,21 +210,62 @@ Clean up debug files and development artifacts.
 ## Agent Management
 
 ### `/agent:init`
-Initialize AGENT.md file.
-- Sets up AI assistant configuration
-- Configures proactive subagent usage
-- Documents project conventions
-- Creates reports directory structure
+Initialize or improve AGENT.md file with intelligent codebase analysis.
+
+**What it does:**
+1. **Analyzes your codebase** to understand:
+   - Project type and technologies
+   - Build commands and scripts
+   - Test frameworks and patterns
+   - Code style conventions
+   - Existing AI configurations
+2. **Creates or improves AGENT.md** with discovered information
+3. **Adds directory structure** (reports/, temp/) and file organization guidelines
+4. **Merges existing configs** from .cursorrules, copilot-instructions.md, etc.
+5. **Sets up symlinks** for all AI assistants
+
+**When to use:**
+- **New projects** that need AGENT.md
+- **Existing projects** to improve/update existing AGENT.md
+- Want intelligent analysis of your codebase
+- Need to add new features (directory structure, latest best practices)
+- Replacing Claude's `/init` command
+
+**Safety:**
+✅ **Safe to run on existing AGENT.md files** - it improves rather than overwrites
+✅ **Can be run multiple times** to keep AGENT.md updated
+✅ **Preserves existing content** while adding enhancements
 
 ### `/agent:migration`
-Migrate from other AI configs.
-- Converts .cursorrules to AGENT.md
-- Preserves existing instructions
-- Adds claudekit enhancements
-- Maintains backward compatibility
+Convert other AI config files to AGENT.md standard.
+
+**What it does:**
+1. **Analyzes all existing config files** (CLAUDE.md, .cursorrules, .windsurfrules, etc.)
+2. **Detects content differences** and chooses appropriate migration strategy:
+   - **Single file**: Simple move to AGENT.md
+   - **Identical files**: Move primary, symlink others
+   - **Different content**: Smart merging or user-guided resolution
+3. **Creates symlinks** so all AI tools use the same file
+4. **Handles conflicts intelligently** with user guidance when needed
+
+**Migration Strategies:**
+- **🔄 Auto-merge**: Combines unique content from all files
+- **📋 Backup approach**: Keeps primary file, backs up others (.bak extension)
+- **🎯 Selective**: Interactive selection of content blocks
+- **🛠️ Manual**: Step-by-step merge assistance
+
+**When to use:**
+- You have existing **CLAUDE.md** or **.cursorrules** files
+- Want to migrate from tool-specific configs to universal AGENT.md standard
+- **Multiple AI config files** with different content that need merging
+- **DO NOT use** if you already have AGENT.md (use `/agent:init` instead)
+
+**Not for:**
+❌ Projects that already have AGENT.md (use `/agent:init` instead)
+❌ Creating AGENT.md from scratch (use `/agent:init` instead)
 
 ### `/agent:cli [tool]`
-Capture CLI tool help.
+Capture CLI tool help and add to AGENT.md.
 - Documents CLI tools in AGENT.md
 - Preserves formatting
 - Creates collapsible sections
@@ -276,6 +317,31 @@ Profile hook execution times.
 - Shows execution frequency
 - Suggests optimizations
 
+## Agent Commands Comparison
+
+| Feature | `/agent:init` | `/agent:migration` |
+|---------|--------------|-------------------|
+| Analyzes codebase | ✅ Smart analysis | ❌ Simple rename |
+| Creates new AGENT.md | ✅ Based on analysis | ❌ Uses existing content |
+| Merges existing configs | ✅ Incorporates all | ❌ Just moves one |
+| Best for | Any project | Simple migration |
+| Intelligence | High - infers from code | Low - just renames |
+| Symlinks created | All AI tools | All AI tools |
+
+## Supported AI Assistants
+
+Both agent commands create symlinks for:
+- Claude Code (CLAUDE.md)
+- Cline (.clinerules)
+- Cursor (.cursorrules)
+- Windsurf (.windsurfrules)
+- GitHub Copilot (.github/copilot-instructions.md)
+- Replit (.replit.md)
+- Gemini CLI (GEMINI.md)
+- OpenAI Codex (GEMINI.md)
+- OpenCode (GEMINI.md)
+- Firebase Studio (.idx/airules.md)
+
 ## Command Options
 
 Most commands support additional options through arguments:
@@ -320,3 +386,15 @@ Most commands support additional options through arguments:
    ```
    /config:bash-timeout 30min project  # For large test suites
    ```
+
+## Best Practices
+
+1. **Review the content**: Whether using init or migration, review AGENT.md to ensure it accurately reflects your project
+
+2. **Keep it updated**: As your project evolves, update AGENT.md with new conventions, commands, or architectural changes
+
+3. **Team alignment**: Share AGENT.md with your team and get agreement on conventions
+
+4. **Version control**: Always commit AGENT.md and its symlinks to your repository
+
+5. **Regular updates**: Periodically review and update the file as tools and practices evolve
