@@ -27,12 +27,12 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
 
   logger.debug(`Listing ${type} with options:`, options);
 
-  const validTypes = ['all', 'hooks', 'commands', 'settings', 'config'];
+  const validTypes = ['all', 'hooks', 'commands', 'agents', 'config'];
   if (!validTypes.includes(type)) {
     throw new Error(`Invalid type "${type}". Must be one of: ${validTypes.join(', ')}`);
   }
 
-  type OperationResult = HookInfo[] | CommandInfo[] | Record<string, unknown>;
+  type OperationResult = HookInfo[] | CommandInfo[] | AgentInfo[] | Record<string, unknown>;
   const operations: Array<{ name: string; operation: () => Promise<OperationResult> }> = [];
 
   // Prepare operations based on type
@@ -50,7 +50,14 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
     });
   }
 
-  if (type === 'all' || type === 'settings' || type === 'config') {
+  if (type === 'all' || type === 'agents') {
+    operations.push({
+      name: 'Listing agents',
+      operation: () => listAgents(options) as Promise<OperationResult>,
+    });
+  }
+
+  if (type === 'all' || type === 'config') {
     operations.push({
       name: 'Listing configuration',
       operation: () => listConfig(options) as Promise<OperationResult>,
@@ -81,13 +88,23 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
     const commandsResult = operationResults[resultIndex++];
     if (
       Array.isArray(commandsResult) &&
-      commandsResult.every((item): item is CommandInfo => 'description' in item)
+      commandsResult.every((item): item is CommandInfo => 'description' in item && !('category' in item))
     ) {
       results.commands = commandsResult;
     }
   }
 
-  if (type === 'all' || type === 'settings' || type === 'config') {
+  if (type === 'all' || type === 'agents') {
+    const agentsResult = operationResults[resultIndex++];
+    if (
+      Array.isArray(agentsResult) &&
+      agentsResult.every((item): item is AgentInfo => 'category' in item)
+    ) {
+      results.agents = agentsResult;
+    }
+  }
+
+  if (type === 'all' || type === 'config') {
     const configResult = operationResults[resultIndex++];
     if (configResult && typeof configResult === 'object' && !Array.isArray(configResult)) {
       results.config = configResult as Record<string, unknown>;
@@ -141,6 +158,18 @@ interface CommandInfo {
   path: string;
   description: string;
   size: number;
+  tokens: number;
+  modified: Date;
+}
+
+interface AgentInfo {
+  name: string;
+  type: string;
+  path: string;
+  description: string;
+  category: string;
+  size: number;
+  tokens: number;
   modified: Date;
 }
 
@@ -176,10 +205,12 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
 
         const stats = await fs.stat(fullPath);
 
-        // Try to extract description from frontmatter
+        // Try to extract description from frontmatter and calculate tokens
         let description = '';
+        let tokens = 0;
         try {
           const content = await fs.readFile(fullPath, 'utf8');
+          tokens = estimateTokens(content);
           const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
           if (match !== null && match[1] !== undefined && match[1] !== '') {
             const frontmatter = match[1];
@@ -198,6 +229,7 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
           path: fullPath,
           description,
           size: stats.size,
+          tokens,
           modified: stats.mtime,
         });
       }
@@ -208,6 +240,76 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
   await findCommandFiles(commandsDir);
 
   return commands;
+}
+
+async function listAgents(options: ListOptions): Promise<AgentInfo[]> {
+  const agentsDir = '.claude/agents';
+  const agents: AgentInfo[] = [];
+
+  if (!(await fs.pathExists(agentsDir))) {
+    return agents;
+  }
+
+  const pattern =
+    options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
+
+  // Recursively find all .md files in agents directory
+  async function findAgentFiles(dir: string, category: string = ''): Promise<void> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      // Get stats to properly handle symlinks
+      const stats = await fs.stat(fullPath);
+
+      if (stats.isDirectory()) {
+        // Use directory name as category
+        await findAgentFiles(fullPath, entry.name);
+      } else if (stats.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') {
+        const baseName = path.basename(entry.name, '.md');
+        const agentName = baseName;
+
+        if (pattern !== null && !pattern.test(agentName)) {
+          continue;
+        }
+
+        // Try to extract description from frontmatter and calculate tokens
+        let description = '';
+        let tokens = 0;
+        try {
+          const content = await fs.readFile(fullPath, 'utf8');
+          tokens = estimateTokens(content);
+          const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+          if (match !== null && match[1] !== undefined && match[1] !== '') {
+            const frontmatter = match[1];
+            const descMatch = frontmatter.match(/description:\s*(.+)/);
+            if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
+              description = descMatch[1].trim();
+            }
+          }
+        } catch {
+          // Ignore errors reading file
+        }
+
+        agents.push({
+          name: agentName,
+          type: 'agent',
+          path: fullPath,
+          description,
+          category: category || 'general',
+          size: stats.size,
+          tokens,
+          modified: stats.mtime,
+        });
+      }
+    }
+  }
+
+  // Start the recursive search from the agents directory
+  await findAgentFiles(agentsDir);
+
+  return agents;
 }
 
 async function listConfig(options: ListOptions): Promise<Record<string, unknown>> {
@@ -251,6 +353,17 @@ interface ListResults {
     path: string;
     description: string;
     size: number;
+    tokens: number;
+    modified: Date;
+  }>;
+  agents?: Array<{
+    name: string;
+    type: string;
+    path: string;
+    description: string;
+    category: string;
+    size: number;
+    tokens: number;
     modified: Date;
   }>;
   config?: Record<string, unknown>;
@@ -263,13 +376,7 @@ function displayTable(results: ListResults, type: string): void {
     console.log(Colors.dim('─'.repeat(60)));
 
     for (const hook of results.hooks) {
-      const exec = hook.executable === true ? Colors.success('✓') : Colors.error('✗');
-      const size = formatSize(hook.size);
-      const date = formatDate(hook.modified);
-
-      console.log(
-        `  ${exec} ${Colors.accent(hook.name.padEnd(20))} ${size.padStart(8)} ${Colors.dim(date)}`
-      );
+      console.log(`  ${Colors.accent(hook.name)}`);
     }
   } else if (type === 'hooks' || type === 'all') {
     console.log(Colors.dim('\nNo hooks found'));
@@ -281,13 +388,43 @@ function displayTable(results: ListResults, type: string): void {
     console.log(Colors.dim('─'.repeat(60)));
 
     for (const cmd of results.commands) {
-      const size = formatSize(cmd.size);
-      const desc = cmd.description !== '' ? Colors.dim(` - ${cmd.description}`) : '';
+      const tokens = formatTokens(cmd.tokens ?? estimateTokens(''));
 
-      console.log(`  ${Colors.accent(cmd.name.padEnd(20))} ${size.padStart(8)}${desc}`);
+      console.log(`  ${Colors.accent(cmd.name.padEnd(30))} ${tokens.padStart(12)}`);
     }
   } else if (type === 'commands' || type === 'all') {
     console.log(Colors.dim('\nNo commands found'));
+  }
+
+  // Display agents
+  if (results.agents !== undefined && results.agents.length > 0) {
+    console.log(Colors.bold('\nAgents:'));
+    console.log(Colors.dim('─'.repeat(60)));
+
+    // Group agents by category
+    const grouped = results.agents.reduce((acc, agent) => {
+      if (!acc[agent.category]) {
+        acc[agent.category] = [];
+      }
+      const categoryAgents = acc[agent.category];
+      if (categoryAgents !== undefined) {
+        categoryAgents.push(agent);
+      }
+      return acc;
+    }, {} as Record<string, typeof results.agents>);
+
+    // Display by category
+    for (const [category, categoryAgents] of Object.entries(grouped)) {
+      if (categoryAgents !== undefined && categoryAgents.length > 0) {
+        console.log(`  ${Colors.dim(`${category}:`)}`);
+        for (const agent of categoryAgents) {
+          const tokens = formatTokens(agent.tokens);
+          console.log(`    ${Colors.accent(agent.name.padEnd(25))} ${tokens.padStart(12)}`);
+        }
+      }
+    }
+  } else if (type === 'agents' || type === 'all') {
+    console.log(Colors.dim('\nNo agents found'));
   }
 
   // Display config
@@ -300,40 +437,20 @@ function displayTable(results: ListResults, type: string): void {
     for (const line of lines) {
       console.log(`  ${line}`);
     }
-  } else if (type === 'settings' || type === 'config' || type === 'all') {
+  } else if (type === 'config' || type === 'all') {
     console.log(Colors.dim('\nNo configuration found'));
   }
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes}B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)}KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+function estimateTokens(text: string): number {
+  // Rough estimation: ~1 token per 4 characters for English text
+  // This is a simplified heuristic that works reasonably well for markdown/code
+  return Math.ceil(text.length / 4);
 }
 
-function formatDate(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  if (days === 0) {
-    return 'today';
+function formatTokens(tokens: number): string {
+  if (tokens < 1000) {
+    return `${tokens} tokens`;
   }
-  if (days === 1) {
-    return 'yesterday';
-  }
-  if (days < 7) {
-    return `${days} days ago`;
-  }
-  if (days < 30) {
-    return `${Math.floor(days / 7)} weeks ago`;
-  }
-  if (days < 365) {
-    return `${Math.floor(days / 30)} months ago`;
-  }
-  return `${Math.floor(days / 365)} years ago`;
+  return `${(tokens / 1000).toFixed(1)}k tokens`;
 }
