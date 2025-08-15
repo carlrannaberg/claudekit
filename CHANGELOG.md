@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.11] - 2025-08-16
+
+### Added
+- **Agent Listing Support**: Enhanced the `claudekit list` command with comprehensive agent discovery and listing functionality
+  - Added `agents` as a new valid list type alongside `hooks`, `commands`, and `config`
+  - Added `listAgents()` function that recursively scans `.claude/agents/` directory for agent files
+  - Added token count estimation for agents using a heuristic of ~1 token per 4 characters
+  - Added agent categorization based on directory structure (e.g., `general`, `typescript`, `react`)
+  - Added frontmatter parsing to extract agent descriptions from YAML metadata
+  - Enhanced display with grouped agent output showing category organization and token counts
+  - Updated `AgentInfo` interface with `category`, `tokens`, and enhanced metadata fields
+  - Modified command validation to include agents type checking with proper TypeScript discrimination
+
+### Changed
+- **Token Count Integration**: Added token estimation and display across commands and agents
+  - Enhanced `CommandInfo` interface to include `tokens` field for command complexity measurement
+  - Added `estimateTokens()` and `formatTokens()` utility functions for consistent token display
+  - Updated command listing display to show token counts instead of file sizes for better relevance
+  - Modified display formatting to show token counts in human-readable format (e.g., "1.2k tokens")
+- **List Command Type Validation**: Updated valid types from `['all', 'hooks', 'commands', 'settings', 'config']` to `['all', 'hooks', 'commands', 'agents', 'config']`
+  - Removed deprecated `settings` type in favor of standardized `config` type naming
+  - Enhanced type discrimination in result processing to properly distinguish between commands and agents
+
 ## [0.3.10] - 2025-08-15
 
 ### Added

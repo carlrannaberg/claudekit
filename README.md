@@ -77,7 +77,9 @@ After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 claudekit setup              # Interactive setup wizard
 claudekit setup --yes        # Quick setup with defaults
 claudekit setup --all        # Install everything (24+ agents)
-claudekit list               # Show available components
+claudekit list               # Show all components (hooks, commands, agents, config)
+claudekit list agents        # List available agents with token counts
+claudekit list commands      # List available commands with token counts
 claudekit validate           # Check your installation
 ```
 
@@ -135,6 +137,9 @@ Specialized AI assistants for different domains:
 
 **Usage**
 ```bash
+# List all available agents with token counts
+claudekit list agents
+
 # Install specific agents
 claudekit setup --agents typescript-expert,react-expert
 
