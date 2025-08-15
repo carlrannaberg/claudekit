@@ -123,6 +123,7 @@ Follow these guidelines:
 - Reference existing project patterns and conventions
 - Use diagrams if they would clarify complex flows (using ASCII art or mermaid)
 - When referencing external libraries, include version-specific information
+- Do NOT include time or effort estimations (no "X days", "Y hours", or complexity estimates)
 
 Name the spec file descriptively based on the feature:
 - Features: `feat-{kebab-case-name}.md`

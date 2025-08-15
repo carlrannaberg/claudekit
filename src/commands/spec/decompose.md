@@ -431,7 +431,6 @@ Before creating any STM tasks, confirm your understanding:
    - Generate a summary report showing:
      - Total number of tasks
      - Breakdown by phase
-     - Estimated complexity
      - Parallel execution opportunities
      - Task management system used (STM or TodoWrite)
 

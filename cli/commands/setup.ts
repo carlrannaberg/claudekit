@@ -99,7 +99,7 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'completion-validation',
     name: '✅ Completion Validation (Stop)',
     description: 'Ensure quality and task completion before stopping',
-    hooks: ['typecheck-project', 'lint-project', 'test-project', 'check-todos'],
+    hooks: ['typecheck-project', 'lint-project', 'test-project', 'check-todos', 'self-review'],
     recommended: true,
     triggerEvent: 'Stop',
   },

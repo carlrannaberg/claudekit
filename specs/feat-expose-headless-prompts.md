@@ -1,7 +1,7 @@
-# Feature Specification: Expose Commands and Subagent Prompts for Headless Mode
+# Feature Specification: Show Commands and Subagent Prompts
 
 ## Title
-Expose Commands and Subagent Prompts from Claudekit Executable for Headless Mode
+Show Commands and Subagent Prompts from Claudekit
 
 ## Status
 Draft
@@ -10,366 +10,417 @@ Draft
 Claude Assistant - August 15, 2025
 
 ## Overview
-This feature will expose the internal commands and subagent prompts from the claudekit executable as a programmatic API, enabling their reuse in headless (non-interactive) mode. This allows external tools, scripts, and even subagents themselves to retrieve command/agent prompts and execute them with additional context outside of the Claude Code interactive environment.
+This feature adds `claudekit show` commands to display individual agent and command prompts, making them accessible for use with external LLMs and tools. Users can retrieve prompts in either plain text format (default, raw prompt only) or JSON format (with metadata).
 
 ## Background/Problem Statement
-Currently, claudekit's commands and subagent prompts are tightly coupled to the Claude Code interactive environment. The system loads and executes these components internally, but there's no programmatic way to:
+Currently, claudekit's commands and subagent prompts are tightly coupled to the Claude Code interactive environment. The system loads these components internally, but there's no way to:
 - Access the raw prompts of commands and agents
-- Execute commands/agents in a headless manner
-- Integrate claudekit functionality into automated workflows
-- Allow subagents to leverage other subagents' expertise programmatically
-- Build tooling that extends or composes claudekit capabilities
+- Use prompts with other LLMs or tools
+- Integrate claudekit prompts into automated workflows
 
 This limitation prevents users from:
-- Creating automated CI/CD pipelines that leverage claudekit expertise
-- Building composite workflows that chain multiple agents
-- Developing external tools that integrate with claudekit's knowledge base
-- Running batch operations across multiple projects
+- Using claudekit prompts with other AI systems (OpenAI, local LLMs, etc.)
+- Creating automated pipelines that leverage specific claudekit expertise
+- Sharing individual prompts with team members
 
 ## Goals
-- Expose a programmatic API to load and retrieve command/agent definitions
-- Enable headless execution of commands and agents with custom input
-- Provide CLI commands for non-interactive access to prompts
-- Support multiple output formats (JSON, YAML, plain text)
+- Provide CLI command to show individual agent/command prompts
+- Support two output formats: text (default, raw prompt only) and JSON (with metadata)
 - Maintain backward compatibility with existing Claude Code integration
-- Enable agent-to-agent communication in non-interactive contexts
-- Support batch operations and workflow automation
+- Enable piping prompts to external tools and LLMs
 
 ## Non-Goals
-- Replacing the Claude Code interactive experience
+- Batch operations or filtering (no --all, --category, etc.)
+- Executing agents/commands within claudekit
 - Modifying the existing command/agent file formats
 - Creating a REST API or web service
-- Implementing a full workflow orchestration system
-- Building a visual interface for command/agent management
-- Authentication/authorization (relies on file system permissions)
+- Building execution orchestration
 
 ## Technical Dependencies
 - **Commander.js** (^12.0.0): CLI framework already in use
 - **Node.js** (>=18.0.0): Runtime environment
-- **js-yaml** (^4.1.0): YAML parsing for frontmatter
 - **gray-matter** (^4.0.3): Frontmatter extraction
+- **glob** (^10.0.0): File pattern matching for recursive search
 - **TypeScript** (^5.0.0): Type definitions and compilation
-- **minimatch** (^9.0.0): Pattern matching for component filtering
 
 ## Detailed Design
 
 ### Architecture Changes
 
-#### 1. New Module Structure
-```
-cli/
-├── lib/
-│   ├── loaders/
-│   │   ├── agent-loader.ts      # Agent definition loading
-│   │   ├── command-loader.ts    # Command definition loading
-│   │   └── index.ts            # Unified loader interface
-│   ├── executors/
-│   │   ├── headless-executor.ts # Headless execution engine
-│   │   ├── context-builder.ts   # Context preparation
-│   │   └── result-formatter.ts  # Output formatting
-│   └── api/
-│       ├── public-api.ts        # Public API surface
-│       └── types.ts             # TypeScript definitions
-```
-
-#### 2. Public API Interface
+#### 1. Data Structure Definitions
 
 ```typescript
-// cli/lib/api/types.ts
+// Complete interface definitions for agent and command data
+
 export interface AgentDefinition {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  bundle?: string;
-  tools: string[];
-  content: string;
-  metadata: {
-    displayName?: string;
-    color?: string;
-    [key: string]: any;
-  };
+  id: string;              // e.g., "typescript-expert"
+  name: string;            // From frontmatter: name field
+  description: string;     // From frontmatter: description field
+  category: string;        // From frontmatter: category field (framework, testing, etc.)
+  bundle?: string[];       // From frontmatter: related agents
+  displayName?: string;    // From frontmatter: UI display name
+  color?: string;          // From frontmatter: UI color hint
+  content: string;         // Raw markdown content after frontmatter
+  filePath: string;        // Full path to source file
+  tools?: string[];        // From frontmatter: allowed tools (not in current agent format)
 }
 
 export interface CommandDefinition {
-  id: string;
-  name: string;
-  description: string;
-  category?: string;
-  allowedTools: string[];
-  content: string;
-  parameters?: string[];
-  examples?: string[];
-}
-
-export interface ExecutionOptions {
-  input?: string;
-  arguments?: string[];
-  context?: Record<string, any>;
-  format?: 'json' | 'yaml' | 'text' | 'markdown';
-  quiet?: boolean;
-  verbose?: boolean;
-  dryRun?: boolean;
-  timeout?: number;
-}
-
-export interface ExecutionResult {
-  success: boolean;
-  output: string | object;
-  metadata: {
-    executionTime: number;
-    componentId: string;
-    componentType: 'agent' | 'command';
-  };
-  errors?: string[];
-  warnings?: string[];
+  id: string;              // e.g., "spec:create"
+  name: string;            // Derived from filename
+  description: string;     // From frontmatter: description field
+  category?: string;       // From frontmatter: category field
+  allowedTools: string[];  // From frontmatter: allowed-tools field
+  argumentHint?: string;   // From frontmatter: argument-hint field
+  content: string;         // Raw markdown content after frontmatter
+  filePath: string;        // Full path to source file
 }
 ```
 
-#### 3. Loader Implementation
+#### 2. Loader Implementation Details
 
 ```typescript
 // cli/lib/loaders/agent-loader.ts
+import { promises as fs } from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { glob } from 'glob';
+
 export class AgentLoader {
-  private cache: Map<string, AgentDefinition> = new Map();
-  
+  // Agents are embedded in the claudekit package
+  private searchPaths = [
+    path.join(__dirname, '../../src/agents')  // Agents bundled with claudekit
+  ];
+
+  /**
+   * Load an agent by ID
+   * @param agentId - Can be:
+   *   - Simple name: "oracle" 
+   *   - Category/name: "typescript/expert"
+   *   - Full name: "typescript-expert"
+   */
   async loadAgent(agentId: string): Promise<AgentDefinition> {
-    if (this.cache.has(agentId)) {
-      return this.cache.get(agentId)!;
-    }
-    
     const agentPath = await this.resolveAgentPath(agentId);
-    const content = await fs.readFile(agentPath, 'utf-8');
-    const { data, content: body } = matter(content);
-    
+    if (!agentPath) {
+      throw new Error(`Agent not found: ${agentId}`);
+    }
+
+    // Read and parse file
+    const fileContent = await fs.readFile(agentPath, 'utf-8');
+    const { data, content } = matter(fileContent);
+
+    // Build definition
     const definition: AgentDefinition = {
       id: agentId,
-      name: data.name,
-      description: data.description,
-      category: data.category,
+      name: data.name || agentId,
+      description: data.description || '',
+      category: data.category || 'general',
       bundle: data.bundle,
-      tools: data.tools || [],
-      content: body,
-      metadata: {
-        displayName: data.displayName,
-        color: data.color,
-        ...data
-      }
+      displayName: data.displayName,
+      color: data.color,
+      content: content.trim(),
+      filePath: agentPath,
+      tools: data.tools
     };
-    
-    this.cache.set(agentId, definition);
+
     return definition;
   }
-  
-  async loadAllAgents(): Promise<Map<string, AgentDefinition>> {
-    const agents = await this.discoverAgents();
-    const definitions = new Map<string, AgentDefinition>();
-    
-    for (const agentId of agents) {
-      definitions.set(agentId, await this.loadAgent(agentId));
-    }
-    
-    return definitions;
-  }
-}
-```
 
-#### 4. Headless Executor
-
-```typescript
-// cli/lib/executors/headless-executor.ts
-export class HeadlessExecutor {
-  async executeAgent(
-    agentId: string,
-    options: ExecutionOptions
-  ): Promise<ExecutionResult> {
-    const startTime = Date.now();
-    
-    try {
-      // Load agent definition
-      const agent = await this.agentLoader.loadAgent(agentId);
-      
-      // Build execution context
-      const context = await this.contextBuilder.buildContext({
-        type: 'agent',
-        definition: agent,
-        input: options.input,
-        additionalContext: options.context
-      });
-      
-      // Prepare prompt with context
-      const prompt = this.preparePrompt(agent.content, context);
-      
-      // Execute (in dry-run mode, just return the prompt)
-      if (options.dryRun) {
-        return this.formatResult({
-          success: true,
-          output: prompt,
-          metadata: {
-            executionTime: Date.now() - startTime,
-            componentId: agentId,
-            componentType: 'agent'
-          }
-        }, options.format);
+  /**
+   * Resolve agent ID to file path
+   * Search strategy:
+   * 1. Try exact match: {searchPath}/{agentId}.md
+   * 2. Try with -expert suffix: {searchPath}/{agentId}-expert.md  
+   * 3. Try category/name pattern: {searchPath}/{category}/{name}.md
+   * 4. Try recursive search for matching name field in frontmatter
+   */
+  private async resolveAgentPath(agentId: string): Promise<string | null> {
+    for (const searchPath of this.searchPaths) {
+      // Check if search path exists
+      try {
+        await fs.access(searchPath);
+      } catch {
+        continue; // Skip non-existent paths
       }
-      
-      // For actual execution, would integrate with Claude API
-      // This is placeholder for the integration point
-      const result = await this.callClaudeAPI(prompt, agent.tools);
-      
-      return this.formatResult({
-        success: true,
-        output: result,
-        metadata: {
-          executionTime: Date.now() - startTime,
-          componentId: agentId,
-          componentType: 'agent'
+
+      // Strategy 1: Direct file match
+      let testPath = path.join(searchPath, `${agentId}.md`);
+      if (await this.fileExists(testPath)) {
+        return testPath;
+      }
+
+      // Strategy 2: Try with -expert suffix
+      if (!agentId.endsWith('-expert')) {
+        testPath = path.join(searchPath, `${agentId}-expert.md`);
+        if (await this.fileExists(testPath)) {
+          return testPath;
         }
-      }, options.format);
+      }
+
+      // Strategy 3: Handle category/name pattern (e.g., "typescript/expert")
+      if (agentId.includes('/')) {
+        const [category, name] = agentId.split('/');
+        testPath = path.join(searchPath, category, `${name}.md`);
+        if (await this.fileExists(testPath)) {
+          return testPath;
+        }
+        
+        // Also try with -expert suffix
+        if (!name.endsWith('-expert')) {
+          testPath = path.join(searchPath, category, `${name}-expert.md`);
+          if (await this.fileExists(testPath)) {
+            return testPath;
+          }
+        }
+      }
+
+      // Strategy 4: Search recursively for name match in frontmatter
+      const pattern = path.join(searchPath, '**/*.md');
+      const files = await glob(pattern);
       
-    } catch (error) {
-      return {
-        success: false,
-        output: '',
-        metadata: {
-          executionTime: Date.now() - startTime,
-          componentId: agentId,
-          componentType: 'agent'
-        },
-        errors: [error.message]
-      };
+      for (const file of files) {
+        try {
+          const content = await fs.readFile(file, 'utf-8');
+          const { data } = matter(content);
+          
+          // Check if name field matches
+          if (data.name === agentId || 
+              data.name === `${agentId}-expert` ||
+              file.endsWith(`/${agentId}.md`)) {
+            return file;
+          }
+        } catch {
+          // Skip files that can't be read
+          continue;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
     }
   }
 }
 ```
 
-#### 5. CLI Command Extensions
+```typescript
+// cli/lib/loaders/command-loader.ts
+import { promises as fs } from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+import { glob } from 'glob';
+
+export class CommandLoader {
+  // Commands are embedded in the claudekit package
+  private searchPaths = [
+    path.join(__dirname, '../../src/commands')  // Commands bundled with claudekit
+  ];
+
+  /**
+   * Load a command by ID
+   * @param commandId - Can be:
+   *   - Simple name: "validate-and-fix"
+   *   - Namespaced: "spec:create", "checkpoint:list"
+   */
+  async loadCommand(commandId: string): Promise<CommandDefinition> {
+    const commandPath = await this.resolveCommandPath(commandId);
+    if (!commandPath) {
+      throw new Error(`Command not found: ${commandId}`);
+    }
+
+    // Read and parse file
+    const fileContent = await fs.readFile(commandPath, 'utf-8');
+    const { data, content } = matter(fileContent);
+
+    // Build definition
+    const definition: CommandDefinition = {
+      id: commandId,
+      name: path.basename(commandPath, '.md'),
+      description: data.description || '',
+      category: data.category,
+      allowedTools: this.parseAllowedTools(data['allowed-tools']),
+      argumentHint: data['argument-hint'],
+      content: content.trim(),
+      filePath: commandPath
+    };
+
+    return definition;
+  }
+
+  /**
+   * Parse allowed-tools field which can be string or array
+   */
+  private parseAllowedTools(tools: any): string[] {
+    if (!tools) return [];
+    if (typeof tools === 'string') {
+      return tools.split(',').map(t => t.trim());
+    }
+    if (Array.isArray(tools)) {
+      return tools;
+    }
+    return [];
+  }
+
+  /**
+   * Resolve command ID to file path
+   * Search strategy:
+   * 1. Handle namespaced commands (spec:create -> spec/create.md)
+   * 2. Try direct file match
+   * 3. Search recursively
+   */
+  private async resolveCommandPath(commandId: string): Promise<string | null> {
+    for (const searchPath of this.searchPaths) {
+      // Check if search path exists
+      try {
+        await fs.access(searchPath);
+      } catch {
+        continue;
+      }
+
+      // Strategy 1: Handle namespaced commands (e.g., "spec:create")
+      if (commandId.includes(':')) {
+        const [namespace, name] = commandId.split(':');
+        const testPath = path.join(searchPath, namespace, `${name}.md`);
+        if (await this.fileExists(testPath)) {
+          return testPath;
+        }
+      }
+
+      // Strategy 2: Direct file match
+      const testPath = path.join(searchPath, `${commandId}.md`);
+      if (await this.fileExists(testPath)) {
+        return testPath;
+      }
+
+      // Strategy 3: Search recursively
+      const pattern = path.join(searchPath, '**/*.md');
+      const files = await glob(pattern);
+      
+      for (const file of files) {
+        const basename = path.basename(file, '.md');
+        const dirname = path.basename(path.dirname(file));
+        
+        // Match various patterns
+        if (basename === commandId ||
+            `${dirname}:${basename}` === commandId) {
+          return file;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+```
+
+#### 3. CLI Command Implementation
 
 ```typescript
-// cli/commands/export.ts
-export function registerExportCommands(program: Command) {
-  const exportCmd = program
-    .command('export')
-    .description('Export component definitions');
+// cli/commands/show.ts
+export function registerShowCommands(program: Command) {
+  const showCmd = program
+    .command('show')
+    .description('Show agent or command prompts');
   
-  exportCmd
+  showCmd
     .command('agent <id>')
-    .description('Export a single agent definition')
-    .option('-f, --format <format>', 'Output format', 'json')
+    .description('Show an agent prompt')
+    .option('-f, --format <format>', 'Output format (text|json)', 'text')
     .action(async (id, options) => {
       const loader = new AgentLoader();
       const agent = await loader.loadAgent(id);
-      console.log(formatOutput(agent, options.format));
+      
+      if (options.format === 'json') {
+        // Output full JSON with metadata
+        console.log(JSON.stringify(agent, null, 2));
+      } else {
+        // Output raw prompt only (default)
+        console.log(agent.content);
+      }
     });
   
-  exportCmd
-    .command('agents')
-    .description('Export all agent definitions')
-    .option('-f, --format <format>', 'Output format', 'json')
-    .option('--category <category>', 'Filter by category')
-    .option('--bundle <bundle>', 'Filter by bundle')
-    .action(async (options) => {
-      const loader = new AgentLoader();
-      const agents = await loader.loadAllAgents();
-      const filtered = applyFilters(agents, options);
-      console.log(formatOutput(filtered, options.format));
-    });
-  
-  exportCmd
+  showCmd
     .command('command <id>')
-    .description('Export a single command definition')
-    .option('-f, --format <format>', 'Output format', 'json')
+    .description('Show a command prompt')
+    .option('-f, --format <format>', 'Output format (text|json)', 'text')
     .action(async (id, options) => {
       const loader = new CommandLoader();
       const command = await loader.loadCommand(id);
-      console.log(formatOutput(command, options.format));
-    });
-}
-
-// cli/commands/run.ts
-export function registerRunCommands(program: Command) {
-  const runCmd = program
-    .command('run')
-    .description('Run components in headless mode');
-  
-  runCmd
-    .command('agent <id>')
-    .description('Run an agent in headless mode')
-    .option('-i, --input <input>', 'Input text for the agent')
-    .option('-c, --context <json>', 'Additional context as JSON')
-    .option('-f, --format <format>', 'Output format', 'text')
-    .option('--dry-run', 'Show prompt without execution')
-    .action(async (id, options) => {
-      const executor = new HeadlessExecutor();
-      const result = await executor.executeAgent(id, {
-        input: options.input,
-        context: options.context ? JSON.parse(options.context) : {},
-        format: options.format,
-        dryRun: options.dryRun
-      });
       
-      if (!result.success) {
-        console.error('Execution failed:', result.errors);
-        process.exit(1);
+      if (options.format === 'json') {
+        console.log(JSON.stringify(command, null, 2));
+      } else {
+        // Output raw prompt only (default)
+        console.log(command.content);
       }
-      
-      console.log(result.output);
     });
 }
 ```
 
-#### 6. Library Exports Enhancement
+#### 4. Integration with Existing CLI
 
 ```typescript
-// cli/index.ts (additions)
-// Loaders
-export { AgentLoader } from './lib/loaders/agent-loader.js';
-export { CommandLoader } from './lib/loaders/command-loader.js';
+// cli/cli.ts - Add this import and registration
+import { registerShowCommands } from './commands/show.js';
 
-// Executors
-export { HeadlessExecutor } from './lib/executors/headless-executor.js';
-export { ContextBuilder } from './lib/executors/context-builder.js';
-
-// Types
-export type {
-  AgentDefinition,
-  CommandDefinition,
-  ExecutionOptions,
-  ExecutionResult
-} from './lib/api/types.js';
-
-// High-level API
-export {
-  loadAgent,
-  loadCommand,
-  loadAllAgents,
-  loadAllCommands,
-  executeAgentHeadless,
-  executeCommandHeadless
-} from './lib/api/public-api.js';
+// In the main program setup (around line 200-300):
+registerShowCommands(program);
 ```
 
-### Integration with External Libraries
+#### 5. Complete Output Examples
 
-#### Context7 Integration (Optional)
-When executing agents that require library documentation:
+**Example Agent File** (`src/agents/typescript/expert.md`):
+```markdown
+---
+name: typescript-expert
+description: TypeScript and JavaScript expert with deep knowledge...
+category: framework
+bundle: [typescript-type-expert, typescript-build-expert]
+displayName: TypeScript
+color: blue
+---
 
-```typescript
-interface Context7Integration {
-  async enhanceContext(
-    agentId: string,
-    libraries: string[]
-  ): Promise<DocumentationContext> {
-    const docs = await Promise.all(
-      libraries.map(lib => this.fetchLibraryDocs(lib))
-    );
-    
-    return {
-      libraries: docs,
-      timestamp: new Date().toISOString()
-    };
-  }
+# TypeScript Expert
+
+You are an advanced TypeScript expert...
+```
+
+**JSON Output** (`claudekit show agent typescript-expert --format json`):
+```json
+{
+  "id": "typescript-expert",
+  "name": "typescript-expert",
+  "description": "TypeScript and JavaScript expert with deep knowledge...",
+  "category": "framework",
+  "bundle": ["typescript-type-expert", "typescript-build-expert"],
+  "displayName": "TypeScript",
+  "color": "blue",
+  "content": "# TypeScript Expert\n\nYou are an advanced TypeScript expert...",
+  "filePath": "/Users/user/project/src/agents/typescript/expert.md"
 }
+```
+
+**Text Output** (`claudekit show agent typescript-expert`):
+```
+# TypeScript Expert
+
+You are an advanced TypeScript expert...
 ```
 
 ## User Experience
@@ -377,107 +428,55 @@ interface Context7Integration {
 ### CLI Usage Examples
 
 ```bash
-# Export agent definition
-claudekit export agent typescript-expert --format json > typescript-expert.json
+# Get raw agent prompt for piping to LLMs (default)
+claudekit show agent typescript-expert
 
-# Export all agents in a category
-claudekit export agents --category typescript --format yaml
+# Get agent with full metadata as JSON
+claudekit show agent typescript-expert --format json > typescript-expert.json
 
-# Run agent in headless mode
-claudekit run agent react-expert \
-  --input "How do I optimize React performance?" \
-  --format markdown
+# Get command prompt for external use (default text format)
+claudekit show command spec:create | \
+  claude --prompt-file - --input "New authentication feature"
 
-# Dry run to see the prompt
-claudekit run agent webpack-expert \
-  --input "Configure code splitting" \
-  --dry-run
+# Pipe to other LLMs (default text format)
+claudekit show agent react-expert | \
+  openai-cli --system-prompt - --user "How do I optimize React performance?"
 
-# Run command with arguments
-claudekit run command spec:create \
-  --args "New feature for authentication" \
-  --format json
+# Use with local LLMs
+claudekit show agent webpack-expert | \
+  ollama run llama2 --system
 
-# Batch processing
-for project in */; do
-  claudekit run agent testing-expert \
-    --input "Analyze test coverage in $project" \
-    --context "{\"projectPath\": \"$project\"}"
-done
+# Save JSON for programmatic use
+claudekit show agent git-expert --format json > git-expert.json
+jq '.content' git-expert.json  # Extract just the prompt
+jq '.tools' git-expert.json     # See allowed tools
 ```
 
-### Programmatic Usage Examples
+### Integration Examples
 
-```typescript
-import { 
-  loadAgent, 
-  executeAgentHeadless,
-  AgentDefinition 
-} from 'claudekit';
+```bash
+# GitHub Actions workflow
+jobs:
+  analyze:
+    steps:
+      - name: Get TypeScript Expert Prompt
+        run: |
+          PROMPT=$(claudekit show agent typescript-expert)
+          echo "prompt<<EOF" >> $GITHUB_ENV
+          echo "$PROMPT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
+      - name: Analyze with AI
+        run: |
+          # Use the prompt with any AI service
+          curl -X POST https://api.example.com/analyze \
+            -d "system_prompt=${{ env.prompt }}" \
+            -d "code=$(cat src/**/*.ts)"
 
-// Load agent definition
-const agent: AgentDefinition = await loadAgent('typescript-expert');
-console.log(agent.description);
-console.log(agent.tools);
-
-// Execute agent programmatically
-const result = await executeAgentHeadless('react-performance-expert', {
-  input: 'Profile this React component for performance issues',
-  context: {
-    componentCode: await fs.readFile('./Component.tsx', 'utf-8')
-  },
-  format: 'json'
-});
-
-if (result.success) {
-  console.log('Analysis:', result.output);
-}
-
-// Chain multiple agents
-async function analyzeCodebase(path: string) {
-  const structureAnalysis = await executeAgentHeadless('nodejs-expert', {
-    input: `Analyze project structure at ${path}`
-  });
-  
-  const securityAnalysis = await executeAgentHeadless('devops-expert', {
-    input: 'Review security practices',
-    context: { structure: structureAnalysis.output }
-  });
-  
-  return { structure: structureAnalysis, security: securityAnalysis };
-}
-```
-
-### Agent-to-Agent Communication
-
-```typescript
-// In a custom agent script
-import { loadAgent, executeAgentHeadless } from 'claudekit';
-
-export async function compositeAnalysis(code: string) {
-  // First, get TypeScript analysis
-  const typeAnalysis = await executeAgentHeadless('typescript-type-expert', {
-    input: `Analyze type safety: ${code}`,
-    format: 'json'
-  });
-  
-  // Then get performance analysis
-  const perfAnalysis = await executeAgentHeadless('react-performance-expert', {
-    input: 'Identify performance bottlenecks',
-    context: {
-      code,
-      typeIssues: typeAnalysis.output
-    },
-    format: 'json'
-  });
-  
-  // Combine insights
-  return {
-    types: typeAnalysis.output,
-    performance: perfAnalysis.output,
-    recommendations: mergeRecommendations(typeAnalysis, perfAnalysis)
-  };
-}
+# Shell script using specific agent
+#!/bin/bash
+PROMPT=$(claudekit show agent testing-expert)
+echo "$PROMPT" | your-ai-tool --input "Analyze tests in this project"
 ```
 
 ## Testing Strategy
@@ -486,108 +485,30 @@ export async function compositeAnalysis(code: string) {
 
 ```typescript
 // tests/unit/loaders/agent-loader.test.ts
-describe('AgentLoader', () => {
-  // Purpose: Verify agent loading returns complete definition with all metadata
-  test('loadAgent returns complete agent definition', async () => {
-    const loader = new AgentLoader();
-    const agent = await loader.loadAgent('typescript-expert');
+describe('Show Command', () => {
+  // Purpose: Verify CLI outputs text by default
+  test('outputs text prompt by default', async () => {
+    const output = await runCLI(['show', 'agent', 'typescript-expert']);
     
-    expect(agent).toHaveProperty('id', 'typescript-expert');
-    expect(agent).toHaveProperty('name');
-    expect(agent).toHaveProperty('description');
-    expect(agent).toHaveProperty('content');
-    expect(agent.tools).toBeInstanceOf(Array);
+    expect(output).not.toContain('"id"');
+    expect(output).not.toContain('{');
+    expect(output).toContain('You are'); // Typical prompt start
   });
   
-  // Purpose: Ensure caching prevents redundant file reads for performance
-  test('caches loaded agents to avoid duplicate reads', async () => {
-    const loader = new AgentLoader();
-    const spy = jest.spyOn(fs, 'readFile');
+  // Purpose: Verify JSON format outputs full metadata
+  test('JSON format outputs complete definition', async () => {
+    const output = await runCLI(['show', 'agent', 'typescript-expert', '--format', 'json']);
+    const parsed = JSON.parse(output);
     
-    await loader.loadAgent('react-expert');
-    await loader.loadAgent('react-expert');
-    
-    expect(spy).toHaveBeenCalledTimes(1);
+    expect(parsed).toHaveProperty('id');
+    expect(parsed).toHaveProperty('content');
+    expect(parsed).toHaveProperty('tools');
   });
   
-  // Purpose: Verify graceful failure with clear error for missing agents
-  test('throws meaningful error for non-existent agent', async () => {
-    const loader = new AgentLoader();
-    
-    await expect(loader.loadAgent('non-existent'))
+  // Purpose: Verify error handling for missing agents
+  test('shows error for non-existent agent', async () => {
+    await expect(runCLI(['show', 'agent', 'non-existent']))
       .rejects.toThrow('Agent not found: non-existent');
-  });
-});
-
-// tests/unit/executors/headless-executor.test.ts
-describe('HeadlessExecutor', () => {
-  // Purpose: Verify dry-run returns prompt without API calls for testing
-  test('dry-run returns formatted prompt without execution', async () => {
-    const executor = new HeadlessExecutor();
-    const result = await executor.executeAgent('git-expert', {
-      input: 'Resolve merge conflict',
-      dryRun: true
-    });
-    
-    expect(result.success).toBe(true);
-    expect(result.output).toContain('Resolve merge conflict');
-    expect(mockClaudeAPI).not.toHaveBeenCalled();
-  });
-  
-  // Purpose: Ensure context injection works for agent chaining scenarios
-  test('merges additional context into execution', async () => {
-    const executor = new HeadlessExecutor();
-    const result = await executor.executeAgent('testing-expert', {
-      input: 'Write tests',
-      context: { framework: 'jest', coverage: 80 }
-    });
-    
-    expect(result.output).toContain('jest');
-    expect(result.metadata.componentType).toBe('agent');
-  });
-});
-```
-
-### Integration Tests
-
-```typescript
-// tests/integration/headless-workflow.test.ts
-describe('Headless Workflow Integration', () => {
-  // Purpose: Verify end-to-end agent execution workflow with real files
-  test('complete agent execution workflow', async () => {
-    // Load agent
-    const agent = await loadAgent('typescript-expert');
-    expect(agent).toBeDefined();
-    
-    // Execute in dry-run
-    const dryResult = await executeAgentHeadless('typescript-expert', {
-      input: 'Analyze type safety',
-      dryRun: true
-    });
-    expect(dryResult.success).toBe(true);
-    
-    // Execute with mock API
-    mockClaudeAPI.mockResolvedValue('Analysis complete');
-    const result = await executeAgentHeadless('typescript-expert', {
-      input: 'Analyze type safety'
-    });
-    expect(result.output).toBe('Analysis complete');
-  });
-  
-  // Purpose: Test agent chaining for complex multi-step workflows
-  test('agent chaining with context passing', async () => {
-    const first = await executeAgentHeadless('linting-expert', {
-      input: 'Check code quality',
-      dryRun: true
-    });
-    
-    const second = await executeAgentHeadless('testing-expert', {
-      input: 'Create tests for issues',
-      context: { lintResults: first.output },
-      dryRun: true
-    });
-    
-    expect(second.output).toContain(first.output);
   });
 });
 ```
@@ -596,100 +517,39 @@ describe('Headless Workflow Integration', () => {
 
 ```bash
 #!/usr/bin/env bash
-# tests/e2e/cli-headless.test.sh
+# tests/e2e/cli-show.test.sh
 
-# Purpose: Verify CLI export commands produce valid JSON/YAML output
-test_export_commands() {
-  # Test JSON export
-  output=$(claudekit export agent typescript-expert --format json)
+# Purpose: Verify CLI show commands produce valid output
+test_show_commands() {
+  # Test text output (default)
+  output=$(claudekit show agent typescript-expert)
+  [[ "$output" == *"You are"* ]] || fail "Default should be raw prompt"
+  [[ "$output" == *"\"id\""* ]] && fail "Default should not contain metadata"
+  
+  # Test JSON format
+  output=$(claudekit show agent react-expert --format json)
   echo "$output" | jq . > /dev/null || fail "Invalid JSON output"
-  
-  # Test YAML export
-  output=$(claudekit export agents --format yaml)
-  echo "$output" | yq . > /dev/null || fail "Invalid YAML output"
 }
 
-# Purpose: Test batch processing doesn't leak memory or leave processes
-test_batch_processing() {
-  for i in {1..10}; do
-    claudekit run agent oracle --input "Test $i" --dry-run
-  done
+# Purpose: Test piping to external tools works
+test_pipe_to_external() {
+  # Test pipe to file (default text format)
+  claudekit show agent git-expert > /tmp/git-expert.md
+  [[ -s /tmp/git-expert.md ]] || fail "Show to file failed"
   
-  # Check no orphaned processes
-  pgrep -f "claudekit run" && fail "Orphaned processes found"
+  # Test pipe to grep (default text format)
+  output=$(claudekit show agent testing-expert | grep -c "test")
+  [[ "$output" -gt 0 ]] || fail "Piping to grep failed"
 }
 ```
 
-### Mocking Strategies
-
-```typescript
-// tests/mocks/claude-api.ts
-export const mockClaudeAPI = {
-  call: jest.fn().mockImplementation((prompt, tools) => {
-    // Return predictable responses based on prompt patterns
-    if (prompt.includes('typescript')) {
-      return 'TypeScript analysis result';
-    }
-    if (prompt.includes('performance')) {
-      return 'Performance analysis result';
-    }
-    return 'Generic response';
-  })
-};
-
-// tests/mocks/filesystem.ts
-export const mockFileSystem = {
-  agents: new Map([
-    ['typescript-expert', mockAgentContent],
-    ['react-expert', mockReactAgentContent]
-  ]),
-  commands: new Map([
-    ['spec:create', mockSpecCommandContent]
-  ])
-};
-```
 
 ## Performance Considerations
 
-### Caching Strategy
-- **Agent/Command Definitions**: Cache in memory after first load
-- **Parsed Frontmatter**: Cache parsed YAML to avoid re-parsing
-- **File Watchers**: Optional file watching for cache invalidation in development
-- **TTL**: Configurable cache TTL for long-running processes
-
-### Optimization Techniques
-```typescript
-class PerformantLoader {
-  private cache = new LRUCache<string, Definition>({
-    max: 100, // Maximum cached items
-    ttl: 1000 * 60 * 5 // 5 minute TTL
-  });
-  
-  async loadWithCache(id: string): Promise<Definition> {
-    const cached = this.cache.get(id);
-    if (cached) return cached;
-    
-    const definition = await this.load(id);
-    this.cache.set(id, definition);
-    return definition;
-  }
-}
-```
-
-### Batch Loading
-```typescript
-async function loadAgentsBatch(ids: string[]): Promise<Map<string, AgentDefinition>> {
-  const results = await Promise.all(
-    ids.map(id => loadAgent(id).catch(err => ({ id, error: err })))
-  );
-  
-  return new Map(
-    results
-      .filter(r => !r.error)
-      .map(r => [r.id, r as AgentDefinition])
-  );
-}
-```
+### Performance Considerations
+- **No caching needed**: Each CLI invocation loads an agent/command at most once
+- **File I/O**: Direct file reads are fast enough for single operations
+- **Path resolution**: Search strategies ordered by likelihood for optimal performance
 
 ## Security Considerations
 
@@ -699,12 +559,13 @@ async function loadAgentsBatch(ids: string[]): Promise<Map<string, AgentDefiniti
 - **Permission Checks**: Verify read permissions before loading
 
 ```typescript
-function validatePath(path: string): void {
-  const resolved = path.resolve(path);
+import path from 'path';
+
+function validatePath(filePath: string): void {
+  const resolved = path.resolve(filePath);
   const allowed = [
-    path.resolve('./src/agents'),
-    path.resolve('./src/commands'),
-    path.resolve('./.claude')
+    path.join(__dirname, '../../src/agents'),
+    path.join(__dirname, '../../src/commands')
   ];
   
   if (!allowed.some(dir => resolved.startsWith(dir))) {
@@ -725,121 +586,109 @@ function sanitizeInput(input: string): string {
 ```
 
 ### Tool Restrictions
-- **Inherit from Source**: Respect `allowed-tools` from agent/command definitions
-- **Headless Restrictions**: Additional restrictions for headless mode
-- **Audit Logging**: Log all headless executions for security auditing
+- **Inherit from Source**: Respect `allowed-tools` from agent/command definitions when displaying
+- **Read-only access**: Show commands only read, never modify
 
 ## Documentation
 
-### API Documentation
-- **TypeScript Definitions**: Complete type definitions for all exports
-- **JSDoc Comments**: Comprehensive inline documentation
-- **API Reference**: Generated from TypeScript using TypeDoc
-- **Examples**: Code examples for common use cases
-
 ### User Documentation
-- **CLI Help**: Built-in help for all new commands
-- **README Updates**: Add headless mode section
+- **CLI Help**: Built-in help for show commands
+- **README Updates**: Add section on accessing prompts
 - **Guides**: 
-  - "Using Claudekit in CI/CD Pipelines"
-  - "Building Composite Agents"
-  - "Automating with Claudekit"
+  - "Using Claudekit Prompts with External LLMs"
+  - "Integrating Prompts in CI/CD"
+  - "Piping to AI Tools"
 
 ### Developer Documentation
-- **Architecture Guide**: Explain the headless execution model
-- **Extension Guide**: How to build on top of the API
-- **Integration Examples**: Sample integrations with popular tools
+- **Integration Examples**: Sample scripts for using with popular LLM tools
+- **Usage Patterns**: Common patterns for piping and processing prompts
 
 ## Implementation Phases
 
-### Phase 1: MVP/Core Functionality (Week 1-2)
+### Phase 1: Core Functionality (2-3 days)
 1. **Loader Infrastructure**
-   - Implement `AgentLoader` and `CommandLoader`
-   - Add caching layer
-   - Create unified loader interface
+   - Create `/cli/lib/loaders/agent-loader.ts`
+   - Create `/cli/lib/loaders/command-loader.ts`
+   - Implement path resolution logic
 
-2. **Basic CLI Commands**
-   - `export agent <id>` command
-   - `export agents` command with filtering
-   - JSON output format support
+2. **CLI Integration**
+   - Create `/cli/commands/show.ts`
+   - Register command in `/cli/cli.ts`:
+     ```typescript
+     import { registerShowCommands } from './commands/show.js';
+     // In main program setup:
+     registerShowCommands(program);
+     ```
+   - Add `--format` option handling
 
-3. **Library Exports**
-   - Export loader classes
-   - Export type definitions
-   - Create basic public API
+3. **Output Formats**
+   - Text format (default): Just `content` field
+   - JSON format: Complete object with all fields, pretty-printed
 
-4. **Testing Foundation**
+4. **Error Handling**
+   - Implement comprehensive error messages
+   - Set appropriate exit codes
+   - Handle edge cases (malformed frontmatter, etc.)
+
+### Phase 2: Testing & Documentation (1-2 days)
+1. **Testing**
    - Unit tests for loaders
    - Integration tests for CLI commands
-   - Mock infrastructure
+   - E2E tests for piping
 
-### Phase 2: Enhanced Features (Week 3-4)
-1. **Headless Execution**
-   - Implement `HeadlessExecutor`
-   - Add context building
-   - Create execution options
+2. **Documentation**
+   - Update README
+   - Add usage examples
+   - Document API
 
-2. **Advanced CLI Commands**
-   - `run agent <id>` command
-   - `run command <id>` command
-   - Multiple output formats (YAML, text, markdown)
+### Phase 3: Future Enhancements (if needed)
+1. **Performance**
+   - Improve caching if necessary
+   - Add cache TTL configuration
 
-3. **Batch Operations**
-   - Batch loading optimizations
-   - Parallel execution support
-   - Progress reporting
+2. **Extensions**
+   - Resolve @file references (with --resolve flag)
+   - Add version metadata to JSON output
 
-4. **Documentation**
-   - API documentation
-   - User guides
-   - Example scripts
+## Resolved Design Decisions
 
-### Phase 3: Polish and Optimization (Week 5-6)
-1. **Performance Optimization**
-   - Implement LRU cache
-   - Add file watching for development
-   - Optimize batch operations
+1. **Variable Resolution**: **Not in v1**
+   - Variables like `$ARGUMENTS`, `@file`, `!command` will NOT be resolved
+   - Raw content is returned as-is from the markdown files
+   - Future enhancement: Could add `--resolve` flag in v2
 
-2. **Security Hardening**
-   - Path validation
-   - Input sanitization
-   - Audit logging
+2. **Error Handling**: **Clear error messages with exit codes**
+   ```typescript
+   // Missing agent/command
+   console.error(`Error: Agent not found: ${id}`);
+   console.error(`Try 'claudekit list agents' to see available agents`);
+   process.exit(1);
+   
+   // Invalid format parameter
+   if (format !== 'text' && format !== 'json') {
+     console.error(`Error: Invalid format '${format}'. Use 'text' or 'json'`);
+     process.exit(1);
+   }
+   
+   // File permission errors
+   try {
+     // ... file operations
+   } catch (error) {
+     if (error.code === 'EACCES') {
+       console.error(`Error: Permission denied reading file`);
+     } else if (error.code === 'ENOENT') {
+       console.error(`Error: File not found`);
+     } else {
+       console.error(`Error: ${error.message}`);
+     }
+     process.exit(1);
+   }
+   ```
 
-3. **Integration Features**
-   - Context7 integration
-   - GitHub Actions examples
-   - Docker container support
-
-4. **Advanced Features**
-   - Template system for prompts
-   - Agent composition helpers
-   - Workflow definition format
-
-## Open Questions
-
-1. **Claude API Integration**: How should the actual Claude API integration work in headless mode? Options:
-   - Require API key configuration
-   - Proxy through Claude Code if available
-   - Support multiple LLM backends
-
-2. **Output Streaming**: Should headless execution support streaming responses?
-   - Pros: Better for long-running operations
-   - Cons: Complicates the API
-
-3. **Versioning**: How to handle version compatibility?
-   - Lock to specific agent/command versions?
-   - Support version ranges?
-   - Automatic updates?
-
-4. **State Management**: Should headless execution maintain state between calls?
-   - Stateless (current design)
-   - Optional session management
-   - Context persistence
-
-5. **Error Recovery**: How to handle partial failures in batch operations?
-   - Fail fast
-   - Continue with errors
-   - Retry logic
+3. **Caching**: **Not needed**
+   - Each CLI invocation loads an agent/command at most once
+   - No benefit from caching in this simple use case
+   - Direct file reads are sufficient
 
 ## References
 
@@ -861,6 +710,5 @@ function sanitizeInput(input: string): string {
 
 ### Design Patterns
 - [Command Pattern](https://refactoring.guru/design-patterns/command)
-- [Strategy Pattern for Executors](https://refactoring.guru/design-patterns/strategy)
 - [Factory Pattern for Loaders](https://refactoring.guru/design-patterns/factory-method)
-- [LRU Cache Implementation](https://github.com/isaacs/node-lru-cache)
+- [Simple Cache Pattern](https://github.com/isaacs/node-lru-cache)
