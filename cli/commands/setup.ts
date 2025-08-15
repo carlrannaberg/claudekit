@@ -978,6 +978,7 @@ interface HookSettings {
   hooks: {
     PostToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+    SubagentStop?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
   };
 }
 
@@ -1003,6 +1004,7 @@ async function createProjectSettings(
     hooks: {
       PostToolUse: [],
       Stop: [],
+      SubagentStop: [],
     },
   };
 
@@ -1011,6 +1013,7 @@ async function createProjectSettings(
     settings.hooks = {
       PostToolUse: [],
       Stop: [],
+      SubagentStop: [],
     };
   }
   if (settings.hooks.PostToolUse === null || settings.hooks.PostToolUse === undefined) {
@@ -1018,6 +1021,9 @@ async function createProjectSettings(
   }
   if (settings.hooks.Stop === null || settings.hooks.Stop === undefined) {
     settings.hooks.Stop = [];
+  }
+  if (settings.hooks.SubagentStop === null || settings.hooks.SubagentStop === undefined) {
+    settings.hooks.SubagentStop = [];
   }
 
   // Helper function to check if a hook is already configured
@@ -1036,6 +1042,14 @@ async function createProjectSettings(
     for (const entry of settings.hooks.Stop) {
       if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
         return true;
+      }
+    }
+    // Check SubagentStop hooks
+    if (settings.hooks.SubagentStop) {
+      for (const entry of settings.hooks.SubagentStop) {
+        if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
+          return true;
+        }
       }
     }
     return false;
@@ -1058,23 +1072,41 @@ async function createProjectSettings(
       
       if (metadata !== undefined) {
         const matcher = metadata.matcher ?? 'Write|Edit|MultiEdit';
-        const triggerEvent = metadata.triggerEvent;
+        const triggerEvents = Array.isArray(metadata.triggerEvent) 
+          ? metadata.triggerEvent 
+          : [metadata.triggerEvent];
         
-        if (triggerEvent === 'PostToolUse') {
-          settings.hooks.PostToolUse.push({
-            matcher,
-            hooks: [{ type: 'command', command: hookCommand }],
-          });
-        } else if (triggerEvent === 'Stop') {
-          // For Stop hooks, check if we can merge with existing entry
-          const existingEntry = settings.hooks.Stop.find((e) => e.matcher === matcher);
-          if (existingEntry !== undefined) {
-            existingEntry.hooks.push({ type: 'command', command: hookCommand });
-          } else {
-            settings.hooks.Stop.push({
+        for (const triggerEvent of triggerEvents) {
+          if (triggerEvent === 'PostToolUse') {
+            settings.hooks.PostToolUse.push({
               matcher,
               hooks: [{ type: 'command', command: hookCommand }],
             });
+          } else if (triggerEvent === 'Stop') {
+            // For Stop hooks, check if we can merge with existing entry
+            const existingEntry = settings.hooks.Stop.find((e) => e.matcher === matcher);
+            if (existingEntry !== undefined) {
+              existingEntry.hooks.push({ type: 'command', command: hookCommand });
+            } else {
+              settings.hooks.Stop.push({
+                matcher,
+                hooks: [{ type: 'command', command: hookCommand }],
+              });
+            }
+          } else if (triggerEvent === 'SubagentStop') {
+            // For SubagentStop hooks, check if we can merge with existing entry
+            const existingEntry = settings.hooks.SubagentStop?.find((e) => e.matcher === matcher);
+            if (existingEntry !== undefined) {
+              existingEntry.hooks.push({ type: 'command', command: hookCommand });
+            } else {
+              if (settings.hooks.SubagentStop === undefined) {
+                settings.hooks.SubagentStop = [];
+              }
+              settings.hooks.SubagentStop.push({
+                matcher,
+                hooks: [{ type: 'command', command: hookCommand }],
+              });
+            }
           }
         }
       } else if (component.id === 'prettier') {

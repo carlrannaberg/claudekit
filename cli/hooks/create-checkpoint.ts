@@ -15,7 +15,7 @@ export class CreateCheckpointHook extends BaseHook {
     displayName: 'Create Checkpoint',
     description: 'Git auto-checkpoint on stop',
     category: 'git' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
     dependencies: ['git'],
   };

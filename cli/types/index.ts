@@ -658,7 +658,7 @@ export interface ErrorDetails {
 /**
  * Hook event types that can trigger hook execution
  */
-export type HookEvent = 'PostToolUse' | 'Stop' | 'PreAction' | 'PostAction';
+export type HookEvent = 'PreToolUse' | 'PostToolUse' | 'Stop' | 'SubagentStop' | 'Notification' | 'UserPromptSubmit' | 'PreCompact' | 'SessionStart';
 
 /**
  * Hook execution context

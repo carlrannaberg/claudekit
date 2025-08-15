@@ -21,7 +21,7 @@ export class LintProjectHook extends BaseHook {
     displayName: 'ESLint Project Validation',
     description: 'ESLint validation on entire project',
     category: 'validation' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
     dependencies: ['eslint'],
   };

@@ -25,7 +25,7 @@ export class SelfReviewHook extends BaseHook {
     displayName: 'Self Review',
     description: 'Prompts a critical self-review to catch integration and refactoring issues',
     category: 'validation' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
   };
 

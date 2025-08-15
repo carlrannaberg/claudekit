@@ -25,7 +25,7 @@ export class TestProjectHook extends BaseHook {
     displayName: 'Test Project Suite',
     description: 'Run full test suite',
     category: 'testing' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
   };
 

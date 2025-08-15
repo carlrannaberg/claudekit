@@ -10,7 +10,7 @@ export class CheckTodosHook extends BaseHook {
     displayName: 'Check Todo Completion',
     description: 'Validate todo completions',
     category: 'project-management' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
   };
 

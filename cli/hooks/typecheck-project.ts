@@ -21,7 +21,7 @@ export class TypecheckProjectHook extends BaseHook {
     displayName: 'TypeScript Project Validation',
     description: 'TypeScript validation on entire project',
     category: 'validation' as const,
-    triggerEvent: 'Stop' as const,
+    triggerEvent: ['Stop', 'SubagentStop'] as const,
     matcher: '*',
     dependencies: ['typescript', 'tsc'],
   };
