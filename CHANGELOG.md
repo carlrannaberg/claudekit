@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.10] - 2025-08-15
+
+### Added
+- **SubagentStop Hook Support**: Added support for hooks to trigger when subagents complete their tasks
+  - Added `SubagentStop` to the `HookEvent` type alongside existing `PostToolUse` and `Stop` events
+  - Enhanced hook metadata to support arrays of trigger events for multi-event hooks
+  - Updated all completion validation hooks (`typecheck-project`, `lint-project`, `test-project`, `check-todos`, `self-review`) to trigger on both `Stop` and `SubagentStop` events
+  - Added `SubagentStop` configuration support in the setup process with proper hook grouping and merging
+  - Enables quality validation and checkpointing when subagent tasks complete, ensuring consistency across all Claude Code workflows
+- **Show Command Specification**: Added comprehensive specification for exposing agent and command prompts in headless mode
+  - Added CLI expert subagent specification for advanced command-line interface development guidance
+  - Enhanced specification creation and validation workflows for better development planning
+
+### Changed
+- **Hook Trigger Configuration**: Enhanced hook setup to support multiple trigger events per hook
+  - Modified hook metadata system to accept either single trigger events or arrays of events
+  - Updated setup process to properly configure hooks for multiple trigger points
+  - Improved hook merging logic to handle `SubagentStop` configurations alongside existing events
+
 ## [0.3.9] - 2025-08-14
 
 ### Fixed

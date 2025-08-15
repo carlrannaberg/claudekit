@@ -115,6 +115,11 @@ Hooks automatically enforce quality as Claude works:
 - `test-project` - Run full test suite
 - `self-review` - Prompt code review
 
+**SubagentStop Hooks** (run when subagents complete)
+- Same validation hooks as Stop events
+- Ensures quality checks run for all Claude Code workflows
+- Automatic checkpointing when subagent tasks finish
+
 [Hook configuration →](docs/reference/hooks.md)
 
 ## Subagents
@@ -150,6 +155,14 @@ Claudekit uses two configuration files:
     "PostToolUse": [{
       "matcher": "Write|Edit|MultiEdit",
       "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
+    }],
+    "Stop": [{
+      "matcher": "*",
+      "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
+    }],
+    "SubagentStop": [{
+      "matcher": "*",
+      "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
     }]
   }
 }
