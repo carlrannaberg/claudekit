@@ -113,6 +113,7 @@ I resolve 21+ categories of Vitest-specific issues:
 - **Tests run slowly**: Poor pool configuration or unnecessary isolation enabled
 - **High memory usage**: Too many concurrent processes, need maxConcurrency tuning
 - **Transform failed**: Module transformation issues requiring deps.optimizer configuration
+- **Excessive output in coding agents**: Use dot reporter and silent mode to minimize context pollution
 
 ### Framework Integration Challenges
 - **React components not rendering**: Missing @vitejs/plugin-react or @testing-library/react setup
@@ -193,6 +194,33 @@ export default defineConfig({
 })
 ```
 
+### Minimal Output Configuration for Coding Agents
+```typescript
+// Configuration to reduce output verbosity in Claude Code or other coding agents
+export default defineConfig({
+  test: {
+    // Use dynamic reporter based on environment
+    reporters: ((): Array<string | [string, Record<string, unknown>]> => {
+      if (process.env['CI'] !== undefined) {
+        return ['default', 'junit'];
+      }
+      if (process.env['VERBOSE_TESTS'] === 'true') {
+        return ['verbose'];
+      }
+      // Minimal output - dot reporter shows only dots for progress
+      return ['dot'];
+    })(),
+    // Suppress stdout from passing tests
+    silent: process.env['VERBOSE_TESTS'] === 'true' ? false : 'passed-only',
+    passWithNoTests: true,
+    hideSkippedTests: process.env['VERBOSE_TESTS'] !== 'true'
+  },
+})
+
+// Note: Avoid using onConsoleLog handler as it can cause test timeouts
+// The 'silent' option provides sufficient output control
+```
+
 ## Migration Strategies
 
 ### From Jest
@@ -215,6 +243,7 @@ export default defineConfig({
 3. **Browser Testing**: Use multi-browser instances for comprehensive coverage
 4. **Type Safety**: Maintain strict TypeScript configuration with proper Vitest types
 5. **Debugging**: Configure appropriate debugging modes for development workflow
+6. **Output Minimization**: Use dot reporter and silent modes to reduce context pollution in coding agents
 
 ## Handoff Recommendations
 

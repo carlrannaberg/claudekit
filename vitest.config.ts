@@ -72,8 +72,8 @@ const testConfig: InlineConfig = {
     if (process.env['VERBOSE_TESTS'] === 'true') {
       return ['verbose'];
     }
-    // Minimal output - equivalent to deprecated 'basic' reporter
-    return [['default', { summary: false }]];
+    // Minimal output - show only file-level results, not individual tests
+    return ['dot'];
   })(),
   // Minimal output settings - suppress stdout from tests in minimal mode
   silent: process.env['VERBOSE_TESTS'] === 'true' ? false : 'passed-only', // Only show logs from failing tests
@@ -91,8 +91,6 @@ if (process.env['CI'] !== undefined) {
   };
 }
 
-// Note: onConsoleLog can cause test timeouts in some integration tests
-// The 'silent' option above already reduces stdout visibility appropriately
 
 export default defineConfig({
   plugins: [tsconfigPaths({ 
