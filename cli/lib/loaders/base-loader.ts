@@ -1,40 +1,62 @@
-import { promises as fs, accessSync } from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { pathExists } from 'fs-extra';
+import { findComponentsDirectory, getUserClaudeDirectory, getProjectClaudeDirectory } from '../paths.js';
 
 /**
  * Base class for file loaders providing common functionality
  */
 export abstract class BaseLoader {
   protected searchPaths: string[];
+  private subDirectoryName: string;
+  private pathsInitialized: boolean = false;
 
   constructor(subDirectoryName: string) {
-    // Get current directory in ES module context
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    
-    // Try multiple strategies to find the target directory
-    const possiblePaths = [
-      path.join(__dirname, `../../src/${subDirectoryName}`),  // From dist/lib/loaders/
-      path.join(process.cwd(), `src/${subDirectoryName}`),    // From project root
-      path.resolve(__dirname, `../../src/${subDirectoryName}`), // Absolute resolution
-    ];
-    
-    this.searchPaths = possiblePaths.filter(p => {
-      try {
-        // Synchronously check if directory exists during construction
-        accessSync(p);
-        return true;
-      } catch {
-        return false;
-      }
-    });
-    
-    if (this.searchPaths.length === 0) {
-      throw new Error(`No valid ${subDirectoryName} directories found. Searched: ${possiblePaths.join(', ')}`);
+    this.searchPaths = [];
+    this.subDirectoryName = subDirectoryName;
+  }
+
+  /**
+   * Initialize search paths for the loader
+   * Automatically called before operations if not already initialized
+   */
+  protected async ensurePathsInitialized(): Promise<void> {
+    if (this.pathsInitialized) {
+      return;
     }
+
+    const possiblePaths: string[] = [];
+    
+    // 1. Project-level directory (highest priority)
+    const projectPath = path.join(getProjectClaudeDirectory(), this.subDirectoryName);
+    if (await pathExists(projectPath)) {
+      possiblePaths.push(projectPath);
+    }
+    
+    // 2. User-level directory (medium priority)
+    const userPath = path.join(getUserClaudeDirectory(), this.subDirectoryName);
+    if (await pathExists(userPath)) {
+      possiblePaths.push(userPath);
+    }
+    
+    // 3. Embedded claudekit directory (lowest priority)
+    try {
+      const componentsDir = await findComponentsDirectory();
+      const embeddedPath = path.join(componentsDir, this.subDirectoryName);
+      if (await pathExists(embeddedPath)) {
+        possiblePaths.push(embeddedPath);
+      }
+    } catch {
+      // findComponentsDirectory might fail if running from unexpected location
+      // Continue without embedded commands rather than failing completely
+    }
+    
+    this.searchPaths = possiblePaths;
+    this.pathsInitialized = true;
+    
+    // Don't throw error if no paths found - let individual operations handle this
+    // This allows list to work even if some paths are missing
   }
 
   /**

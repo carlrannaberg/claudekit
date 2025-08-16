@@ -10,6 +10,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { AgentLoader } from '../../../cli/lib/loaders/agent-loader.js';
 import { TestFileSystem } from '../../utils/test-helpers.js';
+import * as paths from '../../../cli/lib/paths.js';
 
 describe('AgentLoader', () => {
   let testFs: TestFileSystem;
@@ -21,6 +22,15 @@ describe('AgentLoader', () => {
     tempDir = await testFs.createTempDir();
     agentsDir = path.join(tempDir, 'src', 'agents');
     await fs.mkdir(agentsDir, { recursive: true });
+    
+    // Create .claude directory for project-level agents
+    const projectClaudeDir = path.join(tempDir, '.claude', 'agents');
+    await fs.mkdir(projectClaudeDir, { recursive: true });
+    
+    // Mock the path functions to use our test directories
+    vi.spyOn(paths, 'getProjectClaudeDirectory').mockReturnValue(path.join(tempDir, '.claude'));
+    vi.spyOn(paths, 'getUserClaudeDirectory').mockReturnValue(path.join(tempDir, 'user-claude'));
+    vi.spyOn(paths, 'findComponentsDirectory').mockResolvedValue(path.join(tempDir, 'src'));
   });
 
   afterEach(async () => {
@@ -31,16 +41,7 @@ describe('AgentLoader', () => {
 
   // Helper function to create a test AgentLoader that uses our test directory
   const createTestLoader = (): AgentLoader => {
-    // We'll test with actual file system operations in the test directory
-    // Change process.cwd() temporarily to make the loader find our test directory
-    const originalCwd = process.cwd();
-    vi.spyOn(process, 'cwd').mockReturnValue(tempDir);
-    
-    try {
-      return new AgentLoader();
-    } finally {
-      vi.mocked(process.cwd).mockReturnValue(originalCwd);
-    }
+    return new AgentLoader();
   };
 
   describe('constructor', () => {

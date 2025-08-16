@@ -519,11 +519,12 @@ function createComponentId(filePath: string, type: ComponentType): string {
     return fileName;
   }
 
-  // For nested components (e.g., commands/git/status.md or agents/typescript/expert.md)
+  // For agents, always use just the filename (no directory prefix)
   if (type === 'agent') {
-    return `${parentDir}-${fileName}`;
+    return fileName;
   }
 
+  // For commands, keep the namespace:name format
   return `${parentDir}:${fileName}`;
 }
 

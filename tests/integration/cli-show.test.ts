@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import { spawn } from 'child_process';
+import { promises as fs } from 'fs';
 import { TestFileSystem } from '../utils/test-helpers.js';
 import type { AgentDefinition, CommandDefinition } from '../../cli/lib/loaders/types.js';
 
@@ -65,9 +66,13 @@ describe('CLI show command integration', () => {
   beforeEach(async () => {
     testFs = new TestFileSystem();
 
-    // Create temporary test agents and commands in src/ directory
+    // Create tmp directories for test files
+    await fs.mkdir(path.join(process.cwd(), 'src/agents/tmp'), { recursive: true });
+    await fs.mkdir(path.join(process.cwd(), 'src/commands/tmp'), { recursive: true });
+
+    // Create temporary test agents in tmp directory
     await testFs.writeFile(
-      path.join(process.cwd(), 'src/agents/test-integration-agent.md'),
+      path.join(process.cwd(), 'src/agents/tmp/test-integration-agent.md'),
       `---
 name: test-integration-agent
 description: A test agent for CLI integration testing
@@ -93,7 +98,7 @@ When invoked, this agent should provide testing functionality.
     );
 
     await testFs.writeFile(
-      path.join(process.cwd(), 'src/commands/test-integration-command.md'),
+      path.join(process.cwd(), 'src/commands/tmp/test-integration-command.md'),
       `---
 description: Test command for CLI integration testing
 category: testing
@@ -118,6 +123,19 @@ Steps:
   afterEach(async () => {
     // Clean up test files
     await testFs.cleanup();
+    
+    // Clean up tmp directories with all test files
+    try {
+      await fs.rm(path.join(process.cwd(), 'src/agents/tmp'), { recursive: true, force: true });
+    } catch {
+      // Ignore if directory doesn't exist
+    }
+    
+    try {
+      await fs.rm(path.join(process.cwd(), 'src/commands/tmp'), { recursive: true, force: true });
+    } catch {
+      // Ignore if directory doesn't exist
+    }
   });
 
   describe('show agent command', () => {
@@ -428,7 +446,7 @@ Steps:
       
       // Create agent with special characters
       await testFs.writeFile(
-        path.join(process.cwd(), 'src/agents', 'special-chars-test.md'),
+        path.join(process.cwd(), 'src/agents/tmp/special-chars-test.md'),
         `---
 name: special-chars
 description: "Agent with special chars: quotes, newlines, and Unicode 🚀"
@@ -453,9 +471,9 @@ console.log(example);
 `
       );
 
-      const textResult = await runCliCommand(['show', 'agent', 'special-chars-test']);
+      const textResult = await runCliCommand(['show', 'agent', 'special-chars']);
       
-      const jsonResult = await runCliCommand(['show', 'agent', 'special-chars-test', '-f', 'json']);
+      const jsonResult = await runCliCommand(['show', 'agent', 'special-chars', '-f', 'json']);
 
       expect(textResult.exitCode).toBe(0);
       expect(jsonResult.exitCode).toBe(0);
@@ -480,7 +498,7 @@ console.log(example);
       
       // Create malformed agent file
       await testFs.writeFile(
-        path.join(process.cwd(), 'src/agents', 'corrupted-test.md'),
+        path.join(process.cwd(), 'src/agents/tmp/corrupted-test.md'),
         `---
 name: corrupted
 description: This frontmatter is not closed properly

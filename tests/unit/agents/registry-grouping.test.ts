@@ -43,10 +43,11 @@ describe('Agent Grouping', () => {
       expect(testGroup).toBeDefined();
       if (testGroup) {
         const agentIds = testGroup.agents.map((a: AgentComponent) => a.id);
+        console.log('Testing agents found:', agentIds);
 
         // Testing category should contain all test frameworks
-        expect(agentIds).toContain('testing-jest-expert');
-        expect(agentIds).toContain('testing-vitest-expert');
+        expect(agentIds).toContain('jest-testing-expert');
+        expect(agentIds).toContain('vitest-testing-expert');
         expect(agentIds).toContain('testing-expert');
 
         // Should now include Playwright in testing category

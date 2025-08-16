@@ -201,15 +201,22 @@ Based on your research, clearly establish:
 
 ### Step 2: Choose File Location
 
+**Important Naming Convention**: Agent filenames should be fully descriptive. When agents are nested in domain directories, include the domain prefix in the filename to ensure unique, clear IDs. For example:
+- ✅ `src/agents/typescript/typescript-expert.md` (not just `expert.md`)
+- ✅ `src/agents/database/database-postgres-expert.md` (not just `postgres-expert.md`)
+- ✅ `src/agents/testing/jest-testing-expert.md` (not just `jest-expert.md`)
+
+This ensures agent IDs are consistent and unambiguous across the system.
+
 ```bash
 # Universal agents (all projects need them)
 src/agents/oracle.md
 src/agents/code-reviewer.md
 
 # Domain-specific agents (organized by domain)
-src/agents/typescript/expert.md
-src/agents/react/expert.md
-src/agents/database/postgres-expert.md
+src/agents/typescript/typescript-expert.md
+src/agents/react/react-expert.md
+src/agents/database/database-postgres-expert.md
 ```
 
 Create your file:
@@ -217,9 +224,9 @@ Create your file:
 # Universal agent
 touch src/agents/my-agent.md
 
-# Domain-specific
+# Domain-specific (use full descriptive names)
 mkdir -p src/agents/mydomain
-touch src/agents/mydomain/expert.md
+touch src/agents/mydomain/mydomain-expert.md
 ```
 
 ### Step 3: Write Frontmatter with Metadata
@@ -346,7 +353,7 @@ Enable runtime discovery:
 ln -sf ../../src/agents/my-agent.md .claude/agents/my-agent.md
 
 # For domain-specific agents
-ln -sf ../../../src/agents/mydomain/expert.md .claude/agents/mydomain-expert.md
+ln -sf ../../../src/agents/mydomain/mydomain-expert.md .claude/agents/mydomain-expert.md
 ```
 
 ## Testing and Validation

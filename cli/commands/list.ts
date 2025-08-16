@@ -5,6 +5,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import { Colors } from '../utils/colors.js';
 import { HOOK_REGISTRY } from '../hooks/registry.js';
+import { CommandLoader } from '../lib/loaders/command-loader.js';
+import { AgentLoader } from '../lib/loaders/agent-loader.js';
 
 interface ListOptions {
   format?: 'table' | 'json';
@@ -157,6 +159,8 @@ interface CommandInfo {
   type: string;
   path: string;
   description: string;
+  source: string;
+  namespace: string;
   size: number;
   tokens: number;
   modified: Date;
@@ -167,6 +171,7 @@ interface AgentInfo {
   type: string;
   path: string;
   description: string;
+  source: string;
   category: string;
   size: number;
   tokens: number;
@@ -174,114 +179,93 @@ interface AgentInfo {
 }
 
 async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
-  const commandsDir = '.claude/commands';
+  const loader = new CommandLoader();
+  const allCommands = await loader.getAllCommands();
   const commands: CommandInfo[] = [];
-
-  if (!(await fs.pathExists(commandsDir))) {
-    return commands;
-  }
 
   const pattern =
     options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
 
-  // Recursively find all .md files in commands directory
-  async function findCommandFiles(dir: string, prefix: string = ''): Promise<void> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const { id, source, path: cmdPath } of allCommands) {
+    if (pattern !== null && !pattern.test(id)) {
+      continue;
+    }
 
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
+    try {
+      const stats = await fs.stat(cmdPath);
+      // Extract frontmatter data
+      const { frontmatter, tokens } = await extractFrontmatter(cmdPath);
+      const description = frontmatter.description ?? '';
+      
+      // Determine namespace from command ID (e.g., "spec:create" -> "spec")
+      const namespace = id.includes(':') ? (id.split(':')[0] ?? 'general') : 'general';
 
-      if (entry.isDirectory()) {
-        // Recurse into subdirectories
-        const newPrefix = prefix ? `${prefix}:${entry.name}` : entry.name;
-        await findCommandFiles(fullPath, newPrefix);
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
-        const baseName = path.basename(entry.name, '.md');
-        const commandName = prefix ? `${prefix}:${baseName}` : baseName;
-
-        if (pattern !== null && !pattern.test(commandName)) {
-          continue;
-        }
-
-        const stats = await fs.stat(fullPath);
-
-        // Extract frontmatter data
-        const { frontmatter, tokens } = await extractFrontmatter(fullPath);
-        const description = frontmatter.description ?? '';
-
-        commands.push({
-          name: commandName,
-          type: 'command',
-          path: fullPath,
-          description,
-          size: stats.size,
-          tokens,
-          modified: stats.mtime,
-        });
-      }
+      commands.push({
+        name: id,
+        type: 'command',
+        path: cmdPath,
+        description,
+        source,
+        namespace,
+        size: stats.size,
+        tokens,
+        modified: stats.mtime,
+      });
+    } catch {
+      // File might not be readable
     }
   }
-
-  // Start the recursive search from the commands directory
-  await findCommandFiles(commandsDir);
 
   return commands;
 }
 
 async function listAgents(options: ListOptions): Promise<AgentInfo[]> {
-  const agentsDir = '.claude/agents';
+  const loader = new AgentLoader();
+  const allAgents = await loader.getAllAgents();
   const agents: AgentInfo[] = [];
-
-  if (!(await fs.pathExists(agentsDir))) {
-    return agents;
-  }
 
   const pattern =
     options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
 
-  // Recursively find all .md files in agents directory
-  async function findAgentFiles(dir: string, category: string = ''): Promise<void> {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
+  for (const { id, source, path: agentPath } of allAgents) {
+    try {
+      const stats = await fs.stat(agentPath);
+      // Extract frontmatter data
+      const { frontmatter, tokens } = await extractFrontmatter(agentPath);
+      const displayName = frontmatter.name ?? id;
       
-      // Get stats to properly handle symlinks
-      const stats = await fs.stat(fullPath);
-
-      if (stats.isDirectory()) {
-        // Use directory name as category
-        await findAgentFiles(fullPath, entry.name);
-      } else if (stats.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') {
-        const baseName = path.basename(entry.name, '.md');
-        const agentName = baseName;
-
-        // Extract frontmatter data
-        const { frontmatter, tokens } = await extractFrontmatter(fullPath);
-        const displayName = frontmatter.name ?? agentName; // Use frontmatter name or fallback to filename
-        const description = frontmatter.description ?? '';
-        
-        // Use frontmatter filter after we have the actual name
-        if (pattern !== null && !pattern.test(displayName)) {
-          continue;
-        }
-
-        agents.push({
-          name: displayName,
-          type: 'agent',
-          path: fullPath,
-          description,
-          category: category || 'general',
-          size: stats.size,
-          tokens,
-          modified: stats.mtime,
-        });
+      // Filter by display name, not ID
+      if (pattern !== null && !pattern.test(displayName)) {
+        continue;
       }
+      const description = frontmatter.description ?? '';
+      
+      // Use category from frontmatter, fallback to path-based detection
+      const category = typeof frontmatter.category === 'string' && frontmatter.category !== '' 
+        ? frontmatter.category
+        : ((): string => {
+            const pathParts = agentPath.split(path.sep);
+            const agentsIndex = pathParts.lastIndexOf('agents');
+            const nextPart = pathParts[agentsIndex + 1];
+            return agentsIndex >= 0 && nextPart !== undefined && nextPart !== `${id}.md`
+              ? nextPart
+              : 'general';
+          })();
+      agents.push({
+        name: displayName,
+        type: 'agent',
+        path: agentPath,
+        description,
+        source,
+        category,
+        size: stats.size,
+        tokens,
+        modified: stats.mtime,
+      });
+    } catch {
+      // File might not be readable
     }
   }
-
-  // Start the recursive search from the agents directory
-  await findAgentFiles(agentsDir);
 
   return agents;
 }
@@ -326,6 +310,8 @@ interface ListResults {
     type: string;
     path: string;
     description: string;
+    source: string;
+    namespace: string;
     size: number;
     tokens: number;
     modified: Date;
@@ -335,6 +321,7 @@ interface ListResults {
     type: string;
     path: string;
     description: string;
+    source: string;
     category: string;
     size: number;
     tokens: number;
@@ -359,12 +346,30 @@ function displayTable(results: ListResults, type: string): void {
   // Display commands
   if (results.commands !== undefined && results.commands.length > 0) {
     console.log(Colors.bold('\nCommands:'));
-    console.log(Colors.dim('─'.repeat(60)));
+    console.log(Colors.dim('─'.repeat(80)));
 
-    for (const cmd of results.commands) {
-      const tokens = formatTokens(cmd.tokens ?? estimateTokens(''));
+    // Group commands by namespace
+    const grouped = results.commands.reduce((acc, cmd) => {
+      if (!acc[cmd.namespace]) {
+        acc[cmd.namespace] = [];
+      }
+      const namespaceCommands = acc[cmd.namespace];
+      if (namespaceCommands !== undefined) {
+        namespaceCommands.push(cmd);
+      }
+      return acc;
+    }, {} as Record<string, typeof results.commands>);
 
-      console.log(`  ${Colors.accent(cmd.name.padEnd(30))} ${tokens.padStart(12)}`);
+    // Display by namespace
+    for (const [namespace, namespaceCommands] of Object.entries(grouped)) {
+      if (namespaceCommands !== undefined && namespaceCommands.length > 0) {
+        console.log(`  ${Colors.dim(`${namespace}:`)}`);
+        for (const cmd of namespaceCommands) {
+          const tokens = formatTokens(cmd.tokens ?? estimateTokens(''));
+          const source = Colors.dim(`[${cmd.source}]`);
+          console.log(`    ${Colors.accent(cmd.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`);
+        }
+      }
     }
   } else if (type === 'commands' || type === 'all') {
     console.log(Colors.dim('\nNo commands found'));
@@ -373,7 +378,7 @@ function displayTable(results: ListResults, type: string): void {
   // Display agents
   if (results.agents !== undefined && results.agents.length > 0) {
     console.log(Colors.bold('\nAgents:'));
-    console.log(Colors.dim('─'.repeat(60)));
+    console.log(Colors.dim('─'.repeat(80)));
 
     // Group agents by category
     const grouped = results.agents.reduce((acc, agent) => {
@@ -393,7 +398,8 @@ function displayTable(results: ListResults, type: string): void {
         console.log(`  ${Colors.dim(`${category}:`)}`);
         for (const agent of categoryAgents) {
           const tokens = formatTokens(agent.tokens);
-          console.log(`    ${Colors.accent(agent.name.padEnd(25))} ${tokens.padStart(12)}`);
+          const source = Colors.dim(`[${agent.source}]`);
+          console.log(`    ${Colors.accent(agent.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`);
         }
       }
     }

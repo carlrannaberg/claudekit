@@ -1,4 +1,5 @@
 import path from 'path';
+import { promises as fs } from 'fs';
 import type { CommandDefinition } from './types.js';
 import { BaseLoader } from './base-loader.js';
 
@@ -17,6 +18,7 @@ export class CommandLoader extends BaseLoader {
    * @throws Error if command not found
    */
   async loadCommand(commandId: string): Promise<CommandDefinition> {
+    await this.ensurePathsInitialized();
     const commandPath = await this.resolveCommandPath(commandId);
     if (commandPath === null) {
       throw new Error(`Command not found: ${commandId}`);
@@ -99,6 +101,81 @@ export class CommandLoader extends BaseLoader {
     }
 
     return null;
+  }
+
+  /**
+   * Get all available commands from all search paths
+   * @returns Promise<Array<{id: string, source: string, path: string}>>
+   */
+  async getAllCommands(): Promise<Array<{id: string, source: string, path: string}>> {
+    await this.ensurePathsInitialized();
+    const commands: Array<{id: string, source: string, path: string}> = [];
+    const seen = new Set<string>();
+    
+    for (const searchPath of this.searchPaths) {
+      const source = this.getSourceLabel(searchPath);
+      const commandsInPath = await this.findCommandsInPath(searchPath);
+      
+      for (const { id, path: cmdPath } of commandsInPath) {
+        if (!seen.has(id)) {
+          seen.add(id);
+          commands.push({ id, source, path: cmdPath });
+        }
+      }
+    }
+    
+    return commands;
+  }
+
+  /**
+   * Get source label for a search path
+   */
+  private getSourceLabel(searchPath: string): string {
+    const home = process.env['HOME'] ?? process.env['USERPROFILE'] ?? '';
+    const homeClaudePath = path.join(home, '.claude');
+    
+    // Check if it's the user's global .claude directory
+    if (searchPath === homeClaudePath || searchPath.startsWith(homeClaudePath + path.sep)) {
+      return 'global';
+    }
+    // Check if it's a project .claude directory (not in home)
+    else if (searchPath.includes('.claude')) {
+      return 'project';
+    }
+    // Otherwise it's embedded
+    else {
+      return 'embedded';
+    }
+  }
+
+  /**
+   * Find all commands in a specific path
+   */
+  private async findCommandsInPath(searchPath: string, prefix: string = ''): Promise<Array<{id: string, path: string}>> {
+    const commands: Array<{id: string, path: string}> = [];
+    
+    try {
+      const entries = await fs.readdir(searchPath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(searchPath, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Recursively search subdirectories
+          const subPrefix = prefix !== '' ? `${prefix}:${entry.name}` : entry.name;
+          const subCommands = await this.findCommandsInPath(fullPath, subPrefix);
+          commands.push(...subCommands);
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
+          const baseName = path.basename(entry.name, '.md');
+          const commandId = prefix !== '' ? `${prefix}:${baseName}` : baseName;
+          commands.push({ id: commandId, path: fullPath });
+        }
+      }
+    } catch {
+      // Directory might not exist or be readable
+    }
+    
+    return commands;
   }
 
   /**

@@ -33,6 +33,10 @@ temp/
 tmp/
 **/tmp/
 
+# Test artifacts in src directories
+src/agents/tmp/
+src/commands/tmp/
+
 # Debug and analysis scripts (per dev:cleanup patterns)
 debug-*.js
 debug-*.ts

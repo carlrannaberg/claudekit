@@ -2,12 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
 import { list } from '../../cli/commands/list.js';
+import * as paths from '../../cli/lib/paths.js';
 
 interface AgentInfo {
   name: string;
   type: string;
   path: string;
   description: string;
+  source: string;
   category: string;
   size: number;
   tokens: number;
@@ -19,6 +21,8 @@ interface CommandInfo {
   type: string;
   path: string;
   description: string;
+  source: string;
+  namespace: string;
   size: number;
   tokens: number;
   modified: Date;
@@ -46,6 +50,11 @@ describe('list command', () => {
     // Change to temp directory
     process.chdir(tempDir);
     
+    // Mock the path functions to use our test directories
+    vi.spyOn(paths, 'getProjectClaudeDirectory').mockReturnValue(path.join(tempDir, '.claude'));
+    vi.spyOn(paths, 'getUserClaudeDirectory').mockReturnValue(path.join(tempDir, 'user-claude'));
+    vi.spyOn(paths, 'findComponentsDirectory').mockResolvedValue(path.join(tempDir, 'src'));
+    
     // Spy on console.log to capture output
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
@@ -59,6 +68,10 @@ describe('list command', () => {
     
     // Restore console.log
     consoleLogSpy.mockRestore();
+    
+    // Clear all mocks
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('listAgents', () => {
@@ -134,18 +147,21 @@ Oracle content.`
       const pgExpert = agents.find((a: AgentInfo) => a.name === 'postgres-expert');
       const oracle = agents.find((a: AgentInfo) => a.name === 'oracle');
       
-      // Verify names are from frontmatter, not filenames
+      // Verify names are from frontmatter and source is separate
       expect(tsExpert).toBeDefined();
-      expect(tsExpert?.name).toBe('typescript-expert'); // Not 'expert'
-      expect(tsExpert?.category).toBe('typescript');
+      expect(tsExpert?.name).toBe('typescript-expert'); // Name from frontmatter
+      expect(tsExpert?.source).toBe('project'); // Source in separate field
+      expect(tsExpert?.category).toBe('framework'); // Category from frontmatter
       
       expect(pgExpert).toBeDefined();
-      expect(pgExpert?.name).toBe('postgres-expert'); // Not 'postgres'
+      expect(pgExpert?.name).toBe('postgres-expert'); // Name from frontmatter
+      expect(pgExpert?.source).toBe('project'); // Source in separate field
       expect(pgExpert?.category).toBe('database');
       
       // Verify fallback to filename when no name in frontmatter
       expect(oracle).toBeDefined();
       expect(oracle?.name).toBe('oracle'); // Filename since no name in frontmatter
+      expect(oracle?.source).toBe('project'); // Source in separate field
       expect(oracle?.category).toBe('general');
     });
 
@@ -180,6 +196,7 @@ Content`
       expect(result.agents).toBeDefined();
       expect(result.agents).toHaveLength(1);
       expect(result.agents?.[0]?.name).toBe('typescript-expert');
+      expect(result.agents?.[0]?.source).toBe('project');
       
       // Clear spy
       consoleLogSpy.mockClear();
@@ -233,7 +250,7 @@ Show repository status.`
       
       // Verify command has correct description
       const commands = result.commands ?? [];
-      const gitStatus = commands.find((c: CommandInfo) => c.name === 'git:status');
+      const gitStatus = commands.find((c: CommandInfo) => c.name.includes('git:status'));
       expect(gitStatus).toBeDefined();
       expect(gitStatus?.description).toBe('Show git status with insights');
     });

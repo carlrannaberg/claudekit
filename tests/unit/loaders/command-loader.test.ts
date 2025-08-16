@@ -10,6 +10,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { CommandLoader } from '../../../cli/lib/loaders/command-loader.js';
 import { TestFileSystem } from '../../utils/test-helpers.js';
+import * as paths from '../../../cli/lib/paths.js';
 
 describe('CommandLoader', () => {
   let testFs: TestFileSystem;
@@ -21,6 +22,15 @@ describe('CommandLoader', () => {
     tempDir = await testFs.createTempDir();
     commandsDir = path.join(tempDir, 'src', 'commands');
     await fs.mkdir(commandsDir, { recursive: true });
+    
+    // Create .claude directory for project-level commands
+    const projectClaudeDir = path.join(tempDir, '.claude', 'commands');
+    await fs.mkdir(projectClaudeDir, { recursive: true });
+    
+    // Mock the path functions to use our test directories
+    vi.spyOn(paths, 'getProjectClaudeDirectory').mockReturnValue(path.join(tempDir, '.claude'));
+    vi.spyOn(paths, 'getUserClaudeDirectory').mockReturnValue(path.join(tempDir, 'user-claude'));
+    vi.spyOn(paths, 'findComponentsDirectory').mockResolvedValue(path.join(tempDir, 'src'));
   });
 
   afterEach(async () => {
@@ -31,15 +41,7 @@ describe('CommandLoader', () => {
 
   // Helper function to create a test CommandLoader that uses our test directory
   const createTestLoader = (): CommandLoader => {
-    // Change process.cwd() temporarily to make the loader find our test directory
-    const originalCwd = process.cwd();
-    vi.spyOn(process, 'cwd').mockReturnValue(tempDir);
-    
-    try {
-      return new CommandLoader();
-    } finally {
-      vi.mocked(process.cwd).mockReturnValue(originalCwd);
-    }
+    return new CommandLoader();
   };
 
   describe('constructor', () => {
