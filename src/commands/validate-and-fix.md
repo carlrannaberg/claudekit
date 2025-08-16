@@ -84,9 +84,14 @@ Create detailed task plans where each agent gets:
 - Any relevant context about dependencies or patterns to follow
 
 ### 4. Parallel Execution
-Launch multiple agents concurrently using Task tool, ensuring:
-- Each agent has non-overlapping responsibilities to avoid conflicts
-- Agents working on related files understand the shared interfaces
+Launch multiple agents concurrently for independent, parallelizable tasks:
+- **CRITICAL**: Include multiple Task tool calls in a SINGLE message ONLY when tasks can be done in parallel
+- Tasks that depend on each other should be executed sequentially (separate messages)
+- Parallelizable tasks: Different file fixes, independent test suites, non-overlapping components
+- Sequential tasks: Tasks with dependencies, shared state modifications, ordered phases
+- Use specialized subagents when applicable for domain-specific issues
+- Each parallel agent should have non-overlapping responsibilities to avoid conflicts
+- Agents working on related files must understand the shared interfaces
 - Each agent verifies their fixes work before completing
 - Track progress with TodoWrite
 - Execute phases sequentially: complete Phase 1 before Phase 2, etc.

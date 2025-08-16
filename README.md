@@ -98,6 +98,48 @@ claudekit validate           # Check your installation
 - `/agent-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
+- `/show [agent|command] <name>` - Display prompts for external use
+
+#### Show Command Examples
+
+The `show` command extracts prompts for use with Claude Code's non-interactive mode:
+
+```bash
+# Get agent prompt in text format (default)
+claudekit show agent typescript-expert
+
+# Use with Claude Code non-interactive mode (primary use case)
+EXPERT=$(claudekit show agent typescript-expert)
+cat src/app.ts | claude -p --append-system-prompt "$EXPERT" "Review this code"
+
+# Get metadata in JSON format
+claudekit show agent react-performance-expert --format json
+
+# Show command prompts
+claudekit show command spec:create
+
+# Pipe directly to Claude Code
+claudekit show agent postgres-expert | \
+  claude -p "Optimize: SELECT * FROM orders WHERE status='pending'"
+
+# Use in CI/CD pipelines
+git diff main..HEAD | claude -p \
+  --append-system-prompt "$(claudekit show agent git-expert)" \
+  --output-format json \
+  "Review these changes"
+
+# Extract specific fields with jq
+claudekit show agent typescript-expert --format json | jq -r '.description'
+
+# Works with other AI coding CLI tools
+claudekit show agent docker-expert > docker-expert.md && amp < docker-expert.md
+claudekit show agent testing-expert | opencode -p "$(cat -). Write tests" -q
+claudekit show agent nodejs-expert | codex --auto-edit "$(cat -). Fix async issues"
+```
+
+**Compatible with:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/cli), [Amp](https://ampcode.com/), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor CLI](https://cursor.com/cli), [Codex](https://github.com/openai/codex), [OpenCode](https://github.com/sst/opencode)
+
+See the [usage guide](docs/guides/using-prompts-with-external-llms.md) for detailed integration examples.
 
 [View all commands →](docs/reference/commands.md)
 

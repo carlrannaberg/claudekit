@@ -77,6 +77,8 @@ Organize tasks by:
 
 ### 3. Launch Concurrent Agents
 
+**CRITICAL**: Include multiple Task tool calls in ONE message ONLY for independent, parallelizable tasks. Tasks with dependencies should be executed sequentially (separate messages).
+
 For each independent task group:
 
 1. **Prepare Task Brief**:
@@ -85,7 +87,11 @@ For each independent task group:
    - Files to modify/create
    - Testing requirements
 
-2. **Launch Subagent**:
+2. **Launch Subagents** (multiple in one message for parallel execution):
+   - Use specialized subagents when applicable for domain-specific tasks
+   - Ensure each agent has non-overlapping responsibilities
+   
+   Example task details for EACH agent (include multiple Task tool calls in ONE message):
    
    If using STM, include task details:
    ```
@@ -115,6 +121,8 @@ For each independent task group:
    - Code style guidelines
    - Testing requirements
    ```
+   
+   **Remember**: Include Task tool invocations in a SINGLE message ONLY for truly parallel, independent tasks!
 
 3. **Monitor Progress**:
    - If using STM: `stm list --status in-progress --pretty`

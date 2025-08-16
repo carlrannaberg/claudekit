@@ -15,11 +15,7 @@ VERBOSE=false
 RUN_INTEGRATION=true
 SPECIFIC_TEST=""
 
-# Ensure hook directory exists
-if [[ ! -d "$HOOK_DIR" ]]; then
-    echo "Error: Hook directory not found at $HOOK_DIR"
-    exit 1
-fi
+# Note: Hook directory check removed to support e2e tests that don't require hooks
 
 ################################################################################
 # Parse Arguments                                                              #
@@ -132,6 +128,37 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
         echo "No integration tests found in $SCRIPT_DIR/integration/"
     else
         for test_file in "${integration_test_files[@]}"; do
+            # Skip if specific test requested and doesn't match
+            if [[ -n "$SPECIFIC_TEST" ]] && [[ ! "$test_file" =~ $SPECIFIC_TEST ]]; then
+                continue
+            fi
+            
+            # Make test file executable
+            chmod +x "$test_file"
+            
+            # Source and run the test file
+            source "$test_file"
+            run_all_tests_in_file "$test_file"
+        done
+    fi
+fi
+
+# Run e2e tests if enabled
+if [[ "$RUN_INTEGRATION" == "true" ]]; then
+    echo -e "\n${BLUE}🌐 End-to-End Tests${NC}"
+    echo "--------------------"
+    
+    e2e_test_files=()
+    if [[ -d "$SCRIPT_DIR/e2e" ]]; then
+        while IFS= read -r -d '' file; do
+            e2e_test_files+=("$file")
+        done < <(find "$SCRIPT_DIR/e2e" -name "*.test.sh" -type f -print0 | sort -z)
+    fi
+    
+    if [[ ${#e2e_test_files[@]} -eq 0 ]]; then
+        echo "No e2e tests found in $SCRIPT_DIR/e2e/"
+    else
+        for test_file in "${e2e_test_files[@]}"; do
             # Skip if specific test requested and doesn't match
             if [[ -n "$SPECIFIC_TEST" ]] && [[ ! "$test_file" =~ $SPECIFIC_TEST ]]; then
                 continue

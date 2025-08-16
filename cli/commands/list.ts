@@ -205,23 +205,9 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
 
         const stats = await fs.stat(fullPath);
 
-        // Try to extract description from frontmatter and calculate tokens
-        let description = '';
-        let tokens = 0;
-        try {
-          const content = await fs.readFile(fullPath, 'utf8');
-          tokens = estimateTokens(content);
-          const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
-          if (match !== null && match[1] !== undefined && match[1] !== '') {
-            const frontmatter = match[1];
-            const descMatch = frontmatter.match(/description:\s*(.+)/);
-            if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
-              description = descMatch[1].trim();
-            }
-          }
-        } catch {
-          // Ignore errors reading file
-        }
+        // Extract frontmatter data
+        const { frontmatter, tokens } = await extractFrontmatter(fullPath);
+        const description = frontmatter.description ?? '';
 
         commands.push({
           name: commandName,
@@ -270,30 +256,18 @@ async function listAgents(options: ListOptions): Promise<AgentInfo[]> {
         const baseName = path.basename(entry.name, '.md');
         const agentName = baseName;
 
-        if (pattern !== null && !pattern.test(agentName)) {
+        // Extract frontmatter data
+        const { frontmatter, tokens } = await extractFrontmatter(fullPath);
+        const displayName = frontmatter.name ?? agentName; // Use frontmatter name or fallback to filename
+        const description = frontmatter.description ?? '';
+        
+        // Use frontmatter filter after we have the actual name
+        if (pattern !== null && !pattern.test(displayName)) {
           continue;
         }
 
-        // Try to extract description from frontmatter and calculate tokens
-        let description = '';
-        let tokens = 0;
-        try {
-          const content = await fs.readFile(fullPath, 'utf8');
-          tokens = estimateTokens(content);
-          const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
-          if (match !== null && match[1] !== undefined && match[1] !== '') {
-            const frontmatter = match[1];
-            const descMatch = frontmatter.match(/description:\s*(.+)/);
-            if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
-              description = descMatch[1].trim();
-            }
-          }
-        } catch {
-          // Ignore errors reading file
-        }
-
         agents.push({
-          name: agentName,
+          name: displayName,
           type: 'agent',
           path: fullPath,
           description,
@@ -439,6 +413,57 @@ function displayTable(results: ListResults, type: string): void {
     }
   } else if (type === 'config' || type === 'all') {
     console.log(Colors.dim('\nNo configuration found'));
+  }
+}
+
+interface FrontmatterData {
+  name?: string;
+  description?: string;
+  category?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Extract frontmatter data from a markdown file
+ */
+async function extractFrontmatter(filePath: string): Promise<{ 
+  content: string; 
+  frontmatter: FrontmatterData;
+  tokens: number;
+}> {
+  try {
+    const content = await fs.readFile(filePath, 'utf8');
+    const tokens = estimateTokens(content);
+    const frontmatter: FrontmatterData = {};
+    
+    const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+    if (match !== null && match[1] !== undefined && match[1] !== '') {
+      const frontmatterText = match[1];
+      
+      // Extract common fields
+      const nameMatch = frontmatterText.match(/name:\s*(.+)/);
+      if (nameMatch !== null && nameMatch[1] !== undefined && nameMatch[1] !== '') {
+        frontmatter.name = nameMatch[1].trim();
+      }
+      
+      const descMatch = frontmatterText.match(/description:\s*(.+)/);
+      if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
+        frontmatter.description = descMatch[1].trim();
+      }
+      
+      const categoryMatch = frontmatterText.match(/category:\s*(.+)/);
+      if (categoryMatch !== null && categoryMatch[1] !== undefined && categoryMatch[1] !== '') {
+        frontmatter.category = categoryMatch[1].trim();
+      }
+    }
+    
+    return { content, frontmatter, tokens };
+  } catch {
+    return { 
+      content: '', 
+      frontmatter: {},
+      tokens: 0
+    };
   }
 }
 

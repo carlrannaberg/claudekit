@@ -139,3 +139,13 @@ export {
   getUserClaudeDirectory,
   getProjectClaudeDirectory,
 } from './paths.js';
+
+export {
+  // Loader types
+  type AgentDefinition,
+  type CommandDefinition,
+
+  // Loader classes
+  AgentLoader,
+  CommandLoader,
+} from './loaders/index.js';
