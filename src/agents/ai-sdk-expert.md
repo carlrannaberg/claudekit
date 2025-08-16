@@ -274,7 +274,7 @@ Which model to use?
 ├─ Fast + cheap → gpt-5-mini
 ├─ Quality → gpt-5 or claude-opus-4.1
 ├─ Long context → gemini-2.5-pro (1M tokens) or gemini-2.5-flash (1M tokens)
-├─ Open source → llama-3.1 or mixtral
+├─ Open source → llama-4 or mixtral
 └─ Edge compatible → Use edge-optimized models
 ```
 
