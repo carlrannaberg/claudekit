@@ -145,14 +145,11 @@ jobs:
       
       - name: Review TypeScript changes
         run: |
-          # Get TypeScript expert prompt
-          EXPERT=$(claudekit show agent typescript-expert)
-          
-          # Review changed files
+          # Get TypeScript expert prompt inline
           for file in $(git diff --name-only origin/main...HEAD | grep '\.ts$'); do
             echo "Reviewing $file..."
             cat "$file" | claude -p \
-              --append-system-prompt "$EXPERT" \
+              --append-system-prompt "$(claudekit show agent typescript-expert)" \
               --output-format json \
               "Review this TypeScript file for issues" > "review-$file.json"
           done
@@ -162,48 +159,58 @@ jobs:
 
 ## Integration with Other AI Coding CLI Tools
 
-### Amp (Agentic Coding Tool)
-
-[Amp](https://ampcode.com/) is an agentic coding tool with CLI support. While Amp primarily uses slash commands, you can provide initial context:
-
-```bash
-#!/bin/bash
-
-# Export claudekit prompt to a file for Amp context
-claudekit show agent typescript-expert > typescript-expert.md
-
-# Start Amp with the prompt as initial context
-amp
-# Then in Amp: /editor to write a prompt with the expert knowledge
-
-# Or provide as initial message
-PROMPT=$(claudekit show agent react-performance-expert)
-echo "$PROMPT" | amp
-
-# Use for automated workflows
-claudekit show agent database-expert > db-expert.md
-amp < db-expert.md
-```
-
 ### Gemini CLI (Google's AI Agent)
 
-[Gemini CLI](https://github.com/google-gemini/gemini-cli) is Google's AI agent for terminal with free tier (60 req/min, 1000 req/day):
+[Gemini CLI](https://github.com/google-gemini/gemini-cli) provides powerful AI capabilities with a free tier (60 req/min, 1000 req/day):
 
 ```bash
 #!/bin/bash
 
-# Gemini CLI uses interactive mode, so provide context via initial prompt
-EXPERT=$(claudekit show agent typescript-type-expert)
-echo "Use this expertise: $EXPERT" | gemini-cli
+# Use expert prompts with Gemini in non-interactive mode
+echo "Find and fix the memory leak in app.ts" | \
+  gemini -c "$(claudekit show agent nodejs-expert)" -m gemini-2.5-pro
 
-# Or save to file and reference
-claudekit show agent nodejs-expert > nodejs-expert.md
-gemini-cli
-# Then reference the file in your prompts
+# Process files with specialized expertise
+cat ProductList.tsx | gemini -c "$(claudekit show agent react-performance-expert). Identify render performance issues and suggest memoization strategies"
 
-# For automation, combine with expect or similar tools
-claudekit show agent database-expert > db-expert.md
-echo "Using expertise from db-expert.md, optimize this schema..." | gemini-cli
+# Use for database optimization
+cat schema.sql | gemini -c "$(claudekit show agent postgres-expert). Analyze this schema and create optimal indexes for common queries"
+
+# Code review with TypeScript expertise
+cat new-feature.ts | gemini -c "$(claudekit show agent typescript-expert). Review for type safety and suggest improvements"
+```
+
+### Amp (Agentic Coding Tool)
+
+[Amp](https://ampcode.com/) supports execute mode (`-x`) for non-interactive usage:
+
+```bash
+#!/bin/bash
+
+# Use expert prompts with Amp in execute mode
+amp -x "$(claudekit show agent typescript-expert)
+
+Review the TypeScript codebase for type safety issues and fix any 'any' types"
+
+# Pipe content with expert context
+cat ProductList.tsx | amp -x "$(claudekit show agent react-performance-expert)
+
+Analyze this React component for performance bottlenecks and suggest optimizations"
+
+# For automated workflows with tool permissions
+amp --dangerously-allow-all -x "$(claudekit show agent postgres-expert)
+
+Analyze the database schema in schema.sql and create optimal indexes"
+
+# Execute mode is automatic when redirecting stdout
+echo "$(claudekit show agent testing-expert)
+
+Write comprehensive unit tests for all functions in UserService.ts" | amp > tests.ts
+
+# Combine expert knowledge with specific file processing
+amp -x "$(claudekit show agent nodejs-expert)
+
+Find and fix all unhandled promise rejections in the src/ directory"
 ```
 
 ### OpenCode (Open-Source Terminal Agent)
@@ -213,21 +220,24 @@ echo "Using expertise from db-expert.md, optimize this schema..." | gemini-cli
 ```bash
 #!/bin/bash
 
-# Use claudekit prompts with OpenCode
+# Use claudekit prompts with OpenCode in non-interactive mode
 EXPERT=$(claudekit show agent typescript-expert)
-opencode -p "$EXPERT. Review this TypeScript codebase for issues"
+opencode -p "$EXPERT
 
-# Non-interactive mode with expert knowledge
-claudekit show agent react-performance-expert | \
-  opencode -p "$(cat -). Analyze React components for performance" -q
+Review this TypeScript codebase for issues" -q
 
 # Pipe content with expert context
-cat app.tsx | opencode -p "$(claudekit show agent react-expert). Refactor this component"
+PROMPT=$(claudekit show agent react-performance-expert)
+cat app.tsx | opencode -p "$PROMPT
+
+Refactor this component for better performance"
 
 # Use with specific providers
 export OPENAI_API_KEY="your-key"
-claudekit show agent postgres-expert | \
-  opencode -p "$(cat -). Optimize database queries in this project"
+DB_EXPERT=$(claudekit show agent postgres-expert)
+opencode -p "$DB_EXPERT
+
+Optimize the database queries in this project"
 ```
 
 ### Cursor CLI (Terminal Coding Agent)
@@ -240,40 +250,43 @@ claudekit show agent postgres-expert | \
 # Use claudekit agents with Cursor CLI
 export CURSOR_API_KEY="your-key"
 
-# Start Cursor CLI with expert context
+# Provide expert context directly in the prompt
 EXPERT=$(claudekit show agent typescript-expert)
-echo "$EXPERT" | cursor-agent
+cursor-agent "$EXPERT
 
-# For non-interactive usage, provide full prompt
-claudekit show agent testing-expert > testing-expert.md
-cursor-agent "Using the expertise in testing-expert.md, write comprehensive tests"
+Refactor this TypeScript module for better type safety"
 
-# Status check
-cursor-agent status
+# For specific tasks
+TESTING_EXPERT=$(claudekit show agent testing-expert)
+cursor-agent "$TESTING_EXPERT
+
+Write comprehensive unit tests for the UserService class"
 ```
 
 ### Codex (OpenAI's Coding Agent)
 
-[Codex](https://github.com/openai/codex) is OpenAI's lightweight terminal coding agent:
+[Codex](https://github.com/openai/codex) is OpenAI's terminal coding agent. While primarily interactive, it can accept initial prompts:
 
 ```bash
 #!/bin/bash
 
 # Use claudekit prompts with Codex
 EXPERT=$(claudekit show agent typescript-expert)
-codex "$EXPERT. Refactor the Dashboard component to use React Hooks"
+codex "$EXPERT
+
+Refactor the Dashboard component to use React Hooks"
 
 # With specific model
-claudekit show agent react-performance-expert | \
-  codex --model gpt-4.1 "$(cat -). Optimize all React components"
+REACT_EXPERT=$(claudekit show agent react-performance-expert)
+codex --model gpt-4o "$REACT_EXPERT
+
+Optimize all React components for performance"
 
 # Auto-edit mode with expert knowledge
-PROMPT=$(claudekit show agent nodejs-expert)
-codex --auto-edit "$PROMPT. Fix all async/await issues in the codebase"
+NODE_EXPERT=$(claudekit show agent nodejs-expert)
+codex --auto-edit "$NODE_EXPERT
 
-# Full-auto mode for automated workflows
-claudekit show agent testing-expert | \
-  codex --full-auto "$(cat -). Add missing unit tests"
+Fix all async/await issues in the codebase"
 ```
 
 

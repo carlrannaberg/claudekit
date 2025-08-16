@@ -132,9 +132,13 @@ git diff main..HEAD | claude -p \
 claudekit show agent typescript-expert --format json | jq -r '.description'
 
 # Works with other AI coding CLI tools
-claudekit show agent docker-expert > docker-expert.md && amp < docker-expert.md
-claudekit show agent testing-expert | opencode -p "$(cat -). Write tests" -q
-claudekit show agent nodejs-expert | codex --auto-edit "$(cat -). Fix async issues"
+amp -x "$(claudekit show agent typescript-expert)
+
+Fix all TypeScript strict mode errors in src/"
+cat schema.sql | gemini -c "$(claudekit show agent postgres-expert). Add missing indexes"
+opencode -p "$(claudekit show agent testing-expert)
+
+Write unit tests for all untested functions" -q
 ```
 
 **Compatible with:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code/cli), [Amp](https://ampcode.com/), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Cursor CLI](https://cursor.com/cli), [Codex](https://github.com/openai/codex), [OpenCode](https://github.com/sst/opencode)
@@ -147,22 +151,36 @@ See the [usage guide](docs/guides/using-prompts-with-external-llms.md) for detai
 
 Hooks automatically enforce quality as Claude works:
 
-**File Change Hooks** (run on edit)
-- `typecheck-changed` - TypeScript validation
-- `lint-changed` - ESLint checks
-- `test-changed` - Run related tests
-- `check-any-changed` - Block `any` types
+### Available Hooks
 
-**Stop Hooks** (run when Claude stops)
-- `create-checkpoint` - Auto-save progress
-- `check-todos` - Verify task completion
+**File Change Hooks** (PostToolUse - run on edit)
+- `typecheck-changed` - Run TypeScript type checking on file changes
+- `lint-changed` - Run ESLint validation on changed files
+- `test-changed` - Run tests for changed files
+- `check-any-changed` - Forbid any types in changed TypeScript files
+- `check-comment-replacement` - Detect when code is replaced with comments
+- `check-unused-parameters` - Detect lazy refactoring where parameters are prefixed with _ instead of being removed
+
+**Project-Wide Hooks** (typically for Stop/SubagentStop events)
+- `typecheck-project` - TypeScript validation on entire project
+- `lint-project` - ESLint validation on entire project
 - `test-project` - Run full test suite
-- `self-review` - Prompt code review
+- `create-checkpoint` - Git auto-checkpoint on stop
+- `check-todos` - Validate todo completions
+- `self-review` - Prompts a critical self-review to catch integration and refactoring issues
 
-**SubagentStop Hooks** (run when subagents complete)
-- Same validation hooks as Stop events
-- Ensures quality checks run for all Claude Code workflows
-- Automatic checkpointing when subagent tasks finish
+### Hook Events
+
+**PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
+**Stop** - Triggered when Claude Code stops or conversation ends
+**SubagentStop** - Triggered when subagents complete their tasks
+
+### List Available Hooks
+
+```bash
+# See all available hooks with descriptions
+claudekit-hooks list
+```
 
 [Hook configuration →](docs/reference/hooks.md)
 
