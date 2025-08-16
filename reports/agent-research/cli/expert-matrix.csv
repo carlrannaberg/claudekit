@@ -1,0 +1,50 @@
+Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic,Validation,Link
+Installation & Setup,"command not found after global install",PATH missing npm bin,Add npm prefix/bin to PATH,Use npx instead,Configure .npmrc prefix,"npm config get prefix",Command executes,https://docs.npmjs.com/common-errors/
+Installation & Setup,"npm install corrupts shebang",Line ending conversion,Set binary:true in .gitattributes,Use LF endings only,Package with correct endings,"head -n1 script.js",Shebang intact,https://github.com/npm/npm/issues/19151
+Installation & Setup,"Unknown user/project config warning",npm 11.2+ strict parsing,Update to npm 11.5+,Remove invalid configs,Use .npmrc correctly,"npm config list",No warnings,https://github.com/npm/cli/issues/8153
+Installation & Setup,".bin directory not created",Old package-lock format,Delete and regenerate lock,Update to npm 7+,Add bin property manually,"ls node_modules/.bin",Binaries present,https://github.com/npm/cli/issues/2147
+Installation & Setup,"Binary not executable",Missing permissions,chmod +x on file,Set bin correctly,Use proper shebang,"ls -la node_modules/.bin",Execute permission set,https://docs.npmjs.com/cli/v10/configuring-npm/package-json#bin
+Cross-Platform,"Path separators differ Windows/Unix",Hard-coded separators,Use path.join(),Always use forward slash,Normalize paths,"node -e ""console.log(path.sep)""",Works on all OS,https://nodejs.org/api/path.html
+Cross-Platform,"Case sensitivity issues Windows",NTFS case-insensitive,Lowercase all paths,Use path normalization,Test on Windows CI,"npm query on Windows",Query succeeds,https://github.com/npm/cli/issues
+Cross-Platform,"Config paths differ by OS",Platform conventions,Use os.homedir(),Check XDG vars,Platform-specific logic,"echo $XDG_CONFIG_HOME",Config found,https://specifications.freedesktop.org/basedir-spec/
+Cross-Platform,"Line ending issues CRLF/LF",Git autocrlf,Set .gitattributes,Use .editorconfig,Force LF in repo,"file script.js",Correct line endings,https://git-scm.com/docs/gitattributes
+Cross-Platform,"Windows long path issues",260 char limit,Enable long paths,Shorten paths,Use relative paths,"Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem",No path errors,https://docs.microsoft.com/windows/win32/fileio/maximum-file-path-limitation
+Argument Parsing,"Arguments lost with --workspace",npm workspace handling,Quote arguments,Use -- separator,Avoid workspace flag,"npm run script -- --arg",Args passed correctly,https://github.com/npm/cli/issues
+Argument Parsing,"Complex argv parsing",Manual parsing,Use minimist,Use commander.js,Use yargs,"node script.js --test",Options parsed,https://github.com/tj/commander.js
+Argument Parsing,"Subcommand routing fails",Poor command structure,Use commander commands,Yargs command modules,Manual router,"cli subcommand --help",Subcommand executes,https://yargs.js.org/docs/#api-reference-commandmodule
+Argument Parsing,"Required args missing",No validation,Add .requiredOption(),Yargs .demandOption(),Manual checks,"cli command",Error on missing args,https://github.com/tj/commander.js#required-option-values
+Argument Parsing,"Help text missing",No help configured,Use .description(),Auto-generate help,Add examples,"cli --help",Help displayed,https://github.com/tj/commander.js#automated-help
+Interactive CLI,"Spinner freezes with prompts",Synchronous blocking,Use async/await,Stop spinner first,Separate threads,"Run with spinner",Spinner animates,https://github.com/sindresorhus/ora
+Interactive CLI,"Colors unreadable",Theme incompatibility,Use chalk.level,Detect color support,Provide --no-color,"echo $TERM",Colors visible,https://github.com/chalk/chalk
+Interactive CLI,"Prompts fail in CI",No TTY in CI,Check process.stdin.isTTY,Provide defaults,Skip interactive,"CI=true npm test",Non-interactive mode,https://github.com/SBoudrias/Inquirer.js
+Interactive CLI,"Ctrl+C doesn't exit cleanly",No SIGINT handler,Add process.on('SIGINT'),Cleanup on exit,Use exit hooks,"Press Ctrl+C",Clean exit,https://nodejs.org/api/process.html#process_signal_events
+Interactive CLI,"Password input visible",No password prompt,Use inquirer password,Use read package,Mask input manually,"Enter password",Input masked,https://github.com/SBoudrias/Inquirer.js#password
+Monorepo,"Workspace not detected",Missing config file,Check all formats,Walk up tree,Support multiple types,"ls *workspace*",Workspace found,https://pnpm.io/workspaces
+Monorepo,"postinstall fails in workspace",Command not in PATH,Use npx in scripts,Install deps first,Add to devDeps,"npm run postinstall",Script succeeds,https://docs.npmjs.com/cli/v10/using-npm/scripts
+Monorepo,"Dependency resolution fails",Hoisting issues,Use shamefully-hoist,Configure hoisting,Use pnpm strict,"npm ls",No missing deps,https://pnpm.io/npmrc#shamefully-hoist
+Monorepo,"Lerna v6 changes lock format",Lerna uses Nx now,Pin Lerna version,Accept changes,Migrate to Nx,"git diff pnpm-lock.yaml",Lock file stable,https://lerna.js.org/docs/lerna-and-nx
+Monorepo,"Wrong package.json found",Not at root,Find-up algorithm,Check markers,Validate location,"pwd && ls package.json",Correct package,https://www.npmjs.com/package/find-up
+Distribution,"Global install fails",npm prefix issues,Set prefix correctly,Use npx only,Package as binary,"npm config get prefix",Install succeeds,https://docs.npmjs.com/cli/v10/commands/npm-install
+Distribution,"Files missing from package",Wrong files field,Update files array,Use .npmignore,Test with npm pack,"npm pack && tar -tzf *.tgz",All files included,https://docs.npmjs.com/cli/v10/configuring-npm/package-json#files
+Distribution,"Binary not in PATH",PATH not updated,Export PATH,Use npm link,Document PATH setup,"which cli-name",Command found,https://docs.npmjs.com/cli/v10/commands/npm-link
+Distribution,"Version mismatch",Not published,npm version & publish,Check registry,Use npm view,"npm view package version",Version matches,https://docs.npmjs.com/cli/v10/commands/npm-version
+Distribution,"Platform binaries missing",No prebuilt binaries,Build on install,Provide all platforms,Use node-pre-gyp,"npm install",Binary available,https://github.com/mapbox/node-pre-gyp
+Binary Issues,"Incorrect shebang path",Wrong node location,Use /usr/bin/env node,Detect node path,Fix in postinstall,"which node",Shebang correct,https://en.wikipedia.org/wiki/Shebang_(Unix)
+Binary Issues,"npx hangs on optional deps",Trying invalid install,Skip optional,Update npx,Use specific version,"npx --version",npx executes,https://github.com/npm/cli/issues
+Binary Issues,"Binary not symlinked",.npmrc bin-links false,Set bin-links true,Check .npmrc,Manually symlink,"cat .npmrc | grep bin-links",Symlink exists,https://docs.npmjs.com/cli/v10/using-npm/config#bin-links
+Binary Issues,"Multiple node versions",nvm/fnm switching,Use env shebang,Lock node version,Document requirement,"node --version",Correct version,https://github.com/nvm-sh/nvm
+Binary Issues,"Permission denied on execute",Not executable,chmod +x file,Check umask,Set in package.json,"ls -la bin/",Execute permission,https://en.wikipedia.org/wiki/Chmod
+Testing,"CLI tests fail in CI",Different environment,Mock environment,Use fixtures,Container testing,"CI=true npm test",Tests pass,https://docs.github.com/en/actions
+Testing,"Child process spawn fails",Path issues,Use execa,Specify shell,Full path to binary,"npm test",Spawn succeeds,https://github.com/sindresorhus/execa
+Testing,"Interactive tests hang",Waiting for input,Mock stdin,Skip in CI,Timeout tests,"npm test -- --timeout=5000",Tests complete,https://nodejs.org/api/child_process.html
+Testing,"Coverage incomplete",Missing CLI paths,Test all commands,Integration tests,E2E testing,"npm run coverage",>80% coverage,https://github.com/istanbuljs/nyc
+Testing,"Mocking issues",Real file system,Use memfs,Mock fs module,Use fixtures,"npm test",Mocks work,https://github.com/streamich/memfs
+Config Management,"Config precedence wrong",Load order issues,Document order,Follow conventions,Single source,"cli config show",Correct precedence,https://github.com/cosmiconfig/cosmiconfig
+Config Management,"XDG dirs not respected",Not checking XDG,Check XDG vars,Follow spec,Platform logic,"echo $XDG_CONFIG_HOME",XDG dirs used,https://specifications.freedesktop.org/basedir-spec/
+Config Management,"RC file not found",Wrong location,Check multiple paths,Document location,Use cosmiconfig,"cli config list",Config loaded,https://github.com/cosmiconfig/cosmiconfig
+Config Management,"Env vars ignored",Not reading env,Check process.env,Document vars,Precedence order,"ENV_VAR=test cli",Env var used,https://nodejs.org/api/process.html#process_process_env
+Config Management,"JSON parse errors",Invalid JSON,Validate JSON,Use JSON5,Helpful errors,"jq . config.json",Valid JSON,https://github.com/json5/json5
+Performance,"Slow startup time",Loading everything,Lazy load commands,Dynamic imports,Reduce deps,"time cli --version",<100ms startup,https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import
+Performance,"Large bundle size",Too many deps,Tree shaking,Audit dependencies,Bundle with esbuild,"npm ls --depth=0",Minimal deps,https://esbuild.github.io/
+Performance,"Memory leaks",Not cleaning up,Clear references,Use weak maps,Profile memory,"node --inspect cli",Memory stable,https://nodejs.org/en/docs/guides/diagnostics/memory-leaks/
+Performance,"Blocking I/O",Synchronous ops,Use async/await,Stream processing,Worker threads,"Run with profiler",No blocking,https://nodejs.org/api/stream.html

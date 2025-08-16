@@ -1,0 +1,21 @@
+Category,Symptom/Error,Root Cause,Fix 1 (Quick),Fix 2 (Better),Fix 3 (Best),Diagnostic,Validation,Link
+Streaming,"Failed to parse stream",Missing header,Add Content-Type header,Use StreamingTextResponse,Custom stream handler,curl -N test,Stream chunks arrive,https://sdk.vercel.ai/docs/ai-sdk-core/streaming
+Streaming,"Response not streaming",Wrong response type,Return stream response,Implement SSE,Add progress indicators,Check network tab,Real-time updates,https://sdk.vercel.ai/docs/reference/ai-sdk-core/streaming-text-response
+Streaming,"Unexpected end of JSON",Partial chunks,Buffer chunks,Parse incrementally,Stream with separators,Check chunk boundaries,Valid JSON parsing,https://sdk.vercel.ai/docs/ai-sdk-core/streaming
+Provider,"Invalid API key",Missing env var,Set environment variable,Use dotenv,Implement key rotation,env | grep API_KEY,API calls succeed,https://sdk.vercel.ai/docs/ai-sdk-providers/openai
+Provider,"Model not found",Wrong identifier,Fix model name,Use model constants,Model registry pattern,List available models,Correct model loads,https://sdk.vercel.ai/docs/ai-sdk-providers/overview
+Provider,"Provider not configured",Missing import,Import provider,Factory pattern,Provider abstraction,Check package.json,Provider initializes,https://sdk.vercel.ai/docs/getting-started
+Tool Calling,"Tool not found",Not registered,Register tool,Tool registry,Dynamic tool loading,grep tools:,Tool executes,https://sdk.vercel.ai/docs/ai-sdk-core/tools-and-tool-calling
+Tool Calling,"Invalid schema",Type mismatch,Fix Zod schema,Use generateObject,Type-safe registry,Check schemas,TypeScript compiles,https://sdk.vercel.ai/docs/ai-sdk-core/generating-structured-data
+Tool Calling,"Type mismatch",Wrong types,Add type annotations,Use generics,Strict type checking,tsc --noEmit,No type errors,https://sdk.vercel.ai/docs/reference/ai-sdk-core/tool
+React Hooks,"Too many re-renders",State in render,Move to useEffect,Use useMemo,Custom hook,React DevTools,No render loops,https://sdk.vercel.ai/docs/reference/ai-sdk-ui/use-chat
+React Hooks,"Hook called conditionally",Conditional logic,Move to top level,Restructure component,Split components,ESLint check,Hooks follow rules,https://sdk.vercel.ai/docs/ai-sdk-ui/overview
+React Hooks,"Stale closure",Missing deps,Add dependencies,useCallback,Ref pattern,exhaustive-deps,Fresh values,https://react.dev/reference/react/useEffect
+Edge Runtime,"Module not found",Node.js module,Remove module,Use edge alternative,Polyfill,grep fs path crypto,Deploys to edge,https://sdk.vercel.ai/docs/troubleshooting/edge-runtime
+Edge Runtime,"Memory exceeded",Large bundle,Tree shaking,Dynamic imports,Code splitting,next build --analyze,Under memory limit,https://vercel.com/docs/functions/edge-functions
+Edge Runtime,"Cold start timeout",Slow init,Optimize imports,Lazy loading,Pre-warm function,Measure cold start,Fast startup,https://sdk.vercel.ai/docs/ai-sdk-core/settings
+Rate Limiting,"Rate limit exceeded",Too many requests,Add delay,Exponential backoff,Queue system,Check headers,Requests succeed,https://sdk.vercel.ai/docs/troubleshooting/common-issues
+Rate Limiting,"Timeout after 30s",Long operation,Stream response,Break into chunks,Background job,Time execution,Completes in time,https://vercel.com/docs/functions/serverless-functions/runtimes
+Token Limits,"Token limit reached",Long context,Truncate input,Summarize context,Sliding window,Count tokens,Within limits,https://sdk.vercel.ai/docs/ai-sdk-core/settings
+Error Handling,"Unhandled rejection",No try-catch,Add error handling,Error boundaries,Global handler,grep try catch,Errors caught,https://sdk.vercel.ai/docs/troubleshooting/common-issues
+Performance,"Slow response",No caching,Add response cache,Semantic cache,CDN caching,Measure TTFB,Fast responses,https://sdk.vercel.ai/docs/guides/production
