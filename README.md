@@ -80,6 +80,8 @@ claudekit setup --all        # Install everything (24+ agents)
 claudekit list               # Show all components (hooks, commands, agents, config)
 claudekit list agents        # List available agents with token counts
 claudekit list commands      # List available commands with token counts
+claudekit show agent <id>    # Display agent prompt for external use
+claudekit show command <id>  # Display command prompt for external use
 claudekit validate           # Check your installation
 ```
 
@@ -98,7 +100,6 @@ claudekit validate           # Check your installation
 - `/agent-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
-- `/show [agent|command] <name>` - Display prompts for external use
 
 #### Show Command Examples
 

@@ -8,6 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-08-16
+
+### Added
+- **CLI Show Command**: New `claudekit show` command for exposing agent and command prompts in headless mode
+  - Added `claudekit show agent <id>` subcommand to display agent prompts with support for text and JSON output formats
+  - Added `claudekit show command <id>` subcommand to display command prompts with support for text and JSON output formats
+  - Added comprehensive loader infrastructure with `AgentLoader` and `CommandLoader` classes for robust file resolution
+  - Added support for multiple agent/command resolution strategies including direct file matching, category/name patterns, and frontmatter name field matching
+  - Added proper error handling with helpful suggestions to use `claudekit list` commands when items are not found
+- **Advanced Agent Discovery**: Enhanced agent resolution with intelligent path matching and frontmatter parsing
+  - Added support for category-based agent organization (e.g., `typescript/expert`)
+  - Added automatic `-expert` suffix handling for simplified agent references
+  - Added recursive frontmatter name field matching for flexible agent identification
+  - Added robust error handling for malformed frontmatter with graceful fallbacks
+- **Command Resolution System**: Enhanced command discovery with namespace support and flexible path resolution
+  - Added support for namespaced commands using colon syntax (e.g., `spec:create` → `spec/create.md`)
+  - Added recursive directory traversal for commands in any subdirectory structure
+  - Added intelligent allowed-tools parsing supporting both string and array formats from frontmatter
+- **Specialized AI Expert Subagents**: Added comprehensive collection of domain-specific AI subagents
+  - Added `ai-sdk-expert` for Vercel AI SDK v5 development, streaming, and model integration
+  - Added `cli-expert` for npm package CLI development with Unix philosophy and argument parsing
+  - Added `nestjs-expert` for Nest.js framework development with dependency injection and testing
+
+### Changed
+- **CLI Architecture**: Refactored CLI initialization to support dynamic command registration
+  - Modified `runCli()` function to be async and support dynamic import of show commands
+  - Enhanced CLI error handling with proper async error propagation and graceful failure modes
+  - Updated command registration pattern to support modular command loading
+- **Agent List Display**: Enhanced agent listing with frontmatter-based filtering and display names
+  - Modified agent filtering to use frontmatter `name` field instead of filename for more accurate matching
+  - Updated display logic to show human-readable names from frontmatter rather than technical filenames
+  - Improved token estimation and frontmatter extraction for better performance and accuracy
+
 ## [0.3.11] - 2025-08-16
 
 ### Added
