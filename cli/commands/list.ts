@@ -66,7 +66,7 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
 
   // Execute operations with progress
   const operationResults = await progress.withSteps(operations, {
-    quiet: options.quiet,
+    quiet: options.quiet === true || options.format === 'json', // Suppress progress output for JSON format
     verbose: options.verbose,
   });
 
