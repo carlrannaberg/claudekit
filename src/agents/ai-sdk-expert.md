@@ -290,18 +290,30 @@ Error type?
 
 ## Implementation Patterns (AI SDK v5)
 
-### Basic Chat Implementation
+### Basic Chat Implementation (Multiple Providers)
 ```typescript
-// app/api/chat/route.ts (App Router) - v5 pattern
+// app/api/chat/route.ts (App Router) - v5 pattern with provider flexibility
 import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
+import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages, provider = 'openai' } = await req.json();
+  
+  // Provider selection based on use case
+  const model = provider === 'anthropic' 
+    ? anthropic('claude-opus-4.1')
+    : provider === 'google'
+    ? google('gemini-2.5-pro') 
+    : openai('gpt-5');
   
   const result = await streamText({
-    model: openai('gpt-5'),
+    model,
     messages,
+    // v5 features: automatic retry and fallback
+    maxRetries: 3,
+    abortSignal: req.signal,
   });
   
   return result.toDataStreamResponse();
@@ -362,9 +374,59 @@ const schema = z.object({
 });
 
 const result = await generateObject({
-  model: openai('gpt-4-turbo'),
+  model: openai('gpt-5'),
   schema,
   prompt: 'Analyze this article...',
+});
+```
+
+### Long Context Processing with Gemini
+```typescript
+import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
+
+// Gemini 2.5 for 1M token context window
+const result = await generateText({
+  model: google('gemini-2.5-pro'), // or gemini-2.5-flash for faster
+  prompt: largDocument, // Can handle up to 1M tokens
+  temperature: 0.3, // Lower temperature for factual analysis
+  maxTokens: 8192, // Generous output limit
+});
+
+// For code analysis with massive codebases
+const codeAnalysis = await generateText({
+  model: google('gemini-2.5-flash'), // Fast model for code
+  messages: [
+    { role: 'system', content: 'You are a code reviewer' },
+    { role: 'user', content: `Review this codebase:\n${fullCodebase}` }
+  ],
+});
+```
+
+### Open Source Models (Llama 4, Mixtral)
+```typescript
+import { createOpenAI } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+
+// Using Llama 4 via local Ollama
+const ollama = createOpenAI({
+  baseURL: 'http://localhost:11434/v1',
+  apiKey: 'ollama', // Required but unused
+});
+
+const result = await streamText({
+  model: ollama('llama4:latest'),
+  messages,
+  temperature: 0.7,
+});
+
+// Using Mixtral via Groq for speed
+import { groq } from '@ai-sdk/groq';
+
+const fastResult = await streamText({
+  model: groq('mixtral-8x7b-32768'),
+  messages,
+  maxTokens: 1024,
 });
 ```
 
