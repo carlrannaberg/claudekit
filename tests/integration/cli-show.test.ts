@@ -46,10 +46,16 @@ async function runCliCommand(
     });
 
     child.on('close', (code) => {
+      // Filter out npm notices from stderr (these are not actual errors)
+      const stderrLines = stderr.trim().split('\n');
+      const filteredStderr = stderrLines
+        .filter(line => !line.includes('npm notice') && line.trim() !== '')
+        .join('\n');
+      
       resolve({
         exitCode: code ?? 0,
         stdout: stdout.trim(),
-        stderr: stderr.trim(),
+        stderr: filteredStderr,
       });
     });
 
