@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2025-08-16
-
 ### Added
 - **CLI Show Command**: New `claudekit show` command for exposing agent and command prompts in headless mode
   - Added `claudekit show agent <id>` subcommand to display agent prompts with support for text and JSON output formats
