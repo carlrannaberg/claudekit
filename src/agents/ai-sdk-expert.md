@@ -274,7 +274,7 @@ Which model to use?
 ├─ Fast + cheap → gpt-5-mini
 ├─ Quality → gpt-5 or claude-opus-4.1
 ├─ Long context → gemini-2.5-pro (1M tokens) or gemini-2.5-flash (1M tokens)
-├─ Open source → llama-4 or mixtral
+├─ Open source → gpt-oss-20b (local), gpt-oss-120b (API), or qwen3
 └─ Edge compatible → Use edge-optimized models
 ```
 
@@ -403,28 +403,59 @@ const codeAnalysis = await generateText({
 });
 ```
 
-### Open Source Models (Llama 4, Mixtral)
+### Open Source Models (GPT-OSS, Qwen3, Llama 4)
 ```typescript
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 
-// Using Llama 4 via local Ollama
+// Using GPT-OSS-20B - best open source quality that runs locally
 const ollama = createOpenAI({
   baseURL: 'http://localhost:11434/v1',
   apiKey: 'ollama', // Required but unused
 });
 
 const result = await streamText({
-  model: ollama('llama4:latest'),
+  model: ollama('gpt-oss-20b:latest'), // Best balance of quality and speed
   messages,
   temperature: 0.7,
 });
 
-// Using Mixtral via Groq for speed
+// Using Qwen3 - excellent for coding and multilingual
+const qwenResult = await streamText({
+  model: ollama('qwen3:32b'), // Also available: qwen3:8b, qwen3:14b, qwen3:4b
+  messages,
+  temperature: 0.5,
+});
+
+// Using Llama 4 for general purpose
+const llamaResult = await streamText({
+  model: ollama('llama4:latest'),
+  messages,
+  maxTokens: 2048,
+});
+
+// Via cloud providers for larger models
+import { together } from '@ai-sdk/together';
+
+// GPT-OSS-120B via API (too large for local)
+const largeResult = await streamText({
+  model: together('gpt-oss-120b'), // Best OSS quality via API
+  messages,
+  maxTokens: 4096,
+});
+
+// Qwen3-235B MoE model (22B active params)
+const qwenMoE = await streamText({
+  model: together('qwen3-235b-a22b'), // Massive MoE model
+  messages,
+  maxTokens: 8192,
+});
+
+// Or via Groq for speed
 import { groq } from '@ai-sdk/groq';
 
 const fastResult = await streamText({
-  model: groq('mixtral-8x7b-32768'),
+  model: groq('gpt-oss-20b'), // Groq optimized for speed
   messages,
   maxTokens: 1024,
 });
