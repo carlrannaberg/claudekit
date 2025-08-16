@@ -317,7 +317,7 @@ jobs:
       - name: Get TypeScript expert prompt
         id: expert-prompt
         run: |
-          PROMPT=$(claudekit show agent typescript/expert)
+          PROMPT=$(claudekit show agent typescript-expert)
           echo "prompt<<EOF" >> $GITHUB_OUTPUT
           echo "$PROMPT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -363,7 +363,7 @@ ai-code-review:
     - claudekit setup --no-interactive
     
     # Get React performance expert for component analysis
-    - EXPERT_PROMPT=$(claudekit show agent react/performance-expert)
+    - EXPERT_PROMPT=$(claudekit show agent react-performance-expert)
     
     # Review React components in merge request
     - |
@@ -396,10 +396,10 @@ ai-code-review:
 claudekit show agent oracle --format json | jq -r '.description'
 
 # Get agent category for filtering
-claudekit show agent typescript/expert --format json | jq -r '.category'
+claudekit show agent typescript-expert --format json | jq -r '.category'
 
 # Get display name and color for UI
-claudekit show agent react/expert --format json | jq -r '"\(.displayName) (\(.color))"'
+claudekit show agent react-expert --format json | jq -r '"\(.displayName) (\(.color))"'
 
 # Extract all agents in a specific category  
 claudekit list agents --format json | jq '.agents[] | select(.category == "typescript") | .name'
@@ -409,13 +409,13 @@ claudekit list agents --format json | jq '.agents[] | select(.category == "types
 
 ```bash
 # Get allowed tools for security validation
-claudekit show command git/commit --format json | jq -r '.allowedTools[]'
+claudekit show command git:commit --format json | jq -r '.allowedTools[]'
 
 # Get argument hint for CLI help
-claudekit show command checkpoint/create --format json | jq -r '.argumentHint // "No arguments"'
+claudekit show command checkpoint:create --format json | jq -r '.argumentHint // "No arguments"'
 
 # Extract command category
-claudekit show command spec/create --format json | jq -r '.category'
+claudekit show command spec:create --format json | jq -r '.category'
 ```
 
 ### Advanced jq Processing
@@ -450,10 +450,10 @@ rm agents.json commands.json
 # Interactive prompt selection
 select_agent() {
     echo "Available AI Experts:"
-    claudekit list agents --format json | jq -r '.[] | "\(.id) - \(.description)"' | nl
+    claudekit list agents --format json | jq -r '.agents[] | "\(.name) - \(.description)"' | nl
     
     read -p "Select an expert (number): " selection
-    AGENT_ID=$(claudekit list agents --format json | jq -r ".[$((selection-1))].id")
+    AGENT_ID=$(claudekit list agents --format json | jq -r ".agents[$((selection-1))].name")
     
     if [ "$AGENT_ID" != "null" ]; then
         claudekit show agent "$AGENT_ID"
@@ -479,17 +479,17 @@ export_all_prompts() {
     mkdir -p "$output_dir/agents" "$output_dir/commands"
     
     # Export all agents
-    claudekit list agents --format json | jq -r '.[].id' | while read agent_id; do
+    claudekit list agents --format json | jq -r '.agents[].name' | while read agent_id; do
         echo "Exporting agent: $agent_id"
         claudekit show agent "$agent_id" > "$output_dir/agents/${agent_id}.md"
         claudekit show agent "$agent_id" --format json > "$output_dir/agents/${agent_id}.json"
     done
     
     # Export all commands
-    claudekit list commands --format json | jq -r '.[].id' | while read command_id; do
+    claudekit list commands --format json | jq -r '.commands[].name' | while read command_id; do
         echo "Exporting command: $command_id"
-        # Replace / with _ for filenames
-        safe_name=$(echo "$command_id" | tr '/' '_')
+        # Replace : with _ for filenames
+        safe_name=$(echo "$command_id" | tr ':' '_')
         claudekit show command "$command_id" > "$output_dir/commands/${safe_name}.md"
         claudekit show command "$command_id" --format json > "$output_dir/commands/${safe_name}.json"
     done
@@ -525,9 +525,9 @@ compose_multi_expert() {
 
 # Usage
 compose_multi_expert "Review this database schema" \
-    "database/postgres-expert" \
-    "security/expert" \
-    "performance/expert"
+    "postgres-expert" \
+    "database-expert" \
+    "typescript-expert"
 ```
 
 ## Best Practices and Tips
@@ -557,21 +557,20 @@ sanitize_input() {
 ### Performance Optimization
 
 ```bash
-# Cache frequently used prompts
-CACHE_DIR="$HOME/.cache/claudekit-prompts"
-mkdir -p "$CACHE_DIR"
-
-get_cached_prompt() {
+# Store prompts in variables when using multiple times
+get_prompt_once() {
     local agent_id="$1"
-    local cache_file="$CACHE_DIR/${agent_id}.md"
-    local cache_time=3600  # 1 hour
-    
-    if [[ -f "$cache_file" && $(($(date +%s) - $(stat -c %Y "$cache_file"))) -lt $cache_time ]]; then
-        cat "$cache_file"
-    else
-        claudekit show agent "$agent_id" | tee "$cache_file"
+    # Store in global variable to avoid repeated calls
+    if [ -z "${CACHED_PROMPTS[$agent_id]}" ]; then
+        CACHED_PROMPTS[$agent_id]=$(claudekit show agent "$agent_id")
     fi
+    echo "${CACHED_PROMPTS[$agent_id]}"
 }
+
+# Usage with associative array for multiple prompts
+declare -A CACHED_PROMPTS
+TS_EXPERT=$(get_prompt_once "typescript-expert")
+REACT_EXPERT=$(get_prompt_once "react-expert")
 ```
 
 ### Error Handling
@@ -594,109 +593,29 @@ get_prompt_with_fallback() {
 }
 
 # Usage
-PROMPT=$(get_prompt_with_fallback "typescript/type-expert" "typescript/expert")
+PROMPT=$(get_prompt_with_fallback "typescript-type-expert" "typescript-expert")
 ```
 
-### Integration Testing
+### Quick Agent Discovery
 
 ```bash
-# Test prompt extraction in CI
-test_prompt_extraction() {
-    local errors=0
-    
-    # Test that all listed agents can be shown
-    claudekit list agents --format json | jq -r '.[].id' | while read agent_id; do
-        if ! claudekit show agent "$agent_id" >/dev/null 2>&1; then
-            echo "ERROR: Cannot show agent: $agent_id"
-            ((errors++))
-        fi
-    done
-    
-    # Test that all listed commands can be shown
-    claudekit list commands --format json | jq -r '.[].id' | while read command_id; do
-        if ! claudekit show command "$command_id" >/dev/null 2>&1; then
-            echo "ERROR: Cannot show command: $command_id"
-            ((errors++))
-        fi
-    done
-    
-    if [[ $errors -eq 0 ]]; then
-        echo "All prompts accessible ✓"
-    else
-        echo "Found $errors errors in prompt extraction"
-        exit 1
-    fi
+# Find agents by keyword
+find_agent() {
+    local keyword="$1"
+    echo "Agents matching '$keyword':"
+    claudekit list agents --format json | \
+        jq -r --arg kw "$keyword" '.agents[] | 
+        select(.description | ascii_downcase | contains($kw | ascii_downcase)) | 
+        "\(.name): \(.description)"' | head -5
 }
+
+# Usage examples
+find_agent "typescript"  # Find TypeScript-related agents
+find_agent "database"    # Find database experts
+find_agent "performance" # Find performance optimization experts
 ```
 
-## Advanced Use Cases
 
-### Multi-Model Consensus
-
-```bash
-#!/bin/bash
-
-# Get consensus from multiple models using the same expert prompt
-get_multi_model_consensus() {
-    local agent_id="$1"
-    local query="$2"
-    
-    EXPERT_PROMPT=$(claudekit show agent "$agent_id")
-    
-    echo "# Multi-Model Analysis: $agent_id"
-    echo "Query: $query"
-    echo ""
-    
-    # GPT-4
-    echo "## GPT-4 Response"
-    echo "$query" | openai chat --system "$EXPERT_PROMPT" --model gpt-4
-    echo ""
-    
-    # Claude
-    echo "## Claude Response"
-    echo "$query" | claude --system "$EXPERT_PROMPT"
-    echo ""
-    
-    # Local model
-    echo "## Local Model Response"
-    ollama run llama3.1:70b <<EOF
-System: $EXPERT_PROMPT
-
-User: $query
-EOF
-}
-```
-
-### Prompt Version Management
-
-```bash
-#!/bin/bash
-
-# Version prompts for reproducible results
-version_prompts() {
-    local version_tag="$1"
-    local output_dir="prompt-versions/$version_tag"
-    
-    mkdir -p "$output_dir"
-    
-    # Export with version metadata
-    {
-        echo "# Prompt Version: $version_tag"
-        echo "# Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-        echo "# claudekit version: $(claudekit --version)"
-        echo ""
-        
-        # Export all prompts with checksums
-        claudekit list agents --format json | jq -r '.[].id' | while read agent_id; do
-            content=$(claudekit show agent "$agent_id")
-            checksum=$(echo "$content" | sha256sum | cut -d' ' -f1)
-            echo "Agent: $agent_id (SHA256: $checksum)"
-        done
-    } > "$output_dir/version-manifest.md"
-    
-    echo "Prompts versioned in $output_dir/"
-}
-```
 
 ## Practical Examples
 
