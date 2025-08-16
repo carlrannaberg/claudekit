@@ -231,10 +231,10 @@ Need real-time updates?
 ### Provider Selection
 ```
 Which model to use?
-├─ Fast + cheap → gpt-3.5-turbo
-├─ Quality → gpt-4
-├─ Long context → claude-3
-└─ Open source → llama-2
+├─ Fast + cheap → gpt-5-mini
+├─ Quality → gpt-5
+├─ Long context → claude-opus-4.1
+└─ Open source → llama-3.1
 └─ Edge compatible → Use edge-optimized models
 ```
 

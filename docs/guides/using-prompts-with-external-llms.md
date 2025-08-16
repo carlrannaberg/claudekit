@@ -278,7 +278,7 @@ Refactor the Dashboard component to use React Hooks"
 
 # With specific model
 REACT_EXPERT=$(claudekit show agent react-performance-expert)
-codex --model gpt-4o "$REACT_EXPERT
+codex --model gpt-5 "$REACT_EXPERT
 
 Optimize all React components for performance"
 
@@ -338,7 +338,7 @@ jobs:
           $CONTENT
           \`\`\`" | openai chat \
               --system "${{ steps.expert-prompt.outputs.prompt }}" \
-              --model gpt-4 > "review-$file.md"
+              --model gpt-5 > "review-$file.md"
           done
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -375,7 +375,7 @@ ai-code-review:
             -H "Authorization: Bearer $OPENAI_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"gpt-4\",
+              \"model\": \"gpt-5\",
               \"messages\": [
                 {\"role\": \"system\", \"content\": \"$EXPERT_PROMPT\"},
                 {\"role\": \"user\", \"content\": \"Analyze this React component: $COMPONENT_CODE\"}

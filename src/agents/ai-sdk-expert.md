@@ -160,7 +160,7 @@ npm test 2>/dev/null || npm run test:unit          # 2. Run tests
 ```typescript
 // stopWhen: Control tool calling loops
 const result = await streamText({
-  model: openai('gpt-4'),
+  model: openai('gpt-5'),
   stopWhen: (step) => step.toolCalls.length > 5,
   // OR stop based on content
   stopWhen: (step) => step.text.includes('FINAL_ANSWER'),
@@ -168,7 +168,7 @@ const result = await streamText({
 
 // prepareStep: Dynamic model configuration
 const result = await streamText({
-  model: openai('gpt-4'),
+  model: openai('gpt-5'),
   prepareStep: (step) => ({
     temperature: step.toolCalls.length > 2 ? 0.1 : 0.7,
     maxTokens: step.toolCalls.length > 3 ? 200 : 1000,
@@ -182,7 +182,7 @@ const result = await streamText({
 import { createUIMessageStream } from 'ai/ui';
 
 const stream = createUIMessageStream({
-  model: openai('gpt-4'),
+  model: openai('gpt-5'),
   messages: [
     {
       role: 'user', 
@@ -203,7 +203,7 @@ const weatherTool = {
 };
 
 const result = await generateText({
-  model: openai('gpt-4o'),
+  model: openai('gpt-5'),
   tools: { weather: weatherTool },
   providerExecutesTools: true, // New in v5
 });
@@ -271,10 +271,10 @@ Need real-time updates?
 ### Provider Selection
 ```
 Which model to use?
-├─ Fast + cheap → gpt-3.5-turbo
-├─ Quality → gpt-4 or claude-3
-├─ Long context → claude-3 (200k tokens)
-├─ Open source → llama-2 or mistral
+├─ Fast + cheap → gpt-5-mini
+├─ Quality → gpt-5 or claude-opus-4.1
+├─ Long context → claude-opus-4.1 (300k tokens)
+├─ Open source → llama-3.1 or mixtral
 └─ Edge compatible → Use edge-optimized models
 ```
 
@@ -300,7 +300,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
   
   const result = await streamText({
-    model: openai('gpt-4-turbo'),
+    model: openai('gpt-5'),
     messages,
   });
   
@@ -325,7 +325,7 @@ const weatherTool = {
 };
 
 const result = await generateText({
-  model: openai('gpt-4'),
+  model: openai('gpt-5'),
   tools: { weather: weatherTool },
   toolChoice: 'auto',
   prompt: 'What\'s the weather in San Francisco?',
@@ -339,7 +339,7 @@ import { openai } from '@ai-sdk/openai';
 
 // New in v5: stopWhen for loop control
 const result = await streamText({
-  model: openai('gpt-4'),
+  model: openai('gpt-5'),
   tools: { weather: weatherTool },
   stopWhen: (step) => step.toolCalls.length > 3, // Stop after 3 tool calls
   prepareStep: (step) => ({
