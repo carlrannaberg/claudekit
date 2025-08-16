@@ -80,6 +80,8 @@ claudekit list agents        # List available agents with token counts
 claudekit list commands      # List available commands with token counts
 claudekit show agent <id>    # Display agent prompt for external use
 claudekit show command <id>  # Display command prompt for external use
+claudekit show agent <id> -f json    # Output agent metadata and content as JSON
+claudekit show command <id> -f json  # Output command metadata and content as JSON
 claudekit validate           # Check your installation
 ```
 
@@ -91,6 +93,9 @@ The `show` command extracts agent and command prompts for use with Claude Code's
 # Extract agent prompt for use with Claude Code CLI
 EXPERT=$(claudekit show agent typescript-expert)
 cat src/app.ts | claude -p --append-system-prompt "$EXPERT" "Review this code"
+
+# Get structured metadata for integration with tools
+claudekit show agent typescript-expert --format json | jq '.description'
 
 # Works with any AI coding CLI tool
 claudekit show agent react-expert | amp -x "Fix React hooks violations"

@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-08-16
+
 ### Added
 - **CLI Show Command**: New `claudekit show` command for exposing agent and command prompts in headless mode
-  - Added `claudekit show agent <id>` subcommand to display agent prompts with support for text and JSON output formats
-  - Added `claudekit show command <id>` subcommand to display command prompts with support for text and JSON output formats
+  - Added `claudekit show agent <id>` subcommand to display agent prompts with support for text and JSON output formats (--format text|json)
+  - Added `claudekit show command <id>` subcommand to display command prompts with support for text and JSON output formats (--format text|json)
   - Added comprehensive loader infrastructure with `AgentLoader` and `CommandLoader` classes for robust file resolution
   - Added support for multiple agent/command resolution strategies including direct file matching, category/name patterns, and frontmatter name field matching
   - Added proper error handling with helpful suggestions to use `claudekit list` commands when items are not found
@@ -38,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modified agent filtering to use frontmatter `name` field instead of filename for more accurate matching
   - Updated display logic to show human-readable names from frontmatter rather than technical filenames
   - Improved token estimation and frontmatter extraction for better performance and accuracy
+
+### Fixed
+- **Test Output**: Configured vitest for minimal output to reduce context pollution during test runs
+- **NPM Notices**: Filtered npm notices from test stderr output to prevent test noise
+- **Model References**: Updated AI model references to current August 2025 versions with accurate context sizes
 
 ## [0.3.11] - 2025-08-16
 
