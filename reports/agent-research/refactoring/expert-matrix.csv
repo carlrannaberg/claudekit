@@ -1,0 +1,50 @@
+Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic,Validation,Priority
+Composing Methods,Long method >20 lines,Doing too much,Extract Method,Replace Method with Method Object,Decompose into helpers,Count lines in methods,Methods <10 lines,HIGH
+Composing Methods,Duplicate code blocks,Copy-paste programming,Extract Method,Pull Up Method,Form Template Method,Find duplicate blocks,No duplication detected,HIGH
+Composing Methods,Complex conditionals,Multiple concerns mixed,Decompose Conditional,Extract Variable,Replace with Polymorphism,Count && and || operators,Simple readable conditions,MEDIUM
+Composing Methods,Comments explaining what,Code not self-documenting,Extract Method with good name,Extract Variable,Simplify algorithm,Grep for comment blocks,Self-documenting code,LOW
+Composing Methods,Nested loops >2 levels,Complex algorithm,Extract Method,Replace Algorithm,Split Loop,Count nesting depth,Max 2 levels nesting,MEDIUM
+Moving Features,Feature Envy detected,Method uses other class more,Move Method,Move Field,Extract Class,Count external calls,Methods use own data,MEDIUM
+Moving Features,Message chains a.b().c(),Violation of Law of Demeter,Hide Delegate,Extract Method,Replace with Query,Grep for chained calls,No chains >2 calls,MEDIUM
+Moving Features,Middle Man class,Class only delegates,Remove Middle Man,Inline Class,Replace with direct calls,Check delegation ratio,Direct communication,LOW
+Moving Features,Inappropriate Intimacy,Classes too coupled,Move Method,Move Field,Change Bidirectional to Unidirectional,Measure coupling,Low coupling score,MEDIUM
+Moving Features,Incomplete Library Class,Can't modify library,Introduce Foreign Method,Introduce Local Extension,Wrapper/Adapter,Check library usage,Clean integration,LOW
+Organizing Data,Primitive Obsession,Using primitives for concepts,Replace Data Value with Object,Extract Class,Introduce Parameter Object,Find primitive parameters,Domain objects used,HIGH
+Organizing Data,Data Clumps,Same data appearing together,Extract Class,Introduce Parameter Object,Preserve Whole Object,Find repeated parameters,Grouped into objects,MEDIUM
+Organizing Data,Magic Numbers,Unnamed constants,Replace with Named Constant,Extract to config,Create Enum,Grep for literals,All constants named,HIGH
+Organizing Data,Data Class,Only getters/setters,Move Method to class,Encapsulate Collection,Add behavior,Find anemic classes,Classes have behavior,MEDIUM
+Organizing Data,Temporary Field,Field not always used,Extract Class,Introduce Null Object,Replace with Query,Find conditional fields,Fields always valid,LOW
+Organizing Data,Array abuse,Array elements mean different things,Replace Array with Object,Extract Class,Create proper structure,Check array usage,Proper data structures,MEDIUM
+Simplifying Conditionals,Complex boolean logic,Hard to understand,Decompose Conditional,Extract Method,Consolidate Expression,Count logical operators,Clear conditions,HIGH
+Simplifying Conditionals,Duplicate conditions,Same check multiple places,Consolidate Conditional,Extract Method,Pull Up check,Find duplicate ifs,Single condition check,MEDIUM
+Simplifying Conditionals,Nested conditionals >3,Deep nesting,Replace with Guard Clauses,Extract Method,Flatten structure,Count nesting levels,Max 2 levels deep,HIGH
+Simplifying Conditionals,Switch statements,Missing polymorphism,Replace with Polymorphism,Replace with Map/Dictionary,Strategy Pattern,Count switch cases,Polymorphic solution,MEDIUM
+Simplifying Conditionals,Null checks everywhere,No null object,Introduce Null Object,Optional/Maybe type,Default values,Count null checks,Minimal null checks,MEDIUM
+Simplifying Conditionals,Control flags,Using flag to control flow,Remove Control Flag,Replace with return,Replace with break,Find flag variables,Direct flow control,LOW
+Method Calls,Long parameter list >3,Too many responsibilities,Introduce Parameter Object,Preserve Whole Object,Builder Pattern,Count parameters,Max 3 parameters,HIGH
+Method Calls,Flag arguments,Boolean parameters,Replace with Explicit Methods,Polymorphism,Separate methods,Find boolean params,No flag arguments,MEDIUM
+Method Calls,Asking not telling,Getting data to work on it,Move Method,Tell Don't Ask,Encapsulate behavior,Find get-then-act,Object does own work,MEDIUM
+Method Calls,Return codes for errors,Not using exceptions,Replace with Exception,Use Result type,Throw errors,Find error returns,Proper error handling,MEDIUM
+Method Calls,Constructor doing work,Complex initialization,Replace with Factory Method,Builder Pattern,Lazy initialization,Check constructor size,Simple constructors,MEDIUM
+Method Calls,Combinatorial explosion,Similar methods with variations,Parameterize Method,Template Method,Strategy Pattern,Count similar methods,Single flexible method,LOW
+Generalization,Duplicate code in siblings,Missing abstraction,Pull Up Method,Pull Up Field,Extract Superclass,Find sibling duplication,Shared in parent,HIGH
+Generalization,Refused Bequest,Subclass ignores inheritance,Push Down Method,Replace Inheritance with Delegation,Create new hierarchy,Check inheritance usage,Proper inheritance,MEDIUM
+Generalization,Parallel hierarchies,Creating one requires another,Merge Hierarchies,Collapse Hierarchy,Redesign structure,Find parallel classes,Single hierarchy,LOW
+Generalization,Lazy Class,Not doing enough,Inline Class,Collapse Hierarchy,Merge with user,Count class methods,Justified classes,LOW
+Generalization,Speculative Generality,Unused abstraction,Collapse Hierarchy,Inline Class,Remove abstraction,Find unused code,No dead code,MEDIUM
+Generalization,Inappropriate inheritance,Using inheritance for reuse,Replace with Delegation,Composition over Inheritance,Extract Interface,Check is-a relationship,Proper inheritance,MEDIUM
+Change Preventers,Divergent Change,Class has many reasons to change,Extract Class,Split responsibilities,SRP refactoring,Count change reasons,Single responsibility,HIGH
+Change Preventers,Shotgun Surgery,One change needs many edits,Move Method,Move Field,Inline Class,Track change impact,Localized changes,HIGH
+Change Preventers,Feature scatter,Feature across many files,Consolidate in class,Extract Class,Module pattern,Find feature code,Feature cohesion,MEDIUM
+Dispensables,Comments smell,Explaining bad code,Extract Method,Rename for clarity,Simplify code,Count comment lines,Self-documenting,LOW
+Dispensables,Dead Code,Unreachable/unused code,Delete it,Remove safely,Clean up,Find unused code,No dead code,MEDIUM
+Dispensables,Duplicate Code,Same logic multiple places,Extract Method,Extract Class,Pull Up Method,Find duplicates,DRY principle,HIGH
+Dispensables,Speculative features,YAGNI violation,Remove feature,Simplify,Delete unused,Find unused features,Only needed features,MEDIUM
+Couplers,Feature Envy,Using other object's data,Move Method,Extract Method,Move Field,Count external access,Use own data,MEDIUM
+Couplers,Inappropriate Intimacy,Too much knowledge of other,Move Method,Move Field,Hide internals,Check coupling,Loose coupling,MEDIUM
+Couplers,Message Chains,Long delegation chains,Hide Delegate,Extract Method,Facade Pattern,Count chain depth,Short chains,MEDIUM
+Couplers,Middle Man,Excessive delegation,Remove Middle Man,Direct access,Inline methods,Check delegation,Direct communication,LOW
+Testing Issues,Hard to test code,Tight coupling,Extract Interface,Dependency Injection,Extract Method,Test complexity,Easy to test,HIGH
+Testing Issues,Test duplication,Repeated test setup,Extract test helpers,Test data builders,Parameterized tests,Find test duplication,DRY tests,MEDIUM
+Performance Issues,Premature optimization,Optimizing too early,Remove optimization,Measure first,Profile before optimizing,Profile performance,Optimized correctly,LOW
+Performance Issues,Inefficient algorithms,Wrong algorithm choice,Replace Algorithm,Use better data structure,Optimize hot path,Profile code,Efficient algorithms,MEDIUM
