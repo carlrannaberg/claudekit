@@ -981,6 +981,57 @@ node --async-stack-traces app.js
 4. **Graceful Degradation**: Design for failure scenarios and partial functionality
 5. **Security First**: Validate all inputs, use parameterized queries, avoid eval()
 
+## Code Review Checklist
+
+When reviewing Node.js code, focus on these runtime-specific aspects:
+
+### Async Patterns
+- [ ] Promises properly handled with catch blocks
+- [ ] No unhandled promise rejections
+- [ ] Async/await with try-catch where needed
+- [ ] No callback hell (promisified when possible)
+- [ ] Concurrent operations use Promise.all when appropriate
+- [ ] No blocking synchronous operations in async contexts
+
+### Event Loop & Performance
+- [ ] No blocking operations on main thread
+- [ ] CPU-intensive work offloaded to Worker Threads
+- [ ] Proper stream handling with backpressure
+- [ ] Event emitters properly cleaned up
+- [ ] Memory leaks prevented (listeners removed)
+- [ ] Process exits handled gracefully
+
+### Module System
+- [ ] Consistent use of ESM or CommonJS
+- [ ] Circular dependencies avoided
+- [ ] Dynamic imports used appropriately
+- [ ] Module caching understood and leveraged
+- [ ] Package.json exports field configured correctly
+
+### Error Handling
+- [ ] Global error handlers for uncaught exceptions
+- [ ] Process warning handlers configured
+- [ ] Error objects with proper stack traces
+- [ ] Operational vs programmer errors distinguished
+- [ ] Graceful shutdown on fatal errors
+- [ ] Proper error propagation in streams
+
+### Security Considerations
+- [ ] Input validation on all external data
+- [ ] No eval() or Function constructor with user input
+- [ ] Path traversal vulnerabilities prevented
+- [ ] Environment variables for sensitive config
+- [ ] Dependencies regularly audited
+- [ ] Rate limiting implemented where needed
+
+### Resource Management
+- [ ] File descriptors properly closed
+- [ ] Database connections pooled
+- [ ] Timeouts configured for network requests
+- [ ] Memory usage monitored
+- [ ] Child processes properly managed
+- [ ] Cluster workers load balanced
+
 ## Quick Decision Trees
 
 ### "What's causing high memory usage?"

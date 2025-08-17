@@ -248,6 +248,58 @@ grep -r "interface.*Props\|type.*Props" --include="*.tsx" src/ | wc -l
 - **Fast Refresh**: Limitations with certain patterns (class components, anonymous functions)
 - **Server Components**: Cannot use hooks, browser APIs, or event handlers
 
+## Code Review Checklist
+
+When reviewing React code, focus on these framework-specific aspects:
+
+### Hooks Compliance
+- [ ] Rules of Hooks followed (only at top level, only in React functions)
+- [ ] Dependency arrays complete and accurate
+- [ ] No conditional hook calls
+- [ ] Custom hooks prefixed with `use`
+- [ ] Effects properly cleaned up
+- [ ] No async functions directly in useEffect
+
+### Performance Patterns
+- [ ] Appropriate use of `React.memo` for expensive components
+- [ ] `useMemo` and `useCallback` used where beneficial (not overused)
+- [ ] Keys stable and unique in lists
+- [ ] Large lists virtualized when needed
+- [ ] Code splitting implemented for routes
+- [ ] Lazy loading for heavy components
+
+### State Management
+- [ ] State lifted to appropriate level (not too high)
+- [ ] Derived state calculated, not stored
+- [ ] Immutable state updates
+- [ ] No direct DOM manipulation
+- [ ] Form state properly controlled or uncontrolled (not mixed)
+- [ ] Context not overused for frequently changing values
+
+### Component Design
+- [ ] Single responsibility principle followed
+- [ ] Props properly typed with TypeScript/PropTypes
+- [ ] Default props handled correctly
+- [ ] Error boundaries implemented for risky operations
+- [ ] Accessibility attributes present (aria-labels, roles)
+- [ ] Event handlers properly bound
+
+### React Patterns
+- [ ] Composition over inheritance
+- [ ] Render props or hooks for logic sharing (not HOCs)
+- [ ] Controlled vs uncontrolled components consistent
+- [ ] Side effects isolated in useEffect
+- [ ] Suspense boundaries for async operations
+- [ ] Portals used for modals/tooltips when needed
+
+### Common Pitfalls
+- [ ] No array index as key for dynamic lists
+- [ ] No inline function definitions in render (when avoidable)
+- [ ] No business logic in components (separated into hooks/utils)
+- [ ] No missing dependencies in hooks
+- [ ] No memory leaks from uncleaned effects
+- [ ] No unnecessary re-renders from unstable references
+
 ## Safety Guidelines
 - Never modify state objects directly - always use immutable updates
 - Always include cleanup functions in useEffect for subscriptions and async operations
