@@ -156,10 +156,10 @@ For example:
 - Documentation: [X critical, Y high, Z medium]
 
 ⚠️ Systemic Issues
-Repeated Patterns Requiring Standards:
-- [Pattern description] (X occurrences)
-  → [Actionable solution/next step]
-- [Additional patterns with solutions...]
+Repeated problems that need addressing:
+- [Problem pattern] (X occurrences)
+  → [Actionable fix/next step]
+- [Additional problems with solutions...]
 ```
 
 After all agents complete, consolidate findings into this format. Focus on actionable feedback with specific file locations and code examples. Use type icons:
