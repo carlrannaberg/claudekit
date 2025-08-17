@@ -23,31 +23,39 @@ Focus on: module organization, separation of concerns, dependency management, ab
 Subagent: code-reviewer
 Description: Code quality review  
 Prompt: Review code quality and maintainability in: $ARGUMENTS
-Focus on: readability, DRY violations, complexity metrics, naming conventions, code smells, and refactoring opportunities. Pull domain-specific quality metrics from available experts.
+Focus on: readability, naming conventions, code complexity, DRY principles, code smells, refactoring opportunities, and consistent coding patterns. Pull domain-specific quality metrics from available experts.
 ```
 
-## 3. Security Review
+## 3. Security & Dependencies Review
 ```
 Subagent: code-reviewer
-Description: Security review
-Prompt: Perform security analysis of: $ARGUMENTS
-Focus on: input validation, injection vulnerabilities, authentication/authorization, data exposure, dependency vulnerabilities, and security best practices. Use security insights from domain experts if available.
+Description: Security and dependencies review
+Prompt: Perform security and dependency analysis of: $ARGUMENTS
+Focus on: input validation, injection vulnerabilities, authentication/authorization, secrets management, dependency vulnerabilities, license compliance, version pinning, and supply chain security. Use security insights from domain experts if available.
 ```
 
-## 4. Performance Review
+## 4. Performance & Scalability Review
 ```
 Subagent: code-reviewer
-Description: Performance review
-Prompt: Analyze performance implications in: $ARGUMENTS
-Focus on: algorithm complexity, memory usage, potential bottlenecks, caching opportunities, async patterns, and resource management. Get performance patterns from relevant experts.
+Description: Performance and scalability review
+Prompt: Analyze performance and scalability in: $ARGUMENTS
+Focus on: algorithm complexity, memory usage, database queries, caching strategies, async patterns, resource management, load handling, and horizontal scaling considerations. Get performance patterns from relevant experts.
 ```
 
-## 5. Error Handling & Testing Review
+## 5. Testing Quality Review
 ```
 Subagent: code-reviewer
-Description: Testing and error handling review
-Prompt: Review error handling and test coverage for: $ARGUMENTS
-Focus on: error boundaries, edge cases, test completeness, test quality, mock appropriateness, and testing patterns. Check for testing-expert insights if available.
+Description: Testing quality review
+Prompt: Review test quality and effectiveness for: $ARGUMENTS
+Focus on: meaningful assertions, test isolation, edge case handling, failure scenario coverage, mock vs real dependencies balance, test maintainability, clear test names, and actual behavior verification (not just coverage metrics). Check for testing-expert insights if available.
+```
+
+## 6. Documentation & API Review
+```
+Subagent: code-reviewer
+Description: Documentation and API review
+Prompt: Review documentation and API design for: $ARGUMENTS
+Focus on: README completeness, API documentation, breaking changes, code comments, JSDoc/TypeDoc coverage, usage examples, migration guides, and developer experience. Evaluate API consistency and contract clarity.
 ```
 
 After all agents complete, consolidate their findings into a single comprehensive report organized by priority.
