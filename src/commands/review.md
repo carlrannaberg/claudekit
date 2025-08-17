@@ -129,5 +129,5 @@ Repeated Patterns Requiring Standards:
 - [Additional patterns with solutions...]
 ```
 
-Focus on actionable feedback with specific file locations and code examples. Use type icons:
+After all agents complete, consolidate findings into this format. Focus on actionable feedback with specific file locations and code examples. Use type icons:
 🔒 Security | 🏗️ Architecture | ⚡ Performance | 🧪 Testing | 📝 Documentation | 💥 Breaking Change
