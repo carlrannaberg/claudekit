@@ -257,7 +257,7 @@ describe('CodebaseMapHook', () => {
         category: 'utility',
         triggerEvent: 'SessionStart',
         matcher: '*',
-        dependencies: ['codebase-map'],
+        dependencies: [],
       });
     });
   });
