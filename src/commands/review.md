@@ -58,4 +58,62 @@ Prompt: Review documentation and API design for: $ARGUMENTS
 Focus on: README completeness, API documentation, breaking changes, code comments, JSDoc/TypeDoc coverage, usage examples, migration guides, and developer experience. Evaluate API consistency and contract clarity.
 ```
 
-After all agents complete, consolidate their findings into a single comprehensive report organized by priority.
+After all agents complete, consolidate their findings into this structured format:
+
+```
+🗂 Consolidated Code Review Report - [Target]
+
+📊 Executive Summary
+Brief overview of code quality, key strengths, and critical issues requiring attention.
+
+🔴 CRITICAL Issues (Must Fix Immediately)
+1. [Issue Name]
+   File: [path:line]
+   Impact: [description]
+   Solution:
+   ```[code example]```
+
+2. [Additional critical issues...]
+
+🟠 HIGH Priority Issues
+1. [Issue category]
+   - [Specific issue and location]
+   - [Impact and recommended fix]
+
+2. [Additional high priority issues...]
+
+🟡 MEDIUM Priority Issues
+1. [Issue name] (file:line)
+   Extract into: [suggested refactoring]
+
+2. [Additional medium priority issues...]
+
+✅ Quality Metrics
+┌─────────────────┬───────┬────────────────────────────────────┐
+│ Aspect          │ Score │ Notes                              │
+├─────────────────┼───────┼────────────────────────────────────┤
+│ Architecture    │ X/10  │ [Clean separation, coupling issues]│
+│ Code Quality    │ X/10  │ [Readability, consistency, patterns]│
+│ Security        │ X/10  │ [Critical vulnerabilities, if any] │
+│ Performance     │ X/10  │ [Bottlenecks, scalability concerns]│
+│ Testing         │ X/10  │ [Coverage percentage, test quality]│
+│ Documentation   │ X/10  │ [API docs, comments, examples]     │
+└─────────────────┴───────┴────────────────────────────────────┘
+
+✨ Strengths to Preserve
+- [Key strength with evidence]
+- [Additional strengths...]
+
+🚀 Proactive Improvements
+1. [Pattern/Practice Name]
+   ```[code example]```
+
+2. [Additional improvements...]
+
+⚠️ Systemic Issues
+Repeated Patterns Requiring Standards:
+- [Pattern description] (X occurrences)
+- [Additional patterns...]
+```
+
+Focus on actionable feedback with specific file locations and code examples. Avoid timeline recommendations.
