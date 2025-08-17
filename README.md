@@ -153,6 +153,10 @@ Hooks automatically enforce quality as Claude works:
 - `check-comment-replacement` - Detect when code is replaced with comments
 - `check-unused-parameters` - Detect lazy refactoring where parameters are prefixed with _ instead of being removed
 
+**SessionStart Hooks** (run when Claude Code session begins)
+- `codebase-map` - Generate comprehensive project structure map using codebase-map CLI
+- `codebase-map-update` - Incrementally update codebase map when files change
+
 **Project-Wide Hooks** (typically for Stop/SubagentStop events)
 - `typecheck-project` - TypeScript validation on entire project
 - `lint-project` - ESLint validation on entire project
@@ -166,6 +170,7 @@ Hooks automatically enforce quality as Claude works:
 **PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
 **Stop** - Triggered when Claude Code stops or conversation ends
 **SubagentStop** - Triggered when subagents complete their tasks
+**SessionStart** - Triggered when a new Claude Code session begins
 
 ### List Available Hooks
 
@@ -183,6 +188,7 @@ Specialized AI assistants for different domains:
 **Popular Agents**
 - `code-reviewer` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
 - `oracle` - Deep debugging and complex problem analysis ([requires setup](docs/integrations/oracle.md))
+- `refactoring-expert` - Code smell detection and comprehensive refactoring guidance
 - `typescript-expert` - TypeScript/JavaScript development and type system
 - `react-expert` - React components, hooks, and performance
 - `testing-expert` - Test strategy, coverage, and best practices
@@ -226,6 +232,10 @@ Claudekit uses two configuration files:
     "SubagentStop": [{
       "matcher": "*",
       "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
+    }],
+    "SessionStart": [{
+      "matcher": "*",
+      "hooks": [{"type": "command", "command": "claudekit-hooks run codebase-map"}]
     }]
   }
 }
@@ -269,6 +279,14 @@ Configure faster test command in `.claudekit/config.json`:
     }
   }
 }
+```
+
+**Codebase map not generating?**
+Install the codebase-map CLI tool:
+```bash
+npm install -g codebase-map
+# Check installation:
+codebase-map --version
 ```
 
 [Full troubleshooting →](docs/getting-started/troubleshooting.md)

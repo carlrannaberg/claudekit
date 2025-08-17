@@ -92,6 +92,9 @@ tsconfig.tsbuildinfo
 .eslintcache
 *.tsbuildinfo
 
+# Codebase map index file
+.codebasemap
+
 # MCP
 .mcp.json
 

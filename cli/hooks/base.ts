@@ -42,7 +42,7 @@ export interface HookMetadata {
   displayName: string;
   description: string;
   category: 'validation' | 'testing' | 'git' | 'project-management' | 'utility';
-  triggerEvent: 'PostToolUse' | 'Stop' | 'SubagentStop' | ('Stop' | 'SubagentStop')[];
+  triggerEvent: 'PostToolUse' | 'Stop' | 'SubagentStop' | 'SessionStart' | ('Stop' | 'SubagentStop')[];
   matcher?: string; // Tool patterns that trigger this hook (e.g., "Write|Edit|MultiEdit")
   dependencies?: string[];
 }

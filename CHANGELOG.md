@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Codebase Map Integration**: Added comprehensive project structure mapping using external codebase-map CLI
+  - Added `codebase-map` SessionStart hook for generating project structure maps on session start
+  - Added `codebase-map-update` PostToolUse hook for incrementally updating maps when files change
+  - Automatically scans and indexes project structure with AST-based analysis
+  - Generates optimized output format for LLM consumption with dependency tracking
+  - Requires external [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI installation
+
+## [0.5.1] - 2025-08-17
+
+### Added
+- **Refactoring Expert Subagent**: Added comprehensive code smell detection and refactoring guidance
+  - Added `refactoring-expert` subagent with comprehensive code smell detection capabilities
+  - Provides specialized guidance for identifying and fixing 25+ types of code smells and anti-patterns
+  - Includes automated refactoring suggestions with before/after examples
+  - Supports multiple programming languages with context-aware recommendations
+
+### Fixed
+- **Dynamic Agent Count Display**: Fixed setup command to show actual number of available agents instead of hardcoded count
+  - Setup command now dynamically calculates and displays the correct number of agents in the "Install All" option
+  - Eliminates maintenance burden of manually updating agent counts when new agents are added
+  - Improves accuracy and prevents misleading information in the setup interface
+
 ## [0.5.0] - 2025-08-17
 
 ### Added

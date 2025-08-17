@@ -259,6 +259,52 @@ Please complete these tasks before stopping.
 - Encourages proper parameter removal instead of prefixing
 - Helps maintain clean function signatures
 
+### SessionStart Hooks
+
+These hooks run when a new Claude Code session begins:
+
+#### codebase-map
+
+**Purpose:** Generate a comprehensive project structure map using the codebase-map CLI tool.
+
+**Triggers on:** SessionStart event
+
+**Dependencies:** Requires [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI tool installed
+
+**Configuration Options:**
+- `format` (string): Output format - auto|json|dsl|graph|markdown (default: "auto")
+- `command` (string): Custom command to run (default: "codebase-map scan")
+
+**Features:**
+- Automatically scans and indexes project structure
+- Generates AST-based analysis of functions, classes, and constants
+- Tracks imports/exports and builds dependency graph
+- Optimized output format for LLM consumption
+- Displays the map directly in the Claude Code session
+
+**Installation:**
+```bash
+npm install -g codebase-map
+```
+
+#### codebase-map-update
+
+**Purpose:** Incrementally update the codebase map index when files change.
+
+**Triggers on:** Write, Edit, MultiEdit tools (TypeScript/JavaScript files only)
+
+**Dependencies:** Requires codebase-map CLI tool installed
+
+**Configuration Options:**
+- `updateOnChanges` (boolean): Enable/disable automatic updates (default: true)
+- `command` (string): Custom update command (default: "codebase-map update [file]")
+
+**Features:**
+- Incremental updates without full re-scan
+- Debounced to avoid excessive regeneration (5 second delay)
+- Only updates for code file changes (.ts, .tsx, .js, .jsx, .mjs, .cjs)
+- Runs silently to avoid disrupting workflow
+
 ### Project-Wide Hooks
 
 These hooks validate the entire project:
