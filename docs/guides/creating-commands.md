@@ -41,6 +41,21 @@ Current branch: !`git branch --show-current`
 Test results: !`$(command -v pnpm >/dev/null 2>&1 && echo "pnpm test" || command -v yarn >/dev/null 2>&1 && echo "yarn test" || echo "npm test")`
 ```
 
+#### Performance Optimization
+Combine related commands with `&&` for faster execution instead of multiple separate bash calls:
+
+```markdown
+# ❌ Slower - Multiple separate executions
+Git status: !`git status --short`
+Git diff: !`git diff --stat`
+Recent commits: !`git log --oneline -5`
+
+# ✅ Faster - Single combined execution
+Repository state: !`git status --short && echo "---" && git diff --stat && echo "---" && git log --oneline -5`
+```
+
+This reduces overhead and improves command responsiveness.
+
 ### 3. File References
 
 Include file contents using `@` prefix:

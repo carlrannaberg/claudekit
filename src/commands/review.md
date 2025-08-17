@@ -1,14 +1,31 @@
 ---
 description: Multi-aspect code review using parallel code-reviewer agents
-allowed-tools: Task
+allowed-tools: Task, Bash(git status:*), Bash(git diff:*), Bash(git log:*)
 argument-hint: [what to review] - e.g., "recent changes", "src/components", "*.ts files", "PR #123"
 ---
 
 # Code Review
 
-Launch multiple code-reviewer agents in parallel to review different aspects of: **$ARGUMENTS**
+## Current Repository State
+!`git status --short && echo "---" && git diff --stat && echo "---" && git log --oneline -5`
 
-Use the Task tool to invoke multiple code-reviewer agents concurrently:
+## Review Strategy
+
+Based on **$ARGUMENTS**, determine which review agents are needed:
+
+If reviewing "changes" or recent modifications:
+1. Analyze the file types that have been modified
+2. Launch only relevant review agents:
+   - **Documentation files only** (*.md, *.txt, README): Launch only Documentation & API Review agent
+   - **Test files only** (*test.*, *.spec.*, tests/): Launch Testing Quality Review and Code Quality Review agents
+   - **Config files only** (*.json, *.yaml, *.toml, .*rc): Launch Security & Dependencies Review and Architecture Review agents
+   - **Source code files** (*.ts, *.js, *.py, etc.): Launch all 6 review agents
+   - **Mixed changes**: Launch agents relevant to each file type present
+
+If reviewing a specific directory or broad scope:
+- Launch all 6 review agents for comprehensive coverage
+
+Use the Task tool to invoke the appropriate code-reviewer agents concurrently:
 
 ## 1. Architecture & Design Review
 ```
@@ -55,7 +72,15 @@ Focus on: meaningful assertions, test isolation, edge case handling, failure sce
 Subagent: code-reviewer
 Description: Documentation and API review
 Prompt: Review documentation and API design for: $ARGUMENTS
+
 Focus on: README completeness, API documentation, breaking changes, code comments, JSDoc/TypeDoc coverage, usage examples, migration guides, and developer experience. Evaluate API consistency and contract clarity.
+
+Documentation Review Guidelines:
+- Consider purpose and audience: Who needs this information and why?
+- Evaluate effectiveness: Does the documentation achieve its goals?
+- Focus on clarity: Can users understand and apply the information?
+- Identify real issues: Missing information, errors, contradictions, outdated content
+- Respect intentional variation: Multiple examples may show different valid approaches
 ```
 
 After all agents complete, consolidate their findings into this structured format:
@@ -94,9 +119,11 @@ Brief overview of code quality, key strengths, and critical issues requiring att
 2. [Additional medium priority issues...]
 
 ✅ Quality Metrics
+Include only aspects that were actually reviewed based on the file types and agents launched:
 ┌─────────────────┬───────┬────────────────────────────────────┐
 │ Aspect          │ Score │ Notes                              │
 ├─────────────────┼───────┼────────────────────────────────────┤
+│ [Only include relevant aspects based on what was reviewed]      │
 │ Architecture    │ X/10  │ [Clean separation, coupling issues]│
 │ Code Quality    │ X/10  │ [Readability, consistency, patterns]│
 │ Security        │ X/10  │ [Critical vulnerabilities, if any] │
@@ -104,6 +131,12 @@ Brief overview of code quality, key strengths, and critical issues requiring att
 │ Testing         │ X/10  │ [Coverage percentage, test quality]│
 │ Documentation   │ X/10  │ [API docs, comments, examples]     │
 └─────────────────┴───────┴────────────────────────────────────┘
+
+For example:
+- Documentation-only review: Show only Documentation row
+- Test file review: Show Testing and Code Quality rows
+- Config file review: Show Security and Architecture rows
+- Full code review: Show all relevant aspects
 
 ✨ Strengths to Preserve
 - [Key strength with evidence]
