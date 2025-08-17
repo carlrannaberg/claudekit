@@ -63,27 +63,32 @@ After all agents complete, consolidate their findings into this structured forma
 ```
 🗂 Consolidated Code Review Report - [Target]
 
+📋 Review Scope
+Target: [directory/files reviewed] ([X files, Y lines])
+Focus: Architecture, Security, Performance, Testing, Documentation
+
 📊 Executive Summary
 Brief overview of code quality, key strengths, and critical issues requiring attention.
 
 🔴 CRITICAL Issues (Must Fix Immediately)
-1. [Issue Name]
+1. 🔒 [Security/🏗️ Architecture/⚡ Performance/🧪 Testing/📝 Documentation/💥 Breaking] [Issue Name]
    File: [path:line]
    Impact: [description]
    Solution:
    ```[code example]```
 
-2. [Additional critical issues...]
+2. [Additional critical issues with type icons...]
 
 🟠 HIGH Priority Issues
-1. [Issue category]
-   - [Specific issue and location]
-   - [Impact and recommended fix]
+1. [Type icon] [Issue name]
+   File: [path:line]
+   Impact: [description]
+   Solution: [recommendation]
 
 2. [Additional high priority issues...]
 
 🟡 MEDIUM Priority Issues
-1. [Issue name] (file:line)
+1. [Type icon] [Issue name] - [file:line]
    Extract into: [suggested refactoring]
 
 2. [Additional medium priority issues...]
@@ -110,10 +115,19 @@ Brief overview of code quality, key strengths, and critical issues requiring att
 
 2. [Additional improvements...]
 
+📊 Issue Distribution
+- Architecture: [X critical, Y high, Z medium]
+- Security: [X critical, Y high, Z medium]
+- Performance: [X critical, Y high, Z medium]
+- Testing: [X critical, Y high, Z medium]
+- Documentation: [X critical, Y high, Z medium]
+
 ⚠️ Systemic Issues
 Repeated Patterns Requiring Standards:
 - [Pattern description] (X occurrences)
-- [Additional patterns...]
+  → [Actionable solution/next step]
+- [Additional patterns with solutions...]
 ```
 
-Focus on actionable feedback with specific file locations and code examples. Avoid timeline recommendations.
+Focus on actionable feedback with specific file locations and code examples. Use type icons:
+🔒 Security | 🏗️ Architecture | ⚡ Performance | 🧪 Testing | 📝 Documentation | 💥 Breaking Change
