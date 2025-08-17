@@ -180,14 +180,14 @@ claudekit-hooks list
 Specialized AI assistants for different domains:
 
 **Popular Agents**
-- `code-reviewer` - Multi-aspect code review with 6 specialized analysis areas
-- `oracle` - Deep debugging with GPT-5 ([requires setup](docs/integrations/oracle.md))
-- `typescript-expert` - TypeScript/JavaScript specialist
-- `react-expert` - React patterns and performance
-- `testing-expert` - Test architecture and patterns
-- `database-expert` - Query optimization, schema design
-- `ai-sdk-expert` - Vercel AI SDK v5 development and streaming
-- `nestjs-expert` - Nest.js framework and dependency injection
+- `code-reviewer` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
+- `oracle` - Deep debugging and complex problem analysis ([requires setup](docs/integrations/oracle.md))
+- `typescript-expert` - TypeScript/JavaScript development and type system
+- `react-expert` - React components, hooks, and performance
+- `testing-expert` - Test strategy, coverage, and best practices
+- `database-expert` - Query optimization and schema design
+- `ai-sdk-expert` - Vercel AI SDK v5 streaming and model integration
+- `nestjs-expert` - Nest.js architecture and dependency injection
 
 **Usage**
 ```bash
@@ -196,9 +196,12 @@ claudekit list agents
 
 # Install specific agents
 claudekit setup --agents typescript-expert,react-expert
+```
 
-# Or ask Claude directly
+Once installed, agents work automatically or can be invoked directly:
+```
 "Use the oracle agent to debug this issue"
+"Have the typescript-expert review this type definition"
 ```
 
 [View all agents →](docs/reference/subagents.md)
