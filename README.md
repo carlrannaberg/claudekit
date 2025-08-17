@@ -43,9 +43,18 @@ After:  Risky refactor fails → ✅ One command: /checkpoint:restore
 
 Before: Claude breaks tests → ❌ You discover it after Claude finishes
 After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
+
+Before: Manual code review → ❌ Miss architectural and security issues
+After:  Use /review → ✅ 6 parallel experts analyze architecture, security, performance, testing
 ```
 
 ## Key Features
+
+### 🔍 Comprehensive Code Review
+- **Multi-aspect analysis**: 6 parallel agents for architecture, security, performance, testing, quality, and documentation
+- **Intelligent targeting**: Automatically selects relevant review agents based on file types and scope
+- **Structured reports**: Prioritized issues (Critical/High/Medium) with type icons and actionable solutions
+- **Quality metrics**: Scoring system and issue distribution tracking for measurable improvements
 
 ### 🛡️ Real-time Error Prevention
 - **TypeScript Guard**: Blocks `any` types and type errors as Claude edits
@@ -58,12 +67,15 @@ After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 - **Easy restore**: `/checkpoint:restore` to undo changes
 - **Checkpoint management**: List, restore, or clean up checkpoints
 
-### 🤖 24+ AI Subagents
-- **Domain experts**: TypeScript, React, database, testing specialists
+### 🤖 30+ AI Subagents
+- **Domain experts**: TypeScript, React, database, testing, infrastructure specialists
+- **Code review**: Dedicated `code-reviewer` agent with 6 focused analysis aspects
+- **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
 - **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
 - **Deep debugging**: Oracle agent for complex problem analysis
 
 ### 📝 Smart Commands
+- `/review` - Multi-aspect code reviews with 6 parallel agents
 - `/git:commit` - Creates commits following your project's conventions
 - `/validate-and-fix` - Runs all quality checks and fixes issues
 - `/spec:create` - Generates comprehensive specifications
@@ -74,7 +86,7 @@ After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 ```bash
 claudekit setup              # Interactive setup wizard
 claudekit setup --yes        # Quick setup with defaults
-claudekit setup --all        # Install everything (24+ agents)
+claudekit setup --all        # Install everything (30+ agents)
 claudekit list               # Show all components (hooks, commands, agents, config)
 claudekit list agents        # List available agents with token counts
 claudekit list commands      # List available commands with token counts
@@ -114,8 +126,11 @@ Use these commands directly in Claude Code:
 - `/git:commit` - Smart commit with conventions
 - `/git:status` - Intelligent git analysis
 
-### Development Tools
+### Code Quality
+- `/review [target]` - Multi-aspect code review with parallel agents
 - `/validate-and-fix` - Run all quality checks
+
+### Development Tools
 - `/spec:create [feature]` - Generate specifications
 - `/agent-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
@@ -165,11 +180,14 @@ claudekit-hooks list
 Specialized AI assistants for different domains:
 
 **Popular Agents**
+- `code-reviewer` - Multi-aspect code review with 6 specialized analysis areas
 - `oracle` - Deep debugging with GPT-5 ([requires setup](docs/integrations/oracle.md))
 - `typescript-expert` - TypeScript/JavaScript specialist
 - `react-expert` - React patterns and performance
 - `testing-expert` - Test architecture and patterns
 - `database-expert` - Query optimization, schema design
+- `ai-sdk-expert` - Vercel AI SDK v5 development and streaming
+- `nestjs-expert` - Nest.js framework and dependency injection
 
 **Usage**
 ```bash
@@ -183,7 +201,7 @@ claudekit setup --agents typescript-expert,react-expert
 "Use the oracle agent to debug this issue"
 ```
 
-[View all 24+ agents →](docs/reference/subagents.md)
+[View all 30+ agents →](docs/reference/subagents.md)
 
 ## Configuration
 

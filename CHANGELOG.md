@@ -8,6 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-08-17
+
+### Added
+- **Comprehensive Code Review System**: Added multi-aspect code review functionality with parallel agent processing
+  - Added `/review` command for intelligent code reviews using specialized parallel agents
+  - Added `code-reviewer` agent with 6 focused review aspects: architecture & design, code quality, security & dependencies, performance & scalability, testing quality, and documentation & API design
+  - Added structured report format with issue prioritization (Critical/High/Medium), type icons (🔒 Security, 🏗️ Architecture, ⚡ Performance, 🧪 Testing, 📝 Documentation, 💥 Breaking), and actionable feedback
+  - Added intelligent agent selection based on file types and review scope (documentation-only, test files, config files, or full source code)
+  - Added quality metrics scoring system and issue distribution tracking for comprehensive analysis
+- **Enhanced Expert Agent Collection**: Added comprehensive domain-specific expert agents with enhanced capabilities
+  - Added `ai-sdk-expert` for Vercel AI SDK v5 development, streaming, and model integration
+  - Added `cli-expert` for npm package CLI development with Unix philosophy and argument parsing  
+  - Added `nestjs-expert` for Nest.js framework development with dependency injection and testing
+  - Enhanced multiple existing agents with comprehensive code review checklists and quality validation capabilities
+  - Added specialized build tool experts: `build-tools-vite-expert` and `build-tools-webpack-expert`
+  - Added infrastructure experts: `infrastructure-docker-expert` and `infrastructure-github-actions-expert`
+  - Added frontend experts: `frontend-css-styling-expert` and `frontend-accessibility-expert`
+  - Added comprehensive testing suite: `testing-expert`, `jest-testing-expert`, `vitest-testing-expert`, and `e2e-playwright-expert`
+  - Added database experts: `database-expert`, `database-postgres-expert`, and `database-mongodb-expert`
+  - Added additional specialized experts: `git-expert`, `nodejs-expert`, `react-expert`, `react-performance-expert`, `typescript-expert`, `typescript-build-expert`, `typescript-type-expert`, and `code-quality-linting-expert`
+- **Developer Documentation**: Added comprehensive guides for subagent and command development
+  - Added `docs/guides/creating-subagents.md` with detailed instructions for creating domain expert subagents
+  - Added `docs/guides/creating-commands.md` with command development patterns and best practices
+
+### Changed
+- **Agent Architecture**: Upgraded review system to use 6 focused agents architecture for comprehensive parallel code analysis
+- **Review Efficiency**: Enhanced review process with intelligent agent selection based on file types and scope to reduce unnecessary analysis overhead
+- **Report Structure**: Improved review report format with consistent type icons, priority levels, and actionable feedback structure
+
+### Fixed
+- **Review Template Organization**: Moved review instructions outside of report template to clarify systemic issues section and improve template readability
+- **Agent Selection Logic**: Enhanced review efficiency by launching only relevant agents based on the specific files and changes being reviewed
+
 ## [0.4.0] - 2025-08-16
 
 ### Added
