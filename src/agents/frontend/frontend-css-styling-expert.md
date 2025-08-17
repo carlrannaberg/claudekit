@@ -88,6 +88,55 @@ I follow a systematic diagnostic and solution methodology:
    npx lighthouse --only-categories=performance,accessibility,best-practices --output=json --output-path=/tmp/lighthouse.json https://localhost:3000 2>/dev/null || echo "Lighthouse check requires running server"
    ```
 
+## Code Review Checklist
+
+When reviewing CSS code, focus on these aspects:
+
+### Layout & Responsive Design
+- [ ] Flexbox items have proper `flex-wrap` for mobile responsiveness
+- [ ] CSS Grid uses explicit `grid-template-columns/rows` instead of implicit sizing
+- [ ] Fixed pixel widths are replaced with relative units (%, vw, rem)
+- [ ] Container queries are used instead of viewport queries where appropriate
+- [ ] Vertical centering uses modern methods (flexbox, grid) not `vertical-align`
+
+### CSS Architecture & Performance
+- [ ] CSS specificity is managed (avoid high specificity selectors)
+- [ ] No excessive use of `!important` declarations
+- [ ] Colors use CSS custom properties instead of hardcoded values
+- [ ] Design tokens follow semantic naming conventions
+- [ ] Unused CSS is identified and removed (check bundle size)
+
+### CSS-in-JS Performance
+- [ ] styled-components avoid dynamic interpolation in template literals
+- [ ] Dynamic styles use CSS custom properties instead of recreating components
+- [ ] Static styles are extracted outside component definitions
+- [ ] Bundle size impact is considered for CSS-in-JS runtime
+
+### Performance & Animation
+- [ ] Animations only use `transform` and `opacity` properties
+- [ ] `will-change` is used appropriately and cleaned up after animations
+- [ ] Critical CSS is identified and inlined for above-the-fold content
+- [ ] Layout-triggering properties are avoided in animations
+
+### Theming & Design Systems
+- [ ] Color tokens follow consistent semantic naming (primary, secondary, etc.)
+- [ ] Dark mode contrast ratios meet WCAG requirements
+- [ ] Theme switching avoids FOUC (Flash of Unstyled Content)
+- [ ] CSS custom properties have appropriate fallback values
+
+### Cross-browser & Accessibility
+- [ ] Progressive enhancement with `@supports` for modern CSS features
+- [ ] Color contrast ratios meet WCAG AA standards (4.5:1, 3:1 for large text)
+- [ ] Screen reader styles (`.sr-only`) are implemented correctly
+- [ ] Focus indicators are visible and meet contrast requirements
+- [ ] Text scales properly at 200% zoom without horizontal scroll
+
+### Responsive Design
+- [ ] Typography uses relative units and fluid scaling with `clamp()`
+- [ ] Images implement responsive patterns with `srcset` and `object-fit`
+- [ ] Breakpoints are tested at multiple screen sizes
+- [ ] Content reflows properly at 320px viewport width
+
 ## Problem Playbooks
 
 ### Layout & Responsive Design Issues

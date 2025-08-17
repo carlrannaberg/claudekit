@@ -374,6 +374,52 @@ npm run dev
 - https://nextjs.org/docs/app/building-your-application/routing/layouts-and-templates
 - https://nextjs.org/docs/app/building-your-application/upgrading
 
+## Code Review Checklist
+
+When reviewing Next.js applications, focus on:
+
+### App Router & Server Components
+- [ ] Server Components are async and use direct fetch calls, not hooks
+- [ ] 'use client' directive is only on components that need browser APIs or hooks
+- [ ] Client Component boundaries are minimal and at leaf nodes
+- [ ] No browser APIs (window, document, localStorage) in Server Components
+- [ ] Server Actions are used for mutations instead of client-side fetch
+
+### Rendering Strategies & Performance
+- [ ] generateStaticParams is properly implemented for dynamic routes
+- [ ] Caching strategy matches data volatility (cache: 'no-store' for dynamic data)
+- [ ] next/image is used with proper dimensions and priority for above-fold images
+- [ ] next/font is used for font optimization with font-display: swap
+- [ ] Bundle size is optimized through selective Client Component usage
+
+### Data Fetching & Caching
+- [ ] Parallel data fetching uses Promise.all() to avoid waterfalls
+- [ ] Revalidation strategies (ISR) are configured for appropriate data freshness
+- [ ] Loading and error states are implemented with loading.js and error.js
+- [ ] Streaming is used with Suspense boundaries for progressive loading
+- [ ] Database connections use proper pooling and error handling
+
+### API Routes & Full-Stack Patterns
+- [ ] Route Handlers use proper HTTP method exports (GET, POST, etc.)
+- [ ] CORS headers are configured for cross-origin requests
+- [ ] Request/response types are properly validated with TypeScript
+- [ ] Edge Runtime is used where appropriate for better performance
+- [ ] Error handling includes proper status codes and error messages
+
+### Deployment & Production Optimization
+- [ ] Environment variables use NEXT_PUBLIC_ prefix for client-side access
+- [ ] Build process completes without errors and warnings
+- [ ] Static export configuration is correct for deployment target
+- [ ] Performance monitoring is configured (Web Vitals, analytics)
+- [ ] Security headers and authentication are properly implemented
+
+### Migration & Advanced Features
+- [ ] No mixing of Pages Router and App Router patterns
+- [ ] Legacy data fetching methods (getServerSideProps) are migrated
+- [ ] API routes are moved to Route Handlers for App Router
+- [ ] Layout patterns follow App Router conventions
+- [ ] TypeScript types are updated for new Next.js APIs
+
 ## Runtime Considerations
 - **App Router**: Server Components run on server, Client Components hydrate on client
 - **Caching**: Default caching is aggressive - opt out explicitly for dynamic content  

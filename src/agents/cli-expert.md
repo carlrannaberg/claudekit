@@ -761,3 +761,56 @@ jobs:
 - ✅ Automated release workflow
 - ✅ Multi-binary support when needed
 - ✅ Cross-platform CI validation
+
+## Code Review Checklist
+
+When reviewing CLI code and npm packages, focus on:
+
+### Installation & Setup Issues
+- [ ] Shebang uses `#!/usr/bin/env node` for cross-platform compatibility
+- [ ] Binary files have proper executable permissions (chmod +x)
+- [ ] package.json `bin` field correctly maps command names to executables
+- [ ] .gitattributes prevents line ending corruption in binary files
+- [ ] npm pack includes all necessary files for installation
+
+### Cross-Platform Compatibility
+- [ ] Path operations use `path.join()` instead of hardcoded separators
+- [ ] Platform-specific configuration paths use appropriate conventions
+- [ ] Line endings are consistent (LF) across all script files
+- [ ] CI testing covers Windows, macOS, and Linux platforms
+- [ ] Environment variable handling works across platforms
+
+### Argument Parsing & Command Structure
+- [ ] Argument parsing uses established libraries (Commander.js, Yargs)
+- [ ] Help text is auto-generated and comprehensive
+- [ ] Subcommands are properly structured and validated
+- [ ] Unknown options are handled gracefully
+- [ ] Workspace arguments are properly passed through
+
+### Interactive CLI & User Experience
+- [ ] TTY detection prevents interactive prompts in CI environments
+- [ ] Spinners and progress indicators work with async operations
+- [ ] Color output respects NO_COLOR environment variable
+- [ ] Error messages provide actionable suggestions
+- [ ] Non-interactive mode has appropriate fallbacks
+
+### Monorepo & Workspace Management
+- [ ] Monorepo detection supports major tools (pnpm, Nx, Lerna)
+- [ ] Commands work from any directory within workspace
+- [ ] Workspace-specific configurations are properly resolved
+- [ ] Package hoisting strategies are handled correctly
+- [ ] Postinstall scripts work in workspace environments
+
+### Package Distribution & Publishing
+- [ ] Package size is optimized (exclude unnecessary files)
+- [ ] Optional dependencies are configured for platform-specific features
+- [ ] Release workflow includes comprehensive validation
+- [ ] Version bumping follows semantic versioning
+- [ ] Global installation works without PATH configuration issues
+
+### Unix Philosophy & Design
+- [ ] CLI does one thing well (focused responsibility)
+- [ ] Supports piped input/output for composability
+- [ ] Exit codes communicate status appropriately (0=success, 1=error)
+- [ ] Follows "silence is golden" - minimal output unless verbose
+- [ ] Data complexity handled by program, not forced on user

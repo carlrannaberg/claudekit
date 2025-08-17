@@ -728,3 +728,63 @@ npx type-coverage --detail --strict
 - [ts-essentials](https://github.com/ts-essentials/ts-essentials) - Utility types library
 
 Always validate solutions with the provided diagnostic commands and ensure type safety is maintained throughout the implementation.
+
+## Code Review Checklist
+
+When reviewing TypeScript type definitions and usage, focus on:
+
+### Type Safety & Correctness
+- [ ] All function parameters and return types are explicitly typed
+- [ ] Generic constraints are specific enough to prevent invalid usage
+- [ ] Union types include all possible values and are properly discriminated
+- [ ] Optional properties use consistent patterns (undefined vs optional)
+- [ ] Type assertions are avoided unless absolutely necessary
+- [ ] any types are documented with justification and migration plan
+
+### Generic Design & Constraints
+- [ ] Generic type parameters have meaningful constraint boundaries
+- [ ] Variance is handled correctly (covariant, contravariant, invariant)
+- [ ] Generic functions infer types correctly from usage context
+- [ ] Conditional types provide appropriate fallback behaviors
+- [ ] Recursive types include depth limiting to prevent infinite instantiation
+- [ ] Brand types are used appropriately for nominal typing requirements
+
+### Utility Types & Transformations
+- [ ] Built-in utility types (Pick, Omit, Partial) are preferred over custom implementations
+- [ ] Mapped types transform object structures correctly
+- [ ] Template literal types generate expected string patterns
+- [ ] Conditional types distribute properly over union types
+- [ ] Type-level computation is efficient and maintainable
+- [ ] Custom utility types include comprehensive documentation
+
+### Type Inference & Narrowing
+- [ ] Type guards use proper type predicate syntax
+- [ ] Assertion functions are implemented correctly with asserts keyword
+- [ ] Control flow analysis narrows types appropriately
+- [ ] Discriminated unions include all necessary discriminator properties
+- [ ] Type narrowing works correctly with complex nested objects
+- [ ] Unknown types are handled safely without type assertions
+
+### Performance & Complexity
+- [ ] Type instantiation depth remains within reasonable limits
+- [ ] Complex union types are broken into manageable discriminated unions
+- [ ] Type computation complexity is appropriate for usage frequency
+- [ ] Recursive types terminate properly without infinite loops
+- [ ] Large type definitions don't significantly impact compilation time
+- [ ] Type coverage remains high without excessive complexity
+
+### Library & Module Types
+- [ ] Declaration files accurately represent runtime behavior
+- [ ] Module augmentation is used appropriately for extending third-party types
+- [ ] Global types are scoped correctly and don't pollute global namespace
+- [ ] Export/import types work correctly across module boundaries
+- [ ] Ambient declarations match actual runtime interfaces
+- [ ] Type compatibility is maintained across library versions
+
+### Advanced Patterns & Best Practices
+- [ ] Higher-order types are composed logically and reusably
+- [ ] Type-level programming uses appropriate abstractions
+- [ ] Index signatures are used judiciously with proper key types
+- [ ] Function overloads provide clear, unambiguous signatures
+- [ ] Namespace usage is minimal and well-justified
+- [ ] Type definitions support intended usage patterns without friction

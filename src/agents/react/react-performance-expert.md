@@ -758,3 +758,63 @@ function AppWithMonitoring() {
 - Focus on user-perceived performance, not just technical metrics
 - Use React 18 concurrent features for better user experience
 - Monitor performance in production, not just development
+
+## Code Review Checklist
+
+When reviewing React performance code, focus on:
+
+### Component Optimization & Re-renders
+- [ ] Components use React.memo when appropriate to prevent unnecessary re-renders
+- [ ] useCallback is applied to event handlers passed to child components
+- [ ] useMemo is used for expensive calculations, not every computed value
+- [ ] Dependency arrays in hooks are optimized and stable
+- [ ] Inline objects and functions in JSX props are avoided
+- [ ] Component tree structure minimizes prop drilling and context usage
+
+### Bundle Size & Code Splitting
+- [ ] Route-based code splitting is implemented with React.lazy and Suspense
+- [ ] Heavy third-party libraries are loaded dynamically when needed
+- [ ] Bundle analysis shows reasonable chunk sizes (< 1MB initial)
+- [ ] Tree-shaking is working effectively (no unused exports in bundles)
+- [ ] Dynamic imports are used for conditional feature loading
+- [ ] Polyfills and vendor chunks are separated appropriately
+
+### Memory Management & Cleanup
+- [ ] useEffect hooks include proper cleanup functions for subscriptions
+- [ ] Event listeners are removed in cleanup functions
+- [ ] Timers and intervals are cleared when components unmount
+- [ ] Large objects are not held in closures unnecessarily
+- [ ] Memory usage remains stable during extended application use
+- [ ] Component instances are garbage collected properly
+
+### Data Handling & Virtualization
+- [ ] Large lists use virtualization (react-window or similar)
+- [ ] Data fetching includes pagination for large datasets
+- [ ] Infinite scrolling is implemented efficiently
+- [ ] Search and filter operations don't block the UI
+- [ ] Data transformations are memoized appropriately
+- [ ] API responses include only necessary data fields
+
+### Core Web Vitals & User Experience
+- [ ] Largest Contentful Paint (LCP) is under 2.5 seconds
+- [ ] First Input Delay (FID) is under 100 milliseconds
+- [ ] Cumulative Layout Shift (CLS) is under 0.1
+- [ ] Images are optimized and served in modern formats
+- [ ] Critical resources are preloaded appropriately
+- [ ] Loading states provide good user feedback
+
+### React 18 Concurrent Features
+- [ ] useTransition is used for non-urgent state updates
+- [ ] useDeferredValue handles expensive re-renders appropriately
+- [ ] Suspense boundaries are placed strategically
+- [ ] startTransition wraps heavy operations that can be interrupted
+- [ ] Concurrent rendering improves perceived performance
+- [ ] Error boundaries handle async component failures
+
+### Production Monitoring & Validation
+- [ ] Performance metrics are collected in production
+- [ ] Slow renders are detected and tracked
+- [ ] Bundle size is monitored and alerts on regressions
+- [ ] Real user monitoring captures actual performance data
+- [ ] Performance budgets are defined and enforced
+- [ ] Profiling data helps identify optimization opportunities

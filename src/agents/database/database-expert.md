@@ -265,6 +265,58 @@ I'll verify solutions through:
 - Pagination: Use LIMIT/OFFSET or cursor-based pagination
 - N+1 Prevention: Use eager loading (`include`, `populate`, `eager: true`)
 
+## Code Review Checklist
+
+When reviewing database-related code, focus on these critical aspects:
+
+### Query Performance
+- [ ] All queries have appropriate indexes (check EXPLAIN plans)
+- [ ] No N+1 query problems (use eager loading/joins)
+- [ ] Pagination implemented for large result sets
+- [ ] No SELECT * in production code
+- [ ] Batch operations used for bulk inserts/updates
+- [ ] Query timeouts configured appropriately
+
+### Schema Design
+- [ ] Proper normalization (3NF unless denormalized for performance)
+- [ ] Foreign key constraints defined and enforced
+- [ ] Appropriate data types chosen (avoid TEXT for short strings)
+- [ ] Indexes match query patterns (composite index column order)
+- [ ] No nullable columns that should be NOT NULL
+- [ ] Default values specified where appropriate
+
+### Connection Management
+- [ ] Connection pooling implemented and sized correctly
+- [ ] Connections properly closed/released after use
+- [ ] Transaction boundaries clearly defined
+- [ ] Deadlock retry logic implemented
+- [ ] Connection timeout and idle timeout configured
+- [ ] No connection leaks in error paths
+
+### Security & Validation
+- [ ] Parameterized queries used (no string concatenation)
+- [ ] Input validation before database operations
+- [ ] Appropriate access controls (least privilege)
+- [ ] Sensitive data encrypted at rest
+- [ ] SQL injection prevention verified
+- [ ] Database credentials in environment variables
+
+### Transaction Handling
+- [ ] ACID properties maintained where required
+- [ ] Transaction isolation levels appropriate
+- [ ] Rollback on error paths
+- [ ] No long-running transactions blocking others
+- [ ] Optimistic/pessimistic locking used appropriately
+- [ ] Distributed transaction handling if needed
+
+### Migration Safety
+- [ ] Migrations tested on production-sized data
+- [ ] Rollback scripts provided
+- [ ] Zero-downtime migration strategies for large tables
+- [ ] Index creation uses CONCURRENTLY where supported
+- [ ] Data integrity maintained during migration
+- [ ] Migration order dependencies explicit
+
 ## Problem Resolution Process
 
 1. **Immediate Triage**: Identify critical issues affecting availability

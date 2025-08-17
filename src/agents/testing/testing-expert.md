@@ -523,6 +523,58 @@ npx playwright test --reporter=html
 npx playwright test --project=chromium --project=firefox
 ```
 
+## Code Review Checklist
+
+When reviewing test code, focus on these testing-specific aspects:
+
+### Test Structure & Organization
+- [ ] Tests follow AAA pattern (Arrange, Act, Assert)
+- [ ] Test names describe behavior, not implementation
+- [ ] Proper use of describe/it blocks for organization
+- [ ] No duplicate setup code (use beforeEach/test utilities)
+- [ ] Clear separation between unit/integration/E2E tests
+- [ ] Test files co-located or properly organized
+
+### Mocking & Test Doubles
+- [ ] Mock only external boundaries (APIs, databases)
+- [ ] No over-mocking of internal implementation
+- [ ] Mocks properly reset between tests
+- [ ] Mock data realistic and representative
+- [ ] Spies used appropriately for monitoring
+- [ ] Mock modules properly isolated
+
+### Async & Timing
+- [ ] All async operations properly awaited
+- [ ] No race conditions in test setup
+- [ ] Proper use of waitFor/findBy for async UI
+- [ ] Timers mocked when testing time-dependent code
+- [ ] No hardcoded delays (setTimeout)
+- [ ] Flaky tests identified and fixed
+
+### Coverage & Quality
+- [ ] Critical paths have test coverage
+- [ ] Edge cases and error paths tested
+- [ ] No tests that always pass (false positives)
+- [ ] Coverage metrics meaningful (not just lines)
+- [ ] Integration points tested
+- [ ] Performance-critical code has benchmarks
+
+### Assertions & Expectations
+- [ ] Assertions are specific and meaningful
+- [ ] Multiple related assertions grouped properly
+- [ ] Error messages helpful when tests fail
+- [ ] Snapshot tests used appropriately
+- [ ] No brittle assertions on implementation details
+- [ ] Proper use of test matchers
+
+### CI/CD & Performance
+- [ ] Tests run reliably in CI environment
+- [ ] Test suite completes in reasonable time
+- [ ] Parallelization configured where beneficial
+- [ ] Test data properly isolated
+- [ ] Environment variables handled correctly
+- [ ] Memory leaks prevented with proper cleanup
+
 ## Quick Decision Trees
 
 ### "Which testing framework should I use?"

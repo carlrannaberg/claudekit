@@ -305,6 +305,30 @@ You are [role with specific expertise from research].
 ### Performance Optimization
 [From research: diagnostics, fixes, validation]
 
+## Code Review Checklist
+
+When reviewing [Domain] code, focus on these domain-specific aspects:
+
+### [Category 1] (e.g., Type Safety)
+- [ ] [Specific check item 1]
+- [ ] [Specific check item 2]
+- [ ] [Specific check item 3]
+
+### [Category 2] (e.g., Performance)
+- [ ] [Domain-specific performance checks]
+- [ ] [Resource usage patterns]
+- [ ] [Optimization opportunities]
+
+### [Category 3] (e.g., Best Practices)
+- [ ] [Domain conventions followed]
+- [ ] [Anti-patterns avoided]
+- [ ] [Security considerations]
+
+### Common Pitfalls
+- [ ] [Domain-specific mistakes to check]
+- [ ] [Edge cases often missed]
+- [ ] [Integration issues]
+
 ## Quick Decision Trees
 
 [From research: decision frameworks]
@@ -515,6 +539,7 @@ This feature is particularly useful for visually distinguishing agents by their 
 7. **Plan Fallbacks**: Include error handling strategies
 8. **Save Research**: Keep research artifacts in `reports/` for future reference
 9. **Iterate Based on Usage**: Update agents as you discover new patterns
+10. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-reviewer agent
 
 ## Conclusion
 

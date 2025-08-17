@@ -256,6 +256,64 @@ signal.addEventListener('abort', () => {
 2. Better: Implement provider health checks
 3. Best: Use provider fallback chain with monitoring
 
+## Code Review Checklist
+
+When reviewing AI SDK code, focus on these domain-specific aspects:
+
+### Streaming & Real-time Responses
+- [ ] Headers include `Content-Type: text/event-stream` for streaming endpoints
+- [ ] StreamingTextResponse is used correctly with proper response handling
+- [ ] Client-side parsing handles JSON chunks and stream termination gracefully
+- [ ] Error boundaries catch and recover from stream parsing failures
+- [ ] Stream chunks arrive progressively without buffering delays
+- [ ] AbortController signals are properly configured and handled
+- [ ] Stream transformations don't conflict with tool calling
+
+### Model Provider Integration  
+- [ ] Required environment variables (API keys) are present and valid
+- [ ] Provider imports use correct v5 namespace (`@ai-sdk/openai`, etc.)
+- [ ] Model identifiers match provider documentation (e.g., `gpt-5`, `claude-opus-4.1`)
+- [ ] Provider capabilities are validated before use (e.g., tool calling support)
+- [ ] Fallback providers are configured for production resilience
+- [ ] Provider-specific errors are handled appropriately
+- [ ] Rate limiting and retry logic is implemented
+
+### Tool Calling & Structured Outputs
+- [ ] Tool schemas use `inputSchema` (v5) instead of `parameters` (v4)
+- [ ] Zod schemas match tool interface definitions exactly
+- [ ] Tool execution functions handle errors and edge cases
+- [ ] Tool parts ordering is correct and validated
+- [ ] Structured outputs use `generateObject` with proper schema validation
+- [ ] Tool results are properly typed and validated
+- [ ] Provider-executed tools are configured correctly when needed
+
+### React Hooks & State Management
+- [ ] useEffect dependencies are complete and accurate
+- [ ] State updates are not triggered during render cycles
+- [ ] Hook rules are followed (no conditional calls, proper cleanup)
+- [ ] Expensive operations are memoized with useMemo/useCallback
+- [ ] Custom hooks abstract complex logic properly
+- [ ] Component re-renders are minimized and intentional
+- [ ] Chat/completion state is managed correctly
+
+### Edge Runtime Optimization
+- [ ] No Node.js-only modules (fs, path, crypto) in edge functions
+- [ ] Bundle size is optimized with dynamic imports and tree shaking
+- [ ] Memory usage stays within edge runtime limits
+- [ ] Cold start performance is acceptable (<500ms first byte)
+- [ ] Edge-compatible dependencies are used
+- [ ] Bundle analysis shows no unexpected large dependencies
+- [ ] Runtime environment detection works correctly
+
+### Production Patterns
+- [ ] Comprehensive error handling with specific error types
+- [ ] Exponential backoff implemented for rate limit errors
+- [ ] Token limit errors trigger content truncation or summarization
+- [ ] Network timeouts have appropriate retry mechanisms
+- [ ] API errors fallback to alternative providers when possible
+- [ ] Monitoring and logging capture relevant metrics
+- [ ] Graceful degradation when AI services are unavailable
+
 ## Quick Decision Trees
 
 ### Choosing Streaming Method

@@ -711,3 +711,55 @@ I'll verify solutions through MongoDB-specific monitoring:
 6. **Monitoring Setup**: Establish comprehensive performance and health monitoring
 
 I'll now analyze your specific MongoDB environment and provide targeted recommendations based on the detected configuration and reported issues.
+
+## Code Review Checklist
+
+When reviewing MongoDB-related code, focus on:
+
+### Document Modeling & Schema Design
+- [ ] Document structure follows MongoDB best practices (embedded vs referenced data)
+- [ ] Array fields are bounded and won't grow excessively over time
+- [ ] Document size will stay well under 16MB limit with expected data growth
+- [ ] Relationships follow the "principle of least cardinality" (references on many side)
+- [ ] Schema validation rules are implemented for data integrity
+- [ ] Indexes support the query patterns used in the code
+
+### Query Optimization & Performance
+- [ ] Queries use appropriate indexes (no unnecessary COLLSCAN operations)
+- [ ] Aggregation pipelines place $match stages early for filtering
+- [ ] Query projections only return necessary fields to reduce network overhead
+- [ ] Compound indexes follow ESR rule (Equality, Sort, Range) for optimal performance
+- [ ] Query hints are used when automatic index selection is suboptimal
+- [ ] Pagination uses cursor-based approach instead of skip/limit for large datasets
+
+### Index Strategy & Maintenance
+- [ ] Indexes support common query patterns and sort requirements
+- [ ] Compound indexes are designed with optimal field ordering
+- [ ] Partial indexes are used where appropriate to reduce storage overhead
+- [ ] Text indexes are configured properly for search functionality
+- [ ] Index usage is monitored and unused indexes are identified for removal
+- [ ] Background index creation is used for production deployments
+
+### Connection & Error Handling
+- [ ] Connection pool is configured appropriately for application load
+- [ ] Connection timeouts and retry logic handle network issues gracefully
+- [ ] Database operations include proper error handling and logging
+- [ ] Transactions are used appropriately for multi-document operations
+- [ ] Connection cleanup is handled properly in all code paths
+- [ ] Environment variables are used for connection strings and credentials
+
+### Aggregation & Data Processing
+- [ ] Aggregation pipelines are optimized for sharded cluster pushdown
+- [ ] Memory-intensive aggregations use allowDiskUse option when needed
+- [ ] Pipeline stages are ordered for optimal performance
+- [ ] Group operations use shard key fields when possible for better distribution
+- [ ] Complex aggregations are broken into smaller, reusable pipeline stages
+- [ ] Result size limitations are considered for large aggregation outputs
+
+### Security & Production Readiness
+- [ ] Database credentials are stored securely and not hardcoded
+- [ ] Input validation prevents NoSQL injection attacks
+- [ ] Database user permissions follow principle of least privilege
+- [ ] Sensitive data is encrypted at rest and in transit
+- [ ] Database operations are logged appropriately for audit purposes
+- [ ] Backup and recovery procedures are tested and documented

@@ -399,6 +399,50 @@ module.exports = {
 4. **Poor error messages**: Generic failures without actionable guidance
 5. **Big bang adoption**: Introducing all standards at once without gradual migration
 
+## Code Review Checklist
+
+When reviewing code quality and linting configurations, focus on:
+
+### Configuration Standards
+- [ ] ESLint configuration follows project standards and extends recommended rules
+- [ ] Prettier configuration is consistent across team and integrated with ESLint
+- [ ] TypeScript strict mode is enabled with appropriate rule exclusions documented
+- [ ] Git hooks (pre-commit, pre-push) enforce quality standards automatically
+- [ ] CI/CD pipeline includes linting, formatting, and quality checks
+- [ ] Quality gate thresholds are realistic and consistently applied
+
+### Code Quality Metrics
+- [ ] Code complexity metrics are within acceptable thresholds (cyclomatic < 10)
+- [ ] Test coverage meets minimum requirements (80%+ for critical paths)
+- [ ] No TODO/FIXME comments in production code without tracking tickets
+- [ ] Dead code and unused imports have been removed
+- [ ] Code duplication is below acceptable threshold (< 3%)
+- [ ] Performance linting rules flag potential optimization opportunities
+
+### Security & Dependencies
+- [ ] No security vulnerabilities in dependencies (npm audit clean)
+- [ ] Sensitive data is not hardcoded in source files
+- [ ] Input validation and sanitization patterns are followed
+- [ ] Authentication and authorization checks are properly implemented
+- [ ] Error handling doesn't expose sensitive information
+- [ ] Dependency updates follow security best practices
+
+### Documentation & Standards
+- [ ] Public APIs have comprehensive JSDoc documentation
+- [ ] Code follows consistent naming conventions and style guidelines
+- [ ] Complex business logic includes explanatory comments
+- [ ] Architecture decisions are documented and rationale provided
+- [ ] Breaking changes are clearly documented and versioned
+- [ ] Code review feedback has been addressed and lessons learned applied
+
+### Automation & Maintenance
+- [ ] Quality tools run efficiently without blocking development workflow
+- [ ] False positives are properly excluded with documented justification
+- [ ] Quality metrics trend positively over time
+- [ ] Team training on quality standards is up to date
+- [ ] Quality tool configurations are version controlled and reviewed
+- [ ] Performance impact of quality tools is monitored and optimized
+
 ## Official Documentation References
 
 - [ESLint Configuration Guide](https://eslint.org/docs/latest/user-guide/configuring/)

@@ -713,3 +713,63 @@ I verify PostgreSQL optimizations through:
 - WAL archiving enables point-in-time recovery
 
 I'll now analyze your PostgreSQL environment and provide targeted optimizations based on the detected version, configuration, and reported performance issues.
+
+## Code Review Checklist
+
+When reviewing PostgreSQL database code, focus on:
+
+### Query Performance & Optimization
+- [ ] All queries use appropriate indexes (check EXPLAIN ANALYZE output)
+- [ ] Query execution plans show efficient access patterns (no unnecessary seq scans)
+- [ ] WHERE clause conditions are in optimal order for index usage
+- [ ] JOINs use proper index strategies and avoid cartesian products
+- [ ] Complex queries are broken down or use CTEs for readability and performance
+- [ ] Query hints are used sparingly and only when necessary
+
+### Index Strategy & Design
+- [ ] Indexes support common query patterns and WHERE clause conditions
+- [ ] Composite indexes follow proper column ordering (equality, sort, range)
+- [ ] Partial indexes are used for filtered datasets to reduce storage
+- [ ] Unique constraints and indexes prevent data duplication appropriately
+- [ ] Index maintenance operations are scheduled during low-traffic periods
+- [ ] Unused indexes are identified and removed to improve write performance
+
+### JSONB & Advanced Features
+- [ ] JSONB operations use appropriate GIN indexes (jsonb_ops vs jsonb_path_ops)
+- [ ] JSONPath queries are optimized and use indexes effectively
+- [ ] Full-text search implementations use proper tsvector indexing
+- [ ] PostgreSQL extensions are used appropriately and documented
+- [ ] Advanced data types (arrays, hstore, etc.) are indexed properly
+- [ ] JSONB schema is validated to ensure data consistency
+
+### Schema Design & Constraints
+- [ ] Table structure follows normalization principles appropriately
+- [ ] Foreign key constraints maintain referential integrity
+- [ ] Check constraints validate data at database level
+- [ ] Data types are chosen optimally for storage and performance
+- [ ] Table partitioning is implemented where beneficial for large datasets
+- [ ] Sequence usage and identity columns are configured properly
+
+### Connection & Transaction Management
+- [ ] Database connections are pooled appropriately (PgBouncer configuration)
+- [ ] Connection limits are set based on actual application needs
+- [ ] Transaction isolation levels are appropriate for business requirements
+- [ ] Long-running transactions are avoided or properly managed
+- [ ] Deadlock potential is minimized through consistent lock ordering
+- [ ] Connection cleanup is handled properly in error scenarios
+
+### Security & Access Control
+- [ ] Database credentials are stored securely and rotated regularly
+- [ ] User roles follow principle of least privilege
+- [ ] Row-level security is implemented where appropriate
+- [ ] SQL injection vulnerabilities are prevented through parameterized queries
+- [ ] SSL/TLS encryption is configured for data in transit
+- [ ] Audit logging captures necessary security events
+
+### Maintenance & Operations
+- [ ] VACUUM and ANALYZE operations are scheduled appropriately
+- [ ] Autovacuum settings are tuned for table characteristics
+- [ ] Backup and recovery procedures are tested and documented
+- [ ] Monitoring covers key performance metrics and alerts
+- [ ] Database configuration is optimized for available hardware
+- [ ] Replication setup (if any) is properly configured and monitored

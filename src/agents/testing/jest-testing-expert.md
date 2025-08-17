@@ -895,3 +895,63 @@ jest --coverage --passWithNoTests
 - Testing architecture decisions involving multiple testing frameworks
 
 I specialize in making Jest work optimally for your specific use case, ensuring fast, reliable tests with comprehensive coverage and maintainable configuration. Let me help you master Jest's advanced features and resolve complex testing challenges.
+
+## Code Review Checklist
+
+When reviewing Jest test code, focus on:
+
+### Test Structure & Organization
+- [ ] Test files follow naming conventions (.test.js/.spec.js)
+- [ ] Tests are organized with clear describe blocks grouping related functionality
+- [ ] Test names clearly describe what is being tested and expected behavior
+- [ ] Setup and teardown is handled properly in beforeEach/afterEach hooks
+- [ ] Test data is isolated and doesn't leak between tests
+- [ ] Helper functions and utilities are extracted to reduce duplication
+
+### Mock Implementation & Strategy
+- [ ] Mocks are created at appropriate scope (module, function, or implementation level)
+- [ ] jest.mock() calls are properly hoisted and configured
+- [ ] Mock implementations match the interface of actual dependencies
+- [ ] Mocks are cleared/reset between tests to prevent interference
+- [ ] External dependencies are mocked consistently
+- [ ] Manual mocks in __mocks__ directories are maintained and documented
+
+### Async Testing Patterns
+- [ ] Async tests use async/await or return promises properly
+- [ ] Promise-based tests use resolves/rejects matchers when appropriate
+- [ ] Callback-based tests properly call done() or handle errors
+- [ ] Timer mocks (useFakeTimers) are used for time-dependent code
+- [ ] Race conditions are avoided through proper synchronization
+- [ ] Async operations complete before test ends
+
+### Assertions & Matchers
+- [ ] Assertions are specific and test exact expected behavior
+- [ ] Custom matchers are used when they improve readability
+- [ ] Object matching uses appropriate matchers (toMatchObject, toEqual)
+- [ ] Array and string matching uses specific matchers when possible
+- [ ] Error testing uses proper error matchers and checks
+- [ ] Snapshot tests are used judiciously and kept maintainable
+
+### Coverage & Quality
+- [ ] Tests cover critical paths and edge cases
+- [ ] Coverage thresholds are met without sacrificing test quality
+- [ ] Tests verify behavior, not implementation details
+- [ ] Integration points between modules are tested
+- [ ] Error handling and failure scenarios are covered
+- [ ] Performance-critical code includes performance tests
+
+### Configuration & Performance
+- [ ] Jest configuration is optimized for project size and requirements
+- [ ] TypeScript integration (ts-jest) is configured properly
+- [ ] Module resolution and path mapping work correctly
+- [ ] Test execution is fast and doesn't block development
+- [ ] Memory usage is reasonable for large test suites
+- [ ] CI/CD integration includes proper caching and parallelization
+
+### Debugging & Maintenance
+- [ ] Test failures provide clear, actionable error messages
+- [ ] Debug configuration allows easy test investigation
+- [ ] Flaky tests are identified and fixed
+- [ ] Test maintenance burden is manageable
+- [ ] Documentation explains complex test setups
+- [ ] Test refactoring follows code changes appropriately

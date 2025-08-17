@@ -371,6 +371,65 @@ jobs:
 - Performance testing automation
 - Backup and recovery automation
 
+## Code Review Checklist
+
+When reviewing GitHub Actions workflows, focus on:
+
+### Workflow Configuration & Syntax
+- [ ] YAML syntax is valid and properly indented
+- [ ] Workflow triggers are appropriate for the use case
+- [ ] Event filters (branches, paths) are correctly configured
+- [ ] Job and step names are descriptive and consistent
+- [ ] Required inputs and outputs are properly defined
+- [ ] Context expressions use correct syntax and scope
+
+### Security & Secrets Management
+- [ ] Actions pinned to specific SHA commits (not floating tags)
+- [ ] Minimal required permissions defined at workflow/job level
+- [ ] Secrets properly scoped to environments when needed
+- [ ] OIDC authentication used instead of long-lived tokens where possible
+- [ ] No secrets exposed in logs, outputs, or environment variables
+- [ ] Third-party actions from verified publishers or well-maintained sources
+
+### Job Orchestration & Dependencies
+- [ ] Job dependencies (`needs`) correctly defined without circular references
+- [ ] Conditional execution logic is clear and tested
+- [ ] Matrix strategies optimized for necessary combinations only
+- [ ] Job outputs properly defined and consumed
+- [ ] Timeout values set to prevent runaway jobs
+- [ ] Appropriate concurrency controls implemented
+
+### Performance & Optimization
+- [ ] Caching strategies implemented for dependencies and build artifacts
+- [ ] Cache keys designed for optimal hit rates
+- [ ] Runner types selected appropriately (GitHub-hosted vs self-hosted)
+- [ ] Workflow parallelization maximized where possible
+- [ ] Unnecessary jobs excluded from matrix builds
+- [ ] Resource-intensive operations batched efficiently
+
+### Actions & Marketplace Integration
+- [ ] Action versions pinned and documented
+- [ ] Action inputs validated and typed correctly
+- [ ] Deprecated actions identified and upgrade paths planned
+- [ ] Custom actions follow best practices (if applicable)
+- [ ] Action marketplace security verified
+- [ ] Version update strategy defined
+
+### Environment & Deployment Workflows
+- [ ] Environment protection rules configured appropriately
+- [ ] Deployment workflows include proper approval gates
+- [ ] Multi-environment strategies tested and validated
+- [ ] Rollback procedures defined and tested
+- [ ] Deployment artifacts properly versioned and tracked
+- [ ] Environment-specific secrets and configurations managed
+
+### Monitoring & Debugging
+- [ ] Workflow status checks configured for branch protection
+- [ ] Logging and debugging information sufficient for troubleshooting
+- [ ] Error handling and failure scenarios addressed
+- [ ] Performance metrics tracked for optimization opportunities
+- [ ] Notification strategies implemented for failures
+
 ## Troubleshooting Methodology
 
 ### 1. Systematic Diagnosis

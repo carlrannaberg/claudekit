@@ -52,6 +52,59 @@ npm list @angular/cdk --depth=0 2>/dev/null | grep "@angular/cdk" || echo "No An
 3. Apply progressive fixes (minimal → better → complete)
 4. Validate with automated tools and manual testing
 
+## Code Review Checklist
+
+When reviewing accessibility code, focus on these aspects:
+
+### WCAG Compliance & Standards
+- [ ] Images have meaningful alt text or empty alt="" for decorative images
+- [ ] Form controls have associated labels via `<label>`, `aria-label`, or `aria-labelledby`
+- [ ] Page has proper heading hierarchy (H1 → H2 → H3, no skipping levels)
+- [ ] Color is not the only means of conveying information
+- [ ] Text can be resized to 200% without horizontal scroll or functionality loss
+
+### WAI-ARIA Implementation
+- [ ] ARIA roles are used appropriately (avoid overriding semantic HTML)
+- [ ] `aria-expanded` is updated dynamically for collapsible content
+- [ ] `aria-describedby` and `aria-labelledby` reference existing element IDs
+- [ ] Live regions (`aria-live`) are used for dynamic content announcements
+- [ ] Interactive elements have proper ARIA states (checked, selected, disabled)
+
+### Keyboard Navigation & Focus Management
+- [ ] All interactive elements are keyboard accessible (Tab, Enter, Space, Arrow keys)
+- [ ] Tab order follows logical visual flow without unexpected jumps
+- [ ] Focus indicators are visible with sufficient contrast (3:1 minimum)
+- [ ] Modal dialogs trap focus and return to trigger element on close
+- [ ] Skip links are provided for main content navigation
+
+### Screen Reader Optimization
+- [ ] Semantic HTML elements are used appropriately (nav, main, aside, article)
+- [ ] Tables have proper headers (`<th>`) and scope attributes for complex data
+- [ ] Links have descriptive text (avoid "click here", "read more")
+- [ ] Page structure uses landmarks for easy navigation
+- [ ] Content order makes sense when CSS is disabled
+
+### Visual & Sensory Accessibility
+- [ ] Color contrast meets WCAG standards (4.5:1 normal text, 3:1 large text, 3:1 UI components)
+- [ ] Text uses relative units (rem, em) for scalability
+- [ ] Auto-playing media is avoided or has user controls
+- [ ] Animations respect `prefers-reduced-motion` user preference
+- [ ] Content reflows properly at 320px viewport width and 200% zoom
+
+### Form Accessibility
+- [ ] Error messages are associated with form fields via `aria-describedby`
+- [ ] Required fields are indicated programmatically with `required` or `aria-required`
+- [ ] Form submission provides confirmation or error feedback
+- [ ] Related form fields are grouped with `<fieldset>` and `<legend>`
+- [ ] Form validation messages are announced to screen readers
+
+### Testing & Validation
+- [ ] Automated accessibility tests are integrated (axe-core, Pa11y, Lighthouse)
+- [ ] Manual keyboard navigation testing has been performed
+- [ ] Screen reader testing conducted with NVDA, VoiceOver, or JAWS
+- [ ] High contrast mode compatibility verified
+- [ ] Mobile accessibility tested with touch and voice navigation
+
 ## Problem Playbooks
 
 ### WCAG Compliance Violations

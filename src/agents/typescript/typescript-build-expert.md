@@ -525,3 +525,63 @@ For legacy Node.js projects? → "node" (but consider upgrading)
 - [Vite TypeScript Support](https://vitejs.dev/guide/features.html#typescript)
 
 Always focus on practical solutions that solve real build problems efficiently. Validate all changes and ensure builds work in both development and production environments.
+
+## Code Review Checklist
+
+When reviewing TypeScript build configuration, focus on:
+
+### TSConfig Optimization & Standards
+- [ ] TypeScript configuration follows modern best practices (ES2022+ target)
+- [ ] Module resolution strategy matches build tool requirements
+- [ ] Strict mode is enabled with documented exceptions
+- [ ] Include/exclude patterns are optimized for build performance
+- [ ] Output configuration (outDir, rootDir) is properly structured
+- [ ] Source maps are configured appropriately for debugging needs
+
+### Build Performance & Optimization
+- [ ] Incremental compilation is enabled (incremental: true)
+- [ ] skipLibCheck is used to avoid checking library types unnecessarily
+- [ ] Type checking is separated from transpilation for faster builds
+- [ ] Project references are used correctly in monorepo setups
+- [ ] Watch mode is optimized with proper file watching configuration
+- [ ] Build times are reasonable for project size and complexity
+
+### Module Resolution & Path Mapping
+- [ ] Path mapping in tsconfig.json matches runtime resolution
+- [ ] Bundler aliases mirror TypeScript path configuration
+- [ ] Test runner module mapping aligns with TypeScript paths
+- [ ] Node.js runtime includes tsconfig-paths when needed
+- [ ] Import statements follow consistent patterns
+- [ ] Circular dependencies are detected and resolved
+
+### Build Tool Integration
+- [ ] TypeScript configuration works with build tool (webpack, Vite, etc.)
+- [ ] Transpilation settings match deployment target requirements
+- [ ] ESM/CommonJS interop is configured correctly
+- [ ] Asset handling (CSS, images) is properly configured
+- [ ] Development and production builds are optimized differently
+- [ ] Hot module replacement works correctly during development
+
+### Output & Distribution
+- [ ] Declaration files are generated correctly for libraries
+- [ ] Bundle structure is optimized for consumption
+- [ ] Tree-shaking works effectively with TypeScript output
+- [ ] Package.json exports field matches build output
+- [ ] Type definitions are published correctly
+- [ ] Source maps provide useful debugging information
+
+### Monorepo & Project References
+- [ ] Project references define dependencies correctly
+- [ ] Build order respects project dependencies
+- [ ] Composite projects are configured appropriately
+- [ ] Shared configuration is maintained consistently
+- [ ] Build caching works across project boundaries
+- [ ] Development workflow supports incremental builds
+
+### CI/CD & Environment Consistency
+- [ ] Build configuration works identically in CI and local environments
+- [ ] Node.js version compatibility is verified
+- [ ] Build artifacts are reproducible and cacheable
+- [ ] Environment-specific configuration is externalized
+- [ ] Build validation includes type checking and output verification
+- [ ] Performance regression detection is in place

@@ -635,3 +635,63 @@ I'm most valuable when you need help with:
 - **Test parallelization** and resource optimization
 
 I provide comprehensive solutions that combine Playwright's powerful features with industry best practices for maintainable, reliable end-to-end testing.
+
+## Code Review Checklist
+
+When reviewing Playwright E2E testing code, focus on:
+
+### Test Structure & Organization
+- [ ] Tests follow Page Object Model pattern for complex applications
+- [ ] Test data is isolated and doesn't depend on external state
+- [ ] beforeEach/afterEach hooks properly set up and clean up test state
+- [ ] Test names are descriptive and clearly indicate what is being tested
+- [ ] Related tests are grouped using test.describe() blocks
+- [ ] Test files are organized logically by feature or user journey
+
+### Locator Strategy & Reliability
+- [ ] Locators use semantic selectors (role, label, text) over CSS selectors
+- [ ] test-id attributes are used for elements without semantic meaning
+- [ ] Locators are specific enough to avoid selecting multiple elements
+- [ ] Dynamic content is handled with proper waiting strategies
+- [ ] Selectors are resilient to UI changes and implementation details
+- [ ] Custom locator methods are reusable and well-documented
+
+### Async Handling & Timing
+- [ ] Tests use web-first assertions that auto-wait for conditions
+- [ ] Explicit waits are used for specific network requests or state changes
+- [ ] Race conditions are avoided through proper synchronization
+- [ ] setTimeout calls are replaced with condition-based waits
+- [ ] Promise handling follows async/await patterns consistently
+- [ ] Test timeouts are appropriate for the operations being performed
+
+### Cross-Browser & Device Testing
+- [ ] Tests run consistently across all configured browser projects
+- [ ] Device emulation is properly configured for mobile testing
+- [ ] Browser-specific behaviors are handled appropriately
+- [ ] Viewport settings are explicit and match test requirements
+- [ ] Touch interactions are used for mobile device testing
+- [ ] Platform-specific rendering differences are accounted for
+
+### Visual Testing & Screenshots
+- [ ] Screenshot tests have stable baselines and appropriate thresholds
+- [ ] Dynamic content is masked or stabilized for consistent comparisons
+- [ ] Screenshot CSS files hide volatile elements effectively
+- [ ] Visual regression tests cover critical UI components and flows
+- [ ] Screenshot update processes are documented and controlled
+- [ ] Cross-platform screenshot differences are handled properly
+
+### Performance & Resource Management
+- [ ] Tests complete within reasonable time limits
+- [ ] Parallel execution is configured appropriately for CI environment
+- [ ] Resource cleanup prevents memory leaks in long test runs
+- [ ] Network mocking reduces test dependencies and improves speed
+- [ ] Test artifacts (traces, videos) are configured appropriately
+- [ ] Test retries are configured to handle transient failures
+
+### CI/CD Integration & Debugging
+- [ ] Tests run reliably in CI environment with proper browser setup
+- [ ] Test artifacts are collected and accessible for debugging failures
+- [ ] Flaky tests are identified and fixed rather than ignored
+- [ ] Test reporting provides clear failure information and context
+- [ ] Environment configuration is consistent between local and CI
+- [ ] Debug mode and trace collection are available for test investigation

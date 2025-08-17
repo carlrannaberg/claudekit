@@ -709,6 +709,52 @@ export default defineConfig({
 })
 ```
 
+## Code Review Checklist
+
+When reviewing Vite configurations and build code, focus on these aspects:
+
+### Configuration & Plugin Ecosystem
+- [ ] **Vite config structure**: Uses `defineConfig()` for proper TypeScript support and intellisense
+- [ ] **Environment handling**: Conditional configuration based on `command` and `mode` parameters
+- [ ] **Plugin ordering**: Framework plugins first, then utilities, then analysis plugins last
+- [ ] **Plugin compatibility**: All plugins support current Vite version (check package.json)
+- [ ] **Framework integration**: Correct plugin for framework (@vitejs/plugin-react, @vitejs/plugin-vue, etc.)
+
+### Development Server & HMR
+- [ ] **Server configuration**: Appropriate port, host, and proxy settings for development
+- [ ] **HMR optimization**: `server.warmup.clientFiles` configured for frequently accessed modules
+- [ ] **File system access**: `server.fs.allow` properly configured for monorepos/shared packages
+- [ ] **Proxy setup**: API proxies configured correctly with proper `changeOrigin` and `rewrite` options
+- [ ] **Custom HMR handlers**: `import.meta.hot.accept()` used where appropriate for better DX
+
+### Build Optimization & Production
+- [ ] **Build targets**: Modern browser targets set (es2020+) for optimal bundle size
+- [ ] **Manual chunking**: Strategic code splitting with vendor, framework, and feature chunks
+- [ ] **Bundle analysis**: Bundle size monitoring configured (visualizer plugin or similar)
+- [ ] **Source maps**: Appropriate source map strategy for environment (eval-cheap-module for dev, source-map for prod)
+- [ ] **Asset optimization**: CSS code splitting enabled, assets properly handled
+
+### Framework Integration & TypeScript
+- [ ] **TypeScript setup**: Proper vite-env.d.ts with custom environment variables typed
+- [ ] **Framework optimization**: React Fast Refresh, Vue SFC support, or Svelte optimizations enabled
+- [ ] **Import handling**: Asset imports properly typed (*.svg, *.module.css declarations)
+- [ ] **Build targets compatibility**: TypeScript target aligns with Vite build target
+- [ ] **Type checking**: Separate type checking process (not blocking dev server)
+
+### Asset Handling & Preprocessing
+- [ ] **Static assets**: Public directory usage vs. asset imports properly distinguished
+- [ ] **CSS preprocessing**: Sass/Less/PostCSS properly configured with appropriate plugins
+- [ ] **Asset optimization**: Image optimization, lazy loading patterns implemented
+- [ ] **Font handling**: Web fonts optimized with preloading strategies where needed
+- [ ] **Asset naming**: Proper hash-based naming for cache busting
+
+### Migration & Advanced Patterns
+- [ ] **Environment variables**: VITE_ prefixed variables used instead of process.env
+- [ ] **Import patterns**: ESM imports used consistently, dynamic imports for code splitting
+- [ ] **Legacy compatibility**: @vitejs/plugin-legacy configured if supporting older browsers
+- [ ] **SSR considerations**: Proper client/server environment separation if using SSR
+- [ ] **Monorepo setup**: Workspace dependencies properly resolved and optimized
+
 ## Expert Resources
 
 ### Official Documentation

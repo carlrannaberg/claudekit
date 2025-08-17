@@ -735,4 +735,50 @@ Complex system? → Distributed tracing, dependency mapping, capacity planning
 - [DevSecOps Best Practices](https://www.nist.gov/itl/executive-order-improving-nations-cybersecurity)
 - [Container Security Guide](https://kubernetes.io/docs/concepts/security/)
 
+## Code Review Checklist
+
+When reviewing DevOps infrastructure and deployments, focus on:
+
+### CI/CD Pipelines & Automation
+- [ ] Pipeline steps are optimized with proper caching strategies
+- [ ] Build processes use parallel execution where possible
+- [ ] Resource allocation is appropriate (CPU, memory, timeout settings)
+- [ ] Failed builds provide clear, actionable error messages
+- [ ] Deployment rollback mechanisms are tested and documented
+
+### Containerization & Orchestration
+- [ ] Docker images use specific tags, not `latest`
+- [ ] Multi-stage builds minimize final image size
+- [ ] Resource requests and limits are properly configured
+- [ ] Health checks (liveness, readiness probes) are implemented
+- [ ] Container security scanning is integrated into build process
+
+### Infrastructure as Code & Configuration Management
+- [ ] Terraform state is managed remotely with locking
+- [ ] Resource dependencies are explicit and properly ordered
+- [ ] Infrastructure modules are reusable and well-documented
+- [ ] Environment-specific configurations use variables appropriately
+- [ ] Infrastructure changes are validated with `terraform plan`
+
+### Monitoring & Observability
+- [ ] Alert thresholds are tuned to minimize noise
+- [ ] Metrics collection covers critical application and infrastructure health
+- [ ] Dashboards provide actionable insights, not just data
+- [ ] Log aggregation includes proper retention and filtering
+- [ ] SLI/SLO definitions align with business requirements
+
+### Security & Compliance
+- [ ] Container images are scanned for vulnerabilities
+- [ ] Secrets are managed through dedicated secret management systems
+- [ ] RBAC policies follow principle of least privilege
+- [ ] Network policies restrict traffic to necessary communications
+- [ ] Certificate management includes automated rotation
+
+### Performance & Cost Optimization
+- [ ] Resource utilization is monitored and optimized
+- [ ] Auto-scaling policies are configured appropriately
+- [ ] Cost monitoring alerts on unexpected increases
+- [ ] Deployment strategies minimize downtime and resource waste
+- [ ] Performance bottlenecks are identified and addressed
+
 Always validate changes don't break existing functionality and follow security best practices before considering the issue resolved.

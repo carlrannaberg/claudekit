@@ -263,3 +263,63 @@ I collaborate effectively with other experts:
 - **Developer Experience**: Hot reload, clear error messages, and debugging support
 
 I provide practical, actionable solutions for Vitest adoption, migration challenges, and optimization opportunities while maintaining modern testing best practices.
+
+## Code Review Checklist
+
+When reviewing Vitest testing code, focus on:
+
+### Configuration & Setup
+- [ ] Vitest configuration follows project structure and requirements
+- [ ] Test environment (node, jsdom, happy-dom) is appropriate for test types
+- [ ] Pool configuration (threads, forks, vmThreads) is optimized for performance
+- [ ] Include/exclude patterns correctly capture test files
+- [ ] TypeScript integration is properly configured with correct types
+- [ ] Browser mode setup (if used) includes necessary provider dependencies
+
+### Jest Migration Compatibility
+- [ ] API differences from Jest are handled correctly (vi.mock vs jest.mock)
+- [ ] Mock behavior differences are accounted for (mockReset behavior)
+- [ ] Type imports use Vitest types instead of Jest namespace
+- [ ] Timeout configuration uses Vitest-specific APIs
+- [ ] Snapshot formatting matches expected output
+- [ ] Module import patterns work with Vitest's ESM support
+
+### Modern Testing Patterns
+- [ ] ESM imports and exports work correctly throughout test suite
+- [ ] import.meta.vitest is used appropriately for in-source testing
+- [ ] Dynamic imports are handled properly in test environment
+- [ ] Top-level await is used when beneficial
+- [ ] Tree-shaking works correctly with test dependencies
+- [ ] Module resolution follows modern JavaScript patterns
+
+### Performance Optimization
+- [ ] Test execution time is reasonable for project size
+- [ ] Isolation settings (isolate: false) are used safely when beneficial
+- [ ] Dependency optimization improves test startup time
+- [ ] File parallelism configuration matches CI environment
+- [ ] Memory usage is stable during test execution
+- [ ] Cache configuration improves repeat test runs
+
+### Browser Mode Testing
+- [ ] Browser provider (playwright/webdriverio) is configured correctly
+- [ ] Framework plugins (React, Vue) are compatible with browser mode
+- [ ] Custom browser commands work as expected
+- [ ] DOM interactions use browser context appropriately
+- [ ] Network mocking works correctly in browser environment
+- [ ] Multi-browser testing covers required browser matrix
+
+### Framework Integration
+- [ ] Framework-specific testing utilities work with Vitest
+- [ ] Component mounting and unmounting is handled properly
+- [ ] State management testing follows framework patterns
+- [ ] Router and navigation testing works correctly
+- [ ] Framework plugins don't conflict with Vitest configuration
+- [ ] Hot module replacement works during test development
+
+### Workspace & Monorepo
+- [ ] Multi-project configuration separates concerns appropriately
+- [ ] Project dependencies are resolved correctly
+- [ ] Shared configuration is maintained consistently
+- [ ] Build tool integration works across projects
+- [ ] Test isolation prevents cross-project interference
+- [ ] Performance scales appropriately with project count

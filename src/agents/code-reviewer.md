@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 universal: true
 defaultSelected: false
 displayName: Code Reviewer
-category: optional
+category: general
 color: indigo
 ---
 

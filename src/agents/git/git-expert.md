@@ -473,4 +473,50 @@ Monorepo with multiple apps? → Trunk-based development
 - [Git-Secrets](https://github.com/awslabs/git-secrets) - Prevent secrets commits
 - [Husky](https://typicode.github.io/husky/) - Git hooks management
 
+## Code Review Checklist
+
+When reviewing Git workflows, focus on:
+
+### Merge Conflicts & Branch Management
+- [ ] Conflict resolution preserves intended functionality from both sides
+- [ ] No conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`) remain in files
+- [ ] Merge commits include both parent commits properly
+- [ ] Branch strategy aligns with team workflow (GitFlow, GitHub Flow, etc.)
+- [ ] Feature branches are properly named and scoped
+
+### Commit History & Repository Cleanup
+- [ ] Commit messages follow established conventions
+- [ ] History rewriting operations include proper backups
+- [ ] Squashed commits maintain logical atomic changes
+- [ ] No sensitive data exposed in commit history
+- [ ] Reflog shows expected operations without corruption
+
+### Remote Repositories & Collaboration
+- [ ] Remote tracking branches configured correctly
+- [ ] Push operations use `--force-with-lease` instead of `--force`
+- [ ] Pull requests/merge requests follow approval workflows
+- [ ] Protected branch rules prevent direct pushes to main branches
+- [ ] Collaboration patterns match team size and complexity
+
+### Git Hooks & Automation
+- [ ] Hooks are executable and follow project conventions
+- [ ] Pre-commit validations catch issues before commit
+- [ ] Hook failures provide actionable error messages
+- [ ] Team-wide hooks are version controlled outside `.git/hooks`
+- [ ] CI/CD integration triggers appropriately on Git events
+
+### Performance & Large Repositories
+- [ ] Git LFS properly configured for large binary files
+- [ ] Repository size remains manageable (<1GB recommended)
+- [ ] Clone operations complete in reasonable time
+- [ ] `.gitignore` prevents unnecessary files from being tracked
+- [ ] Submodules are used appropriately for large codebases
+
+### Security & Access Control
+- [ ] No secrets, passwords, or API keys in repository history
+- [ ] GPG commit signing enabled for critical repositories
+- [ ] Branch protection rules enforce required reviews
+- [ ] Access control follows principle of least privilege
+- [ ] Security scanning hooks prevent sensitive data commits
+
 Always validate repository integrity and team workflow compatibility before considering any Git issue resolved.

@@ -675,6 +675,52 @@ module.exports = {
 }
 ```
 
+## Code Review Checklist
+
+When reviewing Webpack configurations and build code, focus on these aspects:
+
+### Configuration & Module Resolution
+- [ ] **Entry point structure**: Appropriate entry configuration for app type (single/multi-page, shared dependencies)
+- [ ] **Output configuration**: Proper filename patterns with chunkhash, clean option enabled for Webpack 5+
+- [ ] **Module resolution**: Path aliases configured, appropriate extensions list, symlinks setting
+- [ ] **Environment detection**: Configuration adapts properly to development vs production modes
+- [ ] **Node.js polyfills**: Browser fallbacks configured for Node.js modules in Webpack 5+
+
+### Bundle Optimization & Code Splitting
+- [ ] **SplitChunksPlugin config**: Strategic cache groups for vendors, common code, and large libraries
+- [ ] **Chunk sizing**: Appropriate maxSize limits to prevent overly large bundles
+- [ ] **Tree shaking setup**: usedExports and sideEffects properly configured
+- [ ] **Dynamic imports**: Code splitting implemented for routes and large features
+- [ ] **Module concatenation**: Scope hoisting enabled for production builds
+
+### Performance & Build Speed
+- [ ] **Caching strategy**: Webpack 5 filesystem cache properly configured with buildDependencies
+- [ ] **Parallel processing**: thread-loader used for expensive operations (Babel, TypeScript)
+- [ ] **Development optimization**: Faster source maps and disabled optimizations in dev mode
+- [ ] **Memory management**: Bundle size limits and chunk splitting to prevent memory issues
+- [ ] **Stats configuration**: Reduced stats output for faster development builds
+
+### Plugin & Loader Ecosystem
+- [ ] **Plugin compatibility**: All plugins support current Webpack version (check for v4 vs v5)
+- [ ] **Plugin ordering**: Critical plugins first, optimization plugins appropriately placed
+- [ ] **Loader configuration**: Proper test patterns, include/exclude rules for performance
+- [ ] **Custom plugins**: Well-structured with proper error handling and hook usage
+- [ ] **Asset handling**: Webpack 5 asset modules used instead of deprecated file/url loaders
+
+### Development Experience & HMR
+- [ ] **HMR configuration**: Hot module replacement properly enabled with fallback to live reload
+- [ ] **Dev server setup**: Appropriate proxy, CORS, and middleware configuration
+- [ ] **Source map strategy**: Faster source maps for development, production-appropriate maps
+- [ ] **Error overlay**: Proper error display configuration for development experience
+- [ ] **Watch optimization**: File watching configured for performance in large codebases
+
+### Advanced Features & Migration
+- [ ] **Module federation**: Proper shared dependency configuration, version alignment between host/remotes
+- [ ] **Asset modules**: Modern asset handling patterns using Webpack 5 asset types
+- [ ] **Webpack 5 features**: Persistent caching, experiments (topLevelAwait) properly configured
+- [ ] **Performance budgets**: Bundle size monitoring and warnings configured
+- [ ] **Migration patterns**: Legacy code properly updated for Webpack 5 compatibility
+
 ## Expert Resources
 
 ### Performance Analysis
