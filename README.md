@@ -2,7 +2,7 @@
 
 # claudekit
 
-> Intelligent guardrails and workflow automation for Claude Code - catch errors in real-time, save checkpoints, and enhance AI coding with 24+ expert subagents
+> Intelligent guardrails and workflow automation for Claude Code - catch errors in real-time, save checkpoints, and enhance AI coding with expert subagents
 
 [![npm version](https://img.shields.io/npm/v/claudekit.svg)](https://www.npmjs.com/package/claudekit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -67,7 +67,7 @@ After:  Use /review → ✅ 6 parallel experts analyze architecture, security, p
 - **Easy restore**: `/checkpoint:restore` to undo changes
 - **Checkpoint management**: List, restore, or clean up checkpoints
 
-### 🤖 30+ AI Subagents
+### 🤖 AI Subagents
 - **Domain experts**: TypeScript, React, database, testing, infrastructure specialists
 - **Code review**: Dedicated `code-reviewer` agent with 6 focused analysis aspects
 - **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
@@ -86,7 +86,7 @@ After:  Use /review → ✅ 6 parallel experts analyze architecture, security, p
 ```bash
 claudekit setup              # Interactive setup wizard
 claudekit setup --yes        # Quick setup with defaults
-claudekit setup --all        # Install everything (30+ agents)
+claudekit setup --all        # Install everything (all agents)
 claudekit list               # Show all components (hooks, commands, agents, config)
 claudekit list agents        # List available agents with token counts
 claudekit list commands      # List available commands with token counts
@@ -201,7 +201,7 @@ claudekit setup --agents typescript-expert,react-expert
 "Use the oracle agent to debug this issue"
 ```
 
-[View all 30+ agents →](docs/reference/subagents.md)
+[View all agents →](docs/reference/subagents.md)
 
 ## Configuration
 
