@@ -117,7 +117,8 @@ const HOOK_GROUPS: HookGroup[] = [
  * Perform improved three-step selection: command groups, hook groups, then agents
  */
 async function performThreeStepSelection(
-  projectInfo: ProjectInfo
+  projectInfo: ProjectInfo,
+  registry: Awaited<ReturnType<typeof discoverComponents>>
 ): Promise<{ components: string[] }> {
   const selectedComponents: string[] = [];
 
@@ -256,6 +257,10 @@ async function performThreeStepSelection(
   // Step 3: Agent Selection with new grouping system
   console.log(`\n${Colors.bold('Step 3: Choose AI Assistant Subagents (Optional)')}`);
 
+  // Get total agent count for display
+  const totalAgentCount = Array.from(registry.components.values())
+    .filter((c) => c.type === 'agent').length;
+
   // Ask if user wants agents
   const agentChoice = await select({
     message: 'Would you like to install AI assistant subagents?',
@@ -264,7 +269,7 @@ async function performThreeStepSelection(
         value: 'select',
         name: '📦 Select Agents ← RECOMMENDED\n  Choose which agents match your tools',
       },
-      { value: 'all', name: '🌟 Install All\n  Get all 24 available agents' },
+      { value: 'all', name: `🌟 Install All\n  Get all ${totalAgentCount} available agents` },
       { value: 'skip', name: "⏭️  Skip Agents\n  Don't install any agents" },
     ],
     default: 'select',
@@ -274,8 +279,6 @@ async function performThreeStepSelection(
     console.log(Colors.dim('Skipping agent installation'));
   } else if (agentChoice === 'all') {
     // Get all agents from registry
-    const sourceDir = await findComponentsDirectory();
-    const registry = await discoverComponents(sourceDir);
     const allAgents = Array.from(registry.components.values())
       .filter((c) => c.type === 'agent')
       .map((c) => c.metadata.id);
@@ -283,8 +286,6 @@ async function performThreeStepSelection(
     console.log(Colors.success(`Selected all ${allAgents.length} agents`));
   } else {
     // Get agents from registry and group them by category
-    const sourceDir = await findComponentsDirectory();
-    const registry = await discoverComponents(sourceDir);
     const agentCategories = groupAgentsByCategory(registry);
 
     // Show the new selection interface
@@ -665,7 +666,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       })) as string[];
     } else {
       // New improved three-step selection process
-      const selectionResult = await performThreeStepSelection(projectInfo);
+      const selectionResult = await performThreeStepSelection(projectInfo, registry);
       selectedComponents = selectionResult.components;
 
       // Agents are now part of the unified component system, no special handling needed
