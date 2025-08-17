@@ -44,8 +44,8 @@ After:  Risky refactor fails → ✅ One command: /checkpoint:restore
 Before: Claude breaks tests → ❌ You discover it after Claude finishes
 After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 
-Before: Manual code review → ❌ Miss architectural and security issues
-After:  Use /review → ✅ 6 parallel experts analyze architecture, security, performance, testing
+Before: Ask Claude to review → ❌ Shallow analysis, general feedback, sequential execution
+After:  Use /review → ✅ 6 specialized agents analyze in parallel, dynamically pull technology-specific expertise
 ```
 
 ## Key Features
