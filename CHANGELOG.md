@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Triage Expert Subagent**: New context gathering and problem diagnosis specialist
+  - Added `triage-expert` for initial error analysis and routing to specialized experts
+  - Universal agent for handling errors, performance issues, or unexpected behavior
+  - Provides comprehensive diagnostic context before delegating to domain experts
+- **Specialized Subagent Integration**: Enhanced workflow commands with intelligent delegation
+  - Added subagent integration patterns to `spec:create`, `spec:validate`, and `validate-and-fix` commands
+  - Commands now intelligently delegate to domain experts based on task requirements
+  - Documented specialized subagent usage patterns in creating-commands guide
+
+### Changed
+- **Agent Naming Standardization**: Renamed `code-reviewer` to `code-review-expert` for consistency
+- **Agent Description Format**: Fixed all agent descriptions from first-person to second-person format
+  - Updated 12+ expert agents with consistent "You are" description pattern
+  - Improves clarity and consistency across all subagents
+
+### Fixed
+- **CLI Test Infrastructure**: Added timeout mechanism to prevent hanging tests
+  - Fixed infinite hanging in "should handle missing .claude directory gracefully" test
+  - Added proper process cleanup and error handling for spawned CLI commands
+  - Improved test reliability with configurable timeouts
 
 ## [0.6.0] - 2025-08-18
 

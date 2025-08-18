@@ -1,6 +1,6 @@
 # Subagents List
 
-Claudekit includes 25 specialized AI subagents that provide deep domain expertise. These agents work alongside Claude Code to handle complex, domain-specific tasks.
+Claudekit includes 31 specialized AI subagents that provide deep domain expertise. These agents work alongside Claude Code to handle complex, domain-specific tasks.
 
 ## Installation
 
@@ -46,7 +46,22 @@ Vite development and build optimization expert.
 
 ### 🎯 Code Quality
 
-#### linting-expert (code-quality/expert)
+#### code-review-expert
+Comprehensive 6-aspect parallel code review specialist.
+- **Expertise**: Architecture, security, performance, testing, quality, documentation
+- **Tools**: Read, Grep, Glob, Bash
+
+#### triage-expert
+Context gathering and initial problem diagnosis specialist.
+- **Expertise**: Error analysis, performance issues, problem routing to specialized experts
+- **Tools**: Read, Grep, Glob, Bash, Task
+
+#### refactoring-expert
+Code smell detection and comprehensive refactoring guidance.
+- **Expertise**: 25+ code smell patterns, safe refactoring process, test-driven changes
+- **Tools**: Read, Grep, Glob, Bash, Edit, MultiEdit, Write
+
+#### linting-expert
 Code linting, formatting, and static analysis across languages.
 - **Expertise**: ESLint, Prettier, static analysis tools
 - **Tools**: Full access (*)

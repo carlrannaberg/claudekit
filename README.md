@@ -189,6 +189,7 @@ Specialized AI assistants for different domains:
 
 **Popular Agents**
 - `code-review-expert` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
+- `triage-expert` - Context gathering and problem diagnosis routing to specialized experts
 - `oracle` - Deep debugging and complex problem analysis ([requires setup](docs/integrations/oracle.md))
 - `refactoring-expert` - Code smell detection and comprehensive refactoring guidance
 - `typescript-expert` - TypeScript/JavaScript development and type system

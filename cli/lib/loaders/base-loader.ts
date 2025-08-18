@@ -92,7 +92,7 @@ export abstract class BaseLoader {
   }
 
   /**
-   * Recursively search a directory for files
+   * Recursively search a directory for files with safety protections
    * @param searchPath Base directory to search
    * @param callback Function to process each file entry
    * @returns Promise<string | null> Path to matching file or null
@@ -101,15 +101,50 @@ export abstract class BaseLoader {
     searchPath: string, 
     callback: (fullPath: string, entry: { name: string; isFile: () => boolean; isDirectory: () => boolean }) => Promise<string | null>
   ): Promise<string | null> {
+    return this.searchRecursivelySafe(searchPath, callback, new Set(), 0);
+  }
+
+  /**
+   * Internal safe recursive search implementation with cycle detection and depth limiting
+   * @param searchPath Base directory to search
+   * @param callback Function to process each file entry  
+   * @param visitedPaths Set of already visited canonical paths to prevent cycles
+   * @param depth Current recursion depth
+   * @param maxDepth Maximum recursion depth allowed (default 10)
+   * @returns Promise<string | null> Path to matching file or null
+   */
+  private async searchRecursivelySafe(
+    searchPath: string,
+    callback: (fullPath: string, entry: { name: string; isFile: () => boolean; isDirectory: () => boolean }) => Promise<string | null>,
+    visitedPaths: Set<string>,
+    depth: number,
+    maxDepth: number = 10
+  ): Promise<string | null> {
+    // Prevent infinite recursion due to excessive depth
+    if (depth >= maxDepth) {
+      return null;
+    }
+
     try {
+      // Get canonical path to detect symlink cycles
+      const canonicalPath = await fs.realpath(searchPath);
+      
+      // Check if we've already visited this canonical path (prevents symlink loops)
+      if (visitedPaths.has(canonicalPath)) {
+        return null;
+      }
+      
+      // Mark this path as visited
+      visitedPaths.add(canonicalPath);
+      
       const entries = await fs.readdir(searchPath, { withFileTypes: true });
       
       for (const entry of entries) {
         const fullPath = path.join(searchPath, entry.name);
         
         if (entry.isDirectory()) {
-          // Recursively search subdirectories
-          const result = await this.searchRecursively(fullPath, callback);
+          // Recursively search subdirectories with updated depth and visited set
+          const result = await this.searchRecursivelySafe(fullPath, callback, visitedPaths, depth + 1, maxDepth);
           if (result !== null) {
             return result;
           }
@@ -120,8 +155,12 @@ export abstract class BaseLoader {
           }
         }
       }
+      
+      // Remove this path from visited set when backtracking (allows revisiting in different branches)
+      visitedPaths.delete(canonicalPath);
+      
     } catch {
-      // Skip directories that can't be read
+      // Skip directories that can't be read or resolved (permission issues, broken symlinks, etc.)
       return null;
     }
     

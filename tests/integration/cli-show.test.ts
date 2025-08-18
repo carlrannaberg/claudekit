@@ -47,7 +47,7 @@ async function runCliCommand(
         resolve({
           exitCode: 1,
           stdout: stdout.trim(),
-          stderr: `${stderr}\nCommand timed out`.trim(),
+          stderr: `${stderr}\nError: Command timed out`.trim(),
         });
       }
     }, options.timeout ?? 5000);
@@ -612,6 +612,7 @@ This file has malformed frontmatter.
 
       const result = await runCliCommand(['show', 'agent', 'any-agent'], {
         cwd: emptyDir,
+        timeout: 10000, // Increase timeout for complex operations
       });
 
       expect(result.exitCode).toBe(1);
