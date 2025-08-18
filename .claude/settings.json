@@ -115,13 +115,14 @@
         ]
       }
     ],
-    "SessionStart": [
+    "SessionStart": [],
+    "UserPromptSubmit": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run codebase-map"
+            "command": "claudekit-hooks run codebase-context"
           }
         ]
       }

@@ -287,6 +287,41 @@ These hooks run when a new Claude Code session begins:
 npm install -g codebase-map
 ```
 
+#### codebase-context
+
+**Purpose:** Provide codebase map context to Claude Code on the first user prompt of each session.
+
+**Triggers on:** UserPromptSubmit event (first prompt only)
+
+**Dependencies:** Requires [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI tool installed
+
+**Configuration Options:**
+- `format` (string): Output format - auto|json|dsl|graph|markdown (default: "auto")
+- `command` (string): Custom command to run (default: "codebase-map scan")
+
+**Features:**
+- Runs only once per Claude Code session (prevents duplicate context)
+- Automatically scans and indexes project structure on first user interaction
+- Generates AST-based analysis of functions, classes, and constants
+- Tracks imports/exports and builds dependency graph
+- Displays the map in session context with clear "loaded once per session" messaging
+- Silently cleans up old session files (older than 7 days)
+- Session tracking prevents re-execution within the same session
+
+**Installation:**
+```bash
+npm install -g codebase-map
+```
+
+**Example output in Claude Code:**
+```
+📍 Codebase Map (loaded once per session):
+
+# Project Structure
+cli/index.ts > cli/utils
+src/hooks/typecheck.ts > TypecheckHook
+```
+
 #### codebase-map-update
 
 **Purpose:** Incrementally update the codebase map index when files change.
@@ -410,6 +445,15 @@ This file tells Claude Code which hooks to run and when:
           {"type": "command", "command": "claudekit-hooks run test-project"}
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run codebase-map"},
+          {"type": "command", "command": "claudekit-hooks run codebase-context"}
+        ]
+      }
     ]
   }
 }
@@ -420,6 +464,8 @@ This file tells Claude Code which hooks to run and when:
 - **PostToolUse** - Runs after file modifications (Write, Edit, MultiEdit)
 - **Stop** - Runs when Claude Code stops
 - **SubagentStop** - Runs when a subagent completes
+- **SessionStart** - Runs when a new Claude Code session begins
+- **UserPromptSubmit** - Runs when a user submits a prompt (special hooks only)
 
 #### Matcher Patterns
 
