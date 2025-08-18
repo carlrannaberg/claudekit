@@ -360,20 +360,29 @@ describe('CodebaseMapUpdateHook', () => {
     });
 
     it('should handle debounce boundary conditions', () => {
-      const now = Date.now();
+      const now = 1000000;
+      const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
       const debounceMs = 5000;
       
-      // Exactly at boundary (should return false - check uses < not <=)
-      hook['lastUpdateTime'] = now - debounceMs + 1;
-      expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
-      
-      // Just past boundary (should return true)
-      hook['lastUpdateTime'] = now - debounceMs - 1;
-      expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true);
-      
-      // Just before boundary (should return false)  
-      hook['lastUpdateTime'] = now - debounceMs + 1;
-      expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
+      try {
+        // Exactly at boundary (should return false - check uses < not <=)
+        hook['lastUpdateTime'] = now - debounceMs;
+        expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true);
+        
+        // Just before boundary - 1ms before (should return false)
+        hook['lastUpdateTime'] = now - debounceMs + 1;
+        expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
+        
+        // Just past boundary - 1ms past (should return true)
+        hook['lastUpdateTime'] = now - debounceMs - 1;
+        expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true);
+        
+        // Well within boundary (should return false)
+        hook['lastUpdateTime'] = now - 1000;
+        expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
+      } finally {
+        dateNowSpy.mockRestore();
+      }
     });
 
     it('should handle configuration validation errors gracefully', () => {
