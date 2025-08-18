@@ -6,12 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.6.0] - 2025-08-18
 
 ### Added
 - **Codebase Map Integration**: Added comprehensive project structure mapping using external codebase-map CLI
-  - Added `codebase-map` UserPromptSubmit hook for providing invisible codebase context on first prompt per session
-  - Added `codebase-map-update` PostToolUse hook for incrementally updating maps when files change
+  - Added `CodebaseMapHook` (UserPromptSubmit) providing invisible codebase context on first prompt per session
+  - Added `CodebaseMapUpdateHook` (PostToolUse) for incrementally updating maps when files change
   - Automatically scans and indexes project structure with AST-based analysis
   - Generates optimized output format for LLM consumption with dependency tracking
   - Session tracking prevents duplicate context loading within same Claude Code session
@@ -19,25 +19,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Requires external [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI installation
 - **Shared Hook Utilities**: Added reusable utilities for hook development
   - Added `codebase-map-utils.ts` for shared codebase map generation functionality
-  - Added `session-utils.ts` with `SessionTracker` class for per-session state management
+  - Added `SessionTracker` class in `session-utils.ts` for per-session state management
+  - Added comprehensive file modification time tracking and session flag management
 - **Enhanced Git Commands**: Added git-expert integration capabilities to git workflow commands
   - Enhanced `/git:commit`, `/git:status`, and `/git:push` commands with Task tool support
   - Added recommendations for using git-expert subagent for complex scenarios
-
-## [0.5.1] - 2025-08-17
-
-### Added
+- **Enhanced Hook Registry**: Added support for UserPromptSubmit and SubagentStop event hooks
+  - Updated hook registry to support new event types alongside PostToolUse and Stop
+  - Enhanced hook runner with proper event type handling and metadata processing
 - **Refactoring Expert Subagent**: Added comprehensive code smell detection and refactoring guidance
-  - Added `refactoring-expert` subagent with comprehensive code smell detection capabilities
-  - Provides specialized guidance for identifying and fixing 25+ types of code smells and anti-patterns
-  - Includes automated refactoring suggestions with before/after examples
-  - Supports multiple programming languages with context-aware recommendations
+  - Added `refactoring-expert` subagent with 25+ code smell detection patterns
+  - Provides systematic refactoring guidance with before/after examples
+  - Includes safe refactoring process with test-driven incremental changes
+  - Covers 6 categories: Composing Methods, Moving Features, Organizing Data, Simplifying Conditionals, Making Method Calls Simpler, and Dealing with Generalization
 
-### Fixed
+### Changed
 - **Dynamic Agent Count Display**: Fixed setup command to show actual number of available agents instead of hardcoded count
   - Setup command now dynamically calculates and displays the correct number of agents in the "Install All" option
   - Eliminates maintenance burden of manually updating agent counts when new agents are added
   - Improves accuracy and prevents misleading information in the setup interface
+- **Hook List Command**: Enhanced hooks listing to show actual configured hooks from project settings
+  - Added `listHooks()` function that processes both project and user configurations
+  - Displays hook source (project/user), associated events, and configured matchers
+  - Improved hook name extraction from embedded system commands
+- **Enhanced Test Coverage**: Added comprehensive test suites for new functionality
+  - Added `tests/unit/codebase-map.test.ts` with 30+ test cases for codebase mapping
+  - Added `tests/integration/codebase-hooks.test.ts` for end-to-end hook testing
+  - Added `tests/unit/list-hooks.test.ts` with extensive hook listing validation
+  - Enhanced test helpers and utilities for better test reliability
+
+### Fixed
+- **ESLint Configuration**: Updated ESLint configuration to support TypeScript 6.0+ and modern patterns
+  - Enhanced parser options for better TypeScript compatibility
+  - Updated rule configurations for cleaner code standards
+- **Test Suite Reliability**: Improved test suite stability and reduced flaky tests
+  - Enhanced debounce boundary tests with better timing control
+  - Improved mock handling for filesystem operations and external command execution
+  - Fixed test isolation issues with better cleanup and setup patterns
+
 
 ## [0.5.0] - 2025-08-17
 
