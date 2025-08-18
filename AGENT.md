@@ -31,6 +31,35 @@ This is a TypeScript-based toolkit. Key commands:
 
 This project includes specialized subagents in `.claude/agents/` that provide deep expertise in specific technical domains. You should proactively use the Task tool to delegate to these subagents when working on relevant tasks.
 
+### ⚠️ MANDATORY REQUIREMENT: Use Specialized Subagents
+
+**ALL tasks and issues MUST be handled by specialized subagents.** Do not attempt to solve problems directly:
+
+1. **For any technical issue**: Use `triage-expert` first to diagnose and route to the appropriate specialist
+2. **For domain-specific work**: Delegate directly to the relevant expert (typescript-expert, react-expert, etc.)
+3. **For code review**: Always use `code-review-expert` for comprehensive analysis
+4. **For complex debugging**: Route through `triage-expert` to identify the right specialist
+
+**Examples of REQUIRED delegation:**
+- TypeScript build/compilation errors → Use `typescript-build-expert` 
+- Advanced type system issues (generics, conditionals) → Use `typescript-type-expert`
+- General TypeScript problems → Use `typescript-expert`
+- Vitest configuration and framework issues → Use `vitest-expert`
+- Test strategy and coverage issues → Use `testing-expert`
+- Code smells and refactoring → Use `refactoring-expert`
+- CLI command issues → Use `cli-expert`
+- Git workflow issues → Use `git-expert`
+- Code quality and linting → Use `linting-expert`
+- GitHub Actions CI/CD → Use `github-actions-expert`
+- Shell script problems → Use `devops-expert`
+- Node.js runtime issues → Use `nodejs-expert`
+
+**Never attempt to:**
+- Debug complex issues without specialist expertise
+- Make architectural decisions without domain expert input
+- Implement solutions in unfamiliar domains without consulting experts
+- Skip the triage process for unclear problems
+
 ### Available Subagents
 
 **Build Tools:**
