@@ -69,11 +69,12 @@ After:  Use /review → ✅ 6 specialized agents analyze in parallel, dynamicall
 - **Checkpoint management**: List, restore, or clean up checkpoints
 
 ### 🤖 AI Subagents
+- **Triage Expert**: `triage-expert` for initial problem diagnosis and routing to specialists
 - **Domain experts**: TypeScript, React, database, testing, infrastructure specialists
 - **Code review**: Dedicated `code-review-expert` agent with 6 focused analysis aspects
 - **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
+- **Mandatory delegation**: All technical issues MUST be handled by specialized subagents
 - **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
-- **Deep debugging**: Oracle agent for complex problem analysis
 
 ### 📝 Smart Commands
 - `/review` - Multi-aspect code reviews with 6 parallel agents

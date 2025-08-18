@@ -7,15 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2025-08-19
+
 ### Added
 - **Triage Expert Subagent**: New context gathering and problem diagnosis specialist
   - Added `triage-expert` for initial error analysis and routing to specialized experts
   - Universal agent for handling errors, performance issues, or unexpected behavior
   - Provides comprehensive diagnostic context before delegating to domain experts
+  - Includes strict diagnosis boundaries and mandatory cleanup of temporary debug code
 - **Specialized Subagent Integration**: Enhanced workflow commands with intelligent delegation
   - Added subagent integration patterns to `spec:create`, `spec:validate`, and `validate-and-fix` commands
   - Commands now intelligently delegate to domain experts based on task requirements
   - Documented specialized subagent usage patterns in creating-commands guide
+- **Mandatory Subagent Delegation Guidelines**: Enhanced AGENT.md with strict delegation requirements
+  - Added mandatory requirement to use specialized subagents for all technical issues
+  - Documented clear routing patterns for different types of problems
+  - Prevents direct problem solving without specialist expertise
 
 ### Changed
 - **Agent Naming Standardization**: Renamed `code-reviewer` to `code-review-expert` for consistency
@@ -24,10 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improves clarity and consistency across all subagents
 
 ### Fixed
+- **TypeScript Import Issues**: Resolved module import and compilation problems
+  - Fixed Node.js module imports from default to namespace imports across all files
+  - Added `downlevelIteration` to tsconfig.json to resolve iterator issues
+  - Applied consistent ESLint/Prettier formatting throughout codebase
+  - Ensured all 682 tests pass with improved validation logic
 - **CLI Test Infrastructure**: Added timeout mechanism to prevent hanging tests
   - Fixed infinite hanging in "should handle missing .claude directory gracefully" test
+  - Added configurable timeout parameter (default 5s, 10s for complex operations)
   - Added proper process cleanup and error handling for spawned CLI commands
-  - Improved test reliability with configurable timeouts
+  - Improved test reliability with SIGTERM handling and timeout controls
 
 ## [0.6.0] - 2025-08-18
 
