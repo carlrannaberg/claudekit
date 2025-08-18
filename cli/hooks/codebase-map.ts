@@ -2,6 +2,8 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { checkToolAvailable } from './utils.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
+import { generateCodebaseMap, type CodebaseMapConfig } from './codebase-map-utils.js';
+import { SessionTracker } from './session-utils.js';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import * as path from 'node:path';
@@ -9,21 +11,17 @@ import * as fs from 'node:fs/promises';
 
 const execAsync = promisify(exec);
 
-interface CodebaseMapConfig {
-  command?: string | undefined;
-  format?: string | undefined; // Output format: auto|json|dsl|graph|markdown
-  updateOnChanges?: boolean | undefined;
-}
 
 export class CodebaseMapHook extends BaseHook {
   name = 'codebase-map';
+  private sessionTracker = new SessionTracker('codebase-map');
 
   static metadata = {
     id: 'codebase-map',
-    displayName: 'Codebase Map Generator',
-    description: 'Generate project structure map using codebase-map CLI on session start',
+    displayName: 'Codebase Map Provider',
+    description: 'Adds codebase map to context on first user prompt of each session',
     category: 'utility' as const,
-    triggerEvent: 'SessionStart' as const,
+    triggerEvent: 'UserPromptSubmit' as const,
     matcher: '*',
     dependencies: [],
   };
@@ -32,67 +30,70 @@ export class CodebaseMapHook extends BaseHook {
     return getHookConfig<CodebaseMapConfig>('codebase-map') ?? {};
   }
 
+  private async hasProvidedContext(context: HookContext): Promise<boolean> {
+    const sessionId = String(context.payload['session_id'] ?? 'unknown');
+    return await this.sessionTracker.hasSessionFlag(sessionId, 'contextProvided');
+  }
+
+  private async markContextProvided(context: HookContext): Promise<void> {
+    const sessionId = String(context.payload['session_id'] ?? 'unknown');
+    await this.sessionTracker.setSessionFlag(sessionId, 'contextProvided', true);
+  }
+
+  private cleanOldSessions(): void {
+    // Fire and forget cleanup
+    this.sessionTracker.cleanOldSessions().catch(() => {
+      // Ignore cleanup errors
+    });
+  }
+
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;
     
-    // Check if codebase-map is installed
-    if (!(await checkToolAvailable('codebase-map', 'package.json', projectRoot))) {
-      this.warning('codebase-map CLI not found. Install it from: https://github.com/carlrannaberg/codebase-map');
-      this.progress('You can install it with: npm install -g codebase-map');
+    // Skip if we've already provided context for this session
+    if (await this.hasProvidedContext(context)) {
       return { exitCode: 0 };
     }
 
     const config = this.loadConfig();
-    const format = config.format ?? 'auto';
 
     try {
-      // First, scan the project to create/update the index
-      this.progress('🗺️ Scanning project structure...');
-      
-      const scanCommand = config.command ?? 'codebase-map scan';
-      await execAsync(scanCommand, {
-        cwd: projectRoot,
-        maxBuffer: 10 * 1024 * 1024
+      // Generate the codebase map using shared utility
+      const result = await generateCodebaseMap({
+        command: config.command,
+        format: config.format,
+        projectRoot
       });
 
-      // Then format and display the result
-      this.progress('📋 Generating codebase map...');
-      
-      const formatCommand = `codebase-map format --format ${format}`;
-      const { stdout } = await execAsync(formatCommand, {
-        cwd: projectRoot,
-        maxBuffer: 10 * 1024 * 1024
-      });
+      if (!result.success) {
+        // Log error in debug mode only
+        if (process.env['DEBUG'] === 'true') {
+          console.error('Failed to generate codebase map:', result.error);
+        }
+        // Don't block user prompt on failure
+        return { exitCode: 0 };
+      }
 
-      // Display the formatted output
-      if (stdout?.trim()) {
-        // Show progress to user
-        this.success('Codebase map generated successfully!');
+      // Only provide context if we have output
+      if (result.output !== undefined && result.output !== '') {
+        // Mark that we've provided context for this session
+        await this.markContextProvided(context);
         
-        // For SessionStart hooks, use JSON output to add context
-        const contextMessage = `📍 Codebase Map:\n\n${stdout}`;
-        this.jsonOutput({
-          hookSpecificOutput: {
-            hookEventName: 'SessionStart',
-            additionalContext: contextMessage
-          },
-          suppressOutput: true  // Add to context without showing to user
-        });
+        // Clean up old session files (async, non-blocking)
+        this.cleanOldSessions();
+        
+        // Output the codebase map to stdout (which adds it to context for UserPromptSubmit)
+        const contextMessage = `📍 Codebase Map (loaded once per session):\n\n${result.output}`;
+        console.log(contextMessage);
       }
 
       return { exitCode: 0 };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.error(
-        'Codebase Map Generation Failed',
-        errorMessage,
-        [
-          'Ensure codebase-map CLI is installed: npm install -g codebase-map',
-          'Check that you have read permissions for all project files',
-          'Try running codebase-map scan manually to diagnose issues',
-        ]
-      );
-      // Don't block the session, just warn
+      // Log error in debug mode only
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Failed to generate codebase map:', error);
+      }
+      // Don't block user prompt on failure
       return { exitCode: 0 };
     }
   }
@@ -115,7 +116,7 @@ export class CodebaseMapUpdateHook extends BaseHook {
   };
 
   private loadConfig(): CodebaseMapConfig {
-    return getHookConfig<CodebaseMapConfig>('codebase-map-update') ?? {};
+    return getHookConfig<CodebaseMapConfig>('codebase-map') ?? {};
   }
 
   private shouldUpdateMap(filePath: string | undefined): boolean {

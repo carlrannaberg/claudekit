@@ -7,6 +7,7 @@ defaultSelected: false
 displayName: Code Reviewer
 category: general
 color: indigo
+model: opus
 ---
 
 # Code Reviewer

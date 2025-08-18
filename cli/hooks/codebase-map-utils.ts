@@ -9,17 +9,10 @@ import { checkToolAvailable } from './utils.js';
 
 const execAsync = promisify(exec);
 
-export interface BaseCodebaseMapConfig {
+export interface CodebaseMapConfig {
   command?: string;
   format?: 'auto' | 'json' | 'dsl' | 'graph' | 'markdown' | string;
-}
-
-export interface CodebaseMapConfig extends BaseCodebaseMapConfig {
   updateOnChanges?: boolean;
-}
-
-export interface CodebaseContextConfig extends BaseCodebaseMapConfig {
-  // Context-specific config can be added here
 }
 
 export interface CodebaseMapOptions {

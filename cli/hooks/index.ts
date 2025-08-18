@@ -16,7 +16,6 @@ export { CheckCommentReplacementHook } from './check-comment-replacement.js';
 export { CheckUnusedParametersHook } from './check-unused-parameters.js';
 export { SelfReviewHook } from './self-review.js';
 export { CodebaseMapHook, CodebaseMapUpdateHook } from './codebase-map.js';
-export { CodebaseContextHook } from './codebase-context.js';
 
 // Export base and utils
 export { BaseHook } from './base.js';

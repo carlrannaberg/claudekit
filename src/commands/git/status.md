@@ -1,10 +1,13 @@
 ---
 description: Intelligently analyze git status and provide insights about current project state
 category: workflow
-allowed-tools: Bash(git:*)
+allowed-tools: Bash(git:*), Task
 ---
 
 Analyze the current git status and provide an intelligent summary of what's happening in the project.
+
+## Git Expert Integration
+For complex git analysis scenarios (merge conflicts, complex branch states, repository issues), consider using the Task tool with `git-expert` subagent for specialized git expertise.
 
 ## Efficiency Note:
 Be concise. Skip verbose explanations of what commands you're running. Focus on the actual status results.

@@ -115,11 +115,11 @@ const HOOK_GROUPS: HookGroup[] = [
   },
   {
     id: 'session-initialization',
-    name: '🚀 Session Initialization (SessionStart)',
-    description: 'Initialize project context and maps when Claude Code session starts',
-    hooks: ['codebase-map', 'codebase-context'],
+    name: '🚀 Session Initialization (UserPromptSubmit)',
+    description: 'Initialize project context and maps when user submits first prompt',
+    hooks: ['codebase-map'],
     recommended: false,
-    triggerEvent: 'SessionStart',
+    triggerEvent: 'UserPromptSubmit',
   },
 ];
 

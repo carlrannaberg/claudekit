@@ -1,10 +1,13 @@
 ---
 description: Create a git commit following the project's established style
 category: workflow
-allowed-tools: Bash(git:*), Bash(echo:*), Bash(head:*), Bash(wc:*), Bash(test:*), Bash([:[*), Bash(grep:*), Read, Edit
+allowed-tools: Bash(git:*), Bash(echo:*), Bash(head:*), Bash(wc:*), Bash(test:*), Bash([:[*), Bash(grep:*), Read, Edit, Task
 ---
 
 Create a git commit following the project's established style
+
+## Git Expert Integration
+For complex commit scenarios (merge commits, conflict resolution, commit history issues, interactive rebasing), consider using the Task tool with `git-expert` subagent for specialized git expertise.
 
 ## Efficiency Note:
 This command intelligently reuses recent git:status results when available to avoid redundant operations. If you just ran /git:status, the commit process will be faster.

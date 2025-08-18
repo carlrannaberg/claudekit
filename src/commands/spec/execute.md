@@ -88,7 +88,10 @@ For each independent task group:
    - Testing requirements
 
 2. **Launch Subagents** (multiple in one message for parallel execution):
-   - Use specialized subagents when applicable for domain-specific tasks
+   - **ALWAYS use specialized subagents** when tasks match expert domains (TypeScript, React, testing, databases, etc.)
+   - Run `claudekit list agents` if you need to see available specialized agents
+   - Match task requirements to expert domains for optimal results  
+   - Use `general-purpose` subagent only when no specialized expert fits
    - Ensure each agent has non-overlapping responsibilities
    
    Example task details for EACH agent (include multiple Task tool calls in ONE message):

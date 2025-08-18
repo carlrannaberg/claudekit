@@ -334,7 +334,7 @@ Steps:
         name: 'status',
         description: 'Intelligently analyze git status and provide insights about current project state',
         category: 'workflow',
-        allowedTools: ['Bash(git:*)'],
+        allowedTools: ['Bash(git:*)', 'Task'],
       });
 
       expect(commandData.content).toContain('Analyze the current git status and provide an intelligent summary');
