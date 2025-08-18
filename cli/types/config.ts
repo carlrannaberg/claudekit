@@ -83,7 +83,7 @@ export const HookMatcherSchema = z.object({
 /**
  * Hook event configuration schema
  */
-export const HookEventSchema = z.enum(['PostToolUse', 'Stop', 'PreAction', 'PostAction']);
+export const HookEventSchema = z.enum(['PostToolUse', 'Stop', 'SubagentStop', 'PreAction', 'PostAction', 'SessionStart']);
 
 /**
  * Complete hooks configuration schema
@@ -91,8 +91,10 @@ export const HookEventSchema = z.enum(['PostToolUse', 'Stop', 'PreAction', 'Post
 export const HooksConfigSchema = z.object({
   PostToolUse: z.array(HookMatcherSchema).optional(),
   Stop: z.array(HookMatcherSchema).optional(),
+  SubagentStop: z.array(HookMatcherSchema).optional(),
   PreAction: z.array(HookMatcherSchema).optional(),
   PostAction: z.array(HookMatcherSchema).optional(),
+  SessionStart: z.array(HookMatcherSchema).optional(),
 });
 
 // ============================================================================

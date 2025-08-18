@@ -6,6 +6,7 @@
  */
 
 import { Command } from 'commander';
+import { setImmediate } from 'timers';
 import { HookRunner } from './hooks/runner.js';
 
 export function createHooksCLI(): Command {
@@ -72,7 +73,12 @@ export function createHooksCLI(): Command {
         globalOpts['debug'] === true || options.debug === true
       );
       const exitCode = await hookRunner.run(hookName);
-      process.exit(exitCode);
+      
+      // Force process exit to ensure clean shutdown
+      // Use setImmediate to allow any final I/O to complete
+      setImmediate(() => {
+        process.exit(exitCode);
+      });
     });
 
   // Handle --list option

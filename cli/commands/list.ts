@@ -1,5 +1,6 @@
 import { Logger } from '../utils/logger.js';
-import { loadConfig } from '../utils/config.js';
+import { loadConfig, loadUserConfig } from '../utils/config.js';
+import type { Config } from '../types/config.js';
 import { progress } from '../utils/progress.js';
 import path from 'path';
 import fs from 'fs-extra';
@@ -128,6 +129,8 @@ interface HookInfo {
   executable: boolean;
   size: number;
   modified: Date;
+  source: string;
+  events: string[];
 }
 
 async function listHooks(options: ListOptions): Promise<HookInfo[]> {
@@ -135,11 +138,33 @@ async function listHooks(options: ListOptions): Promise<HookInfo[]> {
   const pattern =
     options.filter !== undefined && options.filter !== '' ? new RegExp(options.filter, 'i') : null;
 
+  // Load project and user configurations
+  let projectConfig: Config;
+  try {
+    projectConfig = await loadConfig(process.cwd());
+  } catch {
+    projectConfig = { hooks: {} };
+  }
+  const userConfig = await loadUserConfig();
+
+  // Extract hook configurations from both sources
+  const configuredHooks = new Map<string, { source: string; events: string[] }>();
+  
+  // Process project hooks first (higher priority)
+  processHookConfigurations(projectConfig, configuredHooks, 'project');
+  
+  // Process user hooks second (lower priority)
+  processHookConfigurations(userConfig, configuredHooks, 'user');
+
   // List embedded hooks from the registry
   for (const [name] of Object.entries(HOOK_REGISTRY)) {
     if (pattern !== null && !pattern.test(name)) {
       continue;
     }
+
+    const configured = configuredHooks.get(name);
+    const source = configured?.source ?? 'not installed';
+    const events = configured?.events ?? [];
 
     hooks.push({
       name,
@@ -148,10 +173,65 @@ async function listHooks(options: ListOptions): Promise<HookInfo[]> {
       executable: true, // Embedded hooks are always executable
       size: 0, // Size not applicable for embedded hooks
       modified: new Date(), // Use current date for embedded hooks
+      source,
+      events
     });
   }
 
   return hooks;
+}
+
+
+/**
+ * Process hook configurations from a config object and update the configuredHooks Map
+ * @param config - Configuration object containing hooks
+ * @param configuredHooks - Map to store hook configurations
+ * @param source - Source type ('project' or 'user')
+ */
+function processHookConfigurations(
+  config: Config,
+  configuredHooks: Map<string, { source: string; events: string[] }>,
+  source: 'project' | 'user'
+): void {
+  if (config.hooks !== undefined && Object.keys(config.hooks).length > 0) {
+    for (const [eventType, matchers] of Object.entries(config.hooks)) {
+      if (matchers !== undefined && Array.isArray(matchers) && matchers.length > 0) {
+        for (const matcher of matchers) {
+          for (const hook of matcher.hooks) {
+            const hookName = extractHookName(hook.command);
+            if (hookName !== null && hookName !== '') {
+              const existing = configuredHooks.get(hookName);
+              if (existing !== undefined) {
+                // Add event to existing hook if not already present
+                if (!existing.events.includes(eventType)) {
+                  existing.events.push(eventType);
+                }
+                // Don't override project source with user source (project has priority)
+                if (existing.source !== 'project') {
+                  existing.source = source;
+                }
+              } else {
+                // Create new hook configuration
+                configuredHooks.set(hookName, {
+                  source,
+                  events: [eventType]
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Extract hook name from command string
+ * e.g., "claudekit-hooks run typecheck-changed" -> "typecheck-changed"
+ */
+function extractHookName(command: string): string | null {
+  const match = command.match(/claudekit-hooks\s+run\s+([\w-]+)/);
+  return match?.[1] ?? null;
 }
 
 interface CommandInfo {
@@ -304,6 +384,8 @@ interface ListResults {
     executable: boolean;
     size: number;
     modified: Date;
+    source: string;
+    events: string[];
   }>;
   commands?: Array<{
     name: string;
@@ -334,10 +416,16 @@ function displayTable(results: ListResults, type: string): void {
   // Display hooks
   if (results.hooks !== undefined && results.hooks.length > 0) {
     console.log(Colors.bold('\nHooks:'));
-    console.log(Colors.dim('─'.repeat(60)));
+    console.log(Colors.dim('─'.repeat(80)));
 
     for (const hook of results.hooks) {
-      console.log(`  ${Colors.accent(hook.name)}`);
+      const source = Colors.dim(`[${hook.source}]`);
+      const events = hook.events.length > 0 ? hook.events.join(', ') : '';
+      const eventsFormatted = events ? Colors.dim(events) : '';
+      
+      console.log(
+        `  ${Colors.accent(hook.name.padEnd(30))} ${source.padEnd(18)} ${eventsFormatted}`
+      );
     }
   } else if (type === 'hooks' || type === 'all') {
     console.log(Colors.dim('\nNo hooks found'));

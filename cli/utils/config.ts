@@ -3,6 +3,8 @@ import * as path from 'path';
 import { z } from 'zod';
 import type { Config, HookMatcher, HooksConfig } from '../types/config.js';
 import { validateConfig } from '../types/config.js';
+import { getUserClaudeDirectory } from '../lib/paths.js';
+import { pathExists } from '../lib/filesystem.js';
 
 export async function loadConfig(projectRoot: string): Promise<Config> {
   const configPath = path.join(projectRoot, '.claude', 'settings.json');
@@ -181,4 +183,24 @@ export async function saveMergedConfig(projectRoot: string, newConfig: Config): 
   await saveConfig(projectRoot, mergedConfig);
 
   return mergedConfig;
+}
+
+/**
+ * Load user configuration from ~/.claude/settings.json
+ * Returns empty config if file doesn't exist or is invalid
+ */
+export async function loadUserConfig(): Promise<Config> {
+  const userConfigPath = path.join(getUserClaudeDirectory(), 'settings.json');
+  
+  try {
+    if (await pathExists(userConfigPath)) {
+      const content = await fs.readFile(userConfigPath, 'utf-8');
+      const data = JSON.parse(content) as { hooks?: HooksConfig };
+      return { hooks: data.hooks ?? {} };
+    }
+  } catch {
+    // Ignore errors, return empty config
+  }
+  
+  return { hooks: {} };
 }

@@ -82,6 +82,7 @@ describe('utils', () => {
       const testData = '{"test": "data"}';
       const originalStdin = process.stdin;
       const mockStdin = {
+        isTTY: false, // Not a TTY, so should read from stdin
         on: vi.fn((event, callback) => {
           if (event === 'data') {
             setTimeout(() => callback(testData), 10);
@@ -89,6 +90,13 @@ describe('utils', () => {
             setTimeout(() => callback(), 20);
           }
         }),
+        resume: vi.fn(), // Mock resume method
+        removeAllListeners: vi.fn(), // Mock removeAllListeners method
+        pause: vi.fn(), // Mock pause method
+        unpipe: vi.fn(), // Mock unpipe method
+        destroy: vi.fn(), // Mock destroy method
+        readable: true, // Mock readable property
+        destroyed: false, // Mock destroyed property
       };
       Object.defineProperty(process, 'stdin', {
         value: mockStdin,
@@ -98,6 +106,73 @@ describe('utils', () => {
 
       const result = await readStdin();
       expect(result).toBe(testData);
+
+      // Verify the new methods were called
+      expect(mockStdin.resume).toHaveBeenCalled();
+      expect(mockStdin.removeAllListeners).toHaveBeenCalledWith('data');
+      expect(mockStdin.removeAllListeners).toHaveBeenCalledWith('end');
+      expect(mockStdin.removeAllListeners).toHaveBeenCalledWith('error');
+
+      process.stdin = originalStdin;
+    });
+
+    it('should return empty string immediately if stdin is a TTY', async () => {
+      const originalStdin = process.stdin;
+      const mockStdin = {
+        isTTY: true, // Is a TTY, so should return empty immediately
+        on: vi.fn(),
+        resume: vi.fn(),
+        removeAllListeners: vi.fn(),
+        pause: vi.fn(),
+        unpipe: vi.fn(),
+        destroy: vi.fn(),
+        readable: true,
+        destroyed: false,
+      };
+      Object.defineProperty(process, 'stdin', {
+        value: mockStdin,
+        writable: true,
+        configurable: true,
+      });
+
+      const result = await readStdin();
+      expect(result).toBe('');
+
+      // Should not set up event listeners for TTY
+      expect(mockStdin.on).not.toHaveBeenCalled();
+      expect(mockStdin.resume).not.toHaveBeenCalled();
+
+      process.stdin = originalStdin;
+    });
+
+    it('should handle timeout and return partial data', async () => {
+      const partialData = '{"partial": ';
+      const originalStdin = process.stdin;
+      const mockStdin = {
+        isTTY: false,
+        on: vi.fn((event, callback) => {
+          if (event === 'data') {
+            setTimeout(() => callback(partialData), 10);
+            // Don't trigger 'end' event to test timeout
+          }
+        }),
+        resume: vi.fn(),
+        removeAllListeners: vi.fn(),
+        pause: vi.fn(),
+        unpipe: vi.fn(),
+        destroy: vi.fn(),
+        readable: true,
+        destroyed: false,
+      };
+      Object.defineProperty(process, 'stdin', {
+        value: mockStdin,
+        writable: true,
+        configurable: true,
+      });
+
+      // Use shorter timeout for testing
+      const result = await readStdin(50);
+      expect(result).toBe(partialData);
 
       process.stdin = originalStdin;
     });

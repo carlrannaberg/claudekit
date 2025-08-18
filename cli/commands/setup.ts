@@ -111,6 +111,14 @@ const HOOK_GROUPS: HookGroup[] = [
     recommended: false,
     triggerEvent: 'Stop',
   },
+  {
+    id: 'session-initialization',
+    name: '🚀 Session Initialization (SessionStart)',
+    description: 'Initialize project context and maps when Claude Code session starts',
+    hooks: ['codebase-map'],
+    recommended: false,
+    triggerEvent: 'SessionStart',
+  },
 ];
 
 /**
@@ -980,6 +988,7 @@ interface HookSettings {
     PostToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     SubagentStop?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+    SessionStart?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
   };
 }
 
@@ -1006,6 +1015,7 @@ async function createProjectSettings(
       PostToolUse: [],
       Stop: [],
       SubagentStop: [],
+      SessionStart: [],
     },
   };
 
@@ -1015,6 +1025,7 @@ async function createProjectSettings(
       PostToolUse: [],
       Stop: [],
       SubagentStop: [],
+      SessionStart: [],
     };
   }
   if (settings.hooks.PostToolUse === null || settings.hooks.PostToolUse === undefined) {
@@ -1025,6 +1036,9 @@ async function createProjectSettings(
   }
   if (settings.hooks.SubagentStop === null || settings.hooks.SubagentStop === undefined) {
     settings.hooks.SubagentStop = [];
+  }
+  if (settings.hooks.SessionStart === null || settings.hooks.SessionStart === undefined) {
+    settings.hooks.SessionStart = [];
   }
 
   // Helper function to check if a hook is already configured
@@ -1048,6 +1062,14 @@ async function createProjectSettings(
     // Check SubagentStop hooks
     if (settings.hooks.SubagentStop) {
       for (const entry of settings.hooks.SubagentStop) {
+        if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
+          return true;
+        }
+      }
+    }
+    // Check SessionStart hooks
+    if (settings.hooks.SessionStart) {
+      for (const entry of settings.hooks.SessionStart) {
         if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
           return true;
         }
@@ -1104,6 +1126,20 @@ async function createProjectSettings(
                 settings.hooks.SubagentStop = [];
               }
               settings.hooks.SubagentStop.push({
+                matcher,
+                hooks: [{ type: 'command', command: hookCommand }],
+              });
+            }
+          } else if (triggerEvent === 'SessionStart') {
+            // For SessionStart hooks, check if we can merge with existing entry
+            const existingEntry = settings.hooks.SessionStart?.find((e) => e.matcher === matcher);
+            if (existingEntry !== undefined) {
+              existingEntry.hooks.push({ type: 'command', command: hookCommand });
+            } else {
+              if (settings.hooks.SessionStart === undefined) {
+                settings.hooks.SessionStart = [];
+              }
+              settings.hooks.SessionStart.push({
                 matcher,
                 hooks: [{ type: 'command', command: hookCommand }],
               });

@@ -71,6 +71,7 @@ describe('CodebaseMapHook', () => {
   let hook: CodebaseMapHook;
   let mockContext: HookContext;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let mockExecAsync: Mock;
   let mockCheckToolAvailable: Mock;
   let mockGetHookConfig: Mock;
@@ -86,6 +87,7 @@ describe('CodebaseMapHook', () => {
     mockContext = createMockContext();
 
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // Default mock return values
     mockCheckToolAvailable.mockResolvedValue(true);
@@ -118,8 +120,16 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('\n📍 Codebase Map:\n');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('# Project Structure\ncli/index.ts > cli/utils');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('🗺️ Scanning project structure...');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('📋 Generating codebase map...');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('✅ Codebase map generated successfully!');
+      expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'SessionStart',
+          additionalContext: '📍 Codebase Map:\n\n# Project Structure\ncli/index.ts > cli/utils'
+        },
+        suppressOutput: true
+      }));
     });
 
     it('should use custom format from config', async () => {
@@ -157,7 +167,7 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleErrorSpy).not.toHaveBeenCalledWith('\n📍 Codebase Map:\n');
+      expect(consoleLogSpy).not.toHaveBeenCalled(); // No output for empty result
     });
 
     it('should handle whitespace-only output from format command', async () => {
@@ -169,7 +179,7 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleErrorSpy).not.toHaveBeenCalledWith('\n📍 Codebase Map:\n');
+      expect(consoleLogSpy).not.toHaveBeenCalled(); // No output for empty result
     });
 
     it('should handle scan success but format failure', async () => {
@@ -225,8 +235,13 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('\n📍 Codebase Map:\n');
-      expect(consoleErrorSpy).toHaveBeenCalledWith(largeOutput);
+      expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'SessionStart',
+          additionalContext: `📍 Codebase Map:\n\n${largeOutput}`
+        },
+        suppressOutput: true
+      }));
     });
 
     it('should handle configuration with all possible options', async () => {

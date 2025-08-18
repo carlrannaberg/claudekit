@@ -5,7 +5,7 @@
  * verifying output formats, error handling, and CLI behavior.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import path from 'path';
 import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
@@ -141,6 +141,24 @@ Steps:
       await fs.rm(path.join(process.cwd(), 'src/commands/tmp'), { recursive: true, force: true });
     } catch {
       // Ignore if directory doesn't exist
+    }
+  });
+
+  afterAll(async () => {
+    // Final cleanup of any remaining test directories
+    const testDirs = [
+      'src/agents/tmp',
+      'src/agents/tmp-special-chars',
+      'src/agents/tmp-corrupted',
+      'src/commands/tmp'
+    ];
+    
+    for (const dir of testDirs) {
+      try {
+        await fs.rm(path.join(process.cwd(), dir), { recursive: true, force: true });
+      } catch {
+        // Ignore if directory doesn't exist
+      }
     }
   });
 
@@ -450,9 +468,13 @@ Steps:
       // Purpose: Verify that content with special characters, quotes, and
       // formatting is handled correctly in both text and JSON modes.
       
+      // Create a unique subdirectory for this test
+      const testDir = path.join(process.cwd(), 'src/agents/tmp-special-chars');
+      await fs.mkdir(testDir, { recursive: true });
+      
       // Create agent with special characters
       await testFs.writeFile(
-        path.join(process.cwd(), 'src/agents/tmp/special-chars-test.md'),
+        path.join(testDir, 'special-chars.md'),
         `---
 name: special-chars
 description: "Agent with special chars: quotes, newlines, and Unicode 🚀"
@@ -494,6 +516,9 @@ console.log(example);
       expect(agentData.description).toContain('🚀');
       expect(agentData.content).toContain('Unicode: 🚀 ✨ 🎯');
       expect(agentData.content).toContain('"Double quotes"');
+      
+      // Clean up test-specific directory
+      await fs.rm(testDir, { recursive: true, force: true });
     });
   });
 
@@ -502,9 +527,13 @@ console.log(example);
       // Purpose: Verify that corrupted or malformed agent files produce
       // clear error messages rather than crashing the CLI.
       
+      // Create a unique subdirectory for this test
+      const testDir = path.join(process.cwd(), 'src/agents/tmp-corrupted');
+      await fs.mkdir(testDir, { recursive: true });
+      
       // Create malformed agent file
       await testFs.writeFile(
-        path.join(process.cwd(), 'src/agents/tmp/corrupted-test.md'),
+        path.join(testDir, 'corrupted.md'),
         `---
 name: corrupted
 description: This frontmatter is not closed properly
@@ -524,6 +553,9 @@ This file has malformed frontmatter.
       expect(result.stderr).toContain('Error:');
       // Should suggest listing available agents
       expect(result.stderr).toContain("Try 'claudekit list agents'");
+      
+      // Clean up test-specific directory
+      await fs.rm(testDir, { recursive: true, force: true });
     });
 
     it('should handle empty agent directory gracefully', async () => {

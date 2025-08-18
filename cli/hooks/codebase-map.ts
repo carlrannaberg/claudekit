@@ -66,9 +66,18 @@ export class CodebaseMapHook extends BaseHook {
 
       // Display the formatted output
       if (stdout?.trim()) {
-        this.progress('\n📍 Codebase Map:\n');
-        this.progress(stdout);
+        // Show progress to user
         this.success('Codebase map generated successfully!');
+        
+        // For SessionStart hooks, use JSON output to add context
+        const contextMessage = `📍 Codebase Map:\n\n${stdout}`;
+        this.jsonOutput({
+          hookSpecificOutput: {
+            hookEventName: 'SessionStart',
+            additionalContext: contextMessage
+          },
+          suppressOutput: true  // Add to context without showing to user
+        });
       }
 
       return { exitCode: 0 };

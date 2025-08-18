@@ -55,6 +55,21 @@ export default [
     }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'ccanalysis/**']
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      'ccanalysis/**',
+      'tmp/**',
+      'temp/**',
+      '*.tmp',
+      'test-temp-*/**',
+      'reports/**',
+      '.claude/**',
+      '.codebasemap',
+      '.git/**',
+      '*.log',
+      'logs/**'
+    ]
   }
 ];

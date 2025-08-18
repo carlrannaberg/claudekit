@@ -5,6 +5,7 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { setImmediate } from 'timers';
 import fs from 'fs-extra';
 import * as path from 'path';
 import { Logger } from '../utils/logger.js';
@@ -13,13 +14,72 @@ const logger = new Logger('utils');
 
 const execAsync = promisify(exec);
 
-// Standard input reader
-export async function readStdin(): Promise<string> {
-  return new Promise((resolve) => {
+// Standard input reader with TTY detection and timeout
+export async function readStdin(timeoutMs: number = 100): Promise<string> {
+  // If stdin is a TTY (interactive), return empty immediately
+  // This prevents hanging when run manually without piped input
+  if (process.stdin.isTTY) {
+    return '';
+  }
+
+  return new Promise((resolve, reject) => {
     let data = '';
-    process.stdin.on('data', (chunk) => (data += chunk));
-    process.stdin.on('end', () => resolve(data));
-    // No timeout - wait indefinitely for input
+    let resolved = false;
+
+    // Set timeout for piped input
+    const timer = setTimeout(() => {
+      resolveOnce(data); // Return whatever we have so far
+    }, timeoutMs);
+
+    const cleanup = (): void => {
+      clearTimeout(timer);
+      
+      // Remove all listeners to prevent memory leaks
+      process.stdin.removeAllListeners('data');
+      process.stdin.removeAllListeners('end');
+      process.stdin.removeAllListeners('error');
+      
+      // Properly close stdin to allow process to exit
+      // Use setImmediate to avoid potential issues with immediate destruction
+      setImmediate(() => {
+        if (process.stdin.readable && !process.stdin.destroyed) {
+          process.stdin.pause();
+          process.stdin.unpipe();
+          process.stdin.destroy();
+        }
+      });
+    };
+
+    const resolveOnce = (result: string): void => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        resolve(result);
+      }
+    };
+
+    const rejectOnce = (error: Error): void => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        reject(error);
+      }
+    };
+
+    process.stdin.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    process.stdin.on('end', () => {
+      resolveOnce(data);
+    });
+
+    process.stdin.on('error', (error) => {
+      rejectOnce(error);
+    });
+    
+    // Important: Set stdin to flowing mode to trigger events or timeout
+    process.stdin.resume();
   });
 }
 

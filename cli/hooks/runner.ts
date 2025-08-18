@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { setImmediate } from 'timers';
 import { z } from 'zod';
 import { readStdin } from './utils.js';
 import type { BaseHook, HookConfig } from './base.js';
@@ -118,6 +119,9 @@ export class HookRunner {
     if (result.jsonResponse !== undefined) {
       console.log(JSON.stringify(result.jsonResponse));
     }
+
+    // Ensure all async operations complete before returning
+    await new Promise(resolve => setImmediate(resolve));
 
     return result.exitCode;
   }
