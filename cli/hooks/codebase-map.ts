@@ -11,7 +11,6 @@ import * as fs from 'node:fs/promises';
 
 const execAsync = promisify(exec);
 
-
 export class CodebaseMapHook extends BaseHook {
   name = 'codebase-map';
   private sessionTracker = new SessionTracker('codebase-map');
@@ -49,7 +48,7 @@ export class CodebaseMapHook extends BaseHook {
 
   async execute(context: HookContext): Promise<HookResult> {
     const { projectRoot } = context;
-    
+
     // Skip if we've already provided context for this session
     if (await this.hasProvidedContext(context)) {
       return { exitCode: 0 };
@@ -62,7 +61,7 @@ export class CodebaseMapHook extends BaseHook {
       const result = await generateCodebaseMap({
         command: config.command,
         format: config.format,
-        projectRoot
+        projectRoot,
       });
 
       if (!result.success) {
@@ -78,10 +77,10 @@ export class CodebaseMapHook extends BaseHook {
       if (result.output !== undefined && result.output !== '') {
         // Mark that we've provided context for this session
         await this.markContextProvided(context);
-        
+
         // Clean up old session files (async, non-blocking)
         this.cleanOldSessions();
-        
+
         // Output the codebase map to stdout (which adds it to context for UserPromptSubmit)
         const contextMessage = `📍 Codebase Map (loaded once per session):\n\n${result.output}`;
         console.log(contextMessage);
@@ -128,34 +127,34 @@ export class CodebaseMapUpdateHook extends BaseHook {
     if (config.updateOnChanges === false) {
       return false;
     }
-    
+
     // Check if enough time has passed since last update (debounce)
     const now = Date.now();
     if (now - this.lastUpdateTime < this.updateDebounceMs) {
       return false;
     }
-    
+
     // Only update for TypeScript/JavaScript files
-    const isCodeFile = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'].some(ext => 
+    const isCodeFile = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'].some((ext) =>
       filePath.endsWith(ext)
     );
-    
+
     return isCodeFile;
   }
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot } = context;
-    
+
     // Check if we should update the map
     if (!this.shouldUpdateMap(filePath)) {
       return { exitCode: 0 };
     }
-    
+
     // Check if codebase-map is installed (silently skip if not available)
     if (!(await checkToolAvailable('codebase-map', 'package.json', projectRoot))) {
       return { exitCode: 0 };
     }
-    
+
     // Check if index file exists (.codebasemap)
     try {
       await fs.access(path.join(projectRoot, '.codebasemap'));
@@ -163,25 +162,25 @@ export class CodebaseMapUpdateHook extends BaseHook {
       // No index file, skip update (will be created on next SessionStart)
       return { exitCode: 0 };
     }
-    
+
     // Update the specific file in the index
     this.lastUpdateTime = Date.now();
-    
+
     try {
       const config = this.loadConfig();
       const command = config.command ?? `codebase-map update "${filePath}"`;
-      
+
       await execAsync(command, {
         cwd: projectRoot,
-        maxBuffer: 10 * 1024 * 1024
+        maxBuffer: 10 * 1024 * 1024,
       });
-      
+
       // Silent success - don't interrupt workflow
     } catch (error) {
       // Silently fail on updates to avoid disrupting workflow
       console.error('Failed to update codebase map:', error);
     }
-    
+
     return { exitCode: 0 };
   }
 }

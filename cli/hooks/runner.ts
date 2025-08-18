@@ -121,7 +121,7 @@ export class HookRunner {
     }
 
     // Ensure all async operations complete before returning
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
 
     return result.exitCode;
   }

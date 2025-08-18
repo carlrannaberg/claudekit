@@ -1,7 +1,7 @@
 import { lintCommandFile, hasFrontmatter } from '../lib/linters/commands.js';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import path from 'path';
+import * as path from 'path';
 import { promises as fs } from 'fs';
 
 interface LintCommandsOptions {

@@ -73,7 +73,7 @@ export function createHooksCLI(): Command {
         globalOpts['debug'] === true || options.debug === true
       );
       const exitCode = await hookRunner.run(hookName);
-      
+
       // Force process exit to ensure clean shutdown
       // Use setImmediate to allow any final I/O to complete
       setImmediate(() => {

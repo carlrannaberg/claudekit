@@ -31,7 +31,7 @@ vi.mock('../../../cli/hooks/registry.js', () => ({
     'typecheck-project': vi.fn(),
     'lint-project': vi.fn(),
     'test-project': vi.fn(),
-  }
+  },
 }));
 
 // Now import after mocks
@@ -82,7 +82,7 @@ describe('HookRunner', () => {
 
       // Should have registered hooks from HOOK_REGISTRY
       expect(hooks.size).toBeGreaterThan(0);
-      
+
       // Check some common hooks exist
       expect(hooks.has('typecheck-changed')).toBe(true);
       expect(hooks.has('create-checkpoint')).toBe(true);

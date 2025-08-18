@@ -6,7 +6,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { setImmediate } from 'timers';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Logger } from '../utils/logger.js';
 
@@ -33,12 +33,12 @@ export async function readStdin(timeoutMs: number = 100): Promise<string> {
 
     const cleanup = (): void => {
       clearTimeout(timer);
-      
+
       // Remove all listeners to prevent memory leaks
       process.stdin.removeAllListeners('data');
       process.stdin.removeAllListeners('end');
       process.stdin.removeAllListeners('error');
-      
+
       // Properly close stdin to allow process to exit
       // Use setImmediate to avoid potential issues with immediate destruction
       setImmediate(() => {
@@ -77,7 +77,7 @@ export async function readStdin(timeoutMs: number = 100): Promise<string> {
     process.stdin.on('error', (error) => {
       rejectOnce(error);
     });
-    
+
     // Important: Set stdin to flowing mode to trigger events or timeout
     process.stdin.resume();
   });
@@ -386,10 +386,11 @@ export function formatTypeScriptErrors(result: ExecResult, command?: string): st
     .map((line) => `  ${line}`)
     .join('\n');
 
-  const step2 = command !== undefined && command !== null && command.length > 0
-    ? `2. Run '${command}' to verify fixes`
-    : '2. Run type checking command to verify fixes';
-  
+  const step2 =
+    command !== undefined && command !== null && command.length > 0
+      ? `2. Run '${command}' to verify fixes`
+      : '2. Run type checking command to verify fixes';
+
   const actions = `
 
 REQUIRED ACTIONS:

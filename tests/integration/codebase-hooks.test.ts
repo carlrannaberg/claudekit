@@ -32,9 +32,9 @@ function createSessionStartContext(sessionId: string): HookContext {
     projectRoot: TEST_PROJECT_ROOT,
     payload: {
       hook_event_name: 'UserPromptSubmit',
-      session_id: sessionId
+      session_id: sessionId,
     },
-    packageManager: 'npm' as unknown as HookContext['packageManager']
+    packageManager: 'npm' as unknown as HookContext['packageManager'],
   };
 }
 
@@ -45,9 +45,9 @@ function createUserPromptContext(sessionId: string, prompt: string = 'test promp
     payload: {
       hook_event_name: 'UserPromptSubmit',
       session_id: sessionId,
-      prompt
+      prompt,
     },
-    packageManager: 'npm' as unknown as HookContext['packageManager']
+    packageManager: 'npm' as unknown as HookContext['packageManager'],
   };
 }
 
@@ -95,7 +95,7 @@ describe('Codebase Hooks Integration', () => {
     it('should coordinate between SessionStart and UserPromptSubmit hooks', async () => {
       const sessionId = 'integration-test-session';
       const mapOutput = '# Project Structure\ncli/index.ts > cli/utils';
-      
+
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
         .mockResolvedValueOnce({ stdout: mapOutput, stderr: '' }); // format
@@ -103,10 +103,10 @@ describe('Codebase Hooks Integration', () => {
       // First run: SessionStart hook generates map
       const mapHook = new CodebaseMapHook();
       const mapResult = await mapHook.execute(createSessionStartContext(sessionId));
-      
+
       expect(mapResult.exitCode).toBe(0);
       // SessionStart hook should use jsonOutput for context
-      
+
       // Reset mocks for second hook
       consoleLogSpy.mockClear();
       mockExecAsync.mockClear();
@@ -116,10 +116,14 @@ describe('Codebase Hooks Integration', () => {
 
       // Second run: UserPromptSubmit hook on first prompt
       const contextHook = new CodebaseMapHook();
-      const firstPromptResult = await contextHook.execute(createUserPromptContext(sessionId, 'first prompt'));
-      
+      const firstPromptResult = await contextHook.execute(
+        createUserPromptContext(sessionId, 'first prompt')
+      );
+
       expect(firstPromptResult.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map (loaded once per session):'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      );
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining(`codebase-map-session-${sessionId}.json`),
         expect.stringContaining('"contextProvided": true')
@@ -128,17 +132,21 @@ describe('Codebase Hooks Integration', () => {
       // Third run: UserPromptSubmit hook on second prompt (should skip)
       consoleLogSpy.mockClear();
       mockExecAsync.mockClear();
-      
+
       // Mock that session file exists
       mockFsAccess.mockResolvedValueOnce(undefined);
-      mockFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        contextProvided: true,
-        timestamp: new Date().toISOString(),
-        sessionId
-      }));
+      mockFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          contextProvided: true,
+          timestamp: new Date().toISOString(),
+          sessionId,
+        })
+      );
 
-      const secondPromptResult = await contextHook.execute(createUserPromptContext(sessionId, 'second prompt'));
-      
+      const secondPromptResult = await contextHook.execute(
+        createUserPromptContext(sessionId, 'second prompt')
+      );
+
       expect(secondPromptResult.exitCode).toBe(0);
       expect(mockExecAsync).not.toHaveBeenCalled(); // Should not regenerate map
       expect(consoleLogSpy).not.toHaveBeenCalled(); // Should not output again
@@ -148,7 +156,7 @@ describe('Codebase Hooks Integration', () => {
       const session1 = 'session-1';
       const session2 = 'session-2';
       const mapOutput = 'test map';
-      
+
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' })
         .mockResolvedValueOnce({ stdout: mapOutput, stderr: '' });
@@ -156,7 +164,7 @@ describe('Codebase Hooks Integration', () => {
       // First session
       const contextHook = new CodebaseMapHook();
       await contextHook.execute(createUserPromptContext(session1));
-      
+
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining(`codebase-map-session-${session1}.json`),
         expect.any(String)
@@ -170,7 +178,7 @@ describe('Codebase Hooks Integration', () => {
 
       // Second session should also generate map
       await contextHook.execute(createUserPromptContext(session2));
-      
+
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining(`codebase-map-session-${session2}.json`),
         expect.any(String)
@@ -180,11 +188,11 @@ describe('Codebase Hooks Integration', () => {
     it('should share configuration between hooks using same codebase-map tool', async () => {
       const customConfig = {
         command: 'custom-codebase-map scan --verbose',
-        format: 'json'
+        format: 'json',
       };
-      
+
       mockGetHookConfig.mockImplementation((hookId: string) => {
-        if (hookId === 'codebase-map' ) {
+        if (hookId === 'codebase-map') {
           return customConfig;
         }
         return {};
@@ -198,10 +206,7 @@ describe('Codebase Hooks Integration', () => {
       await mapHook.execute(createSessionStartContext('test-session'));
 
       // Check that custom command was used
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        customConfig.command,
-        expect.any(Object)
-      );
+      expect(mockExecAsync).toHaveBeenCalledWith(customConfig.command, expect.any(Object));
       expect(mockExecAsync).toHaveBeenCalledWith(
         `codebase-map format --format ${customConfig.format}`,
         expect.any(Object)
@@ -217,10 +222,7 @@ describe('Codebase Hooks Integration', () => {
       await contextHook.execute(createUserPromptContext('test-session'));
 
       // Should use same custom command
-      expect(mockExecAsync).toHaveBeenCalledWith(
-        customConfig.command,
-        expect.any(Object)
-      );
+      expect(mockExecAsync).toHaveBeenCalledWith(customConfig.command, expect.any(Object));
       expect(mockExecAsync).toHaveBeenCalledWith(
         `codebase-map format --format ${customConfig.format}`,
         expect.any(Object)
@@ -234,13 +236,13 @@ describe('Codebase Hooks Integration', () => {
 
       const mapHook = new CodebaseMapHook();
       const mapResult = await mapHook.execute(createSessionStartContext('test'));
-      
+
       expect(mapResult.exitCode).toBe(0); // Should not block
       expect(mockExecAsync).not.toHaveBeenCalled();
 
       const contextHook = new CodebaseMapHook();
       const contextResult = await contextHook.execute(createUserPromptContext('test'));
-      
+
       expect(contextResult.exitCode).toBe(0); // Should not block
       expect(mockExecAsync).not.toHaveBeenCalled();
     });
@@ -251,19 +253,19 @@ describe('Codebase Hooks Integration', () => {
       // SessionStart hook failure
       const mapHook = new CodebaseMapHook();
       const mapResult = await mapHook.execute(createSessionStartContext('test'));
-      
+
       expect(mapResult.exitCode).toBe(0); // Should not block session
 
       // UserPromptSubmit hook failure
       const contextHook = new CodebaseMapHook();
       const contextResult = await contextHook.execute(createUserPromptContext('test'));
-      
+
       expect(contextResult.exitCode).toBe(0); // Should not block prompt
     });
 
     it('should handle corrupted session files gracefully', async () => {
       const sessionId = 'corrupted-session';
-      
+
       // Mock corrupted session file
       mockFsAccess.mockResolvedValueOnce(undefined);
       mockFsReadFile.mockResolvedValueOnce('invalid json {');
@@ -274,7 +276,7 @@ describe('Codebase Hooks Integration', () => {
 
       const contextHook = new CodebaseMapHook();
       const result = await contextHook.execute(createUserPromptContext(sessionId));
-      
+
       expect(result.exitCode).toBe(0);
       expect(mockExecAsync).toHaveBeenCalled(); // Should treat as new session
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map'));
@@ -284,23 +286,23 @@ describe('Codebase Hooks Integration', () => {
   describe('Session Management', () => {
     it('should write session files and clean up old ones', async () => {
       const sessionId = 'session-management-test';
-      
+
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' })
         .mockResolvedValueOnce({ stdout: 'output', stderr: '' });
 
       const contextHook = new CodebaseMapHook();
       await contextHook.execute(createUserPromptContext(sessionId));
-      
+
       // Wait for async cleanup to be called
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       // Verify session file was written with correct pattern
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining(`codebase-map-session-${sessionId}.json`),
         expect.stringContaining('"contextProvided": true')
       );
-      
+
       // Verify cleanup operations were attempted (readdir called)
       expect(mockFsReaddir).toHaveBeenCalled();
     });

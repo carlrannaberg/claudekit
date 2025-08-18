@@ -191,7 +191,7 @@ export async function saveMergedConfig(projectRoot: string, newConfig: Config): 
  */
 export async function loadUserConfig(): Promise<Config> {
   const userConfigPath = path.join(getUserClaudeDirectory(), 'settings.json');
-  
+
   try {
     if (await pathExists(userConfigPath)) {
       const content = await fs.readFile(userConfigPath, 'utf-8');
@@ -201,6 +201,6 @@ export async function loadUserConfig(): Promise<Config> {
   } catch {
     // Ignore errors, return empty config
   }
-  
+
   return { hooks: {} };
 }

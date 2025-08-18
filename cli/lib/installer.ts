@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import path from 'path';
+import * as path from 'path';
 // import os from 'os'; // Unused
 import { confirm } from '@inquirer/prompts';
 import { Logger } from '../utils/logger.js';

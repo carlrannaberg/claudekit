@@ -37,7 +37,7 @@ export class CheckAnyChangedHook extends BaseHook {
     for (let i = 0; i < lines.length; i++) {
       const originalLine = lines[i];
       const cleanedLine = cleanedLines[i];
-      
+
       if (originalLine === undefined || originalLine === '' || cleanedLine === undefined) {
         continue;
       }
@@ -51,7 +51,9 @@ export class CheckAnyChangedHook extends BaseHook {
 
       // Check for forbidden 'any' patterns in the cleaned line
       const typeWord = 'any';
-      const forbiddenTypePattern = new RegExp(`:\\s*${typeWord}\\b|:\\s*${typeWord}\\[\\]|<${typeWord}>|as\\s+${typeWord}\\b|=\\s*${typeWord}\\b`);
+      const forbiddenTypePattern = new RegExp(
+        `:\\s*${typeWord}\\b|:\\s*${typeWord}\\[\\]|<${typeWord}>|as\\s+${typeWord}\\b|=\\s*${typeWord}\\b`
+      );
       if (forbiddenTypePattern.test(cleanedLine)) {
         errors.push(`Line ${lineNum}: ${originalLine.trim()}`);
       }
@@ -91,11 +93,11 @@ export class CheckAnyChangedHook extends BaseHook {
   private removeStringsAndComments(content: string): string {
     let result = '';
     let i = 0;
-    
+
     while (i < content.length) {
       const char = content[i];
       const nextChar = content[i + 1];
-      
+
       // Handle single line comments
       if (char === '/' && nextChar === '/') {
         // Find end of line
@@ -111,7 +113,7 @@ export class CheckAnyChangedHook extends BaseHook {
         }
         continue;
       }
-      
+
       // Handle multi-line comments
       if (char === '/' && nextChar === '*') {
         const endComment = content.indexOf('*/', i + 2);
@@ -128,17 +130,17 @@ export class CheckAnyChangedHook extends BaseHook {
         }
         continue;
       }
-      
+
       // Handle string literals
       if (char === '"' || char === "'" || char === '`') {
         const quote = char;
         result += ' '; // Replace opening quote with space
         i++;
-        
+
         // Find closing quote, handling escapes
         while (i < content.length) {
           const currentChar = content[i];
-          
+
           if (currentChar === '\\') {
             // Skip escaped character
             result += '  '; // Replace escape sequence with spaces
@@ -160,12 +162,12 @@ export class CheckAnyChangedHook extends BaseHook {
         }
         continue;
       }
-      
+
       // Regular character, keep as is
       result += char;
       i++;
     }
-    
+
     return result;
   }
 }

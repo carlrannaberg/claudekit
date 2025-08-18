@@ -97,9 +97,9 @@ This is a test command that validates functionality.
       const foundEmbeddedHooks = allHooks.filter((h) => h.path.startsWith('embedded:'));
       expect(foundEmbeddedHooks.length).toBeGreaterThan(0);
       // Should include at least the core embedded hooks
-      const foundPaths = foundEmbeddedHooks.map(h => h.path);
-      expect(foundPaths.some(p => p.includes('typecheck-changed'))).toBe(true);
-      expect(foundPaths.some(p => p.includes('lint-changed'))).toBe(true);
+      const foundPaths = foundEmbeddedHooks.map((h) => h.path);
+      expect(foundPaths.some((p) => p.includes('typecheck-changed'))).toBe(true);
+      expect(foundPaths.some((p) => p.includes('lint-changed'))).toBe(true);
     });
 
     it('should infer category from content when not explicitly provided', async () => {
@@ -182,7 +182,9 @@ description: Git commit command
 
       expect(getComponent('git:commit', registry)).toBeDefined();
       // Should have nested command and embedded hooks
-      const embeddedHooks = Array.from(registry.components.values()).filter(c => c.path.startsWith('embedded:'));
+      const embeddedHooks = Array.from(registry.components.values()).filter((c) =>
+        c.path.startsWith('embedded:')
+      );
       expect(registry.components.size).toBe(1 + embeddedHooks.length);
     });
 
@@ -201,7 +203,9 @@ description: Test command
       const registry = await discoverComponents(tempDir);
 
       // Should have command and embedded hooks
-      const embeddedHooks = Array.from(registry.components.values()).filter(c => c.path.startsWith('embedded:'));
+      const embeddedHooks = Array.from(registry.components.values()).filter((c) =>
+        c.path.startsWith('embedded:')
+      );
       expect(registry.components.size).toBe(1 + embeddedHooks.length);
       expect(getComponent('test', registry)).toBeDefined();
     });
@@ -227,8 +231,12 @@ enabled: false
 
       const registryAll = await discoverComponents(tempDir, { includeDisabled: true });
       // Should have commands and embedded hooks
-      const embeddedHooks = Array.from(registryAll.components.values()).filter(c => c.path.startsWith('embedded:'));
-      const commands = Array.from(registryAll.components.values()).filter(c => c.type === 'command');
+      const embeddedHooks = Array.from(registryAll.components.values()).filter((c) =>
+        c.path.startsWith('embedded:')
+      );
+      const commands = Array.from(registryAll.components.values()).filter(
+        (c) => c.type === 'command'
+      );
       expect(registryAll.components.size).toBe(commands.length + embeddedHooks.length);
 
       // Clear cache before second call
@@ -265,7 +273,10 @@ category: git
       const hooks = getComponentsByType('hook', registry);
       expect(hooks.length).toBeGreaterThan(0);
       // Verify we have validation hooks by checking paths
-      const hooksWithValidation = hooks.filter(h => h.path.includes('typecheck') || h.path.includes('lint') || h.path.includes('check-any'));
+      const hooksWithValidation = hooks.filter(
+        (h) =>
+          h.path.includes('typecheck') || h.path.includes('lint') || h.path.includes('check-any')
+      );
       expect(hooksWithValidation.length).toBeGreaterThan(0);
 
       // Test validation category has embedded validation hooks
@@ -508,8 +519,8 @@ author: Test Author
       const components = registryToComponents(registry);
 
       // Should have command and embedded hooks
-      const commands = components.filter(c => c.type === 'command');
-      const hooks = components.filter(c => c.type === 'hook');
+      const commands = components.filter((c) => c.type === 'command');
+      const hooks = components.filter((c) => c.type === 'hook');
       expect(components.length).toBe(commands.length + hooks.length);
 
       const testCommand = components.find((c) => c.id === 'test');
@@ -594,7 +605,9 @@ category: utility
 
       expect(duration).toBeLessThan(500);
       // Should have all components
-      const embeddedHooks = Array.from(registry.components.values()).filter(c => c.path.startsWith('embedded:'));
+      const embeddedHooks = Array.from(registry.components.values()).filter((c) =>
+        c.path.startsWith('embedded:')
+      );
       expect(registry.components.size).toBe(componentCount + embeddedHooks.length);
     });
   });

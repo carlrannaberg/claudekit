@@ -1,6 +1,6 @@
 /**
  * Loader module for claudekit show command functionality
- * 
+ *
  * This module provides unified exports for loading and parsing
  * agent definitions and command definitions from their source files.
  */

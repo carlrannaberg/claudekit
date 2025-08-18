@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import { promises as fs } from 'fs';
 import type { CommandDefinition } from './types.js';
 import { BaseLoader } from './base-loader.js';
@@ -39,7 +39,7 @@ export class CommandLoader extends BaseLoader {
       content,
       filePath: commandPath,
       ...(category !== undefined && { category }),
-      ...(argumentHint !== undefined && { argumentHint })
+      ...(argumentHint !== undefined && { argumentHint }),
     };
 
     return definition;
@@ -54,15 +54,18 @@ export class CommandLoader extends BaseLoader {
     if (tools === null || tools === undefined) {
       return [];
     }
-    
+
     if (typeof tools === 'string') {
-      return tools.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      return tools
+        .split(',')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
     }
-    
+
     if (Array.isArray(tools)) {
-      return tools.map(t => String(t).trim()).filter(t => t.length > 0);
+      return tools.map((t) => String(t).trim()).filter((t) => t.length > 0);
     }
-    
+
     return [];
   }
 
@@ -78,7 +81,7 @@ export class CommandLoader extends BaseLoader {
         const parts = commandId.split(':');
         const namespace = parts[0];
         const name = parts[1];
-        
+
         if (namespace !== undefined && name !== undefined) {
           const namespacedPath = path.join(searchPath, namespace, `${name}.md`);
           if (await this.fileExists(namespacedPath)) {
@@ -107,15 +110,15 @@ export class CommandLoader extends BaseLoader {
    * Get all available commands from all search paths
    * @returns Promise<Array<{id: string, source: string, path: string}>>
    */
-  async getAllCommands(): Promise<Array<{id: string, source: string, path: string}>> {
+  async getAllCommands(): Promise<Array<{ id: string; source: string; path: string }>> {
     await this.ensurePathsInitialized();
-    const commands: Array<{id: string, source: string, path: string}> = [];
+    const commands: Array<{ id: string; source: string; path: string }> = [];
     const seen = new Set<string>();
-    
+
     for (const searchPath of this.searchPaths) {
       const source = this.getSourceLabel(searchPath);
       const commandsInPath = await this.findCommandsInPath(searchPath);
-      
+
       for (const { id, path: cmdPath } of commandsInPath) {
         if (!seen.has(id)) {
           seen.add(id);
@@ -123,7 +126,7 @@ export class CommandLoader extends BaseLoader {
         }
       }
     }
-    
+
     return commands;
   }
 
@@ -133,7 +136,7 @@ export class CommandLoader extends BaseLoader {
   private getSourceLabel(searchPath: string): string {
     const home = process.env['HOME'] ?? process.env['USERPROFILE'] ?? '';
     const homeClaudePath = path.join(home, '.claude');
-    
+
     // Check if it's the user's global .claude directory
     if (searchPath === homeClaudePath || searchPath.startsWith(homeClaudePath + path.sep)) {
       return 'global';
@@ -151,15 +154,18 @@ export class CommandLoader extends BaseLoader {
   /**
    * Find all commands in a specific path
    */
-  private async findCommandsInPath(searchPath: string, prefix: string = ''): Promise<Array<{id: string, path: string}>> {
-    const commands: Array<{id: string, path: string}> = [];
-    
+  private async findCommandsInPath(
+    searchPath: string,
+    prefix: string = ''
+  ): Promise<Array<{ id: string; path: string }>> {
+    const commands: Array<{ id: string; path: string }> = [];
+
     try {
       const entries = await fs.readdir(searchPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(searchPath, entry.name);
-        
+
         if (entry.isDirectory()) {
           // Recursively search subdirectories
           const subPrefix = prefix !== '' ? `${prefix}:${entry.name}` : entry.name;
@@ -174,7 +180,7 @@ export class CommandLoader extends BaseLoader {
     } catch {
       // Directory might not exist or be readable
     }
-    
+
     return commands;
   }
 
@@ -184,7 +190,10 @@ export class CommandLoader extends BaseLoader {
    * @param commandId Command ID to find
    * @returns Promise<string | null> Path to matching file or null
    */
-  private async searchRecursivelyForCommand(searchPath: string, commandId: string): Promise<string | null> {
+  private async searchRecursivelyForCommand(
+    searchPath: string,
+    commandId: string
+  ): Promise<string | null> {
     return this.searchRecursively(searchPath, async (fullPath, entry) => {
       // Check if filename matches (without .md extension)
       const nameWithoutExt = path.basename(entry.name, '.md');

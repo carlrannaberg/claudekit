@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import { spawn } from 'child_process';
 // import { promisify } from 'util'; // Unused
 import type { ProjectInfo, PackageManager } from '../types/index.js';

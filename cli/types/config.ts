@@ -83,7 +83,14 @@ export const HookMatcherSchema = z.object({
 /**
  * Hook event configuration schema
  */
-export const HookEventSchema = z.enum(['PostToolUse', 'Stop', 'SubagentStop', 'PreAction', 'PostAction', 'SessionStart']);
+export const HookEventSchema = z.enum([
+  'PostToolUse',
+  'Stop',
+  'SubagentStop',
+  'PreAction',
+  'PostAction',
+  'SessionStart',
+]);
 
 /**
  * Complete hooks configuration schema

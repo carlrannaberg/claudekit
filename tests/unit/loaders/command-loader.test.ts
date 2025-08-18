@@ -1,6 +1,6 @@
 /**
  * Comprehensive tests for CommandLoader class
- * 
+ *
  * Purpose: Validate that CommandLoader correctly loads command definitions from markdown files,
  * handles namespaced commands, parses frontmatter (especially allowed-tools), and provides proper error handling.
  */
@@ -22,11 +22,11 @@ describe('CommandLoader', () => {
     tempDir = await testFs.createTempDir();
     commandsDir = path.join(tempDir, 'src', 'commands');
     await fs.mkdir(commandsDir, { recursive: true });
-    
+
     // Create .claude directory for project-level commands
     const projectClaudeDir = path.join(tempDir, '.claude', 'commands');
     await fs.mkdir(projectClaudeDir, { recursive: true });
-    
+
     // Mock the path functions to use our test directories
     vi.spyOn(paths, 'getProjectClaudeDirectory').mockReturnValue(path.join(tempDir, '.claude'));
     vi.spyOn(paths, 'getUserClaudeDirectory').mockReturnValue(path.join(tempDir, 'user-claude'));
@@ -83,7 +83,7 @@ Generate comprehensive specification documents.`;
           allowedTools: ['Read', 'Write', 'Grep', 'Glob', 'TodoWrite', 'Task'],
           argumentHint: '<feature-or-bugfix-description>',
           content: '# Spec Create Command\n\nGenerate comprehensive specification documents.',
-          filePath: path.join(specDir, 'create.md')
+          filePath: path.join(specDir, 'create.md'),
         });
       });
 
@@ -135,8 +135,9 @@ Run quality checks and automatically fix discovered issues.`;
           category: 'workflow',
           allowedTools: ['Bash', 'Task', 'TodoWrite', 'Read', 'Edit', 'MultiEdit'],
           argumentHint: undefined,
-          content: '# Validate and Fix\n\nRun quality checks and automatically fix discovered issues.',
-          filePath: path.join(commandsDir, 'validate-and-fix.md')
+          content:
+            '# Validate and Fix\n\nRun quality checks and automatically fix discovered issues.',
+          filePath: path.join(commandsDir, 'validate-and-fix.md'),
         });
       });
 
@@ -411,7 +412,9 @@ Regular paragraph with **bold** text.`;
       it('should throw error for non-existent command', async () => {
         // Purpose: Verify proper error handling when command file doesn't exist
         const loader = createTestLoader();
-        await expect(loader.loadCommand('non-existent-command')).rejects.toThrow('Command not found: non-existent-command');
+        await expect(loader.loadCommand('non-existent-command')).rejects.toThrow(
+          'Command not found: non-existent-command'
+        );
       });
 
       it('should handle file system permission errors', async () => {
@@ -430,7 +433,7 @@ Regular paragraph with **bold** text.`;
         // Purpose: Ensure loader handles files that can't be parsed gracefully
         const commandPath = path.join(commandsDir, 'corrupted.md');
         // Create a file with invalid UTF-8 content
-        await fs.writeFile(commandPath, Buffer.from([0xFF, 0xFE, 0xFD]));
+        await fs.writeFile(commandPath, Buffer.from([0xff, 0xfe, 0xfd]));
 
         const loader = createTestLoader();
         // The loader now gracefully handles corrupted content by treating
@@ -512,7 +515,9 @@ This command has no frontmatter section.`;
         expect(result.name).toBe('no-frontmatter');
         expect(result.description).toBe('');
         expect(result.allowedTools).toEqual([]);
-        expect(result.content).toBe('# No Frontmatter Command\n\nThis command has no frontmatter section.');
+        expect(result.content).toBe(
+          '# No Frontmatter Command\n\nThis command has no frontmatter section.'
+        );
       });
 
       it('should handle complex namespaced command IDs', async () => {
@@ -563,7 +568,7 @@ This command has all possible frontmatter fields.`;
           allowedTools: ['Read', 'Write', 'Bash(git:*)', 'Edit'],
           argumentHint: '<comprehensive-args>',
           content: '# Comprehensive Command\nThis command has all possible frontmatter fields.',
-          filePath: path.join(commandsDir, 'comprehensive.md')
+          filePath: path.join(commandsDir, 'comprehensive.md'),
         });
       });
     });

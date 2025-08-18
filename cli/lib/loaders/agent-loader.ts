@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import { promises as fs } from 'fs';
 import type { AgentDefinition } from './types.js';
 import { BaseLoader } from './base-loader.js';
@@ -23,10 +23,10 @@ export class AgentLoader extends BaseLoader {
     if (agentPath === null) {
       throw new Error(`Agent not found: ${agentId}`);
     }
-    
+
     // Read and parse file using base class method
     const { data, content } = await this.readAndParseFile(agentPath);
-    
+
     // Build definition with conditional optional properties
     const bundle = this.validateStringArray(data['bundle']);
     const displayName = this.getOptionalString(data, 'displayName');
@@ -43,9 +43,9 @@ export class AgentLoader extends BaseLoader {
       ...(bundle !== undefined && { bundle }),
       ...(displayName !== undefined && { displayName }),
       ...(color !== undefined && { color }),
-      ...(tools !== undefined && { tools })
+      ...(tools !== undefined && { tools }),
     };
-    
+
     return definition;
   }
 
@@ -53,15 +53,15 @@ export class AgentLoader extends BaseLoader {
    * Get all available agents from all search paths
    * @returns Promise<Array<{id: string, source: string, path: string}>>
    */
-  async getAllAgents(): Promise<Array<{id: string, source: string, path: string}>> {
+  async getAllAgents(): Promise<Array<{ id: string; source: string; path: string }>> {
     await this.ensurePathsInitialized();
-    const agents: Array<{id: string, source: string, path: string}> = [];
+    const agents: Array<{ id: string; source: string; path: string }> = [];
     const seen = new Set<string>();
-    
+
     for (const searchPath of this.searchPaths) {
       const source = this.getSourceLabel(searchPath);
       const agentsInPath = await this.findAgentsInPath(searchPath);
-      
+
       for (const { id, path: agentPath } of agentsInPath) {
         if (!seen.has(id)) {
           seen.add(id);
@@ -69,7 +69,7 @@ export class AgentLoader extends BaseLoader {
         }
       }
     }
-    
+
     return agents;
   }
 
@@ -79,7 +79,7 @@ export class AgentLoader extends BaseLoader {
   private getSourceLabel(searchPath: string): string {
     const home = process.env['HOME'] ?? process.env['USERPROFILE'] ?? '';
     const homeClaudePath = path.join(home, '.claude');
-    
+
     // Check if it's the user's global .claude directory
     if (searchPath === homeClaudePath || searchPath.startsWith(homeClaudePath + path.sep)) {
       return 'global';
@@ -97,15 +97,15 @@ export class AgentLoader extends BaseLoader {
   /**
    * Find all agents in a specific path
    */
-  private async findAgentsInPath(searchPath: string): Promise<Array<{id: string, path: string}>> {
-    const agents: Array<{id: string, path: string}> = [];
-    
+  private async findAgentsInPath(searchPath: string): Promise<Array<{ id: string; path: string }>> {
+    const agents: Array<{ id: string; path: string }> = [];
+
     try {
       const entries = await fs.readdir(searchPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(searchPath, entry.name);
-        
+
         if (entry.isDirectory()) {
           // Recursively search subdirectories
           const subAgents = await this.findAgentsInPath(fullPath);
@@ -118,10 +118,10 @@ export class AgentLoader extends BaseLoader {
     } catch {
       // Directory might not exist or be readable
     }
-    
+
     return agents;
   }
-  
+
   /**
    * Resolve agent ID to file path using multiple strategies
    * @param agentId The agent identifier
@@ -148,7 +148,7 @@ export class AgentLoader extends BaseLoader {
         const parts = agentId.split('/');
         const category = parts[0];
         const name = parts[1];
-        
+
         if (category !== undefined && name !== undefined) {
           const categoryPath = path.join(searchPath, category, `${name}.md`);
           if (await this.fileExists(categoryPath)) {
@@ -181,12 +181,15 @@ export class AgentLoader extends BaseLoader {
    * @param targetName Name to match in frontmatter
    * @returns Promise<string | null> Path to matching file or null
    */
-  private async searchByFrontmatterName(searchPath: string, targetName: string): Promise<string | null> {
+  private async searchByFrontmatterName(
+    searchPath: string,
+    targetName: string
+  ): Promise<string | null> {
     return this.searchRecursively(searchPath, async (fullPath, _entry) => {
       try {
         // Read and parse frontmatter
         const { data } = await this.readAndParseFile(fullPath);
-        
+
         // Check if name field matches
         if ('name' in data && data['name'] === targetName) {
           return fullPath;

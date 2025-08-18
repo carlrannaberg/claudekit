@@ -1,6 +1,6 @@
 /**
  * Comprehensive test suite for CodebaseMapHook and CodebaseMapUpdateHook
- * 
+ *
  * This test suite covers:
  * - Basic functionality for both hooks
  * - Edge cases for file path handling
@@ -43,8 +43,9 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('../../cli/hooks/utils.js', () => ({
   checkToolAvailable: vi.fn(),
-  formatError: vi.fn((title: string, details: string, instructions: string[]) => 
-    `${title}: ${details}\n${instructions.join('\n')}`
+  formatError: vi.fn(
+    (title: string, details: string, instructions: string[]) =>
+      `${title}: ${details}\n${instructions.join('\n')}`
   ),
 }));
 
@@ -76,14 +77,17 @@ function createMockContext(overrides: Partial<HookContext> = {}): HookContext {
   };
 }
 
-function createUserPromptContext(sessionId: string = 'test-session-123', overrides: Partial<HookContext> = {}): HookContext {
+function createUserPromptContext(
+  sessionId: string = 'test-session-123',
+  overrides: Partial<HookContext> = {}
+): HookContext {
   return {
     projectRoot: TEST_PROJECT_ROOT,
     payload: {
       hook_event_name: 'UserPromptSubmit',
       session_id: sessionId,
       prompt: 'test prompt',
-      ...overrides.payload
+      ...overrides.payload,
     },
     packageManager: {
       name: 'npm',
@@ -94,7 +98,6 @@ function createUserPromptContext(sessionId: string = 'test-session-123', overrid
     ...overrides,
   };
 }
-
 
 describe('CodebaseMapHook', () => {
   let hook: CodebaseMapHook;
@@ -123,7 +126,7 @@ describe('CodebaseMapHook', () => {
     mockFsReadFile = fs.readFile as unknown as Mock;
     mockFsWriteFile = fs.writeFile as unknown as Mock;
     mockFsMkdir = fs.mkdir as unknown as Mock;
-    
+
     hook = new CodebaseMapHook();
     mockContext = createMockContext();
 
@@ -160,12 +163,17 @@ describe('CodebaseMapHook', () => {
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
-        .mockResolvedValueOnce({ stdout: '# Project Structure\ncli/index.ts > cli/utils', stderr: '' }); // format
+        .mockResolvedValueOnce({
+          stdout: '# Project Structure\ncli/index.ts > cli/utils',
+          stderr: '',
+        }); // format
 
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map (loaded once per session):'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      );
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('# Project Structure'));
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining('codebase-map-session-test-session-123.json'),
@@ -277,16 +285,20 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map (loaded once per session):'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(largeOutput.substring(0, 100))); // Check part of the large output
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining(largeOutput.substring(0, 100))
+      ); // Check part of the large output
     });
 
     it('should handle configuration with all possible options', async () => {
       mockCheckToolAvailable.mockResolvedValueOnce(true);
-      mockGetHookConfig.mockReturnValueOnce({ 
+      mockGetHookConfig.mockReturnValueOnce({
         command: 'custom-command --option',
         format: 'json',
-        updateOnChanges: false 
+        updateOnChanges: false,
       });
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
@@ -296,7 +308,10 @@ describe('CodebaseMapHook', () => {
 
       expect(result.exitCode).toBe(0);
       expect(mockExecAsync).toHaveBeenCalledWith('custom-command --option', expect.any(Object));
-      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map format --format json', expect.any(Object));
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'codebase-map format --format json',
+        expect.any(Object)
+      );
     });
   });
 
@@ -306,12 +321,17 @@ describe('CodebaseMapHook', () => {
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
-        .mockResolvedValueOnce({ stdout: '# Project Structure\ncli/index.ts > cli/utils', stderr: '' }); // format
+        .mockResolvedValueOnce({
+          stdout: '# Project Structure\ncli/index.ts > cli/utils',
+          stderr: '',
+        }); // format
 
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map (loaded once per session):'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      );
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining('codebase-map-session-test-session-123.json'),
         expect.stringContaining('"contextProvided": true')
@@ -321,14 +341,16 @@ describe('CodebaseMapHook', () => {
     it('should skip if context already provided for session', async () => {
       const userContext = createUserPromptContext('existing-session');
       mockCheckToolAvailable.mockResolvedValueOnce(true);
-      
+
       // Mock session file exists with context already provided
       mockFsAccess.mockResolvedValueOnce(undefined);
-      mockFsReadFile.mockResolvedValueOnce(JSON.stringify({
-        contextProvided: true,
-        timestamp: '2024-01-01T00:00:00.000Z',
-        sessionId: 'existing-session'
-      }));
+      mockFsReadFile.mockResolvedValueOnce(
+        JSON.stringify({
+          contextProvided: true,
+          timestamp: '2024-01-01T00:00:00.000Z',
+          sessionId: 'existing-session',
+        })
+      );
 
       const result = await hook.execute(userContext);
 
@@ -339,7 +361,7 @@ describe('CodebaseMapHook', () => {
 
     it('should handle missing session_id gracefully', async () => {
       const contextWithoutSessionId = createUserPromptContext('unknown', {
-        payload: { hook_event_name: 'UserPromptSubmit', prompt: 'test' }
+        payload: { hook_event_name: 'UserPromptSubmit', prompt: 'test' },
       });
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockExecAsync
@@ -391,7 +413,7 @@ describe('CodebaseMapUpdateHook', () => {
     mockFsAccess = fs.access as unknown as Mock;
     mockCheckToolAvailable = checkToolAvailable as Mock;
     mockGetHookConfig = getHookConfig as Mock;
-    
+
     hook = new CodebaseMapUpdateHook();
     mockContext = createMockContext({
       filePath: '/test/project/src/index.ts',
@@ -472,20 +494,20 @@ describe('CodebaseMapUpdateHook', () => {
       const now = 1000000;
       const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
       const debounceMs = 5000;
-      
+
       try {
         // Exactly at boundary (should return false - check uses < not <=)
         hook['lastUpdateTime'] = now - debounceMs;
         expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true);
-        
+
         // Just before boundary - 1ms before (should return false)
         hook['lastUpdateTime'] = now - debounceMs + 1;
         expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
-        
+
         // Just past boundary - 1ms past (should return true)
         hook['lastUpdateTime'] = now - debounceMs - 1;
         expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true);
-        
+
         // Well within boundary (should return false)
         hook['lastUpdateTime'] = now - 1000;
         expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(false);
@@ -498,7 +520,7 @@ describe('CodebaseMapUpdateHook', () => {
       // Mock getHookConfig to return invalid config
       mockGetHookConfig.mockReturnValueOnce(null);
       expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true); // Should default to enabled
-      
+
       mockGetHookConfig.mockReturnValueOnce(undefined);
       expect(hook['shouldUpdateMap']('/test/file.ts')).toBe(true); // Should default to enabled
     });
@@ -506,8 +528,8 @@ describe('CodebaseMapUpdateHook', () => {
     it('should support all JavaScript file extensions', () => {
       hook['lastUpdateTime'] = 0;
       const jsExtensions = ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx'];
-      
-      jsExtensions.forEach(ext => {
+
+      jsExtensions.forEach((ext) => {
         expect(hook['shouldUpdateMap'](`/test/file${ext}`)).toBe(true);
       });
     });
@@ -534,7 +556,11 @@ describe('CodebaseMapUpdateHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('codebase-map', 'package.json', TEST_PROJECT_ROOT);
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'codebase-map',
+        'package.json',
+        TEST_PROJECT_ROOT
+      );
     });
 
     it('should skip update if index file does not exist', async () => {
@@ -544,7 +570,11 @@ describe('CodebaseMapUpdateHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('codebase-map', 'package.json', TEST_PROJECT_ROOT);
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'codebase-map',
+        'package.json',
+        TEST_PROJECT_ROOT
+      );
       expect(mockFsAccess).toHaveBeenCalledWith('/test/project/.codebasemap');
     });
 
@@ -556,12 +586,19 @@ describe('CodebaseMapUpdateHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('codebase-map', 'package.json', TEST_PROJECT_ROOT);
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'codebase-map',
+        'package.json',
+        TEST_PROJECT_ROOT
+      );
       expect(mockFsAccess).toHaveBeenCalledWith('/test/project/.codebasemap');
-      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map update "/test/project/src/index.ts"', {
-        cwd: TEST_PROJECT_ROOT,
-        maxBuffer: 10 * 1024 * 1024,
-      });
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'codebase-map update "/test/project/src/index.ts"',
+        {
+          cwd: TEST_PROJECT_ROOT,
+          maxBuffer: 10 * 1024 * 1024,
+        }
+      );
     });
 
     it('should handle update errors silently', async () => {
@@ -574,7 +611,11 @@ describe('CodebaseMapUpdateHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockCheckToolAvailable).toHaveBeenCalledWith('codebase-map', 'package.json', TEST_PROJECT_ROOT);
+      expect(mockCheckToolAvailable).toHaveBeenCalledWith(
+        'codebase-map',
+        'package.json',
+        TEST_PROJECT_ROOT
+      );
       expect(mockFsAccess).toHaveBeenCalledWith('/test/project/.codebasemap');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to update codebase map:',
@@ -594,13 +635,13 @@ describe('CodebaseMapUpdateHook', () => {
       const promises = [
         hook.execute(mockContext),
         hook.execute(mockContext),
-        hook.execute(mockContext)
+        hook.execute(mockContext),
       ];
 
       const results = await Promise.all(promises);
-      
+
       // All should succeed
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.exitCode).toBe(0);
       });
     });
@@ -629,22 +670,25 @@ describe('CodebaseMapUpdateHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map update "/test/project/src/index.ts"', {
-        cwd: TEST_PROJECT_ROOT,
-        maxBuffer: 10 * 1024 * 1024,
-      });
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'codebase-map update "/test/project/src/index.ts"',
+        {
+          cwd: TEST_PROJECT_ROOT,
+          maxBuffer: 10 * 1024 * 1024,
+        }
+      );
     });
 
     it('should update lastUpdateTime only on successful updates', async () => {
       const initialTime = hook['lastUpdateTime'];
-      
+
       // Test failed update
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockFsAccess.mockResolvedValueOnce(undefined);
       mockExecAsync.mockRejectedValueOnce(new Error('Update failed'));
 
       await hook.execute(mockContext);
-      
+
       // Should still update time even on failure (to prevent retry spam)
       expect(hook['lastUpdateTime']).toBeGreaterThan(initialTime);
     });
@@ -652,7 +696,7 @@ describe('CodebaseMapUpdateHook', () => {
     it('should handle very long file paths', async () => {
       const longPath = `${'/very/long/path/'.repeat(50)}file.ts`;
       const contextWithLongPath = createMockContext({ filePath: longPath });
-      
+
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockFsAccess.mockResolvedValueOnce(undefined);
       mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });

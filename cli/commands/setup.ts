@@ -1,6 +1,6 @@
 import { select, checkbox, input, confirm } from '@inquirer/prompts';
 import { Colors } from '../utils/colors.js';
-import path from 'path';
+import * as path from 'path';
 import { promises as fs } from 'fs';
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter, ComponentProgressReporter } from '../utils/progress.js';
@@ -93,7 +93,13 @@ const HOOK_GROUPS: HookGroup[] = [
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',
-    hooks: ['lint-changed', 'typecheck-changed', 'check-any-changed', 'test-changed', 'check-comment-replacement'],
+    hooks: [
+      'lint-changed',
+      'typecheck-changed',
+      'check-any-changed',
+      'test-changed',
+      'check-comment-replacement',
+    ],
     recommended: true,
     triggerEvent: 'PostToolUse',
   },
@@ -229,10 +235,10 @@ async function performThreeStepSelection(
     const individualHookChoices = availableHooks.map((hookId) => {
       const HookClass = HOOK_REGISTRY[hookId];
       const metadata = HookClass?.metadata;
-      
+
       const description = metadata?.description ?? 'Hook description';
       const triggerEvent = metadata?.triggerEvent ?? 'Unknown';
-      
+
       return {
         value: hookId,
         name: `${hookId} (${triggerEvent})\n  ${Colors.dim(description)}`,
@@ -268,8 +274,9 @@ async function performThreeStepSelection(
   console.log(`\n${Colors.bold('Step 3: Choose AI Assistant Subagents (Optional)')}`);
 
   // Get total agent count for display
-  const totalAgentCount = Array.from(registry.components.values())
-    .filter((c) => c.type === 'agent').length;
+  const totalAgentCount = Array.from(registry.components.values()).filter(
+    (c) => c.type === 'agent'
+  ).length;
 
   // Ask if user wants agents
   const agentChoice = await select({
@@ -853,11 +860,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (config.installationType === 'user') {
         progressReporter.update('Installing user-level components...');
         const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
-        const userResult = await installComponents(
-          finalComponents,
-          'user',
-          userInstallOptions
-        );
+        const userResult = await installComponents(finalComponents, 'user', userInstallOptions);
 
         if (!userResult.success) {
           throw new Error(
@@ -1094,13 +1097,13 @@ async function createProjectSettings(
       // Use metadata from HOOK_REGISTRY to configure the hook
       const HookClass = HOOK_REGISTRY[component.id];
       const metadata = HookClass?.metadata;
-      
+
       if (metadata !== undefined) {
         const matcher = metadata.matcher ?? 'Write|Edit|MultiEdit';
-        const triggerEvents = Array.isArray(metadata.triggerEvent) 
-          ? metadata.triggerEvent 
+        const triggerEvents = Array.isArray(metadata.triggerEvent)
+          ? metadata.triggerEvent
           : [metadata.triggerEvent];
-        
+
         for (const triggerEvent of triggerEvents) {
           if (triggerEvent === 'PostToolUse') {
             settings.hooks.PostToolUse.push({

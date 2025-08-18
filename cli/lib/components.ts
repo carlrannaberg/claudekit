@@ -1,12 +1,7 @@
 import { promises as fs } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import { pathExists, getFileStats } from './filesystem.js';
-import type {
-  Component,
-  ComponentType,
-  ComponentCategory,
-  ProjectInfo,
-} from '../types/config.js';
+import type { Component, ComponentType, ComponentCategory, ProjectInfo } from '../types/config.js';
 import { HOOK_REGISTRY } from '../hooks/registry.js';
 
 /**
@@ -95,13 +90,13 @@ interface ScanOptions {
  */
 function generateEmbeddedHookComponents(): ComponentFile[] {
   const components: ComponentFile[] = [];
-  
+
   for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
     const metadata = HookClass.metadata;
     if (metadata === undefined) {
       continue;
     }
-    
+
     components.push({
       path: `embedded:${id}`,
       type: 'hook',
@@ -116,7 +111,7 @@ function generateEmbeddedHookComponents(): ComponentFile[] {
       lastModified: new Date(),
     });
   }
-  
+
   return components;
 }
 
@@ -577,9 +572,10 @@ async function parseComponentFile(
       category: inferCategory(filePath, content, rawMetadata),
       dependencies,
       // Parse enabled field (defaults to true if not specified)
-      enabled: rawMetadata['enabled'] !== undefined ? 
-        (rawMetadata['enabled'] === true || rawMetadata['enabled'] === 'true') : 
-        true,
+      enabled:
+        rawMetadata['enabled'] !== undefined
+          ? rawMetadata['enabled'] === true || rawMetadata['enabled'] === 'true'
+          : true,
       ...(rawMetadata['allowed-tools'] !== undefined &&
         rawMetadata['allowed-tools'] !== null && {
           allowedTools: (rawMetadata['allowed-tools'] as string)
@@ -1139,9 +1135,7 @@ export async function discoverComponents(
 
   // Filter by enabled status first
   if (options.includeDisabled === false) {
-    filteredComponents = filteredComponents.filter(
-      (c) => c.metadata.enabled !== false
-    );
+    filteredComponents = filteredComponents.filter((c) => c.metadata.enabled !== false);
   }
 
   if (options.filterByType !== undefined && options.filterByType.length > 0) {

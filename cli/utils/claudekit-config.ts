@@ -17,16 +17,16 @@ export function loadClaudekitConfig(projectRoot: string = process.cwd()): Claude
     const configData = readFileSync(configPath, 'utf-8');
     const parsedData = JSON.parse(configData);
     const validated = validateClaudekitConfig(parsedData);
-    
+
     if (validated.valid && validated.data) {
       return validated.data;
     }
-    
+
     // Log validation errors in debug mode
     if (process.env['DEBUG'] === 'true') {
       console.error('Claudekit config validation errors:', validated.errors);
     }
-    
+
     return {};
   } catch (error) {
     // Log errors in debug mode

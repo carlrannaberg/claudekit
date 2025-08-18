@@ -573,36 +573,25 @@ describe('filesystem module', () => {
   });
 
   describe('normalizePath', () => {
-    beforeEach(() => {
-      vi.spyOn(path, 'resolve').mockImplementation((p) => {
-        // Simulate path.resolve behavior which normalizes paths
-        if (p === '/Users/testuser/work') {
-          return '/Users/testuser/work';
-        }
-        return `/resolved${p}`;
-      });
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     it('should expand home directory and resolve path', () => {
       const result = normalizePath('~/work');
 
       expect(result).toBe('/Users/testuser/work');
     });
 
-    it('should resolve relative paths', () => {
+    it('should resolve relative paths to absolute paths', () => {
       const result = normalizePath('./relative/path');
 
-      expect(result).toBe('/resolved./relative/path');
+      // Should resolve to current working directory + relative path
+      expect(result).toBe(path.resolve('./relative/path'));
+      expect(result).toMatch(/\/relative\/path$/);
     });
 
     it('should handle absolute paths', () => {
       const result = normalizePath('/absolute/path');
 
-      expect(result).toBe('/resolved/absolute/path');
+      // Absolute paths should remain absolute
+      expect(result).toBe('/absolute/path');
     });
   });
 });

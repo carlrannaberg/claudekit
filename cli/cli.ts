@@ -210,7 +210,9 @@ export async function runCli(): Promise<void> {
     const { registerShowCommands } = await import('./commands/show.js');
     registerShowCommands(program);
   } catch (error) {
-    logger.error(`Failed to register show commands: ${error instanceof Error ? error.message : String(error)}`);
+    logger.error(
+      `Failed to register show commands: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 
   // Parse command line arguments
@@ -224,7 +226,7 @@ export async function runCli(): Promise<void> {
 
 // Auto-run if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runCli().catch(error => {
+  runCli().catch((error) => {
     logger.error(`CLI failed to start: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
   });

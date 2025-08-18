@@ -56,7 +56,7 @@ export class SessionTracker {
     const sessionData = {
       ...data,
       timestamp: new Date().toISOString(),
-      sessionId
+      sessionId,
     };
     await fs.writeFile(sessionFile, JSON.stringify(sessionData, null, 2));
   }
@@ -73,10 +73,10 @@ export class SessionTracker {
    * Set a flag for the session
    */
   async setSessionFlag(sessionId: string, flag: string, value: boolean = true): Promise<void> {
-    const existingData = await this.getSessionData(sessionId) ?? {};
+    const existingData = (await this.getSessionData(sessionId)) ?? {};
     await this.setSessionData(sessionId, {
       ...existingData,
-      [flag]: value
+      [flag]: value,
     });
   }
 
@@ -85,7 +85,7 @@ export class SessionTracker {
    */
   async cleanOldSessions(maxAgeMs: number = 7 * 24 * 60 * 60 * 1000): Promise<void> {
     const cutoff = Date.now() - maxAgeMs;
-    
+
     try {
       const files = await fs.readdir(this.claudekitDir);
       for (const file of files) {

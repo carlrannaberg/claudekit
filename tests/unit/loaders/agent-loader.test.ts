@@ -1,6 +1,6 @@
 /**
  * Comprehensive tests for AgentLoader class
- * 
+ *
  * Purpose: Validate that AgentLoader correctly loads agent definitions from markdown files,
  * handles various file naming patterns, parses frontmatter, and provides proper error handling.
  */
@@ -22,11 +22,11 @@ describe('AgentLoader', () => {
     tempDir = await testFs.createTempDir();
     agentsDir = path.join(tempDir, 'src', 'agents');
     await fs.mkdir(agentsDir, { recursive: true });
-    
+
     // Create .claude directory for project-level agents
     const projectClaudeDir = path.join(tempDir, '.claude', 'agents');
     await fs.mkdir(projectClaudeDir, { recursive: true });
-    
+
     // Mock the path functions to use our test directories
     vi.spyOn(paths, 'getProjectClaudeDirectory').mockReturnValue(path.join(tempDir, '.claude'));
     vi.spyOn(paths, 'getUserClaudeDirectory').mockReturnValue(path.join(tempDir, 'user-claude'));
@@ -80,7 +80,7 @@ This is the oracle agent content.`;
           color: undefined,
           content: '# Oracle Agent\nThis is the oracle agent content.',
           filePath: path.join(agentsDir, 'oracle.md'),
-          tools: undefined
+          tools: undefined,
         });
       });
 
@@ -281,12 +281,12 @@ This agent has all possible frontmatter fields.`;
           name: 'comprehensive-agent',
           description: 'Agent with all frontmatter fields',
           category: 'testing',
-          bundle: ["related-agent-1", "related-agent-2"],
+          bundle: ['related-agent-1', 'related-agent-2'],
           displayName: 'Comprehensive Test Agent',
           color: 'blue',
           content: '# Comprehensive Agent\nThis agent has all possible frontmatter fields.',
           filePath: path.join(agentsDir, 'comprehensive.md'),
-          tools: ["Read", "Write", "Bash"]
+          tools: ['Read', 'Write', 'Bash'],
         });
       });
 
@@ -314,7 +314,9 @@ category: broken
       it('should throw error for non-existent agent', async () => {
         // Purpose: Verify proper error handling when agent file doesn't exist
         const loader = createTestLoader();
-        await expect(loader.loadAgent('non-existent-agent')).rejects.toThrow('Agent not found: non-existent-agent');
+        await expect(loader.loadAgent('non-existent-agent')).rejects.toThrow(
+          'Agent not found: non-existent-agent'
+        );
       });
 
       it('should handle file system permission errors', async () => {
@@ -333,7 +335,7 @@ category: broken
         // Purpose: Ensure loader handles files that can't be parsed gracefully
         const agentPath = path.join(agentsDir, 'corrupted.md');
         // Create a file with invalid UTF-8 content or other corruption
-        await fs.writeFile(agentPath, Buffer.from([0xFF, 0xFE, 0xFD]));
+        await fs.writeFile(agentPath, Buffer.from([0xff, 0xfe, 0xfd]));
 
         const loader = createTestLoader();
         // The loader now gracefully handles corrupted content by treating
@@ -498,7 +500,9 @@ This agent has no frontmatter section.`;
       expect(result.name).toBe('no-frontmatter');
       expect(result.description).toBe('');
       expect(result.category).toBe('general');
-      expect(result.content).toBe('# No Frontmatter Agent\n\nThis agent has no frontmatter section.');
+      expect(result.content).toBe(
+        '# No Frontmatter Agent\n\nThis agent has no frontmatter section.'
+      );
     });
 
     it('should handle agent IDs with special characters', async () => {

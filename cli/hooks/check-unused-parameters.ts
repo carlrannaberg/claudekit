@@ -7,7 +7,8 @@ export class CheckUnusedParametersHook extends BaseHook {
   static metadata = {
     id: 'check-unused-parameters',
     displayName: 'Check Unused Parameters',
-    description: 'Detect lazy refactoring where parameters are prefixed with _ instead of being removed',
+    description:
+      'Detect lazy refactoring where parameters are prefixed with _ instead of being removed',
     category: 'validation' as const,
     triggerEvent: 'PostToolUse' as const,
     matcher: 'Edit|MultiEdit',
@@ -37,7 +38,7 @@ export class CheckUnusedParametersHook extends BaseHook {
 
     // Extract tool name from payload
     const toolName = context.payload['tool_name'] as string | undefined;
-    
+
     // Only process Edit and MultiEdit operations (not Write, since we're checking for changes)
     if (toolName === undefined || toolName === '' || !['Edit', 'MultiEdit'].includes(toolName)) {
       return { exitCode: 0 };
@@ -66,10 +67,13 @@ export class CheckUnusedParametersHook extends BaseHook {
 
   private isCodeFile(filePath: string): boolean {
     const codeExtensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'];
-    return codeExtensions.some(ext => filePath.endsWith(ext));
+    return codeExtensions.some((ext) => filePath.endsWith(ext));
   }
 
-  private extractEdits(context: HookContext, toolName: string): Array<{ oldString: string; newString: string }> {
+  private extractEdits(
+    context: HookContext,
+    toolName: string
+  ): Array<{ oldString: string; newString: string }> {
     const edits: Array<{ oldString: string; newString: string }> = [];
     const toolInput = context.payload.tool_input;
 
@@ -110,7 +114,7 @@ export class CheckUnusedParametersHook extends BaseHook {
     for (const edit of edits) {
       // ONLY check if edit is changing a parameter to underscore version (lazy refactoring)
       const isLazyRefactor = this.detectLazyRefactor(edit.oldString, edit.newString);
-      
+
       if (isLazyRefactor) {
         violations.push({
           line: this.extractFunctionSignature(edit.newString),
@@ -141,11 +145,14 @@ export class CheckUnusedParametersHook extends BaseHook {
     for (let i = 0; i < oldParams.length; i++) {
       const oldParam = oldParams[i];
       const newParam = newParams[i];
-      
+
       // Check if new parameter is underscore version of old
-      if (oldParam !== undefined && newParam !== undefined && 
-          (newParam === `_${oldParam}` || 
-          (oldParam.startsWith('_') === false && newParam.startsWith('_')))) {
+      if (
+        oldParam !== undefined &&
+        newParam !== undefined &&
+        (newParam === `_${oldParam}` ||
+          (oldParam.startsWith('_') === false && newParam.startsWith('_')))
+      ) {
         return true;
       }
     }
@@ -155,18 +162,18 @@ export class CheckUnusedParametersHook extends BaseHook {
 
   private extractParameters(code: string): string[] {
     const params: string[] = [];
-    
+
     // Match function signatures
     const signatureMatch = code.match(/\(([^)]*)\)/);
     if (!signatureMatch) {
       return params;
     }
-    
+
     const paramString = signatureMatch[1];
     if (paramString === undefined || paramString === '') {
       return params;
     }
-    
+
     // Split by comma and extract parameter names
     const paramParts = paramString.split(',');
     for (const part of paramParts) {
@@ -176,7 +183,7 @@ export class CheckUnusedParametersHook extends BaseHook {
         params.push(paramMatch[1]);
       }
     }
-    
+
     return params;
   }
 
@@ -192,9 +199,8 @@ export class CheckUnusedParametersHook extends BaseHook {
   }
 
   private hasUnderscoreParam(line: string): boolean {
-    return this.UNDERSCORE_PARAM_PATTERNS.some(pattern => pattern.test(line));
+    return this.UNDERSCORE_PARAM_PATTERNS.some((pattern) => pattern.test(line));
   }
-
 
   private generateFeedback(
     violations: Array<{ line: string; reason: string; suggestion: string }>,

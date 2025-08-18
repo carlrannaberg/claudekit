@@ -2,7 +2,7 @@ import { Logger } from '../utils/logger.js';
 import { loadConfig, loadUserConfig } from '../utils/config.js';
 import type { Config } from '../types/config.js';
 import { progress } from '../utils/progress.js';
-import path from 'path';
+import * as path from 'path';
 import fs from 'fs-extra';
 import { Colors } from '../utils/colors.js';
 import { HOOK_REGISTRY } from '../hooks/registry.js';
@@ -91,7 +91,9 @@ export async function list(type: string = 'all', options: ListOptions = {}): Pro
     const commandsResult = operationResults[resultIndex++];
     if (
       Array.isArray(commandsResult) &&
-      commandsResult.every((item): item is CommandInfo => 'description' in item && !('category' in item))
+      commandsResult.every(
+        (item): item is CommandInfo => 'description' in item && !('category' in item)
+      )
     ) {
       results.commands = commandsResult;
     }
@@ -149,10 +151,10 @@ async function listHooks(options: ListOptions): Promise<HookInfo[]> {
 
   // Extract hook configurations from both sources
   const configuredHooks = new Map<string, { source: string; events: string[] }>();
-  
+
   // Process project hooks first (higher priority)
   processHookConfigurations(projectConfig, configuredHooks, 'project');
-  
+
   // Process user hooks second (lower priority)
   processHookConfigurations(userConfig, configuredHooks, 'user');
 
@@ -174,13 +176,12 @@ async function listHooks(options: ListOptions): Promise<HookInfo[]> {
       size: 0, // Size not applicable for embedded hooks
       modified: new Date(), // Use current date for embedded hooks
       source,
-      events
+      events,
     });
   }
 
   return hooks;
 }
-
 
 /**
  * Process hook configurations from a config object and update the configuredHooks Map
@@ -214,7 +215,7 @@ function processHookConfigurations(
                 // Create new hook configuration
                 configuredHooks.set(hookName, {
                   source,
-                  events: [eventType]
+                  events: [eventType],
                 });
               }
             }
@@ -276,7 +277,7 @@ async function listCommands(options: ListOptions): Promise<CommandInfo[]> {
       // Extract frontmatter data
       const { frontmatter, tokens } = await extractFrontmatter(cmdPath);
       const description = frontmatter.description ?? '';
-      
+
       // Determine namespace from command ID (e.g., "spec:create" -> "spec")
       const namespace = id.includes(':') ? (id.split(':')[0] ?? 'general') : 'general';
 
@@ -313,24 +314,25 @@ async function listAgents(options: ListOptions): Promise<AgentInfo[]> {
       // Extract frontmatter data
       const { frontmatter, tokens } = await extractFrontmatter(agentPath);
       const displayName = frontmatter.name ?? id;
-      
+
       // Filter by display name, not ID
       if (pattern !== null && !pattern.test(displayName)) {
         continue;
       }
       const description = frontmatter.description ?? '';
-      
+
       // Use category from frontmatter, fallback to path-based detection
-      const category = typeof frontmatter.category === 'string' && frontmatter.category !== '' 
-        ? frontmatter.category
-        : ((): string => {
-            const pathParts = agentPath.split(path.sep);
-            const agentsIndex = pathParts.lastIndexOf('agents');
-            const nextPart = pathParts[agentsIndex + 1];
-            return agentsIndex >= 0 && nextPart !== undefined && nextPart !== `${id}.md`
-              ? nextPart
-              : 'general';
-          })();
+      const category =
+        typeof frontmatter.category === 'string' && frontmatter.category !== ''
+          ? frontmatter.category
+          : ((): string => {
+              const pathParts = agentPath.split(path.sep);
+              const agentsIndex = pathParts.lastIndexOf('agents');
+              const nextPart = pathParts[agentsIndex + 1];
+              return agentsIndex >= 0 && nextPart !== undefined && nextPart !== `${id}.md`
+                ? nextPart
+                : 'general';
+            })();
       agents.push({
         name: displayName,
         type: 'agent',
@@ -422,7 +424,7 @@ function displayTable(results: ListResults, type: string): void {
       const source = Colors.dim(`[${hook.source}]`);
       const events = hook.events.length > 0 ? hook.events.join(', ') : '';
       const eventsFormatted = events ? Colors.dim(events) : '';
-      
+
       console.log(
         `  ${Colors.accent(hook.name.padEnd(30))} ${source.padEnd(18)} ${eventsFormatted}`
       );
@@ -437,16 +439,19 @@ function displayTable(results: ListResults, type: string): void {
     console.log(Colors.dim('─'.repeat(80)));
 
     // Group commands by namespace
-    const grouped = results.commands.reduce((acc, cmd) => {
-      if (!acc[cmd.namespace]) {
-        acc[cmd.namespace] = [];
-      }
-      const namespaceCommands = acc[cmd.namespace];
-      if (namespaceCommands !== undefined) {
-        namespaceCommands.push(cmd);
-      }
-      return acc;
-    }, {} as Record<string, typeof results.commands>);
+    const grouped = results.commands.reduce(
+      (acc, cmd) => {
+        if (!acc[cmd.namespace]) {
+          acc[cmd.namespace] = [];
+        }
+        const namespaceCommands = acc[cmd.namespace];
+        if (namespaceCommands !== undefined) {
+          namespaceCommands.push(cmd);
+        }
+        return acc;
+      },
+      {} as Record<string, typeof results.commands>
+    );
 
     // Display by namespace
     for (const [namespace, namespaceCommands] of Object.entries(grouped)) {
@@ -455,7 +460,9 @@ function displayTable(results: ListResults, type: string): void {
         for (const cmd of namespaceCommands) {
           const tokens = formatTokens(cmd.tokens ?? estimateTokens(''));
           const source = Colors.dim(`[${cmd.source}]`);
-          console.log(`    ${Colors.accent(cmd.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`);
+          console.log(
+            `    ${Colors.accent(cmd.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`
+          );
         }
       }
     }
@@ -469,16 +476,19 @@ function displayTable(results: ListResults, type: string): void {
     console.log(Colors.dim('─'.repeat(80)));
 
     // Group agents by category
-    const grouped = results.agents.reduce((acc, agent) => {
-      if (!acc[agent.category]) {
-        acc[agent.category] = [];
-      }
-      const categoryAgents = acc[agent.category];
-      if (categoryAgents !== undefined) {
-        categoryAgents.push(agent);
-      }
-      return acc;
-    }, {} as Record<string, typeof results.agents>);
+    const grouped = results.agents.reduce(
+      (acc, agent) => {
+        if (!acc[agent.category]) {
+          acc[agent.category] = [];
+        }
+        const categoryAgents = acc[agent.category];
+        if (categoryAgents !== undefined) {
+          categoryAgents.push(agent);
+        }
+        return acc;
+      },
+      {} as Record<string, typeof results.agents>
+    );
 
     // Display by category
     for (const [category, categoryAgents] of Object.entries(grouped)) {
@@ -487,7 +497,9 @@ function displayTable(results: ListResults, type: string): void {
         for (const agent of categoryAgents) {
           const tokens = formatTokens(agent.tokens);
           const source = Colors.dim(`[${agent.source}]`);
-          console.log(`    ${Colors.accent(agent.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`);
+          console.log(
+            `    ${Colors.accent(agent.name.padEnd(30))} ${source.padEnd(12)} ${tokens.padStart(12)}`
+          );
         }
       }
     }
@@ -520,8 +532,8 @@ interface FrontmatterData {
 /**
  * Extract frontmatter data from a markdown file
  */
-async function extractFrontmatter(filePath: string): Promise<{ 
-  content: string; 
+async function extractFrontmatter(filePath: string): Promise<{
+  content: string;
   frontmatter: FrontmatterData;
   tokens: number;
 }> {
@@ -529,34 +541,34 @@ async function extractFrontmatter(filePath: string): Promise<{
     const content = await fs.readFile(filePath, 'utf8');
     const tokens = estimateTokens(content);
     const frontmatter: FrontmatterData = {};
-    
+
     const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
     if (match !== null && match[1] !== undefined && match[1] !== '') {
       const frontmatterText = match[1];
-      
+
       // Extract common fields
       const nameMatch = frontmatterText.match(/name:\s*(.+)/);
       if (nameMatch !== null && nameMatch[1] !== undefined && nameMatch[1] !== '') {
         frontmatter.name = nameMatch[1].trim();
       }
-      
+
       const descMatch = frontmatterText.match(/description:\s*(.+)/);
       if (descMatch !== null && descMatch[1] !== undefined && descMatch[1] !== '') {
         frontmatter.description = descMatch[1].trim();
       }
-      
+
       const categoryMatch = frontmatterText.match(/category:\s*(.+)/);
       if (categoryMatch !== null && categoryMatch[1] !== undefined && categoryMatch[1] !== '') {
         frontmatter.category = categoryMatch[1].trim();
       }
     }
-    
+
     return { content, frontmatter, tokens };
   } catch {
-    return { 
-      content: '', 
+    return {
+      content: '',
       frontmatter: {},
-      tokens: 0
+      tokens: 0,
     };
   }
 }

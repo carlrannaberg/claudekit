@@ -11,7 +11,7 @@ import {
   searchComponents,
 } from '../lib/components.js';
 import type { ComponentCategory } from '../types/config.js';
-import path from 'path';
+import * as path from 'path';
 
 async function testDiscovery(): Promise<void> {
   console.log('🔍 Testing Component Discovery System\n');

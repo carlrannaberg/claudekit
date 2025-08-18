@@ -19,7 +19,7 @@ export const HOOK_REGISTRY: Record<string, HookConstructor> = {};
 for (const [exportName, exported] of Object.entries(Hooks)) {
   // Filter for hook classes (end with 'Hook' and are constructors)
   if (
-    exportName.endsWith('Hook') && 
+    exportName.endsWith('Hook') &&
     typeof exported === 'function' &&
     exported !== Hooks.BaseHook
   ) {

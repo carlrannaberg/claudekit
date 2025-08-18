@@ -1,6 +1,6 @@
 import { Logger } from '../utils/logger.js';
 import { loadConfig, saveConfig } from '../utils/config.js';
-import path from 'path';
+import * as path from 'path';
 import fs from 'fs-extra';
 
 interface UpdateOptions {

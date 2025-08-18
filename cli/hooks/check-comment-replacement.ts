@@ -15,24 +15,24 @@ export class CheckCommentReplacementHook extends BaseHook {
 
   // Patterns to detect comment lines (any language)
   private readonly COMMENT_PATTERNS = [
-    /^\s*\/\/.*/,           // Single-line comments: // comment
-    /^\s*\/\*.*\*\/\s*$/,   // Single-line block comments: /* comment */
-    /^\s*#(?!#).*/,         // Hash comments: # comment (but not markdown headers ##)
-    /^\s*--.*/,             // SQL/Lua style: -- comment
-    /^\s*\*\s+.*/,          // Continuation of block comments: * comment (with space after *)
-    /^\s*<!--.*-->\s*$/,    // HTML comments: <!-- comment -->
+    /^\s*\/\/.*/, // Single-line comments: // comment
+    /^\s*\/\*.*\*\/\s*$/, // Single-line block comments: /* comment */
+    /^\s*#(?!#).*/, // Hash comments: # comment (but not markdown headers ##)
+    /^\s*--.*/, // SQL/Lua style: -- comment
+    /^\s*\*\s+.*/, // Continuation of block comments: * comment (with space after *)
+    /^\s*<!--.*-->\s*$/, // HTML comments: <!-- comment -->
   ];
 
   async execute(context: HookContext): Promise<HookResult> {
     // Extract tool name from payload
     const toolName = context.payload['tool_name'] as string | undefined;
-    
+
     // Debug: Log the full context to see what we have
     if (process.env['DEBUG'] !== undefined && process.env['DEBUG'] !== '') {
       console.error('[DEBUG] Full context.payload:', JSON.stringify(context.payload, null, 2));
       console.error('[DEBUG] Tool input:', JSON.stringify(context.payload.tool_input, null, 2));
     }
-    
+
     // Only process Edit and MultiEdit tools
     if (toolName === undefined || !['Edit', 'MultiEdit'].includes(toolName)) {
       return { exitCode: 0 };
@@ -59,7 +59,10 @@ export class CheckCommentReplacementHook extends BaseHook {
     return { exitCode: 0 };
   }
 
-  private extractEdits(context: HookContext, toolName: string): Array<{ oldString: string; newString: string; filePath?: string }> {
+  private extractEdits(
+    context: HookContext,
+    toolName: string
+  ): Array<{ oldString: string; newString: string; filePath?: string }> {
     const edits: Array<{ oldString: string; newString: string; filePath?: string }> = [];
     const toolInput = context.payload.tool_input;
 
@@ -67,7 +70,12 @@ export class CheckCommentReplacementHook extends BaseHook {
       const oldString = toolInput['old_string'] as string | undefined;
       const newString = toolInput['new_string'] as string | undefined;
       const filePath = toolInput['file_path'] as string | undefined;
-      if (oldString !== undefined && oldString !== '' && newString !== undefined && newString !== '') {
+      if (
+        oldString !== undefined &&
+        oldString !== '' &&
+        newString !== undefined &&
+        newString !== ''
+      ) {
         if (filePath !== undefined) {
           edits.push({ oldString, newString, filePath });
         } else {
@@ -81,8 +89,12 @@ export class CheckCommentReplacementHook extends BaseHook {
       const filePath = toolInput['file_path'] as string | undefined;
       if (multiEdits !== undefined) {
         for (const edit of multiEdits) {
-          if (edit.old_string !== undefined && edit.old_string !== '' && 
-              edit.new_string !== undefined && edit.new_string !== '') {
+          if (
+            edit.old_string !== undefined &&
+            edit.old_string !== '' &&
+            edit.new_string !== undefined &&
+            edit.new_string !== ''
+          ) {
             if (filePath !== undefined) {
               edits.push({ oldString: edit.old_string, newString: edit.new_string, filePath });
             } else {
@@ -114,8 +126,8 @@ export class CheckCommentReplacementHook extends BaseHook {
       const newLines = edit.newString.split('\n');
 
       // Filter out empty lines for analysis
-      const oldNonEmptyLines = oldLines.filter(line => line.trim() !== '');
-      const newNonEmptyLines = newLines.filter(line => line.trim() !== '');
+      const oldNonEmptyLines = oldLines.filter((line) => line.trim() !== '');
+      const newNonEmptyLines = newLines.filter((line) => line.trim() !== '');
 
       // Skip if no meaningful content or if deleting content (empty replacement)
       if (oldNonEmptyLines.length === 0 || newNonEmptyLines.length === 0) {
@@ -128,7 +140,7 @@ export class CheckCommentReplacementHook extends BaseHook {
 
       // Check if old content had any non-comment lines with actual content
       // We need at least one line that's not a comment AND has meaningful content
-      const oldNonCommentLinesWithContent = oldNonEmptyLines.filter(line => {
+      const oldNonCommentLinesWithContent = oldNonEmptyLines.filter((line) => {
         const trimmed = line.trim();
         return trimmed !== '' && !isComment(line);
       });
@@ -139,7 +151,7 @@ export class CheckCommentReplacementHook extends BaseHook {
       }
 
       // Check if new content is all comments (after removing empty lines)
-      const newIsAllComments = newNonEmptyLines.every(line => isComment(line));
+      const newIsAllComments = newNonEmptyLines.every((line) => isComment(line));
 
       // Additional check: ensure the replacement is roughly the same size
       // If new content is significantly smaller, it's likely a deletion, not a replacement
@@ -152,7 +164,8 @@ export class CheckCommentReplacementHook extends BaseHook {
         violations.push({
           oldContent: this.truncateContent(edit.oldString),
           newContent: this.truncateContent(edit.newString),
-          reason: 'Code replaced with comments - if removing code, delete it cleanly without explanatory comments',
+          reason:
+            'Code replaced with comments - if removing code, delete it cleanly without explanatory comments',
         });
       }
     }
@@ -180,7 +193,7 @@ export class CheckCommentReplacementHook extends BaseHook {
       '',
       '**How to fix:**',
       '1. If code needs to be removed, delete it completely',
-      '2. Don\'t leave comments explaining why code was removed',
+      "2. Don't leave comments explaining why code was removed",
       '3. Use git commit messages to document removal reasons, not code comments',
       '4. Keep the codebase clean and focused on what IS, not what WAS',
       '',

@@ -31,10 +31,14 @@ const PrettierConfigSchema = z.object({
 const SelfReviewConfigSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional(),
   targetPatterns: z.array(z.string()).optional(),
-  focusAreas: z.array(z.object({
-    name: z.string(),
-    questions: z.array(z.string())
-  })).optional(),
+  focusAreas: z
+    .array(
+      z.object({
+        name: z.string(),
+        questions: z.array(z.string()),
+      })
+    )
+    .optional(),
 });
 
 // Global configuration that applies to all hooks

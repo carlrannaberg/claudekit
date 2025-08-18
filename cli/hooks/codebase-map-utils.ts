@@ -33,9 +33,11 @@ export interface CodebaseMapResult {
 export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<CodebaseMapResult> {
   // Check if codebase-map is installed
   if (!(await checkToolAvailable('codebase-map', 'package.json', options.projectRoot))) {
-    return { 
-      success: false, 
-      error: new Error('codebase-map CLI not found. Install it from: https://github.com/carlrannaberg/codebase-map')
+    return {
+      success: false,
+      error: new Error(
+        'codebase-map CLI not found. Install it from: https://github.com/carlrannaberg/codebase-map'
+      ),
     };
   }
 
@@ -44,21 +46,21 @@ export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<
     const scanCommand = options.command ?? 'codebase-map scan';
     await execAsync(scanCommand, {
       cwd: options.projectRoot,
-      maxBuffer: 10 * 1024 * 1024
+      maxBuffer: 10 * 1024 * 1024,
     });
 
     // Then format and get the result
     const formatCommand = `codebase-map format --format ${options.format ?? 'auto'}`;
     const { stdout } = await execAsync(formatCommand, {
       cwd: options.projectRoot,
-      maxBuffer: 10 * 1024 * 1024
+      maxBuffer: 10 * 1024 * 1024,
     });
 
     return { success: true, output: stdout?.trim() };
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error : new Error(String(error))
+    return {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error)),
     };
   }
 }
@@ -66,7 +68,11 @@ export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<
 /**
  * Update codebase map for a specific file
  */
-export async function updateCodebaseMap(filePath: string, projectRoot: string, command?: string): Promise<boolean> {
+export async function updateCodebaseMap(
+  filePath: string,
+  projectRoot: string,
+  command?: string
+): Promise<boolean> {
   if (!(await checkToolAvailable('codebase-map', 'package.json', projectRoot))) {
     return false;
   }
@@ -75,7 +81,7 @@ export async function updateCodebaseMap(filePath: string, projectRoot: string, c
     const updateCommand = command ?? `codebase-map update "${filePath}"`;
     await execAsync(updateCommand, {
       cwd: projectRoot,
-      maxBuffer: 10 * 1024 * 1024
+      maxBuffer: 10 * 1024 * 1024,
     });
     return true;
   } catch {

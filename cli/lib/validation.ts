@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
+import * as path from 'path';
+import * as os from 'os';
 import { z } from 'zod';
 import { pathExists, normalizePath } from './filesystem.js';
 import type { ComponentCategory, ComponentType } from '../types/config.js';

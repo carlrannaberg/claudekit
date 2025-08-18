@@ -1,6 +1,6 @@
 /**
  * Integration tests for claudekit show command CLI functionality
- * 
+ *
  * Tests the complete end-to-end flow through the CLI for show commands,
  * verifying output formats, error handling, and CLI behavior.
  */
@@ -64,13 +64,13 @@ async function runCliCommand(
       if (!resolved) {
         resolved = true;
         clearTimeout(timeout);
-        
+
         // Filter out npm notices from stderr (these are not actual errors)
         const stderrLines = stderr.trim().split('\n');
         const filteredStderr = stderrLines
-          .filter(line => !line.includes('npm notice') && line.trim() !== '')
+          .filter((line) => !line.includes('npm notice') && line.trim() !== '')
           .join('\n');
-        
+
         resolve({
           exitCode: code ?? 0,
           stdout: stdout.trim(),
@@ -161,14 +161,14 @@ Steps:
   afterEach(async () => {
     // Clean up test files
     await testFs.cleanup();
-    
+
     // Clean up tmp directories with all test files
     try {
       await fs.rm(path.join(process.cwd(), 'src/agents/tmp'), { recursive: true, force: true });
     } catch {
       // Ignore if directory doesn't exist
     }
-    
+
     try {
       await fs.rm(path.join(process.cwd(), 'src/commands/tmp'), { recursive: true, force: true });
     } catch {
@@ -182,9 +182,9 @@ Steps:
       'src/agents/tmp',
       'src/agents/tmp-special-chars',
       'src/agents/tmp-corrupted',
-      'src/commands/tmp'
+      'src/commands/tmp',
     ];
-    
+
     for (const dir of testDirs) {
       try {
         await fs.rm(path.join(process.cwd(), dir), { recursive: true, force: true });
@@ -199,17 +199,17 @@ Steps:
       // Purpose: Verify that the default text output shows only the agent content
       // without JSON metadata, making it suitable for human reading and piping.
       const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {
-        timeout: 10000 // Increase timeout for complex operations
+        timeout: 10000, // Increase timeout for complex operations
       });
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
-      
+
       // Should contain the markdown content without frontmatter
       expect(result.stdout).toContain('# Test Integration Agent');
       expect(result.stdout).toContain('This is a test agent used for CLI integration testing');
       expect(result.stdout).toContain('## Instructions');
-      
+
       // Should NOT contain frontmatter metadata in text mode
       expect(result.stdout).not.toContain('---');
       expect(result.stdout).not.toContain('name: test-integration-agent');
@@ -219,9 +219,12 @@ Steps:
     it('should display agent content in JSON format when requested', async () => {
       // Purpose: Verify that JSON format provides complete agent metadata
       // for programmatic consumption while ensuring valid JSON structure.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent', '--format', 'json'], {
-        timeout: 10000 // Increase timeout for complex operations
-      });
+      const result = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '--format', 'json'],
+        {
+          timeout: 10000, // Increase timeout for complex operations
+        }
+      );
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
@@ -238,7 +241,7 @@ Steps:
         displayName: 'Test Integration Agent',
         color: 'blue',
       });
-      
+
       // Tools field should be undefined when specified as string in frontmatter
       // (the current parser doesn't convert comma-separated strings to arrays)
       expect(agentData.tools).toBeUndefined();
@@ -254,16 +257,16 @@ Steps:
     it('should handle agents with complex metadata correctly', async () => {
       // Purpose: Verify that agents with more complex frontmatter are parsed
       // correctly and all metadata fields are preserved in JSON output.
-      const result = await runCliCommand(['show', 'agent', 'typescript-expert', '-f', 'json'], {
-      });
+      const result = await runCliCommand(['show', 'agent', 'typescript-expert', '-f', 'json'], {});
 
       expect(result.exitCode).toBe(0);
-      
+
       const agentData = JSON.parse(result.stdout);
       expect(agentData).toMatchObject({
         id: 'typescript-expert',
         name: 'typescript-expert',
-        description: 'TypeScript and JavaScript expert with deep knowledge of type-level programming, performance optimization, monorepo management, migration strategies, and modern tooling. Use PROACTIVELY for any TypeScript/JavaScript issues including complex type gymnastics, build performance, debugging, and architectural decisions. If a specialized expert is a better fit, I will recommend switching and stop.',
+        description:
+          'TypeScript and JavaScript expert with deep knowledge of type-level programming, performance optimization, monorepo management, migration strategies, and modern tooling. Use PROACTIVELY for any TypeScript/JavaScript issues including complex type gymnastics, build performance, debugging, and architectural decisions. If a specialized expert is a better fit, I will recommend switching and stop.',
         category: 'framework',
         displayName: 'TypeScript',
         color: 'blue',
@@ -276,8 +279,7 @@ Steps:
     it('should return error for non-existent agent', async () => {
       // Purpose: Verify that attempting to show a non-existent agent provides
       // a helpful error message and proper exit code for script error handling.
-      const result = await runCliCommand(['show', 'agent', 'non-existent-agent'], {
-      });
+      const result = await runCliCommand(['show', 'agent', 'non-existent-agent'], {});
 
       expect(result.exitCode).toBe(1);
       expect(result.stdout).toBe('');
@@ -288,15 +290,14 @@ Steps:
     it('should handle text output that can be piped cleanly', async () => {
       // Purpose: Verify that text output is clean and suitable for piping
       // to other commands without extraneous formatting or metadata.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {
-      });
+      const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {});
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should not have any console.log artifacts or formatting
       const lines = result.stdout.split('\n');
       expect(lines[0]).toBe('# Test Integration Agent');
-      
+
       // Should be pure markdown content
       expect(result.stdout).not.toContain('[object Object]');
       expect(result.stdout).not.toContain('undefined');
@@ -308,18 +309,17 @@ Steps:
     it('should display command content in text format by default', async () => {
       // Purpose: Verify that command content is displayed cleanly without
       // frontmatter metadata, suitable for understanding command purpose.
-      const result = await runCliCommand(['show', 'command', 'test-integration-command'], {
-      });
+      const result = await runCliCommand(['show', 'command', 'test-integration-command'], {});
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
-      
+
       // Should contain the markdown content without frontmatter
       expect(result.stdout).toContain('# Test Integration Command');
       expect(result.stdout).toContain('This is a test command for CLI integration testing');
       expect(result.stdout).toContain('Execute with:');
       expect(result.stdout).toContain('$ARGUMENTS');
-      
+
       // Should NOT contain frontmatter metadata in text mode
       expect(result.stdout).not.toContain('---');
       expect(result.stdout).not.toContain('description: Test command');
@@ -329,8 +329,10 @@ Steps:
     it('should display command content in JSON format when requested', async () => {
       // Purpose: Verify that JSON format provides complete command metadata
       // including allowed tools and argument hints for programmatic use.
-      const result = await runCliCommand(['show', 'command', 'test-integration-command', '--format', 'json'], {
-      });
+      const result = await runCliCommand(
+        ['show', 'command', 'test-integration-command', '--format', 'json'],
+        {}
+      );
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
@@ -359,29 +361,30 @@ Steps:
     it('should handle namespaced commands correctly', async () => {
       // Purpose: Verify that commands with namespace separators (git:status)
       // are loaded correctly from subdirectory structure.
-      const result = await runCliCommand(['show', 'command', 'git:status', '-f', 'json'], {
-      });
+      const result = await runCliCommand(['show', 'command', 'git:status', '-f', 'json'], {});
 
       expect(result.exitCode).toBe(0);
-      
+
       const commandData = JSON.parse(result.stdout);
       expect(commandData).toMatchObject({
         id: 'git:status',
         name: 'status',
-        description: 'Intelligently analyze git status and provide insights about current project state',
+        description:
+          'Intelligently analyze git status and provide insights about current project state',
         category: 'workflow',
         allowedTools: ['Bash(git:*)', 'Task'],
       });
 
-      expect(commandData.content).toContain('Analyze the current git status and provide an intelligent summary');
+      expect(commandData.content).toContain(
+        'Analyze the current git status and provide an intelligent summary'
+      );
       expect(commandData.filePath).toContain(path.join('git', 'status.md'));
     });
 
     it('should return error for non-existent command', async () => {
       // Purpose: Verify that attempting to show a non-existent command provides
       // a helpful error message and proper exit code for script error handling.
-      const result = await runCliCommand(['show', 'command', 'non-existent-command'], {
-      });
+      const result = await runCliCommand(['show', 'command', 'non-existent-command'], {});
 
       expect(result.exitCode).toBe(1);
       expect(result.stdout).toBe('');
@@ -392,15 +395,14 @@ Steps:
     it('should handle command content that can be piped cleanly', async () => {
       // Purpose: Verify that command text output is clean and suitable for
       // piping to other commands or processing tools.
-      const result = await runCliCommand(['show', 'command', 'test-integration-command'], {
-      });
+      const result = await runCliCommand(['show', 'command', 'test-integration-command'], {});
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should be pure markdown content
       const lines = result.stdout.split('\n');
       expect(lines[0]).toBe('# Test Integration Command');
-      
+
       // Should not have any artifacts
       expect(result.stdout).not.toContain('[object Object]');
       expect(result.stdout).not.toContain('undefined');
@@ -412,11 +414,15 @@ Steps:
     it('should accept -f as shorthand for --format', async () => {
       // Purpose: Verify that the shorthand format option works identically
       // to the long form for user convenience.
-      const longResult = await runCliCommand(['show', 'agent', 'test-integration-agent', '--format', 'json'], {
-      });
-      
-      const shortResult = await runCliCommand(['show', 'agent', 'test-integration-agent', '-f', 'json'], {
-      });
+      const longResult = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '--format', 'json'],
+        {}
+      );
+
+      const shortResult = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '-f', 'json'],
+        {}
+      );
 
       expect(longResult.exitCode).toBe(0);
       expect(shortResult.exitCode).toBe(0);
@@ -426,14 +432,13 @@ Steps:
     it('should default to text format when format is not specified', async () => {
       // Purpose: Verify that omitting the format option defaults to text mode
       // for human-readable output.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {
-      });
+      const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {});
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should be text format (starts with markdown heading)
       expect(result.stdout).toMatch(/^# Test Integration Agent/);
-      
+
       // Should not be JSON (would start with {)
       expect(result.stdout).not.toMatch(/^\s*{/);
     });
@@ -441,8 +446,10 @@ Steps:
     it('should handle invalid format gracefully', async () => {
       // Purpose: Verify that invalid format options are handled gracefully
       // rather than causing crashes or unclear behavior.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent', '--format', 'xml'], {
-      });
+      const result = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '--format', 'xml'],
+        {}
+      );
 
       // Should either error cleanly or default to text format
       // (depending on implementation - both are acceptable)
@@ -459,11 +466,15 @@ Steps:
     it('should produce valid JSON that can be parsed programmatically', async () => {
       // Purpose: Verify that JSON output is valid and can be consumed by
       // other tools and scripts for automation purposes.
-      const agentResult = await runCliCommand(['show', 'agent', 'test-integration-agent', '-f', 'json'], {
-      });
-      
-      const commandResult = await runCliCommand(['show', 'command', 'test-integration-command', '-f', 'json'], {
-      });
+      const agentResult = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '-f', 'json'],
+        {}
+      );
+
+      const commandResult = await runCliCommand(
+        ['show', 'command', 'test-integration-command', '-f', 'json'],
+        {}
+      );
 
       expect(agentResult.exitCode).toBe(0);
       expect(commandResult.exitCode).toBe(0);
@@ -482,19 +493,20 @@ Steps:
     it('should not mix stdout and stderr in successful operations', async () => {
       // Purpose: Verify that successful operations only output to stdout,
       // ensuring clean output suitable for piping and processing.
-      const textResult = await runCliCommand(['show', 'agent', 'test-integration-agent'], {
-      });
-      
-      const jsonResult = await runCliCommand(['show', 'agent', 'test-integration-agent', '-f', 'json'], {
-      });
+      const textResult = await runCliCommand(['show', 'agent', 'test-integration-agent'], {});
+
+      const jsonResult = await runCliCommand(
+        ['show', 'agent', 'test-integration-agent', '-f', 'json'],
+        {}
+      );
 
       expect(textResult.exitCode).toBe(0);
       expect(jsonResult.exitCode).toBe(0);
-      
+
       // Successful operations should not output to stderr
       expect(textResult.stderr).toBe('');
       expect(jsonResult.stderr).toBe('');
-      
+
       // Should have content in stdout
       expect(textResult.stdout.length).toBeGreaterThan(0);
       expect(jsonResult.stdout.length).toBeGreaterThan(0);
@@ -503,11 +515,11 @@ Steps:
     it('should handle special characters in content correctly', async () => {
       // Purpose: Verify that content with special characters, quotes, and
       // formatting is handled correctly in both text and JSON modes.
-      
+
       // Create a unique subdirectory for this test
       const testDir = path.join(process.cwd(), 'src/agents/tmp-special-chars');
       await fs.mkdir(testDir, { recursive: true });
-      
+
       // Create agent with special characters
       await testFs.writeFile(
         path.join(testDir, 'special-chars.md'),
@@ -536,11 +548,11 @@ console.log(example);
       );
 
       const textResult = await runCliCommand(['show', 'agent', 'special-chars'], {
-        timeout: 10000 // Increase timeout for complex operations
+        timeout: 10000, // Increase timeout for complex operations
       });
-      
+
       const jsonResult = await runCliCommand(['show', 'agent', 'special-chars', '-f', 'json'], {
-        timeout: 10000 // Increase timeout for complex operations
+        timeout: 10000, // Increase timeout for complex operations
       });
 
       expect(textResult.exitCode).toBe(0);
@@ -556,7 +568,7 @@ console.log(example);
       expect(agentData.description).toContain('🚀');
       expect(agentData.content).toContain('Unicode: 🚀 ✨ 🎯');
       expect(agentData.content).toContain('"Double quotes"');
-      
+
       // Clean up test-specific directory
       await fs.rm(testDir, { recursive: true, force: true });
     });
@@ -566,11 +578,11 @@ console.log(example);
     it('should handle corrupted agent files gracefully', async () => {
       // Purpose: Verify that corrupted or malformed agent files produce
       // clear error messages rather than crashing the CLI.
-      
+
       // Create a unique subdirectory for this test
       const testDir = path.join(process.cwd(), 'src/agents/tmp-corrupted');
       await fs.mkdir(testDir, { recursive: true });
-      
+
       // Create malformed agent file
       await testFs.writeFile(
         path.join(testDir, 'corrupted.md'),
@@ -586,14 +598,13 @@ This file has malformed frontmatter.
 `
       );
 
-      const result = await runCliCommand(['show', 'agent', 'corrupted'], {
-      });
+      const result = await runCliCommand(['show', 'agent', 'corrupted'], {});
 
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toContain('Error:');
       // Should suggest listing available agents
       expect(result.stderr).toContain("Try 'claudekit list agents'");
-      
+
       // Clean up test-specific directory
       await fs.rm(testDir, { recursive: true, force: true });
     });
@@ -601,7 +612,7 @@ This file has malformed frontmatter.
     it('should handle empty agent directory gracefully', async () => {
       // Purpose: Verify that attempting to show agents when none exist
       // provides helpful guidance rather than confusing errors.
-      
+
       // Create empty temp directory
       const emptyDir = await testFs.createTempDir();
       await testFs.createFileStructure(emptyDir, {
@@ -623,7 +634,7 @@ This file has malformed frontmatter.
     it('should handle missing .claude directory gracefully', async () => {
       // Purpose: Verify that running show commands in directories without
       // claudekit setup provides helpful error messages.
-      
+
       const bareDir = await testFs.createTempDir();
 
       const result = await runCliCommand(['show', 'agent', 'test-agent'], {
