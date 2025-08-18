@@ -13,6 +13,14 @@ Analyze the specification at: $ARGUMENTS
 
 This command will analyze the provided specification document to determine if it contains sufficient detail for successful autonomous implementation.
 
+### Domain Expert Consultation
+
+When analyzing specifications that involve specific technical domains:
+- **Use specialized subagents** when analysis involves specific domains (TypeScript, React, testing, databases, etc.)
+- Run `claudekit list agents` to see available specialized experts
+- Match specification domains to expert knowledge for thorough validation
+- Use general-purpose approach only when no specialized expert fits
+
 ### What This Check Evaluates:
 
 The analysis evaluates three fundamental aspects, each with specific criteria:

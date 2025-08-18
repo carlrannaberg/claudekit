@@ -42,6 +42,10 @@ Before creating ANY specification, you MUST complete these checks:
 
 ### 1. Context Discovery Phase
 - Search existing codebase for similar features/specs using AgentTool
+- **Use specialized subagents** when research involves specific domains (TypeScript, React, testing, databases, etc.)
+- Run `claudekit list agents` to see available specialized experts
+- Match research requirements to expert domains for optimal analysis
+- Use general-purpose approach only when no specialized expert fits
 - Identify potential conflicts or duplicates
 - Verify feature request is technically feasible
 - Document any missing prerequisites

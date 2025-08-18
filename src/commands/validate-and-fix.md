@@ -89,7 +89,10 @@ Launch multiple agents concurrently for independent, parallelizable tasks:
 - Tasks that depend on each other should be executed sequentially (separate messages)
 - Parallelizable tasks: Different file fixes, independent test suites, non-overlapping components
 - Sequential tasks: Tasks with dependencies, shared state modifications, ordered phases
-- Use specialized subagents when applicable for domain-specific issues
+- **Use specialized subagents** when tasks match expert domains (TypeScript, React, testing, databases, etc.)
+- Run `claudekit list agents` to see available specialized experts  
+- Match task requirements to expert domains for optimal results
+- Use general-purpose approach only when no specialized expert fits
 - Each parallel agent should have non-overlapping responsibilities to avoid conflicts
 - Agents working on related files must understand the shared interfaces
 - Each agent verifies their fixes work before completing

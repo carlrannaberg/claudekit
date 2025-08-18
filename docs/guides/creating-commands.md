@@ -136,6 +136,47 @@ Brief description shown in help:
 description: Create a new API endpoint
 ```
 
+## Using Specialized Subagents in Commands
+
+For commands that involve domain-specific work, leverage specialized subagents for better results:
+
+### Pattern for Subagent Integration
+
+```markdown
+---
+description: Complex task with domain expertise needed  
+allowed-tools: Task, Read, Bash
+---
+
+## Task Analysis
+Analyze the requirements to identify specialized domains needed.
+
+## Subagent Delegation
+- **Use specialized subagents** when tasks match expert domains (TypeScript, React, testing, databases, etc.)
+- Run `claudekit list agents` to see available specialized experts
+- Match task requirements to expert domains for optimal results  
+- Use general-purpose approach only when no specialized expert fits
+
+For each domain-specific task, use the Task tool to delegate to appropriate experts.
+```
+
+### Examples of Domain Matching
+
+- **TypeScript issues** → TypeScript experts
+- **React components** → React experts  
+- **Database queries** → Database experts
+- **Test failures** → Testing experts
+- **Build problems** → Build tool experts
+- **Performance issues** → Performance experts
+
+### Commands That Should Use This Pattern
+
+- `/validate-and-fix` - Uses specialists for different types of code issues
+- `/spec:create` - Uses specialists for domain research during spec creation  
+- `/spec:validate` - Uses specialists for domain-specific spec analysis
+- `/spec:execute` - Uses specialists for implementation tasks
+- Custom workflow commands that span multiple technical domains
+
 ## Best Practices
 
 1. **Keep commands focused** - Each command should do one thing well
@@ -143,6 +184,7 @@ description: Create a new API endpoint
 3. **Document usage** - Include examples in the command file
 4. **Test thoroughly** - Ensure bash commands and file references work
 5. **Version control** - Commit project commands to share with team
+6. **Use specialized subagents** - Delegate domain-specific work to experts when possible
 
 ## Creating Your First Command
 
