@@ -19,6 +19,7 @@ async function runCliCommand(
     cwd?: string;
     env?: Record<string, string>;
     input?: string;
+    timeout?: number;
   } = {}
 ): Promise<{
   exitCode: number;
@@ -36,6 +37,20 @@ async function runCliCommand(
 
     let stdout = '';
     let stderr = '';
+    let resolved = false;
+
+    // Add timeout mechanism (default 5 seconds for CLI commands)
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        child.kill('SIGTERM');
+        resolve({
+          exitCode: 1,
+          stdout: stdout.trim(),
+          stderr: `${stderr}\nCommand timed out`.trim(),
+        });
+      }
+    }, options.timeout ?? 5000);
 
     child.stdout.on('data', (data) => {
       stdout += data.toString();
@@ -46,17 +61,34 @@ async function runCliCommand(
     });
 
     child.on('close', (code) => {
-      // Filter out npm notices from stderr (these are not actual errors)
-      const stderrLines = stderr.trim().split('\n');
-      const filteredStderr = stderrLines
-        .filter(line => !line.includes('npm notice') && line.trim() !== '')
-        .join('\n');
-      
-      resolve({
-        exitCode: code ?? 0,
-        stdout: stdout.trim(),
-        stderr: filteredStderr,
-      });
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeout);
+        
+        // Filter out npm notices from stderr (these are not actual errors)
+        const stderrLines = stderr.trim().split('\n');
+        const filteredStderr = stderrLines
+          .filter(line => !line.includes('npm notice') && line.trim() !== '')
+          .join('\n');
+        
+        resolve({
+          exitCode: code ?? 0,
+          stdout: stdout.trim(),
+          stderr: filteredStderr,
+        });
+      }
+    });
+
+    child.on('error', (error) => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeout);
+        resolve({
+          exitCode: 1,
+          stdout: stdout.trim(),
+          stderr: `${stderr}\n${error.message}`.trim(),
+        });
+      }
     });
 
     if (options.input !== undefined && options.input !== '') {
@@ -166,7 +198,9 @@ Steps:
     it('should display agent content in text format by default', async () => {
       // Purpose: Verify that the default text output shows only the agent content
       // without JSON metadata, making it suitable for human reading and piping.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent']);
+      const result = await runCliCommand(['show', 'agent', 'test-integration-agent'], {
+        timeout: 10000 // Increase timeout for complex operations
+      });
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
@@ -185,7 +219,9 @@ Steps:
     it('should display agent content in JSON format when requested', async () => {
       // Purpose: Verify that JSON format provides complete agent metadata
       // for programmatic consumption while ensuring valid JSON structure.
-      const result = await runCliCommand(['show', 'agent', 'test-integration-agent', '--format', 'json']);
+      const result = await runCliCommand(['show', 'agent', 'test-integration-agent', '--format', 'json'], {
+        timeout: 10000 // Increase timeout for complex operations
+      });
 
       expect(result.exitCode).toBe(0);
       expect(result.stderr).toBe('');
@@ -499,9 +535,13 @@ console.log(example);
 `
       );
 
-      const textResult = await runCliCommand(['show', 'agent', 'special-chars']);
+      const textResult = await runCliCommand(['show', 'agent', 'special-chars'], {
+        timeout: 10000 // Increase timeout for complex operations
+      });
       
-      const jsonResult = await runCliCommand(['show', 'agent', 'special-chars', '-f', 'json']);
+      const jsonResult = await runCliCommand(['show', 'agent', 'special-chars', '-f', 'json'], {
+        timeout: 10000 // Increase timeout for complex operations
+      });
 
       expect(textResult.exitCode).toBe(0);
       expect(jsonResult.exitCode).toBe(0);
