@@ -10,11 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Codebase Map Integration**: Added comprehensive project structure mapping using external codebase-map CLI
-  - Added `codebase-map` SessionStart hook for generating project structure maps on session start
+  - Added `codebase-map` UserPromptSubmit hook for providing invisible codebase context on first prompt per session
   - Added `codebase-map-update` PostToolUse hook for incrementally updating maps when files change
   - Automatically scans and indexes project structure with AST-based analysis
   - Generates optimized output format for LLM consumption with dependency tracking
+  - Session tracking prevents duplicate context loading within same Claude Code session
+  - Automatic cleanup of old session files (older than 7 days)
   - Requires external [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI installation
+- **Shared Hook Utilities**: Added reusable utilities for hook development
+  - Added `codebase-map-utils.ts` for shared codebase map generation functionality
+  - Added `session-utils.ts` with `SessionTracker` class for per-session state management
+- **Enhanced Git Commands**: Added git-expert integration capabilities to git workflow commands
+  - Enhanced `/git:commit`, `/git:status`, and `/git:push` commands with Task tool support
+  - Added recommendations for using git-expert subagent for complex scenarios
 
 ## [0.5.1] - 2025-08-17
 

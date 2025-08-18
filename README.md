@@ -153,8 +153,10 @@ Hooks automatically enforce quality as Claude works:
 - `check-comment-replacement` - Detect when code is replaced with comments
 - `check-unused-parameters` - Detect lazy refactoring where parameters are prefixed with _ instead of being removed
 
-**SessionStart Hooks** (run when Claude Code session begins)
-- `codebase-map` - Generate comprehensive project structure map using codebase-map CLI
+**UserPromptSubmit Hooks** (run on first user prompt of each session)
+- `codebase-map` - Provide invisible codebase context once per session using codebase-map CLI
+
+**PostToolUse Hooks** (also includes file monitoring)
 - `codebase-map-update` - Incrementally update codebase map when files change
 
 **Project-Wide Hooks** (typically for Stop/SubagentStop events)
@@ -170,7 +172,7 @@ Hooks automatically enforce quality as Claude works:
 **PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
 **Stop** - Triggered when Claude Code stops or conversation ends
 **SubagentStop** - Triggered when subagents complete their tasks
-**SessionStart** - Triggered when a new Claude Code session begins
+**UserPromptSubmit** - Triggered when users submit their first prompt in a session
 
 ### List Available Hooks
 
@@ -233,7 +235,7 @@ Claudekit uses two configuration files:
       "matcher": "*",
       "hooks": [{"type": "command", "command": "claudekit-hooks run create-checkpoint"}]
     }],
-    "SessionStart": [{
+    "UserPromptSubmit": [{
       "matcher": "*",
       "hooks": [{"type": "command", "command": "claudekit-hooks run codebase-map"}]
     }]

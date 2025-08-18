@@ -259,35 +259,11 @@ Please complete these tasks before stopping.
 - Encourages proper parameter removal instead of prefixing
 - Helps maintain clean function signatures
 
-### SessionStart Hooks
+### UserPromptSubmit Hooks
 
-These hooks run when a new Claude Code session begins:
+These hooks run when users submit their first prompt in a Claude Code session:
 
 #### codebase-map
-
-**Purpose:** Generate a comprehensive project structure map using the codebase-map CLI tool.
-
-**Triggers on:** SessionStart event
-
-**Dependencies:** Requires [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI tool installed
-
-**Configuration Options:**
-- `format` (string): Output format - auto|json|dsl|graph|markdown (default: "auto")
-- `command` (string): Custom command to run (default: "codebase-map scan")
-
-**Features:**
-- Automatically scans and indexes project structure
-- Generates AST-based analysis of functions, classes, and constants
-- Tracks imports/exports and builds dependency graph
-- Optimized output format for LLM consumption
-- Displays the map directly in the Claude Code session
-
-**Installation:**
-```bash
-npm install -g codebase-map
-```
-
-#### codebase-context
 
 **Purpose:** Provide codebase map context to Claude Code on the first user prompt of each session.
 
@@ -304,7 +280,7 @@ npm install -g codebase-map
 - Automatically scans and indexes project structure on first user interaction
 - Generates AST-based analysis of functions, classes, and constants
 - Tracks imports/exports and builds dependency graph
-- Displays the map in session context with clear "loaded once per session" messaging
+- Adds map invisibly to Claude's context (like CLAUDE.md)
 - Silently cleans up old session files (older than 7 days)
 - Session tracking prevents re-execution within the same session
 
@@ -446,12 +422,11 @@ This file tells Claude Code which hooks to run and when:
         ]
       }
     ],
-    "SessionStart": [
+    "UserPromptSubmit": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run codebase-map"},
-          {"type": "command", "command": "claudekit-hooks run codebase-context"}
+          {"type": "command", "command": "claudekit-hooks run codebase-map"}
         ]
       }
     ]
