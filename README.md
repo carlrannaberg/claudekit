@@ -70,7 +70,7 @@ After:  Use /review → ✅ 6 specialized agents analyze in parallel, dynamicall
 
 ### 🤖 AI Subagents
 - **Domain experts**: TypeScript, React, database, testing, infrastructure specialists
-- **Code review**: Dedicated `code-reviewer` agent with 6 focused analysis aspects
+- **Code review**: Dedicated `code-review-expert` agent with 6 focused analysis aspects
 - **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
 - **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
 - **Deep debugging**: Oracle agent for complex problem analysis
@@ -188,7 +188,7 @@ claudekit-hooks list
 Specialized AI assistants for different domains:
 
 **Popular Agents**
-- `code-reviewer` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
+- `code-review-expert` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
 - `oracle` - Deep debugging and complex problem analysis ([requires setup](docs/integrations/oracle.md))
 - `refactoring-expert` - Code smell detection and comprehensive refactoring guidance
 - `typescript-expert` - TypeScript/JavaScript development and type system

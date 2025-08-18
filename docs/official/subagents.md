@@ -65,7 +65,7 @@ To create your first subagent:
     Your subagent is now available! Claude will use it automatically when appropriate, or you can invoke it explicitly:
 
     ```
-    > Use the code-reviewer subagent to check my recent changes
+    > Use the code-review-expert subagent to check my recent changes
     ```
 
   </Step>
@@ -184,7 +184,7 @@ Request a specific subagent by mentioning it in your command:
 
 ```
 > Use the test-runner subagent to fix failing tests
-> Have the code-reviewer subagent look at my recent changes
+> Have the code-review-expert subagent look at my recent changes
 > Ask the debugger subagent to investigate this error
 ```
 
@@ -194,7 +194,7 @@ Request a specific subagent by mentioning it in your command:
 
 ```markdown
 ---
-name: code-reviewer
+name: code-review-expert
 description: Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying code.
 tools: Read, Grep, Glob, Bash
 ---

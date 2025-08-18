@@ -1,0 +1,40 @@
+Category,Symptom,Context_Needed,Diagnostic_Command,Analysis_Pattern,Handoff_Criteria,Specialist_Agent,Priority
+Environment_Context,Works on my machine,Versions + environment,node --version; npm --version; printenv | grep NODE,Version mismatches,Environment setup complete,General investigation,HIGH
+Environment_Context,Missing dependencies,Package info + install logs,npm ls --depth=0; npm audit,Dependency conflicts,Package resolution issues,General investigation,HIGH
+Environment_Context,Build tool conflicts,Tool versions + configs,webpack --version; vite --version; cat package.json,Tool incompatibilities,Build system issues,webpack-expert or vite-expert,HIGH
+Error_Analysis,TypeError undefined,Stack trace + variable context,grep -n "undefined" logs; add console.log,Null/undefined variables,Type-related errors,typescript-type-expert,CRITICAL
+Error_Analysis,Module not found,Import paths + file structure,find . -name "*.js" -o -name "*.ts" | grep module_name,Import/export issues,Module resolution,typescript-expert,HIGH
+Error_Analysis,Async/await errors,Promise chain + timing,Add timing logs; check promise states,Promise rejection handling,Async complexity,nodejs-expert,HIGH
+Error_Analysis,React component errors,Component hierarchy + props,React DevTools; component state dump,State/props issues,React-specific problems,react-expert,HIGH
+Error_Analysis,Database connection,Connection string + network,ping db_host; telnet db_host db_port,Network/auth issues,Database connectivity,postgres-expert or mongodb-expert,HIGH
+System_State,High memory usage,Process info + memory stats,ps aux | sort -k4 -nr | head -10; free -m,Memory leaks,Resource exhaustion,Performance analysis,MEDIUM
+System_State,Port already in use,Port info + process,netstat -tlnp | grep port; lsof -i :port,Port conflicts,Process conflicts,devops-expert,MEDIUM
+System_State,Permission denied,File permissions + ownership,ls -la file; whoami; groups,Permission issues,File system setup,devops-expert,LOW
+System_State,Disk space full,Disk usage + large files,df -h; du -sh * | sort -hr | head -10,Storage issues,System administration,devops-expert,LOW
+Code_Context,Infinite loop,Execution flow + variables,Add breakpoints; trace execution path,Loop conditions,Logic errors,General investigation,HIGH
+Code_Context,Unexpected behavior,State mutations + flow,Add state logging; trace mutations,State corruption,Logic complexity,General investigation,MEDIUM
+Code_Context,Performance degradation,Profiling + bottlenecks,time operations; profile memory usage,Performance patterns,Performance issues,react-performance-expert,HIGH
+Dependency_Issues,Version conflicts,Package tree + conflicts,npm ls; npm outdated; npm audit,Dependency hell,Package management,General investigation,HIGH
+Dependency_Issues,Circular dependencies,Import graph + cycles,npx madge --circular src/,Circular imports,Module architecture,typescript-expert,MEDIUM
+Dependency_Issues,Peer dependency warnings,Peer deps + installed versions,npm ls --depth=0 2>&1 | grep UNMET,Peer dep mismatches,Package compatibility,General investigation,MEDIUM
+Configuration,Invalid config syntax,Config files + syntax,find . -name "*.json" -exec jq . {} \;,JSON/YAML errors,Configuration validation,General investigation,MEDIUM
+Configuration,Environment variables missing,Env vars + defaults,printenv; cat .env 2>/dev/null,Missing env setup,Environment configuration,devops-expert,MEDIUM
+Configuration,Tool config conflicts,Tool configs + compatibility,Check tsconfig.json + webpack.config.js,Tool incompatibilities,Build configuration,typescript-build-expert,HIGH
+Test_Failures,Tests failing randomly,Test environment + timing,Run tests multiple times; check async,Timing issues,Test instability,jest-testing-expert,HIGH
+Test_Failures,Mock not working,Mock setup + calls,Check mock implementation + calls,Mock configuration,Test framework issues,jest-testing-expert,MEDIUM
+Test_Failures,Test environment issues,Test config + setup,Check test config files + scripts,Environment setup,Test configuration,testing-expert,MEDIUM
+Build_Issues,Build script fails,Build logs + steps,npm run build 2>&1 | tee build.log,Build process errors,Build system failure,webpack-expert or vite-expert,HIGH
+Build_Issues,Asset not found,Asset paths + output,Find asset locations + check build output,Path resolution,Build configuration,webpack-expert or vite-expert,MEDIUM
+Build_Issues,Compilation errors,Source files + compiler output,Compile with verbose flags,Syntax/type errors,Compilation issues,typescript-expert,HIGH
+Network_Issues,API calls failing,Network logs + endpoints,curl -v endpoint; check network tab,Network connectivity,API integration,General investigation,MEDIUM
+Network_Issues,CORS errors,Browser console + headers,Check preflight + response headers,CORS configuration,Web server setup,devops-expert,MEDIUM
+Network_Issues,Timeout errors,Request timing + network,Add request timing logs,Network latency,Network configuration,devops-expert,LOW
+Performance,Slow page load,Performance metrics + waterfall,Lighthouse audit; Network tab analysis,Resource loading,Frontend performance,react-performance-expert,HIGH
+Performance,High CPU usage,Process monitoring + profiling,top; htop; profiling tools,CPU bottlenecks,Performance optimization,react-performance-expert,MEDIUM
+Performance,Memory leaks,Memory usage over time,Memory profiling; heap snapshots,Memory patterns,Performance optimization,react-performance-expert,HIGH
+Database_Issues,Query performance,Query plans + indexes,EXPLAIN query; check index usage,Query optimization,Database performance,postgres-expert,MEDIUM
+Database_Issues,Connection timeouts,Connection pool + network,Check connection pool; network latency,Connection management,Database administration,postgres-expert,LOW
+Database_Issues,Transaction deadlocks,Transaction logs + queries,Check transaction isolation; deadlock graphs,Locking issues,Database concurrency,postgres-expert,HIGH
+Browser_Issues,Cross-browser differences,Browser versions + features,Check browser compatibility; feature detection,Browser support,Frontend compatibility,General investigation,LOW
+Browser_Issues,JavaScript runtime errors,Console errors + browser,Browser console; error reporting,Runtime environment,Browser-specific issues,General investigation,MEDIUM
+Browser_Issues,DevTools not working,Browser setup + extensions,Check browser version; reset DevTools,Tooling issues,Development environment,General investigation,LOW

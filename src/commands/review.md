@@ -1,5 +1,5 @@
 ---
-description: Multi-aspect code review using parallel code-reviewer agents
+description: Multi-aspect code review using parallel code-review-expert agents
 allowed-tools: Task, Bash(git status:*), Bash(git diff:*), Bash(git log:*)
 argument-hint: [what to review] - e.g., "recent changes", "src/components", "*.ts files", "PR #123"
 ---
@@ -25,11 +25,11 @@ If reviewing "changes" or recent modifications:
 If reviewing a specific directory or broad scope:
 - Launch all 6 review agents for comprehensive coverage
 
-Use the Task tool to invoke the appropriate code-reviewer agents concurrently:
+Use the Task tool to invoke the appropriate code-review-expert agents concurrently:
 
 ## 1. Architecture & Design Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Architecture review
 Prompt: Review the architecture and design patterns in: $ARGUMENTS
 Focus on: module organization, separation of concerns, dependency management, abstraction levels, design pattern usage, and architectural consistency. Check available experts with claudekit for domain-specific patterns.
@@ -37,7 +37,7 @@ Focus on: module organization, separation of concerns, dependency management, ab
 
 ## 2. Code Quality Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Code quality review  
 Prompt: Review code quality and maintainability in: $ARGUMENTS
 Focus on: readability, naming conventions, code complexity, DRY principles, code smells, refactoring opportunities, and consistent coding patterns. Pull domain-specific quality metrics from available experts.
@@ -45,7 +45,7 @@ Focus on: readability, naming conventions, code complexity, DRY principles, code
 
 ## 3. Security & Dependencies Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Security and dependencies review
 Prompt: Perform security and dependency analysis of: $ARGUMENTS
 Focus on: input validation, injection vulnerabilities, authentication/authorization, secrets management, dependency vulnerabilities, license compliance, version pinning, and supply chain security. Use security insights from domain experts if available.
@@ -53,7 +53,7 @@ Focus on: input validation, injection vulnerabilities, authentication/authorizat
 
 ## 4. Performance & Scalability Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Performance and scalability review
 Prompt: Analyze performance and scalability in: $ARGUMENTS
 Focus on: algorithm complexity, memory usage, database queries, caching strategies, async patterns, resource management, load handling, and horizontal scaling considerations. Get performance patterns from relevant experts.
@@ -61,7 +61,7 @@ Focus on: algorithm complexity, memory usage, database queries, caching strategi
 
 ## 5. Testing Quality Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Testing quality review
 Prompt: Review test quality and effectiveness for: $ARGUMENTS
 Focus on: meaningful assertions, test isolation, edge case handling, failure scenario coverage, mock vs real dependencies balance, test maintainability, clear test names, and actual behavior verification (not just coverage metrics). Check for testing-expert insights if available.
@@ -69,7 +69,7 @@ Focus on: meaningful assertions, test isolation, edge case handling, failure sce
 
 ## 6. Documentation & API Review
 ```
-Subagent: code-reviewer
+Subagent: code-review-expert
 Description: Documentation and API review
 Prompt: Review documentation and API design for: $ARGUMENTS
 

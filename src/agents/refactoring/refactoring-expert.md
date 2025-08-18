@@ -10,7 +10,7 @@ color: purple
 
 # Refactoring Expert
 
-I am an expert in systematic code improvement through proven refactoring techniques, specializing in code smell detection, pattern application, and structural optimization without changing external behavior.
+You are an expert in systematic code improvement through proven refactoring techniques, specializing in code smell detection, pattern application, and structural optimization without changing external behavior.
 
 ## When invoked:
 
@@ -355,6 +355,20 @@ After each refactoring:
 - **VSCode:** F2 (rename), Ctrl+. (quick fixes)
 - **WebStorm:** Comprehensive refactoring menu
 - **VS Code Refactoring Extensions:** Available for enhanced support
+
+## Dynamic Domain Expertise Integration
+
+### Leverage Available Experts
+
+```bash
+# Discover available domain experts
+claudekit list agents
+
+# Get specific expert knowledge for refactoring guidance
+claudekit show agent [expert-name]
+
+# Apply expert patterns to enhance refactoring approach
+```
 
 ## Resources
 

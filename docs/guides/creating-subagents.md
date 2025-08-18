@@ -211,7 +211,7 @@ This ensures agent IDs are consistent and unambiguous across the system.
 ```bash
 # Universal agents (all projects need them)
 src/agents/oracle.md
-src/agents/code-reviewer.md
+src/agents/code-review-expert.md
 
 # Domain-specific agents (organized by domain)
 src/agents/typescript/typescript-expert.md
@@ -352,7 +352,7 @@ Your agent is automatically discovered by claudekit based on metadata:
 **Universal Agents** (`universal: true`):
 - Appear in "Universal Helpers" section
 - Recommended for all projects
-- Examples: oracle, code-reviewer
+- Examples: oracle, code-review-expert
 
 **Technology Agents** (`category: technology`):
 - Appear in "Technology Stack" section  
@@ -496,7 +496,7 @@ The `color` field in the YAML frontmatter allows you to customize the visual app
 
 ```yaml
 ---
-name: code-reviewer
+name: code-review-expert
 description: Expert reviewer for code quality and best practices
 tools: Read, Grep, Bash
 color: indigo     # or "#3b82f6"
@@ -528,6 +528,62 @@ color: blue     # For documentation generators
 
 This feature is particularly useful for visually distinguishing agents by their role or importance in the Claude Code interface.
 
+## Dynamic Domain Expertise Integration
+
+### Best Practice: Leverage Available Experts
+
+For general-purpose agents (like triage, code-review-expert, or orchestration agents), enhance capabilities by tapping into specialist domain knowledge. This pattern allows broad agents to benefit from deep specialist expertise.
+
+#### Implementation Pattern
+
+Add a "Dynamic Domain Expertise Integration" section to general-purpose agents:
+
+```markdown
+## Dynamic Domain Expertise Integration
+
+### Leverage Available Experts
+
+```bash
+# Discover available domain experts
+claudekit list agents
+
+# Get specific expert knowledge as needed
+claudekit show agent [expert-name]
+
+# Apply expert patterns to enhance analysis
+```
+```
+
+#### When to Use This Pattern
+
+**✅ Good for General-Purpose Agents:**
+- `code-review-expert` - Reviews code across domains, benefits from domain-specific patterns
+- `triage-expert` - Diagnoses issues across technologies, needs domain context
+- `refactoring-expert` - Refactors code in various languages/frameworks
+- `performance-expert` - Optimizes across different technology stacks
+
+**❌ Not for Specialist Agents:**
+- `typescript-type-expert` - Already focused on specific domain
+- `react-performance-expert` - Already has deep specialization
+- `postgres-expert` - Domain-specific, doesn't need cross-domain knowledge
+
+#### Implementation Benefits
+
+1. **Enhanced Context**: General agents get domain-specific insights
+2. **Informed Handoffs**: Better preparation when delegating to specialists  
+3. **Cross-Domain Solutions**: Ability to solve problems spanning multiple domains
+4. **Knowledge Synthesis**: Combining insights from multiple expert domains
+
+#### Example: Triage Expert Integration
+
+The `triage-expert` uses this pattern to:
+- Query `typescript-expert` knowledge for type-related errors
+- Access `react-expert` patterns for component debugging
+- Leverage `database-expert` insights for query performance issues
+- Apply `webpack-expert` knowledge for build system problems
+
+This creates a smart triage system that provides domain-specific diagnostic approaches while maintaining clear boundaries for specialist delegation.
+
 ## Best Practices
 
 1. **Research First**: Invest significant time understanding the domain before implementation
@@ -539,7 +595,8 @@ This feature is particularly useful for visually distinguishing agents by their 
 7. **Plan Fallbacks**: Include error handling strategies
 8. **Save Research**: Keep research artifacts in `reports/` for future reference
 9. **Iterate Based on Usage**: Update agents as you discover new patterns
-10. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-reviewer agent
+10. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-review-expert agent
+11. **Use Expert Integration**: For general-purpose agents, implement Dynamic Domain Expertise Integration to leverage specialist knowledge
 
 ## Conclusion
 
