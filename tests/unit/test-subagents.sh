@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "$0")/../test-framework.sh"
+# Get script directory and source test framework
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../test-framework.sh"
 
 # Get absolute path to project root from script location
 PROJECT_ROOT="$(cd "$(dirname "$0")/../../" && pwd)"
-AGENT_FILE="$PROJECT_ROOT/src/agents/typescript/expert.md"
+AGENT_FILE="$PROJECT_ROOT/src/agents/typescript/typescript-expert.md"
 
 ################################################################################
 # Comprehensive Agent Validation Functions (Task 127)                         #

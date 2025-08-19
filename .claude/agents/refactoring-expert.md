@@ -1,1 +1,1 @@
-../../../src/agents/refactoring/refactoring-expert.md
+../../src/agents/refactoring/refactoring-expert.md

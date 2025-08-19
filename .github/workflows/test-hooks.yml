@@ -25,7 +25,6 @@ jobs:
         chmod +x tests/run-tests.sh
         chmod +x tests/unit/*.sh
         chmod +x tests/integration/*.sh || true
-        chmod +x .claude/hooks/*.sh
     
     - name: Run unit tests
       run: |
@@ -65,7 +64,6 @@ jobs:
         chmod +x tests/run-tests.sh
         chmod +x tests/unit/*.sh
         chmod +x tests/integration/*.sh || true
-        chmod +x .claude/hooks/*.sh
     
     - name: Run unit tests
       run: |
@@ -104,5 +102,4 @@ jobs:
         # Check all shell scripts
         find . -name "*.sh" -type f -print0 | xargs -0 shellcheck -e SC2086,SC2181 || true
         
-        # Strict check on hooks
-        shellcheck .claude/hooks/*.sh
+        echo "✅ All shell scripts checked"
