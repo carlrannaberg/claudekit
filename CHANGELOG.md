@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2025-08-19
+
+### Changed
+- **Command Naming**: Renamed `/review` command to `/code-review` to avoid conflicts with native Claude Code commands
+  - Updated command name in all documentation references (README.md, docs/)
+  - Updated symlink structure and agent references
+  - Maintains all existing functionality with improved naming consistency
+
 ## [0.6.2] - 2025-08-19
 
 ### Added
