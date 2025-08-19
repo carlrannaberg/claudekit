@@ -89,8 +89,8 @@ jobs:
         fi
         
         # Check that main entry point exists
-        if [ ! -f "dist/index.js" ]; then
-          echo "::error::Main entry point 'dist/index.js' is missing"
+        if [ ! -f "dist/index.cjs" ]; then
+          echo "::error::Main entry point 'dist/index.cjs' is missing"
           exit 1
         fi
         
