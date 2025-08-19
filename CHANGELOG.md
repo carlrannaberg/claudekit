@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2025-08-19
+
+### Added
+- **Fast Test Configuration**: Added optimized Vitest configuration for hook execution
+  - Added `vitest.hook.config.ts` with ultra-fast settings optimized for Stop hook timeout constraints
+  - Added `test:fast` npm script for rapid testing without coverage
+  - Added `test-project` command to claudekit configuration for project-level test execution
+  - Enhanced test infrastructure with comprehensive configuration validation tests
+
+### Changed
+- **Agent MD Init Enhancement**: Improved `/agent-md:init` command to encourage delegation to specialized agents
+  - Enhanced command to emphasize the importance of using domain-specific subagents
+  - Updated guidance to promote proactive delegation patterns for better task management
+  - Improved documentation structure for specialized agent usage
+
+### Fixed
+- **TypeScript Import Issues**: Resolved fs-extra import compatibility across hook system
+  - Fixed Node.js module imports from namespace to default imports in `cli/hooks/base.ts`
+  - Fixed imports in `cli/hooks/runner.ts` and `cli/hooks/utils.ts` for better ES module compatibility
+  - Updated test files to use consistent import patterns
+  - Ensures compatibility with modern Node.js module resolution
+
 ## [0.6.1] - 2025-08-19
 
 ### Added

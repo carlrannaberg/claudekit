@@ -273,7 +273,19 @@ npm list -g claudekit           # Verify installation
 ```
 
 **Tests timing out?**
-Configure faster test command in `.claudekit/config.json`:
+Use the ultra-fast test configuration for hook execution:
+```json
+{
+  "hooks": {
+    "test-project": {
+      "command": "npm run test:fast",
+      "timeout": 30000
+    }
+  }
+}
+```
+
+Or configure a custom faster test command:
 ```json
 {
   "hooks": {
