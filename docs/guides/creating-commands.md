@@ -301,3 +301,137 @@ PR Checklist for $ARGUMENTS:
 
 Based on the results above, fix any issues found.
 ```
+
+## Authoritative Command Template
+
+**This section serves as THE definitive reference for all claudekit command templates. All other documentation should reference this section instead of duplicating template content.**
+
+### Complete Command Structure Template
+
+```markdown
+---
+# === OFFICIAL CLAUDE CODE FIELDS ===
+# Required for any command that uses tools explicitly
+allowed-tools: Read, Write, Edit, Bash(git:*, npm:*), Task
+
+# Required - Brief description for help and listings
+description: Brief description of what the command does
+
+# Optional - Help text shown to users about expected arguments
+argument-hint: "<component-name>" | "[environment]" | "Optional hint text"
+
+# Optional - Specify which Claude model to use
+model: sonnet  # Options: opus, sonnet, haiku, or specific model string
+
+# === CLAUDEKIT EXTENSIONS ===
+# Optional - Organizational category for command grouping
+category: workflow  # Options: workflow, ai-assistant, validation
+---
+
+# Command Title
+
+Brief explanation of what this command does and when to use it.
+
+## Arguments
+
+If using `$ARGUMENTS`, explain:
+- What arguments are expected
+- Format requirements
+- Examples of valid input
+
+## Dynamic Content
+
+### Bash Command Execution
+Use `!` prefix for immediate command execution:
+
+```bash
+# Single command
+Current status: !git status --porcelain
+
+# Combined commands (recommended for performance)
+Repository state: !git status --porcelain && echo "---" && git diff --stat && echo "---" && git log --oneline -5
+```
+
+### File References
+Use `@` prefix to include file contents:
+
+```
+Current config: @package.json
+Source code: @src/main.ts
+```
+
+## Task Instructions
+
+Write clear, actionable instructions for the AI agent:
+
+1. **First step** - What to analyze or check
+2. **Second step** - What actions to take
+3. **Final step** - What to report or create
+
+Based on the above information, [specific task directive].
+```
+
+### Field Reference
+
+#### Official Claude Code Fields
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `allowed-tools` | When using tools | String | Comma-separated list of tools with optional restrictions |
+| `description` | Yes | String | Brief description for help and command listings |
+| `argument-hint` | No | String | Help text describing expected arguments |
+| `model` | No | String | Claude model to use: `opus`, `sonnet`, `haiku`, or specific model |
+
+#### Claudekit Extension Fields
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `category` | No | String | Organization category: `workflow`, `ai-assistant`, `validation` |
+
+### Security Patterns for allowed-tools
+
+```yaml
+# Basic tool access
+allowed-tools: Read, Write, Edit
+
+# Restricted bash access (recommended)
+allowed-tools: Bash(git:*), Bash(npm:*), Read
+# Only allows git and npm commands, plus Read tool
+
+# Multiple tools with mixed restrictions  
+allowed-tools: Read, Write, Bash(git:*, npm:*), Task
+# Allows Read/Write, restricted bash, and Task tool
+
+# Unrestricted bash (use with caution)
+allowed-tools: Bash, Read, Write
+# Allows any bash command - only use when necessary
+```
+
+**Important Security Note**: The `allowed-tools` field uses comma-separated strings with optional parenthetical restrictions. This differs from subagent `tools:` arrays which use different syntax.
+
+### Template Usage Guidelines
+
+1. **Use this template as the single source** - Do not create duplicate templates elsewhere
+2. **Reference this section** - Link to this authoritative template instead of copying
+3. **Follow the structure** - Maintain consistency across all commands
+4. **Update centrally** - Changes to template structure should be made here only
+5. **Validate regularly** - Use `claudekit lint-commands` to check compliance
+
+### Template Validation
+
+This template structure is validated by `claudekit lint-commands` which checks:
+
+- ✅ Valid YAML frontmatter syntax
+- ✅ Required fields present (`description`)
+- ✅ Field names match official schema + claudekit extensions  
+- ✅ `allowed-tools` format when bash commands present
+- ✅ No unknown or deprecated fields
+- ✅ Proper field value types
+
+### Implementation Notes
+
+- **Bash commands** prefixed with `!` execute automatically - don't add them to `allowed-tools`
+- **Interactive tools** that Claude invokes explicitly must be in `allowed-tools`  
+- **Namespaced commands** (e.g., `/api:create`) create subdirectory structure
+- **Argument handling** via `$ARGUMENTS` placeholder supports any user input format
+- **File references** via `@filename` include full file contents in command context

@@ -12,14 +12,21 @@ import { pathExists } from './filesystem.js';
  */
 export async function findComponentsDirectory(): Promise<string> {
   // Get the directory of the current module
-  const currentFileUrl = import.meta.url;
-  const currentFilePath = fileURLToPath(currentFileUrl);
+  // In CommonJS build, import.meta.url is undefined, so we use __filename fallback
+  let currentFilePath: string;
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    currentFilePath = fileURLToPath(import.meta.url);
+  } else if (typeof __filename !== 'undefined') {
+    currentFilePath = __filename;
+  } else {
+    // Fallback for edge cases
+    currentFilePath = fileURLToPath(`file://${__dirname}/paths.ts`);
+  }
   const currentDir = path.dirname(currentFilePath);
 
   // Debug logging
   if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
     console.error('findComponentsDirectory debug:');
-    console.error('  currentFileUrl:', currentFileUrl);
     console.error('  currentFilePath:', currentFilePath);
     console.error('  currentDir:', currentDir);
   }

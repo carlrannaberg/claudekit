@@ -4,7 +4,16 @@ import { createRequire } from 'module';
 import { Logger } from './utils/logger.js';
 
 // For ESM, we need to create require to load package.json
-const require = createRequire(import.meta.url);
+// In CommonJS build, import.meta.url is undefined, so we use __filename fallback
+let requireUrl: string;
+if (typeof import.meta !== 'undefined' && import.meta.url) {
+  requireUrl = import.meta.url;
+} else if (typeof __filename !== 'undefined') {
+  requireUrl = __filename;
+} else {
+  requireUrl = `file://${process.cwd()}/package.json`;
+}
+const require = createRequire(requireUrl);
 const packageJson = require('../package.json');
 
 const program = new Command();
@@ -226,7 +235,15 @@ export async function runCli(): Promise<void> {
 }
 
 // Auto-run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// In CommonJS build, import.meta.url is undefined, so we check __filename
+let isMainModule = false;
+if (typeof import.meta !== 'undefined' && import.meta.url) {
+  isMainModule = import.meta.url === `file://${process.argv[1]}`;
+} else if (typeof __filename !== 'undefined') {
+  isMainModule = __filename === process.argv[1];
+}
+
+if (isMainModule) {
   runCli().catch((error) => {
     logger.error(`CLI failed to start: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);

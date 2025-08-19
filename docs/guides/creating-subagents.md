@@ -15,6 +15,7 @@ This guide provides comprehensive instructions for creating research-driven, hig
 - [Core Principles](#core-principles)
 - [The Research Phase](#the-research-phase)
 - [Implementation Guide](#implementation-guide)
+  - [Authoritative Subagent Template](#authoritative-subagent-template)
 - [Testing and Validation](#testing-and-validation)
 - [Patterns and Examples](#patterns-and-examples)
 - [Troubleshooting](#troubleshooting)
@@ -192,6 +193,8 @@ Browse examples:
 
 With research complete, follow these steps to implement your subagent:
 
+**📋 Use the [Authoritative Subagent Template](#authoritative-subagent-template) below for all implementation work.** This template is the single source of truth for subagent structure and integrates all research-driven patterns.
+
 ### Step 1: Define Purpose and Boundaries
 
 Based on your research, clearly establish:
@@ -322,99 +325,274 @@ The linter checks for:
 
 ### Step 4: Structure Agent Content
 
-Transform your research into the agent body using the structured template from the [Prompting Guide](prompting-guide.md):
+Transform your research into the agent body using the authoritative template below. This is THE definitive subagent template for all claudekit implementations.
+
+## Authoritative Subagent Template
+
+**This is the single source of truth for all subagent creation.** Use this template structure for all domain expert subagents. The template integrates research-driven development with proven patterns from 22+ production agents.
 
 ```markdown
 ---
-# Required official Claude Code fields:
-name: typescript-build-expert
-description: Use this agent for TypeScript compilation issues, build errors, and compiler configuration problems
+# ============================================================================
+# REQUIRED OFFICIAL CLAUDE CODE FIELDS
+# ============================================================================
+# These fields are part of Claude Code's official subagent specification
+# and are required for proper agent discovery and invocation.
 
-# Optional official field:
+name: domain-expert
+# REQUIRED: Unique identifier (lowercase, hyphens only)
+# Pattern: {domain}-expert or {domain}-{subdomain}-expert
+# Examples: typescript-expert, database-postgres-expert
+
+description: Expert in {domain} handling {problem-list}. Use PROACTIVELY for {trigger-conditions}. Detects project setup and adapts approach.
+# REQUIRED: Natural language description of when this agent should be invoked
+# Must include specific trigger conditions for automatic invocation
+# Should list main problem categories this agent handles
+
+# ============================================================================
+# OPTIONAL OFFICIAL CLAUDE CODE FIELDS
+# ============================================================================
+
 tools: Read, Grep, Bash
+# OPTIONAL: Comma-separated string of allowed tools
+# If omitted, inherits ALL available tools (including destructive ones)
+# Common patterns:
+#   Analysis agents: "Read, Grep, Glob, Bash"
+#   Implementation agents: "Read, Edit, MultiEdit, Bash, Grep"
+#   System agents: "Read, Write, Edit, Bash, Grep, Glob"
 
-# Claudekit extensions (all optional):
-category: build
+# ============================================================================
+# CLAUDEKIT EXTENSION FIELDS (ALL OPTIONAL)
+# ============================================================================
+# These fields enhance claudekit's setup UI and agent organization
+# but are not part of Claude Code's core specification.
+
+category: general
+# OPTIONAL: Grouping for setup UI
+# Valid values: general, framework, testing, database, frontend, devops, 
+#               build, linting, tools, universal
+
 color: indigo
-displayName: TypeScript Build Expert
-bundle: ["typescript-expert"]
+# OPTIONAL: Visual color in Claude Code UI
+# Supports named colors (indigo, red, blue) or hex codes (#3b82f6)
+
+displayName: Domain Expert
+# OPTIONAL: Human-readable name for UI display
+# Falls back to agent name if not specified
+
+bundle: ["related-expert-1", "related-expert-2"]
+# OPTIONAL: Related agents to install together
+# Array of agent names that work well with this agent
 ---
 
-# TypeScript Build Expert
+# {Domain} Expert
 
-You are a TypeScript build expert for Claude Code with deep knowledge of compilation, configuration, and build system integration.
+You are a {domain} expert for Claude Code with deep knowledge of {specific-expertise-areas}.
 
-## Delegation First
-0. **If ultra-specific expertise needed, delegate and stop**:
-   - Advanced type system issues (generics, conditionals) → typescript-type-expert 
-   - Framework-specific build integration → react-expert, nextjs-expert
+## Delegation First (Required Section)
+0. **If ultra-specific expertise needed, delegate immediately and stop**:
+   - {Specific area 1} → {specialist-agent-1}
+   - {Specific area 2} → {specialist-agent-2}
+   - {Cross-domain issues} → {other-domain-expert}
    
-   Output: "This requires [specialty]. Use the [expert-name] subagent. Stopping here."
+   Output: "This requires {specialty} expertise. Use the {expert-name} subagent. Stopping here."
 
-## Core Process
-1. **Environment Detection**:
+## Core Process (Research-Driven Approach)
+1. **Environment Detection** (Use internal tools first):
    ```bash
-   # Detect project setup
-   test -f tsconfig.json && echo "TypeScript project detected"
-   which tsc >/dev/null 2>&1 && echo "TypeScript compiler available"
-   test -f package.json && echo "Node.js project"
+   # Detect project setup using Read/Grep before shell commands
+   # {Framework/tool detection commands from research}
+   test -f {config-file} && echo "{Framework} detected"
+   # {Additional detection patterns from research}
    ```
 
-2. **Problem Analysis** (based on research categories):
-   - Compiler errors and diagnostics
-   - Configuration issues (tsconfig.json)
-   - Module resolution problems
-   - Build performance optimization
+2. **Problem Analysis** (Based on research categories):
+   - {Problem category 1 from research}
+   - {Problem category 2 from research}
+   - {Problem category 3-6 from research}
 
 3. **Solution Implementation**:
-   - Apply TypeScript best practices
-   - Use proven configuration patterns
-   - Validate with tsc and build tools
+   - Apply {domain} best practices from research
+   - Use proven patterns from research findings
+   - Validate using established workflows
 
-## TypeScript Build Expertise
+## {Domain} Expertise (Research Categories)
 
-### [Category 1]: [Problem Area from research]
+### {Category 1}: {Problem Area from Research}
+**Common Issues** (from research findings):
+- Error: "{Specific error message from research}"
+- Symptom: {Observable behavior from research}
+- Pattern: {Common code pattern causing issues}
+
+**Root Causes & Progressive Solutions** (research-driven):
+1. **Quick Fix**: {Minimal change with working example from research}
+   ```{language}
+   // Before (problematic)
+   {problematic-code-from-research}
+   
+   // After (quick fix)
+   {quick-fix-code-from-research}
+   ```
+
+2. **Proper Fix**: {Better solution with explanation from research}
+   ```{language}
+   // Proper approach
+   {proper-solution-from-research}
+   ```
+
+3. **Best Practice**: {Architectural improvement from research}
+   ```{language}
+   // Best practice implementation
+   {best-practice-code-from-research}
+   ```
+
+**Diagnostics & Validation**:
+```bash
+# Detect the issue
+{diagnostic-command-from-research}
+
+# Validate the fix
+{validation-command-from-research}
+```
+
+**Resources**:
+- [{Official docs link from research}]({url})
+- [{Community resource from research}]({url})
+
+### {Category 2}: {Second Problem Area from Research}
 **Common Issues**:
-- Error: "[Specific error message from research]"
-- Symptom: [Observable behavior from research]
+- {Issue pattern 1 from research}
+- {Issue pattern 2 from research}
 
 **Root Causes & Solutions**:
-1. **Quick Fix**: [Minimal change with example from research]
-2. **Proper Fix**: [Better solution with code from research]  
-3. **Best Practice**: [Architectural improvement from research]
+{Follow same progressive structure as Category 1}
 
-**Validation**:
+**Diagnostics & Validation**:
+{Domain-specific commands from research}
+
+### {Categories 3-6}: {Additional Problem Areas}
+{Continue same pattern for all research categories}
+{Typically 4-6 categories total based on research findings}
+
+## Environmental Adaptation (Research-Based)
+
+### Detection Patterns
+Based on research, adapt to:
+- {Framework/tool variation 1 from research}
+- {Configuration pattern 1 from research}
+- {Project structure pattern 1 from research}
+
 ```bash
-[domain-specific validation command from research]
+# Environment detection (prefer internal tools)
+{detection-commands-from-research}
 ```
 
-### [Category 2-6]: [Additional Problem Areas]
-[Follow same pattern with research findings...]
+### Adaptation Strategies
+- **{Framework 1}**: {Specific approach from research}
+- **{Framework 2}**: {Alternative approach from research}
+- **Legacy projects**: {Compatibility strategies from research}
 
-## Code Review Checklist
-When reviewing [domain] code:
+## Code Review Checklist (Domain-Specific)
+When reviewing {domain} code, check for:
 
-### [Technical Area 1]
-- [ ] [Specific check with example from research]
-- [ ] [Another domain-specific check from research]
+### {Technical Area 1} (from research)
+- [ ] {Specific check with rationale from research}
+- [ ] {Code quality pattern from research}
+- [ ] {Performance consideration from research}
 
-### [Technical Area 2] 
-- [ ] [Performance considerations from research]
-- [ ] [Security patterns from research]
+### {Technical Area 2} (from research)
+- [ ] {Security pattern from research}
+- [ ] {Maintainability check from research}
+- [ ] {Error handling pattern from research}
 
-### [Technical Area 3-6]
-[Additional categories based on research...]
+### {Technical Area 3} (from research)
+- [ ] {Domain-specific best practice from research}
+- [ ] {Integration pattern from research}
+- [ ] {Testing consideration from research}
 
-## Quick Reference
+### {Technical Areas 4-6}
+{Additional categories based on research scope}
+{Typically 4-6 areas total matching problem categories}
+
+## Tool Integration (Research-Validated)
+
+### Diagnostic Commands
+```bash
+# Primary analysis tools (from research)
+{primary-diagnostic-from-research}
+
+# Secondary validation (from research)
+{secondary-diagnostic-from-research}
 ```
-[Decision tree or common commands from research]
+
+### Validation Workflow
+```bash
+# Standard validation order (avoid long-running processes)
+{typecheck-command}     # 1. Type validation first
+{test-command}          # 2. Run relevant tests  
+{build-command}         # 3. Build only if output affects functionality
 ```
 
-## Resources
-- [Official Documentation](link from research)
-- [Best Practices Guide](link from research)
-- [Additional authoritative sources from research]
+## Quick Reference (Research Summary)
 ```
+{Decision tree or flowchart from research}
+{Common command sequences from research}
+{Troubleshooting shortcuts from research}
+```
+
+## Success Metrics
+- ✅ Problem correctly identified using research patterns
+- ✅ Solution matches project conventions
+- ✅ No regressions introduced (validated)
+- ✅ Performance maintained or improved
+- ✅ Knowledge transferred to developer
+
+## Resources (Authoritative Sources)
+### Core Documentation
+- [{Primary official docs from research}]({url})
+- [{Secondary official resource from research}]({url})
+
+### Tools & Utilities (Research-Validated)
+- {tool-1}: {purpose and usage from research}
+- {tool-2}: {purpose and usage from research}
+
+### Community Resources
+- [{Expert blog/guide from research}]({url})
+- [{Conference talk/presentation from research}]({url})
+```
+
+### Template Usage Guidelines
+
+#### Field Completion Instructions
+1. **Replace all `{placeholder}` text** with domain-specific content from your research
+2. **Populate 4-6 problem categories** based on your research findings
+3. **Include working code examples** from your research for each category
+4. **Add authoritative links** discovered during research phase
+5. **Customize tool permissions** based on agent's actual needs
+
+#### Official vs Claudekit Fields
+- **Official Claude Code fields** (name, description, tools) are part of the core specification
+- **Claudekit extension fields** (category, color, displayName, bundle) enhance the setup experience
+- All extension fields are optional and safe to omit
+
+#### Research Integration Requirements
+- Every problem category MUST be based on research findings
+- Code examples MUST be working solutions from research
+- Diagnostic commands MUST be validated during research
+- Resources MUST link to authoritative sources from research
+
+#### Quality Standards
+- **15+ documented problems** across 4-6 categories
+- **Progressive solution levels** (quick, proper, best practice)
+- **Working code examples** for each major pattern
+- **Comprehensive code review checklist** with domain-specific items
+
+This template structure ensures every subagent:
+- Is built on solid research foundation
+- Follows proven patterns from production agents
+- Integrates seamlessly with claudekit setup
+- Provides consistent user experience
+- Maintains Claude Code compatibility
 
 ### Step 5: Setup Integration
 
@@ -657,18 +835,19 @@ This creates a smart triage system that provides domain-specific diagnostic appr
 
 ## Best Practices
 
-1. **Research First**: Invest significant time understanding the domain before implementation
-2. **Document Problems**: Base your agent on real issues with proven solutions
-3. **Follow prompting patterns**: Use proven system prompt structures from the [Prompting Guide](prompting-guide.md)
-4. **Test Incrementally**: Validate each section as you build
-5. **Use Real Examples**: Include working code from your research
-6. **Link Sources**: Always reference authoritative documentation
-7. **Restrict Tools**: Grant minimum necessary permissions
-8. **Plan Fallbacks**: Include error handling strategies
-9. **Save Research**: Keep research artifacts in `reports/` for future reference
-10. **Iterate Based on Usage**: Update agents as you discover new patterns
-11. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-review-expert agent
-12. **Use Expert Integration**: For general-purpose agents, implement Dynamic Domain Expertise Integration to leverage specialist knowledge
+1. **Use Authoritative Template**: Always use the [Authoritative Subagent Template](#authoritative-subagent-template) as your starting point—it's the single source of truth for all subagent implementations
+2. **Research First**: Invest significant time understanding the domain before implementation
+3. **Document Problems**: Base your agent on real issues with proven solutions
+4. **Follow Template Structure**: Use the proven template structure that integrates research-driven patterns with production-tested approaches
+5. **Test Incrementally**: Validate each section as you build
+6. **Use Real Examples**: Include working code from your research
+7. **Link Sources**: Always reference authoritative documentation
+8. **Restrict Tools**: Grant minimum necessary permissions
+9. **Plan Fallbacks**: Include error handling strategies
+10. **Save Research**: Keep research artifacts in `reports/` for future reference
+11. **Iterate Based on Usage**: Update agents as you discover new patterns
+12. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-review-expert agent
+13. **Use Expert Integration**: For general-purpose agents, implement Dynamic Domain Expertise Integration to leverage specialist knowledge
 
 ## Conclusion
 

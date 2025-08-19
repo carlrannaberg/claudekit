@@ -33,7 +33,9 @@ This guide provides practical patterns and best practices for writing effective 
 6. [Error Handling](#error-handling)
 7. [Communication Standards](#communication-standards)
 8. [Security Integration](#security-integration)
-9. [Template Examples](#template-examples)
+9. [Schema and Template References](#schema-and-template-references)
+10. [Best Practices Summary](#best-practices-summary)
+11. [Practical Integration](#practical-integration)
 
 ## Core Prompt Structure
 
@@ -304,263 +306,50 @@ Security Constraints:
 - Required validations: [automatic checks]
 ```
 
-## Frontmatter Field Specifications
+## Schema and Template References
 
-### Official vs Claudekit Fields
+This guide focuses on prompt writing patterns. For complete schema specifications and templates, see the dedicated guides:
 
-Based on claudekit linter validation schemas:
+### Field Schemas and Validation
+- **[Creating Commands Guide](creating-commands.md)** - Complete command frontmatter schema, field specifications, and validation rules
+- **[Creating Subagents Guide](creating-subagents.md)** - Subagent frontmatter schema, naming conventions, and tool configurations
 
-#### Commands (allowed-tools format)
-**Official Claude Code fields:**
-- `allowed-tools` - Comma-separated list of tools with optional restrictions
-- `argument-hint` - Expected arguments for the slash command
-- `description` - Brief description of command purpose
-- `model` - Model to use (`opus`, `sonnet`, `haiku`, or specific model string)
+### Key Differences Summary
+| Component | Tool Field | Security Model | Primary Use |
+|-----------|------------|----------------|--------------|
+| Commands | `allowed-tools` | Granular restrictions (`Bash(git:*)`) | User workflows |
+| Subagents | `tools` | Flexible access or inherit all | Expert delegation |
 
-**Claudekit extensions:**
-- `category` - Organization category (`workflow`, `ai-assistant`, `validation`)
-
-#### Subagents (tools format)  
-**Official Claude Code fields:**
-- `name` - Required kebab-case identifier (e.g., `typescript-expert`)
-- `description` - Required natural language description of when to invoke
-- `tools` - Optional comma-separated tool list (inherits all if omitted)
-
-**Claudekit extensions:**
-- `category` - Agent grouping (`general`, `framework`, `testing`, `database`, `frontend`, `devops`, `build`, `linting`, `tools`, `universal`)
-- `color` - UI color scheme (named CSS colors or hex codes)
-- `displayName` - Human-readable name for UI
-- `bundle` - Array of bundled subagent names
-
-### Why Different Tool Field Names?
-
-**Commands use `allowed-tools`** for security:
-- Granular restrictions: `Bash(git commit:*)` allows only `git commit` commands
-- Pattern matching: `Bash(git:*)` allows any git command but blocks other bash usage
-- Security-first approach for user-initiated workflows
-
-**Subagents use `tools`** for flexibility:
-- Broader access: `Read, Edit, Bash` provides general tool categories
-- Delegation context: Subagents need flexibility for domain-specific problem solving
-- Inheritance: Omitting `tools` inherits all available tools
-
-### Schema Validation & Common Pitfalls
-
-#### Commands - Validated Fields Only
-```yaml
-# ✅ Valid command frontmatter
----
-allowed-tools: Read, Bash(git:*), Edit    # Security restrictions
-argument-hint: "<file-path> [--force]"    # Help for users
-description: "Process files with git integration"
-model: sonnet                              # Model preference
-category: workflow                         # Claudekit organization
----
-
-# ❌ Invalid - will fail linting
----
-tools: Read, Edit             # Wrong field name (should be allowed-tools)
-name: my-command             # Not allowed in commands
-color: blue                  # Not supported for commands
----
-```
-
-#### Subagents - Validated Fields Only
-```yaml
-# ✅ Valid subagent frontmatter
----
-name: typescript-expert                    # Required kebab-case ID
-description: "Expert in TypeScript type system..."  # Required delegation trigger
-tools: Read, Grep, Bash                   # Optional tool list
-category: framework                        # Claudekit grouping
-color: indigo                             # UI color scheme
-displayName: "TypeScript Expert"          # UI-friendly name
-bundle: ["type-helper", "build-fixer"]    # Bundled agents
----
-
-# ❌ Invalid - will fail linting  
----
-allowed-tools: Read, Edit     # Wrong field name (should be tools)
-argument-hint: "--fix"        # Not supported for subagents
-model: opus                   # Not used by subagents
----
-```
-
-#### Field Format Requirements
-**Tools field validation:**
-- Commands: `"Read, Bash(git:*), Edit"` (comma-separated string with restrictions)
-- Subagents: `"Read, Grep, Bash"` (comma-separated string, no restrictions)
-- ❌ Arrays not allowed: `["Read", "Edit"]` will fail validation
-
-**Name validation (subagents only):**
-- ✅ `typescript-expert`, `database-perf-expert`
-- ❌ `TypeScript Expert`, `typescript_expert`, `TYPESCRIPT-EXPERT`
-
-**Category validation:**
-- Commands: `workflow`, `ai-assistant`, `validation`
-- Subagents: `general`, `framework`, `testing`, `database`, `frontend`, `devops`, `build`, `linting`, `tools`, `universal`
-
-### Validation Benefits
-
-**Claudekit linting catches:**
-- Wrong field names (`tools` in commands, `allowed-tools` in subagents)
-- Invalid formats (arrays instead of strings, wrong naming conventions)
-- Unrecognized fields that may indicate typos or outdated configurations
-- Missing required fields (`name` and `description` for subagents)
-
-**To validate your files:**
+### Quick Validation
 ```bash
-# Lint command frontmatter schemas
-claudekit lint-commands
-
-# Lint subagent frontmatter schemas  
-claudekit lint-subagents
-
-# Check overall project setup (directories, configs)
-claudekit validate
+# Validate schemas and configurations
+claudekit lint-commands      # Command frontmatter validation
+claudekit lint-subagents     # Subagent frontmatter validation
+claudekit validate           # Overall project setup
 ```
 
-**Examples of common issues to fix manually:**
-- Convert `tools: ["Read", "Edit"]` to `tools: "Read, Edit"`
-- Suggest `displayName` when missing from subagents
-- Recommend corrections for invalid field names
+## Complete Templates and Examples
 
-## Template Examples
+For complete, ready-to-use templates with all required fields and examples:
 
-### Command Template
+### Command Templates
+- **[Creating Commands Guide](creating-commands.md)** - Complete slash command templates, schema examples, and frontmatter patterns
+- Includes dynamic content (`!command`, `@file`, `$ARGUMENTS`)
+- Tool restriction patterns and security configurations
+- User workflow examples and validation steps
 
-**For Slash Commands** (`/my-command`):
-```markdown
----
-# === OFFICIAL CLAUDE CODE FIELDS ===
-description: Brief description of command purpose
-allowed-tools: Read, Bash(git:*), Edit
-argument-hint: "[feature-name] [optional-flags]"
-model: sonnet
+### Subagent Templates  
+- **[Creating Subagents Guide](creating-subagents.md)** - Authoritative subagent template with research methodology
+- Domain expertise structuring patterns
+- Environment detection and delegation logic
+- Code review checklists and quick reference formats
 
-# === CLAUDEKIT EXTENSIONS ===
-category: workflow
----
-
-# Instructions for Claude:
-
-When the user runs this command with `$ARGUMENTS`, follow these steps:
-
-1. **Analyze the current situation**:
-   - Check file: `@package.json` 
-   - Run: `!git status --short`
-   - Validate [PREREQUISITE]
-
-2. **Execute the main task**:
-   - Use [SPECIFIC_TOOL] with exact parameters
-   - Apply [PATTERN] following these rules:
-     - Rule 1 with specific example
-     - Rule 2 with validation criteria
-   - For complex tasks, delegate to appropriate subagent:
-     ```
-     Use the [domain]-expert subagent for [specific type of work]
-     ```
-
-3. **Validate and report results**:
-   - Confirm [SUCCESS_CRITERIA]
-   - Output summary in this format: [SPECIFIC_FORMAT]
-
-## Constraints:
-- `NEVER [FORBIDDEN_ACTION]`
-- `ALWAYS [REQUIRED_BEHAVIOR]` 
-- `MUST delegate [DOMAIN_WORK] to [EXPERT_SUBAGENT]`
-
-## Examples:
-**Input**: `/my-command feature-name --debug`
-**Expected Output**: [Specific format example]
-```
-
-### Subagent Template
-
-**Agent Definition File** (`.claude/agents/domain-expert.md`):
-```yaml
----
-# === OFFICIAL CLAUDE CODE FIELDS ===
-name: domain-expert
-description: Use PROACTIVELY for [domain] issues including [specific triggers]. Expert in [technical areas].
-tools: Read, Grep, Bash  # Optional - omit to inherit all tools
-
-# === CLAUDEKIT EXTENSIONS ===
-category: framework
-color: indigo
-displayName: Domain Expert
----
-```
-
-**Agent System Prompt** (same file, below frontmatter):
-```markdown
-You are a [DOMAIN] expert for Claude Code with deep knowledge of [SPECIFIC_AREAS].
-
-## Delegation First
-0. **If ultra-specific expertise needed, delegate and stop**:
-   - [Ultra-specific case 1] → [specialist-expert] 
-   - [Ultra-specific case 2] → [another-specialist]
-   
-   Output: "This requires [specialty]. Use the [expert-name] subagent. Stopping here."
-
-## Core Process
-1. **Environment Detection**:
-   ```bash
-   # Detect project setup
-   test -f [config-file] && echo "[Framework] project detected"
-   which [tool] >/dev/null 2>&1 && echo "[Tool] available"
-   ```
-
-2. **Problem Analysis** (based on research):
-   - Category 1: [Common Problem Type]
-   - Category 2: [Another Problem Type]
-   - Apply appropriate solution from domain knowledge
-
-3. **Solution Implementation**:
-   - Use domain-specific best practices
-   - Follow established patterns
-   - Validate using domain tools
-
-## [Domain] Expertise
-
-### [Category 1]: [Problem Area]
-**Common Issues**:
-- Error: "[Specific error message]"
-- Symptom: [Observable behavior]
-
-**Root Causes & Solutions**:
-1. **Quick Fix**: [Minimal change with example]
-2. **Proper Fix**: [Better solution with code]
-3. **Best Practice**: [Architectural improvement]
-
-**Validation**:
-```bash
-[domain-specific validation command]
-```
-
-### [Category 2]: [Another Problem Area]
-[Follow same pattern...]
-
-## Code Review Checklist
-When reviewing [domain] code:
-
-### [Technical Area 1]
-- [ ] [Specific check with example]
-- [ ] [Another domain-specific check]
-
-### [Technical Area 2] 
-- [ ] [Performance considerations]
-- [ ] [Security patterns]
-
-## Quick Reference
-```
-[Decision tree or common commands]
-```
-
-## Resources
-- [Official Documentation](link)
-- [Best Practices Guide](link)
-```
+### Template Selection Guide
+| Need | Use Template From |
+|------|-------------------|
+| User-initiated workflow | [Creating Commands Guide](creating-commands.md) |
+| Domain expertise delegation | [Creating Subagents Guide](creating-subagents.md) |
+| Prompt writing patterns | This guide (prompting-guide.md) |
 
 ## Best Practices Summary
 

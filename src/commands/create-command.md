@@ -22,14 +22,12 @@ Then gather the following information from the user:
 - Any required tools (for frontmatter)
 - Whether to use arguments, bash commands, or file references
 
-## YAML Frontmatter Example
+## Command Template Reference
 
-```yaml
----
-description: Brief description of what the command does
-allowed-tools: Write, Edit, Bash(npm:*)
----
-```
+For the complete, authoritative command template structure, see:
+**[Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template)**
+
+Use this single source of truth for all template structure, field definitions, and implementation patterns.
 
 ## Features to Support
 
@@ -49,25 +47,7 @@ When creating the command, support these Claude Code features if requested:
 **Namespacing:** If the command name contains `:`, create subdirectories
 - Example: `/api:create` → `.claude/commands/api/create.md`
 
-Common tool patterns:
-- `Write` - For creating files
-- `Edit` - For modifying files
-- `Read` - For reading files
-- `Bash(npm:*)` - Run any npm command
-- `Bash(git:*)` - Run any git command
-- `Bash(mkdir:*)` - Create directories
-
-### Declaring allowed-tools
-- Only declare tools that Claude will explicitly invoke during command execution
-- Commands prefixed with `\!` execute automatically and DON'T need to be in allowed-tools
-- Example: If your command includes `\!git status` (automatic) and instructs Claude to run `git commit` (explicit), only `Bash(git commit:*)` needs to be in allowed-tools
-
-### Command Execution Best Practices
-- **Complex Subshells**: Avoid complex subshells in `\!` commands as they can cause Claude Code's Bash tool to display "Error:" labels even when commands succeed
-  - Problematic: `\!(command | head -n; [ $(command | wc -l) -gt n ] && echo "...")`
-  - Better: `\!command | head -n`
-- **Git Commands**: Always use `--no-pager` with git commands to prevent interactive mode issues
-  - Example: `\!git --no-pager log --oneline -5`
+**Note**: For detailed field definitions, security patterns, and complete template structure, see the **[Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template)** reference above.
 
 ## Implementation Steps
 
@@ -91,88 +71,8 @@ Common tool patterns:
 
 ## Command Content Guidelines
 
-When creating command content, write instructions TO the AI agent, not as the AI agent:
+**Refer to the [Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template) for complete content structure and writing guidelines.**
 
-❌ **Avoid first-person language**:
-- "I'll launch subagents to search for..."
-- "I'll clean up debug files..."
-- "What I'll do next..."
-- "My approach will be..."
+Key principle: Write instructions TO the AI agent, not as the AI agent. Use imperative, instructional language rather than first-person descriptions of what the agent will do.
 
-✅ **Use instructional language**:
-- "Launch subagents to search for..."
-- "Clean up debug files by..."
-- "Next steps:"
-- "Approach:"
-
-**Example Structure:**
-```markdown
----
-description: Clean up debug files and test artifacts
-allowed-tools: Task, Bash, Read, LS
----
-
-# Clean Up Development Artifacts
-
-Remove debug files, test artifacts, and status reports created during development.
-
-## Tasks
-
-1. **Search for Debug Files**
-   - Use Task tool to find temporary files
-   - Identify debug scripts and logs
-   - Locate test artifacts
-
-2. **Clean Up Process**
-   - Remove debug files safely
-   - Archive important logs
-   - Report cleanup summary
-
-## Files to Clean
-- Debug scripts (debug-*.js, test-*.py)
-- Log files (*.log, debug.txt)
-- Temporary outputs
-```
-
-This creates clear instructions for the AI agent to follow rather than the agent describing what it will do.
-
-## Bash Command Execution in Commands
-
-### Using the Exclamation Mark Prefix
-Execute bash commands immediately when the slash command runs using the exclamation mark (!) prefix. The output is included in the command context.
-
-**Single Command Example:**
-````markdown
-- Current git status: \!git status --porcelain
-- Current working directory: \!pwd
-- Files in current directory: \!ls -la
-````
-
-**Performance Optimization - Combined Commands:**
-````markdown
-- Git status and directory: \!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la
-````
-
-### Complete Example
-````markdown
----
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
-description: Create a git commit
----
-
-## Context
-
-- Current git status: \!git status --porcelain
-- Current git diff: \!git diff HEAD
-- Current branch and recent commits: \!git branch --show-current && echo "--- Recent commits ---" && git log --oneline -10
-
-## Your task
-
-Based on the above changes, create a single git commit.
-````
-
-### Performance Guidelines
-- **Combine related commands** with `&&` to reduce execution time
-- **Use one-liners** instead of multiple separate bash commands
-- **Group context gathering** into single commands where logical
-- **Separate different contexts** with echo separators for clarity
+**For bash command execution patterns and examples, see the [Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template) section.**

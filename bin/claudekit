@@ -3,9 +3,6 @@
 // This is a wrapper script for the claudekit CLI
 // It ensures the CLI runs correctly when installed globally or via npx
 
-import('../dist/cli.js').then((cli) => {
-  cli.runCli();
-}).catch((error) => {
-  console.error('Failed to load claudekit CLI:', error.message);
-  process.exit(1);
-});
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+require('../dist/cli.cjs');

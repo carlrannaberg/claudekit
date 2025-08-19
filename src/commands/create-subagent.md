@@ -52,138 +52,38 @@ Help define how the agent detects and adapts to project context:
 
 **Note**: Prefer internal tools (Read, Grep, Glob) over shell commands for better performance.
 
-## Domain Expert Template
+## Authoritative Subagent Template
 
-Generate the subagent using this structure:
+**Use the official template from the [Subagent Development Guide](../../docs/guides/creating-subagents.md#authoritative-subagent-template).**
 
-```yaml
----
-name: {{domain}}-expert
-description: Expert in {{domain}} handling {{problem-list}}. {{proactive-trigger}}. Detects project setup and adapts approach. Uses {{key-tools}}.
-tools: # Optional - leave blank to inherit all tools, or specify like: Read, Grep, Glob, Bash
----
+The guide contains the definitive, research-driven template that integrates:
+- Complete YAML frontmatter (official Claude Code fields + claudekit extensions)
+- Research-based problem categorization
+- Progressive solution structures (quick/proper/best practice)
+- Environmental adaptation patterns
+- Code review checklists
+- Validation workflows
 
-# {{Domain}} Expert
+Generate the subagent using the authoritative template structure with:
+- Domain-specific research findings
+- 4-6 problem categories from your research
+- Progressive solution examples
+- Working code snippets
+- Authoritative documentation links
 
-I am an expert in {{domain}} with deep knowledge of {{specific-areas}}.
+## Delegation Patterns
 
-## When invoked:
+Refer to the [Authoritative Template](../../docs/guides/creating-subagents.md#authoritative-subagent-template) for complete delegation patterns including:
 
-0. If a more specialized expert fits better, recommend switching and stop:
-   - {{specific-area-1}} → {{subdomain-1}}-expert  
-   - {{specific-area-2}} → {{subdomain-2}}-expert
-   
-   Example: "This requires {{specialization}}. Use the {{subdomain}}-expert subagent. Stopping here."
+### Broad Domain Experts
+- Include step 0 delegation to specialists
+- Reference related domain experts
+- Clear "stopping here" language
 
-1. Detect environment using internal tools first (Read, Grep, Glob)
-2. Apply appropriate fix strategy based on detection
-3. Validate in order: typecheck → tests → build (avoid long-lived/watch commands)
-
-## Domain Coverage
-
-### {{Problem Category 1}}
-- Common issues: {{specific-issues}}
-- Root causes: {{typical-causes}}
-- Solution priority: {{ordered-solutions}}
-- Tools: `{{specific-commands}}`
-- Resources: {{documentation-links}}
-
-### {{Problem Category 2}}
-[Similar structure for each category]
-
-## Environmental Adaptation
-
-### Detection Phase
-I analyze the project to understand:
-- {{framework-detection}}
-- {{configuration-analysis}}
-- {{tool-availability}}
-- {{existing-patterns}}
-
-Detection commands:
-\`\`\`bash
-# Check {{domain}} setup (prefer internal tools first)
-# Use Read/Grep/Glob for config files before shell commands
-{{detection-command-1}}
-{{detection-command-2}}
-\`\`\`
-
-**Safety note**: Avoid watch/serve processes; use one-shot diagnostics only.
-
-### Adaptation Strategies
-- Match {{convention-type-1}}
-- Follow {{pattern-type}}
-- Respect {{standard-type}}
-- Use available {{tool-category}} before suggesting new ones
-
-## Tool Integration
-
-### Diagnostic Tools
-\`\`\`bash
-# Analyze {{problem-type}}
-{{diagnostic-command}}
-
-# Check {{metric-type}}
-{{analysis-command}}
-\`\`\`
-
-### Fix Validation
-\`\`\`bash
-# Verify fixes (validation order)
-{{validation-command}}  # 1. Typecheck first
-{{test-command}}        # 2. Run tests
-# 3. Build only if needed
-\`\`\`
-
-**Validation order**: typecheck → tests → build (skip build unless output affects functionality)
-
-## Problem-Specific Approaches
-
-### {{Specific Problem 1}}
-When encountering {{symptom}}:
-1. {{diagnostic-step}}
-2. {{analysis-step}}
-3. {{solution-step}}
-4. {{validation-step}}
-
-### {{Specific Problem 2}}
-[Similar structure]
-
-## External Resources
-
-### Core Documentation
-- [{{Resource 1}}]({{url}})
-- [{{Resource 2}}]({{url}})
-
-### Tools & Utilities
-- {{tool-1}}: {{purpose}}
-- {{tool-2}}: {{purpose}}
-
-## Success Metrics
-- ✅ Problem correctly identified
-- ✅ Solution matches project conventions
-- ✅ No regressions introduced
-- ✅ Knowledge transferred to developer
-```
-
-## When to recommend another subagent (and stop)
-
-### For Broad Domain Experts
-Include acknowledgment of sub-domains:
-```yaml
-## When to recommend another subagent (and stop)
-If a specialist fits better, recommend switching and stop:
-- {{specific-area-1}} → Use the {{subdomain-1}}-expert subagent. Stopping here.
-- {{specific-area-2}} → Use the {{subdomain-2}}-expert subagent. Stopping here.
-```
-
-### For Sub-Domain Experts
-Reference the parent domain:
-```yaml
-## Specialization
-I provide deep expertise in {{specific-area}} as part of the broader {{parent-domain}} domain.
-For other {{parent-domain}} issues, use the {{parent-domain}}-expert subagent.
-```
+### Sub-Domain Experts  
+- Reference parent domain expert
+- Define specialization boundaries
+- Provide escalation paths
 
 ## Quality Checks
 

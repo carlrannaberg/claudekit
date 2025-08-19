@@ -98,7 +98,15 @@ export function createHooksCLI(): Command {
   return program;
 }
 
-// Entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Entry point - check if this file is being run directly
+// In CommonJS build, import.meta.url is undefined, so we check __filename
+let isMainModule = false;
+if (typeof import.meta !== 'undefined' && import.meta.url) {
+  isMainModule = import.meta.url === `file://${process.argv[1]}`;
+} else if (typeof __filename !== 'undefined') {
+  isMainModule = __filename === process.argv[1];
+}
+
+if (isMainModule) {
   createHooksCLI().parse(process.argv);
 }

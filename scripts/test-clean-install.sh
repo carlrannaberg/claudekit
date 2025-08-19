@@ -33,9 +33,12 @@ cp "$PROJECT_ROOT/package.json" .
 mkdir -p bin
 cp -r "$PROJECT_ROOT/bin"/* bin/
 
-# Install only production dependencies
-echo "📥 Installing production dependencies..."
-npm install --omit=dev --omit=optional --no-save
+# Install only the external dependencies that can't be bundled
+echo "📦 Installing minimal external dependencies (oh-my-logo)..."
+npm install --no-save oh-my-logo
+
+# Node.js ESM support note
+echo "📝 Note: Using Node.js ESM with dynamic require support via createRequire"
 
 echo ""
 echo "🔍 Testing CLI functionality..."
@@ -69,21 +72,36 @@ fi
 
 # Test 4: Test module loading
 echo "Test 4: Test CLI module loading"
-if node -e "import('./dist/cli.js').then(() => console.log('✅ CLI module loads successfully')).catch(e => { console.error('❌ Error:', e.message); process.exit(1); })"; then
+if node -e "try { require('./dist/cli.cjs'); console.log('✅ CLI module loads successfully'); } catch(e) { console.error('❌ Error:', e.message); process.exit(1); }"; then
     true
 else
     exit 1
 fi
 
-# Test 5: Check for missing imports at runtime
-echo "Test 5: Runtime dependency check"
-MISSING_DEPS=$(node -e "
+# Test 5: Verify full bundling (should have no external deps except Node.js built-ins)
+echo "Test 5: Bundling verification"
+EXTERNAL_DEPS=$(node -e "
 const fs = require('fs');
-const path = require('path');
+
+// Expected externals (should only be these)
+const allowedExternals = new Set(['react-devtools-core', 'oh-my-logo']);
+
+// Node.js built-in modules (both with and without node: prefix)
+const nodeBuiltins = new Set([
+  'assert', 'buffer', 'child_process', 'cluster', 'console', 'constants', 
+  'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 
+  'module', 'net', 'os', 'path', 'process', 'querystring', 'readline', 
+  'repl', 'stream', 'string_decoder', 'sys', 'timers', 'tls', 'tty', 
+  'url', 'util', 'vm', 'zlib', 'worker_threads', 'perf_hooks', 'async_hooks',
+  'inspector', 'trace_events', 'punycode', 'v8', 'http2'
+]);
+
+// Transitive dependencies that are acceptable
+const transitiveAllowed = new Set(['esprima', 'iconv-lite']);
 
 // Check all built files for external dependencies
-const files = ['cli.js', 'hooks-cli.js', 'index.js'];
-const allExternals = new Set();
+const files = ['cli.cjs', 'hooks-cli.cjs', 'index.cjs'];
+const unexpectedExternals = new Set();
 
 files.forEach(file => {
   if (!fs.existsSync('./dist/' + file)) return;
@@ -98,50 +116,30 @@ files.forEach(file => {
     let match;
     while ((match = pattern.exec(content)) !== null) {
       const dep = match[1];
-      if (!dep.startsWith('.') && !dep.startsWith('/') && !dep.startsWith('node:')) {
-        allExternals.add(dep);
+      // Skip relative imports, absolute paths, and Node.js built-ins
+      if (!dep.startsWith('.') && !dep.startsWith('/') && !dep.startsWith('node:') && !nodeBuiltins.has(dep)) {
+        // Skip allowed externals and transitive dependencies
+        if (!allowedExternals.has(dep) && !transitiveAllowed.has(dep)) {
+          unexpectedExternals.add(dep);
+        }
       }
     }
   });
 });
 
-// Check if all external deps are available
-const missing = [];
-allExternals.forEach(dep => {
-  try {
-    require.resolve(dep);
-    // Also try to actually import/require it to be sure
-    require(dep);
-    console.error('✅ Found:', dep);
-  } catch (e) {
-    // Special handling for packages with export issues but that still work
-    if (dep === 'oh-my-logo' && e.message.includes('No \"exports\" main defined')) {
-      try {
-        // Try alternative resolution
-        require(dep + '/index.js');
-        console.error('✅ Found (via index.js):', dep);
-        return;
-      } catch (e2) {
-        // Still failing, add to missing
-      }
-    }
-    console.error('❌ Missing:', dep, '-', e.message);
-    missing.push(dep);
-  }
-});
-
-if (missing.length > 0) {
-  console.log(missing.join(','));
+if (unexpectedExternals.size > 0) {
+  console.log(Array.from(unexpectedExternals).join(','));
 } else {
   console.log('');
 }
 ")
 
-if [[ -n "$MISSING_DEPS" ]]; then
-    echo "⚠️  Some dependencies have resolution issues: $MISSING_DEPS"
-    echo "   (This may not be a problem if the CLI commands work)"
+if [[ -n "$EXTERNAL_DEPS" ]]; then
+    echo "❌ Found unexpected external dependencies: $EXTERNAL_DEPS"
+    echo "   These should be bundled for a self-contained CLI"
+    exit 1
 else
-    echo "✅ All runtime dependencies available"
+    echo "✅ Fully self-contained - no unexpected external dependencies"
 fi
 
 echo ""

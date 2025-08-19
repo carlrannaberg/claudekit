@@ -40,44 +40,45 @@ if (!existsSync(distPath)) {
   process.exit(1);
 }
 
-// Patterns for external dependencies that should NOT be bundled
+// NEW BUNDLING STRATEGY: Bundle everything except Node.js built-ins and problematic optional deps
 const expectedExternals = [
-  'node:',           // Node.js built-ins
-  'fs-extra',        // File system operations (native dependencies)
-  '@inquirer/prompts', // Interactive CLI (complex dependencies)
-  'commander',       // CLI framework (commonly external)
-  'ora',            // Progress spinners (terminal specific)
-  'oh-my-logo'      // Logo display (terminal specific)
+  'node:',                  // Node.js built-ins (cannot be bundled)
+  'react-devtools-core',    // Optional dependency that causes esbuild issues
+  'oh-my-logo'              // Has ink dependency that causes esbuild issues
 ];
 
-// Patterns for dependencies that SHOULD be bundled
+// With full bundling, ALL production dependencies should be bundled (except the externals above)
 const shouldBeBundled = [
-  'chalk',          // Color utilities (small, pure JS)
-  'glob',           // File globbing (small, pure JS)
-  'picomatch',      // Pattern matching (small, pure JS)
-  'picocolors',     // Minimal color library
-  'gray-matter',    // YAML frontmatter parser
-  'zod'             // Schema validation
+  '@inquirer/prompts',  // Interactive CLI prompts
+  'chalk',              // Color utilities
+  'commander',          // CLI framework
+  'fs-extra',           // Enhanced filesystem operations
+  'glob',               // File globbing
+  'gray-matter',        // YAML frontmatter parser
+  'ora',                // Progress spinners
+  'picocolors',         // Minimal color library
+  'picomatch',          // Pattern matching
+  'zod'                 // Schema validation
 ];
 
 // Transitive dependencies that may appear external but are acceptable
 // if their parent is in production dependencies
 const transitiveAllowed = {
-  'esprima': 'gray-matter',  // esprima is transitive dep of gray-matter
-  'js-yaml': 'gray-matter'   // js-yaml is transitive dep of gray-matter
+  'esprima': 'gray-matter',       // esprima is transitive dep of gray-matter
+  'js-yaml': 'gray-matter',       // js-yaml is transitive dep of gray-matter
+  'iconv-lite': '@inquirer/prompts' // iconv-lite is transitive dep of @inquirer/prompts->external-editor
 };
 
 console.log('📦 Dependencies that should be EXTERNAL (not bundled):');
 expectedExternals.forEach(dep => {
   if (!dep.startsWith('node:')) {
-    const status = dependencies.has(dep) ? '✅' : '❌';
-    console.log(`  ${status} ${dep} ${!dependencies.has(dep) ? '(missing from dependencies!)' : ''}`);
+    console.log(`  ✅ ${dep} (causes esbuild issues)`);
   } else {
     console.log(`  ✅ ${dep} (Node.js built-in)`);
   }
 });
 
-console.log('\n📦 Dependencies that should be BUNDLED:');
+console.log('\n📦 Dependencies that should be BUNDLED (self-contained CLI):');
 shouldBeBundled.forEach(dep => {
   const status = dependencies.has(dep) ? '✅' : '❌';
   console.log(`  ${status} ${dep} ${!dependencies.has(dep) ? '(missing from dependencies!)' : ''}`);
@@ -86,9 +87,10 @@ shouldBeBundled.forEach(dep => {
 // Validation checks
 let hasErrors = false;
 
-// Check 1: All external dependencies are in package.json dependencies
+// Check 1: All external dependencies are in package.json dependencies (except optional ones)
+const optionalExternals = new Set(['react-devtools-core']); // These don't need to be in dependencies
 const missingProduction = expectedExternals.filter(dep => 
-  !dep.startsWith('node:') && !dependencies.has(dep)
+  !dep.startsWith('node:') && !dependencies.has(dep) && !optionalExternals.has(dep)
 );
 
 if (missingProduction.length > 0) {
@@ -107,7 +109,7 @@ if (missingBundled.length > 0) {
 }
 
 // Check 3: Validate built files exist
-const expectedBuilds = ['cli.js', 'hooks-cli.js', 'index.js'];
+const expectedBuilds = ['cli.cjs', 'hooks-cli.cjs', 'index.cjs'];
 const missingBuilds = expectedBuilds.filter(file => 
   !existsSync(join(distPath, file))
 );
@@ -118,14 +120,15 @@ if (missingBuilds.length > 0) {
   hasErrors = true;
 }
 
-// Check 4: Analyze built files for external imports
-console.log('\n🔍 Analyzing built files for external imports...');
+// Check 4: Analyze built files for unexpected external imports
+console.log('\n🔍 Analyzing built files for unexpected external imports...');
 const builtFiles = expectedBuilds.filter(file => existsSync(join(distPath, file)));
 
 for (const file of builtFiles) {
   const content = readFileSync(join(distPath, file), 'utf8');
   
   // Look for import/require patterns that might indicate unbundled dependencies
+  // Note: We'll filter out error messages and string literals later
   const importMatches = content.match(/(?:import.*from\s*['"]([^'"]+)['"]|require\(['"]([^'"]+)['"]\))/g);
   
   if (importMatches) {
@@ -135,6 +138,13 @@ for (const file of builtFiles) {
         return moduleMatch ? moduleMatch[1] : null;
       })
       .filter(Boolean)
+      .filter(mod => {
+        // Filter out require() calls that appear in error message strings
+        const escapedMod = mod.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const errorStringPattern = new RegExp(`console\\.error\\([^)]*require\\(['"]${escapedMod}['"]\\)|throw new Error\\([^)]*require\\(['"]${escapedMod}['"]\\)`);
+        const isInErrorString = errorStringPattern.test(content);
+        return !isInErrorString;
+      })
       .filter(mod => !mod.startsWith('node:') && !mod.startsWith('.') && !mod.startsWith('/'))
       .filter(mod => !isNodeBuiltin(mod))
       .filter((mod, index, arr) => arr.indexOf(mod) === index); // dedupe
@@ -142,16 +152,21 @@ for (const file of builtFiles) {
     if (externalImports.length > 0) {
       console.log(`  📄 ${file}:`);
       for (const imp of externalImports) {
-        const isInDeps = dependencies.has(imp);
+        const isExpectedExternal = expectedExternals.some(ext => ext === imp || imp.startsWith(ext));
         const isTransitiveAllowed = transitiveAllowed[imp] && dependencies.has(transitiveAllowed[imp]);
-        const isValid = isInDeps || isTransitiveAllowed;
+        const isInDeps = dependencies.has(imp);
+        // Special handling for bundled transitive deps that appear as 'external' due to dynamic require patterns
+        const isDynamicBundled = transitiveAllowed[imp] && !imp.startsWith('node:');
+        const isValid = isExpectedExternal || isTransitiveAllowed || isDynamicBundled;
         
         const status = isValid ? '✅' : '❌';
         let message = '';
         if (!isInDeps && isTransitiveAllowed) {
           message = `(transitive of ${transitiveAllowed[imp]})`;
+        } else if (!isInDeps && isDynamicBundled) {
+          message = `(bundled, dynamic require from ${transitiveAllowed[imp]})`;
         } else if (!isValid) {
-          message = '(NOT in dependencies!)';
+          message = '(should be bundled!)';
         }
         
         console.log(`    ${status} ${imp} ${message}`);

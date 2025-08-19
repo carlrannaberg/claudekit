@@ -10,11 +10,11 @@
     "claudekit": "./bin/claudekit",
     "claudekit-hooks": "./bin/claudekit-hooks"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./package.json": "./package.json"
@@ -31,9 +31,9 @@
     "validate:build": "npm run build && npm run validate:deps",
     "validate:install": "./scripts/test-clean-install.sh",
     "prepublish:validate": "npm run lint && npm run typecheck && npm run validate:build && npm run validate:install && npm run test",
-    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --external:fs-extra --external:@inquirer/prompts --external:commander --external:ora --external:oh-my-logo --sourcemap",
-    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/hooks-cli.js --external:node:* --external:fs-extra --external:commander --sourcemap",
-    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --external:fs-extra --external:@inquirer/prompts --external:commander --external:ora --external:oh-my-logo --sourcemap",
+    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/cli.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap",
+    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/hooks-cli.cjs --external:react-devtools-core --sourcemap",
+    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "build:hooks-dev": "tsc cli/hooks-cli.ts --outDir dist --module esnext --target es2022 --moduleResolution node --skipLibCheck",
     "build:config": "tsx build.config.ts",
