@@ -5,4 +5,14 @@
 
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-require('../dist/cli.cjs');
+
+const cliModule = require('../dist/cli.cjs');
+if (cliModule.runCli) {
+  cliModule.runCli().catch((error) => {
+    console.error('Failed to load claudekit CLI:', error.message);
+    process.exit(1);
+  });
+} else {
+  console.error('Failed to find runCli function in CLI module');
+  process.exit(1);
+}

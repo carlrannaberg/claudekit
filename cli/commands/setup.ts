@@ -4,7 +4,6 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter, ComponentProgressReporter } from '../utils/progress.js';
-import { renderFilled } from 'oh-my-logo';
 import {
   pathExists,
   ensureDirectoryExists,
@@ -405,6 +404,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       if (!isNonInteractive) {
         try {
           console.log(); // Add spacing before logo
+          const { renderFilled } = await import('oh-my-logo');
           await renderFilled('claudekit', { palette: 'sunset' });
           console.log(); // Add spacing after logo
         } catch {
