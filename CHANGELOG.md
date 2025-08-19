@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Comprehensive Code Review System**: Added multi-aspect code review functionality with parallel agent processing
-  - Added `/review` command for intelligent code reviews using specialized parallel agents
+  - Added `/code-review` command for intelligent code reviews using specialized parallel agents
   - Added `code-review-expert` agent with 6 focused review aspects: architecture & design, code quality, security & dependencies, performance & scalability, testing quality, and documentation & API design
   - Added structured report format with issue prioritization (Critical/High/Medium), type icons (🔒 Security, 🏗️ Architecture, ⚡ Performance, 🧪 Testing, 📝 Documentation, 💥 Breaking), and actionable feedback
   - Added intelligent agent selection based on file types and review scope (documentation-only, test files, config files, or full source code)

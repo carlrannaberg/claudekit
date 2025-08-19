@@ -28,7 +28,7 @@ claudekit setup
 /git:status                             # Groups changes by type & suggests commit strategy
 /validate-and-fix                       # Runs lint, tests, typecheck & fixes issues
 /spec:create "your next feature"        # Researches codebase & writes full spec
-/review                                  # 6 specialized agents analyze code in parallel
+/code-review                             # 6 specialized agents analyze code in parallel
 ```
 
 ## 🎯 What It Does
@@ -46,7 +46,7 @@ Before: Claude breaks tests → ❌ You discover it after Claude finishes
 After:  Claude breaks tests → ✅ Claude sees error immediately and fixes it
 
 Before: Ask Claude to review → ❌ Shallow analysis, general feedback, sequential execution
-After:  Use /review → ✅ 6 specialized agents analyze in parallel, dynamically pull technology-specific expertise
+After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynamically pull technology-specific expertise
 ```
 
 ## Key Features
@@ -77,7 +77,7 @@ After:  Use /review → ✅ 6 specialized agents analyze in parallel, dynamicall
 - **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
 
 ### 📝 Smart Commands
-- `/review` - Multi-aspect code reviews with 6 parallel agents
+- `/code-review` - Multi-aspect code reviews with 6 parallel agents
 - `/git:commit` - Creates commits following your project's conventions
 - `/validate-and-fix` - Runs all quality checks and fixes issues
 - `/spec:create` - Generates comprehensive specifications
@@ -129,7 +129,7 @@ Use these commands directly in Claude Code:
 - `/git:status` - Intelligent git analysis
 
 ### Code Quality
-- `/review [target]` - Multi-aspect code review with parallel agents
+- `/code-review [target]` - Multi-aspect code review with parallel agents
 - `/validate-and-fix` - Run all quality checks
 
 ### Development Tools

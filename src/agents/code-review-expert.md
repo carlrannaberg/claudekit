@@ -1,6 +1,6 @@
 ---
 name: code-review-expert
-description: Comprehensive code review specialist covering 6 focused aspects - architecture & design, code quality, security & dependencies, performance & scalability, testing coverage, and documentation & API design. Provides deep analysis with actionable feedback. Use PROACTIVELY after significant code changes or via /review command for parallel multi-aspect reviews.
+description: Comprehensive code review specialist covering 6 focused aspects - architecture & design, code quality, security & dependencies, performance & scalability, testing coverage, and documentation & API design. Provides deep analysis with actionable feedback. Use PROACTIVELY after significant code changes.
 tools: Read, Grep, Glob, Bash
 universal: true
 defaultSelected: false
@@ -25,7 +25,7 @@ This agent can be invoked for any of these 6 specialized review aspects:
 5. **Testing Quality** - Meaningful assertions, test isolation, edge cases, maintainability (not just coverage)
 6. **Documentation & API** - README, API docs, breaking changes, developer experience
 
-When invoked via `/review` command, multiple instances run in parallel for comprehensive coverage.
+Multiple instances can run in parallel for comprehensive coverage across all review aspects.
 
 ## 1. Context-Aware Review Process
 

@@ -23,7 +23,7 @@
 | `/model`                  | Select or change the AI model                                                  |
 | `/permissions`            | View or update [permissions](/en/docs/claude-code/iam#configuring-permissions) |
 | `/pr_comments`            | View pull request comments                                                     |
-| `/review`                 | Request code review                                                            |
+| `/code-review`            | Request code review                                                            |
 | `/status`                 | View account and system statuses                                               |
 | `/terminal-setup`         | Install Shift+Enter key binding for newlines (iTerm2 and VSCode only)          |
 | `/vim`                    | Enter vim mode for alternating insert and command modes                        |
