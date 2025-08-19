@@ -336,6 +336,10 @@ npm run build
 # Test
 npm test
 
+# Validate production build
+npm run validate:build         # Check dependencies and build artifacts
+npm run validate:install       # Test clean installation
+
 # Create symlinks for development
 npm run symlinks
 ```

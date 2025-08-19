@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2025-08-19
+
+### Added
+- **Production Validation Scripts**: Added comprehensive build and installation validation
+  - Added `scripts/validate-dependencies.js` for runtime dependency validation
+  - Added `scripts/test-clean-install.sh` for clean environment testing
+  - Added `validate:deps`, `validate:build`, `validate:install`, and `prepublish:validate` npm scripts
+  - Validates external dependencies are properly declared in package.json
+  - Tests CLI functionality in isolated environment to catch missing dependencies
+
+### Changed
+- **Build Configuration**: Enhanced ESBuild configuration with explicit external dependencies
+  - Updated build scripts to properly externalize `fs-extra`, `@inquirer/prompts`, `commander`, `ora`, and `oh-my-logo`
+  - Improved bundle optimization by separating external vs bundled dependencies
+- **ESLint Configuration**: Enhanced JavaScript file linting with comprehensive rules and globals
+  - Added dedicated JavaScript file configuration with Node.js globals
+  - Added code quality rules for modern JavaScript development
+  - Improved linting coverage for CLI scripts and configuration files
+
+### Fixed
+- **CLI Startup Robustness**: Improved CLI initialization error handling
+  - Changed show commands registration failure from error to debug logging
+  - CLI no longer fails to start when show commands cannot be registered
+  - Enhanced graceful degradation for optional command modules
+
 ## [0.6.3] - 2025-08-19
 
 ### Changed
