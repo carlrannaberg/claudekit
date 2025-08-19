@@ -3,7 +3,7 @@
  * Provides the foundation for all Claude Code hooks
  */
 
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import * as path from 'path';
 import { execCommand, detectPackageManager, formatError, findProjectRoot } from './utils.js';
 import type { ExecResult, PackageManager } from './utils.js';

@@ -6,6 +6,9 @@
     "typecheck-project": {
       "command": "npm run typecheck"
     },
+    "test-project": {
+      "command": "npm run test:fast"
+    },
     "self-review": {
       "targetPatterns": [
         "**/*.ts",

@@ -37,7 +37,7 @@ vi.mock('../../../cli/hooks/registry.js', () => ({
 // Now import after mocks
 import { HookRunner } from '../../../cli/hooks/runner.js';
 import * as utils from '../../../cli/hooks/utils.js';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 
 describe('HookRunner', () => {
   let runner: HookRunner;
