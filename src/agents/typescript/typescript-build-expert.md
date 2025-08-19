@@ -61,6 +61,78 @@ echo "Monorepo Detection:"
  echo "Single package project")
 ```
 
+## Alternative Hypothesis Analysis for Build Failures
+
+### When Standard Build Fixes Fail
+
+**APPLY WHEN:**
+- Obvious configuration fixes don't work
+- Build works on one machine but not another
+- Intermittent build failures
+- Error messages don't match actual problem
+- Recently working builds suddenly break
+
+### Systematic Alternative Investigation
+
+#### Generate Competing Explanations
+```markdown
+For mysterious build failures, systematically consider:
+
+PRIMARY HYPOTHESIS: [Configuration issue]
+Evidence: [Standard error messages, missing files, etc.]
+Test: [Fix tsconfig, check paths, etc.]
+
+ALTERNATIVE HYPOTHESIS 1: [Environment/tooling version mismatch]
+Evidence: [Works elsewhere, version differences]
+Test: [Check Node/npm/TypeScript versions across environments]
+
+ALTERNATIVE HYPOTHESIS 2: [Filesystem/permissions issue]
+Evidence: [Platform differences, file access patterns]  
+Test: [Check file permissions, case sensitivity, path length]
+
+ALTERNATIVE HYPOTHESIS 3: [Caching/stale state issue]
+Evidence: [Inconsistent behavior, timing dependencies]
+Test: [Clean all caches, fresh install]
+
+ALTERNATIVE HYPOTHESIS 4: [Dependency conflict/resolution issue]
+Evidence: [Package changes, lock file differences]
+Test: [Audit dependency tree, check for conflicts]
+```
+
+#### Systematic Elimination Process
+```bash
+echo "=== Build Failure Alternative Investigation ==="
+
+# Test Environment Hypothesis
+echo "1. Testing environment differences..."
+echo "Node: $(node --version) vs expected"
+echo "TypeScript: $(npx tsc --version) vs expected" 
+echo "Package manager: $(npm --version) vs expected"
+
+# Test Filesystem Hypothesis
+echo "2. Testing filesystem issues..."
+find . -name "*.ts" -not -readable 2>/dev/null && echo "Permission issues found" || echo "Permissions OK"
+case "$(uname)" in Darwin|Linux) echo "Case-sensitive filesystem" ;; *) echo "Case-insensitive filesystem" ;; esac
+
+# Test Caching Hypothesis
+echo "3. Testing with clean state..."
+echo "Clearing TypeScript cache..."
+rm -rf .tsbuildinfo
+echo "Clearing node_modules cache..."
+rm -rf node_modules/.cache
+
+# Test Dependency Hypothesis
+echo "4. Testing dependency conflicts..."
+npm ls --depth=0 2>&1 | grep -E "WARN|ERR" || echo "No dependency conflicts"
+```
+
+#### Evidence Analysis
+For each hypothesis, ask:
+- **What evidence would definitively prove this explanation?**
+- **What evidence would definitively rule it out?**
+- **Which explanation requires the fewest additional assumptions?**
+- **Could multiple factors be combining to cause the issue?**
+
 ## Core Problem Categories & Solutions
 
 ### 1. TSConfig Configuration Issues

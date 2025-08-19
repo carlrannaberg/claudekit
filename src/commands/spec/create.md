@@ -36,9 +36,28 @@ If user agrees to installation:
 If user declines or wants to continue without it:
 - Proceed with spec creation using existing knowledge
 
+## FIRST PRINCIPLES PROBLEM ANALYSIS
+
+Before defining any solution, validate the problem from first principles:
+
+### Core Problem Investigation
+- **Strip Away Solution Assumptions**: What is the core problem, completely separate from any proposed solution?
+- **Root Cause Analysis**: Why does this problem exist? What created this need?
+- **Goal Decomposition**: What are we fundamentally trying to achieve for users/business?
+- **Success Definition**: What would success look like if we had unlimited resources and no constraints?
+- **Alternative Approaches**: Could we achieve the underlying goal without building anything? Are there simpler approaches?
+
+### Problem Validation Questions
+- **Real vs. Perceived**: Is this solving a real problem that users actually have?
+- **Assumption Audit**: What assumptions about user needs, technical constraints, or business requirements might be wrong?
+- **Value Proposition**: What is the minimum viable solution that delivers core value?
+- **Scope Validation**: Are we solving the right problem, or treating symptoms of a deeper issue?
+
+**CRITICAL: Only proceed if the core problem is clearly defined and validated. If uncertain, request additional context.**
+
 ## MANDATORY PRE-CREATION VERIFICATION
 
-Before creating ANY specification, you MUST complete these checks:
+After validating the problem from first principles, complete these technical checks:
 
 ### 1. Context Discovery Phase
 - Search existing codebase for similar features/specs using AgentTool
@@ -76,6 +95,30 @@ If the feature involves external libraries or frameworks AND Context7 is availab
 - Use `mcp__context7__resolve-library-id` to find the library
 - Use `mcp__context7__get-library-docs` to get up-to-date documentation
 - Reference official patterns and best practices from the docs
+
+## END-TO-END INTEGRATION ANALYSIS
+
+Before writing the detailed specification, map the complete system impact:
+
+### System Integration Mapping
+- **Data Flow Tracing**: Trace data flow from user action → processing → storage → response
+- **Service Dependencies**: Identify all affected services, APIs, databases, and external systems
+- **Integration Points**: Map every place this feature touches existing functionality
+- **Cross-System Impact**: How does this change affect other teams, services, or user workflows?
+
+### Complete User Journey Analysis
+- **Entry Points**: How do users discover and access this feature?
+- **Step-by-Step Flow**: What is the complete sequence from start to finish?
+- **Error Scenarios**: What happens when things go wrong at each step?
+- **Exit Points**: How does this connect to what users do next?
+
+### Deployment and Rollback Considerations
+- **Migration Path**: How do we get from current state to new state?
+- **Rollback Strategy**: What if we need to undo this feature?
+- **Deployment Dependencies**: What must be deployed together vs. independently?
+- **Data Migration**: How do we handle existing data during the transition?
+
+**VERIFICATION: Ensure you can trace the complete end-to-end flow before proceeding to detailed specification.**
 
 Then create a spec document that includes:
 
