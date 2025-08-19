@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2025-08-20
+
+### Fixed
+- **Test Infrastructure**: Improved test script reliability and path resolution
+  - Fixed path resolution in `tests/unit/test-subagents.sh` to use absolute paths with proper script directory detection
+  - Updated agent file reference from `expert.md` to `typescript-expert.md` to match actual file structure
+  - Enhanced test failure handling to treat validation warnings as non-blocking for CI stability
+  - Improved script portability using `${BASH_SOURCE[0]}` instead of `$0` for more reliable path detection
+
 ## [0.6.5] - 2025-08-20
 
 ### Fixed
