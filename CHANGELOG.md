@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5] - 2025-08-20
+
+### Fixed
+- **ESM/CommonJS Compatibility**: Fixed module compatibility issues for better cross-platform support
+  - Fixed import.meta.url usage with fallback to __filename for CommonJS builds
+  - Updated main entry point detection to work in both ESM and CommonJS environments
+  - Enhanced module loading with proper fallbacks for Node.js built-in patterns
+  - Improved CLI startup reliability across different Node.js module systems
+- **Dynamic Import Integration**: Converted oh-my-logo to dynamic import for ESM compatibility
+  - Changed from static import to dynamic import in setup command to prevent bundling issues
+  - Added graceful fallback when oh-my-logo cannot be loaded
+  - Maintains ASCII art functionality while improving module compatibility
+
+### Changed
+- **Build System**: Enhanced build configuration for better Ubuntu compatibility and dependency management
+  - Changed build output format from ESM to CommonJS for improved compatibility
+  - Updated main package.json entry points to use .cjs extensions
+  - Enhanced esbuild configuration with better external dependency handling
+  - Added comprehensive dependency validation scripts for build verification
+
+### Added
+- **Enhanced Validation Infrastructure**: Expanded build and dependency validation capabilities
+  - Enhanced `scripts/validate-dependencies.js` with improved bundling strategy validation
+  - Enhanced `scripts/test-clean-install.sh` with comprehensive CLI functionality testing
+  - Added support for validating both bundled and external dependencies
+  - Improved error reporting and validation feedback for development workflows
+
 ## [0.6.4] - 2025-08-19
 
 ### Added

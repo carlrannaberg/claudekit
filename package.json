@@ -1,6 +1,6 @@
 {
   "name": "claudekit",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "CLI tools for Claude Code development workflow",
   "type": "module",
   "engines": {
@@ -31,9 +31,9 @@
     "validate:build": "npm run build && npm run validate:deps",
     "validate:install": "./scripts/test-clean-install.sh",
     "prepublish:validate": "npm run lint && npm run typecheck && npm run validate:build && npm run validate:install && npm run test",
-    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/cli.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap",
-    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/hooks-cli.cjs --external:react-devtools-core --sourcemap",
-    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap",
+    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/cli.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap --log-level=error",
+    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/hooks-cli.cjs --external:react-devtools-core --sourcemap --log-level=error",
+    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.cjs --external:react-devtools-core --external:oh-my-logo --sourcemap --log-level=error",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "build:hooks-dev": "tsc cli/hooks-cli.ts --outDir dist --module esnext --target es2022 --moduleResolution node --skipLibCheck",
     "build:config": "tsx build.config.ts",
