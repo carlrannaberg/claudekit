@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../test-framework.sh"
 
 # Get absolute path to project root from script location
-PROJECT_ROOT="$(cd "$(dirname "$0")/../../" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../" && pwd)"
 AGENT_FILE="$PROJECT_ROOT/src/agents/typescript/typescript-expert.md"
 
 ################################################################################
