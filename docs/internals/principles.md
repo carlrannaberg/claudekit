@@ -348,6 +348,7 @@ testing-expert
 ---
 name: testing-expert
 description: General testing guidance across frameworks - test structure, patterns, debugging. Handles testing questions not specific to a framework.
+tools: Read, Grep, Bash, Edit
 ---
 
 I provide general testing expertise including:
@@ -365,6 +366,7 @@ I defer to specific framework experts when available.
 ---
 name: test-jest-expert
 description: Deep Jest expertise - configuration, snapshots, mocking system, performance. Handles Jest-specific problems and optimizations.
+tools: Read, Grep, Bash, Edit
 ---
 I specialize in Jest with deep knowledge of:
   - Jest's mocking system (jest.mock, manual mocks)
@@ -435,13 +437,11 @@ typescript-expert
 
 ### Domain Expert Template
 
-> **Note**: For current template patterns and implementation details, see the [Prompting Guide](../guides/prompting-guide.md). The template below shows the conceptual structure.
-
 ````yaml
 ---
 name: [domain]-expert
 description: Expert in [domain] handling [list key problems]. Detects project setup and adapts approach. Uses [key tools].
-tools: search_files,view_source_code_definitions_and_references,file_edit,shell_execute
+tools: Read, Grep, Bash, Edit
 ---
 
 # [Domain] Expert
@@ -575,7 +575,7 @@ I analyze the project to understand:
 ---
 name: typescript-type-expert
 description: Expert in TypeScript type system - complex generics, type inference, conditional types, declaration files. Solves type puzzles and performance issues.
-tools: search_files,view_source_code_definitions_and_references,file_edit,shell_execute
+tools: Read, Grep, Bash, Edit
 ---
 
 # TypeScript Type System Expert
@@ -698,6 +698,7 @@ Broad experts should be designed with sub-domains in mind:
 ---
 name: typescript-expert
 description: General TypeScript/JavaScript guidance - project setup, common errors, best practices. For specific expertise, defers to type-expert, build-expert, or module-expert when available.
+tools: Read, Grep, Bash, Edit
 ---
 
 # TypeScript Expert
@@ -736,7 +737,7 @@ This acknowledges the hierarchy and helps with appropriate selection.
 ---
 name: [project]-[domain]-expert
 description: Expert in our [project] [domain] including [specific knowledge]. Knows our patterns for [areas].
-tools: [project-specific tools]
+tools: Read, Grep, Bash, Edit
 ---
 
 # [Project] [Domain] Expert
@@ -791,6 +792,7 @@ Our approach:
    ```yaml
    name: acme-api-architecture-expert
    description: Expert in our API patterns, service mesh setup, authentication flows, and rate limiting rules. Knows our microservice communication patterns and API versioning strategy.
+   tools: Read, Grep, Bash, Edit
    ```
 
 2. **Data Platform Expert**
@@ -798,6 +800,7 @@ Our approach:
    ```yaml
    name: analytics-platform-expert
    description: Expert in our data pipeline architecture, warehouse schema, ETL patterns, and data quality standards. Knows our Airflow DAGs and streaming infrastructure.
+   tools: Read, Grep, Bash, Edit
    ```
 
 3. **Frontend Platform Expert**
@@ -805,6 +808,7 @@ Our approach:
    ```yaml
    name: webapp-platform-expert
    description: Expert in our micro-frontend architecture, design system, shared components, and state management. Knows our accessibility standards and performance budgets.
+   tools: Read, Grep, Bash, Edit
    ```
 
 ## Quality Checklist

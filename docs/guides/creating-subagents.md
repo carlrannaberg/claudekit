@@ -236,74 +236,142 @@ The frontmatter controls how your agent is discovered and grouped:
 
 ```yaml
 ---
-# Required Claude Code fields
-name: my-agent                    # Unique identifier
-description: Use this agent for... # When Claude should invoke
-tools: Bash, Read, Grep           # Allowed tools (omit for all)
+# Required official Claude Code fields:
+name: my-agent
+description: Use this agent for analyzing TypeScript compilation issues and build errors
 
-# Claudekit grouping fields (automatic discovery)
-category: technology              # 'technology' or 'optional'
-universal: false                  # true for universal helpers
-defaultSelected: false            # Pre-selected in setup
-displayName: My Agent             # UI display name
-bundle: [related-agent]           # Install together
+# Optional official field:
+tools: Read, Grep, Bash
+
+# Claudekit extensions (all optional):
+category: build
+color: indigo
+displayName: TypeScript Build Expert
+bundle: ["typescript-expert"]
 ---
 ```
 
-#### Metadata Field Reference
+#### Field Documentation: Official vs Claudekit
 
-**Standard Claude Code Fields:**
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Unique identifier (lowercase, hyphens) |
-| `description` | Yes | Natural language trigger for Claude |
-| `tools` | No | Comma-separated tools (inherits all if omitted) |
+**Official Claude Code Fields (from Claude Code documentation):**
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `name` | Yes | string | Unique identifier (lowercase, hyphens only) |
+| `description` | Yes | string | Natural language description of when this agent should be invoked |
+| `tools` | No | string | Comma-separated list of allowed tools (inherits ALL if omitted) |
 
-**Claudekit Extension Fields:**
-| Field | Description | Values |
-|-------|-------------|---------|
-| `category` | Grouping for setup UI | `technology`, `optional` |
-| `universal` | Shows in "Universal Helpers" | `true`/`false` |
-| `defaultSelected` | Pre-selected in setup | `true`/`false` |
-| `displayName` | Human-readable name | Any string |
-| `bundle` | Related agents | Array of agent names |
-| `color` | Visual color in Claude Code UI | `indigo`, `#3b82f6` |
+**Claudekit Extension Fields (all optional):**
+| Field | Type | Description | Values |
+|-------|------|-------------|--------|
+| `category` | string | Grouping for setup UI | `general`, `framework`, `testing`, `database`, `frontend`, `devops`, `build`, `linting`, `tools`, `universal` |
+| `color` | string | Visual color in Claude Code UI | Named colors (`indigo`, `red`) or hex codes (`#3b82f6`) |
+| `displayName` | string | Human-readable name for UI | Any string |
+| `bundle` | array | Related agents to install together | Array of agent names |
+
+#### Important: Tools Field Behavior
+
+⚠️ **Critical Security Consideration**: The `tools` field behaves differently from commands' `allowed-tools`:
+
+- **Subagents `tools:`** - Comma-separated STRING for broad domain expertise
+  ```yaml
+  tools: Read, Grep, Bash  # String format
+  ```
+  - If omitted, inherits ALL available tools (including destructive ones)
+  - Designed for specialized domain experts who need broad access
+
+- **Commands `allowed-tools:`** - Granular restrictions for specific tasks  
+  ```yaml
+  allowed-tools: Bash(git commit:*), Read  # Specific security restrictions
+  ```
+  - Required field for security
+  - Allows fine-grained tool restrictions
+
+**Design Philosophy:**
+- **Subagents** = Domain experts with broad tool access for comprehensive analysis
+- **Commands** = Specific workflows with minimal necessary permissions
+
+#### Schema Validation
+
+Claudekit validates subagent frontmatter using the official Claude Code schema plus extensions:
+
+**Common Validation Errors:**
+- `tools` field as array instead of string: `tools: [Read, Grep]` ❌ → `tools: Read, Grep` ✅
+- Missing required fields: `name` and `description` are mandatory
+- Invalid agent names: Must be lowercase with hyphens only (`my-agent`, not `My_Agent`)
+- Unknown categories: Must be one of the valid category values listed above
+
+**Run Validation:**
+```bash
+# Lint all subagents in .claude/agents
+claudekit lint-subagents
+
+# Lint subagents in a specific directory
+claudekit lint-subagents path/to/agents
+
+# Check overall project setup (counts agents, not schemas)
+claudekit validate
+```
+
+The linter checks for:
+- Valid frontmatter YAML syntax
+- Required fields (`name` and `description`)
+- Correct field names and types  
+- Valid category values from the enum
+- Proper name format (lowercase with hyphens)
+- Tool names are recognized
 
 ### Step 4: Structure Agent Content
 
 Transform your research into the agent body using the structured template from the [Prompting Guide](prompting-guide.md):
 
 ```markdown
-# [Domain] Expert
+---
+# Required official Claude Code fields:
+name: typescript-build-expert
+description: Use this agent for TypeScript compilation issues, build errors, and compiler configuration problems
 
-You are a [DOMAIN] expert for Claude Code with deep knowledge of [SPECIFIC_AREAS from research].
+# Optional official field:
+tools: Read, Grep, Bash
+
+# Claudekit extensions (all optional):
+category: build
+color: indigo
+displayName: TypeScript Build Expert
+bundle: ["typescript-expert"]
+---
+
+# TypeScript Build Expert
+
+You are a TypeScript build expert for Claude Code with deep knowledge of compilation, configuration, and build system integration.
 
 ## Delegation First
 0. **If ultra-specific expertise needed, delegate and stop**:
-   - [Ultra-specific case 1 from research] → [specialist-expert] 
-   - [Ultra-specific case 2 from research] → [another-specialist]
+   - Advanced type system issues (generics, conditionals) → typescript-type-expert 
+   - Framework-specific build integration → react-expert, nextjs-expert
    
    Output: "This requires [specialty]. Use the [expert-name] subagent. Stopping here."
 
 ## Core Process
 1. **Environment Detection**:
    ```bash
-   # Detect project setup (adapt from your research)
-   test -f [config-file] && echo "[Framework] project detected"
-   which [tool] >/dev/null 2>&1 && echo "[Tool] available"
+   # Detect project setup
+   test -f tsconfig.json && echo "TypeScript project detected"
+   which tsc >/dev/null 2>&1 && echo "TypeScript compiler available"
+   test -f package.json && echo "Node.js project"
    ```
 
-2. **Problem Analysis** (based on your research categories):
-   - Category 1: [Common Problem Type from research]
-   - Category 2: [Another Problem Type from research]
-   - Apply appropriate solution from domain knowledge
+2. **Problem Analysis** (based on research categories):
+   - Compiler errors and diagnostics
+   - Configuration issues (tsconfig.json)
+   - Module resolution problems
+   - Build performance optimization
 
 3. **Solution Implementation**:
-   - Use domain-specific best practices
-   - Follow established patterns from research
-   - Validate using domain tools
+   - Apply TypeScript best practices
+   - Use proven configuration patterns
+   - Validate with tsc and build tools
 
-## [Domain] Expertise
+## TypeScript Build Expertise
 
 ### [Category 1]: [Problem Area from research]
 **Common Issues**:
@@ -352,20 +420,20 @@ When reviewing [domain] code:
 
 Your agent is automatically discovered by claudekit based on metadata:
 
-**Universal Agents** (`universal: true`):
+**Universal Agents** (`category: universal`):
 - Appear in "Universal Helpers" section
 - Recommended for all projects
 - Examples: oracle, code-review-expert
 
-**Technology Agents** (`category: technology`):
+**Technology Agents** (`category: framework`, `build`, `database`, etc.):
 - Appear in "Technology Stack" section  
 - Project-specific tools
 - Examples: typescript-expert, react-expert
 
-**Optional Agents** (`category: optional`):
-- Appear in "Optional" section
-- Specialized tools
-- Examples: accessibility-expert, css-expert
+**General Purpose Agents** (`category: general`):
+- Appear in main sections
+- Cross-cutting concerns
+- Examples: triage-expert, refactoring-expert
 
 **Radio Groups** (mutually exclusive):
 - Require manual update to `AGENT_RADIO_GROUPS` in `cli/lib/agents/registry-grouping.ts`
@@ -481,7 +549,7 @@ which docker >/dev/null 2>&1 && echo "Docker available"
 ### Not Invoked Automatically
 - Make description more specific
 - Add "Use PROACTIVELY" to description
-- Set `defaultSelected: true`
+- Ensure `category` field matches expected usage patterns
 
 ### Tool Access Issues
 - Explicitly list tools in frontmatter
@@ -493,43 +561,43 @@ which docker >/dev/null 2>&1 && echo "Docker available"
 - Include "Stopping here." after delegation
 - Make conditions specific and clear
 
-## Color Feature
+## Visual Customization
 
-The `color` field in the YAML frontmatter allows you to customize the visual appearance of your agent in Claude Code:
+The `color` field allows you to customize your agent's visual appearance in Claude Code:
 
 ```yaml
 ---
 name: code-review-expert
 description: Expert reviewer for code quality and best practices
 tools: Read, Grep, Bash
-color: indigo     # or "#3b82f6"
+color: indigo     # Named color or hex code
 ---
 ```
 
-**Color Options:**
-- Common color names: `red`, `blue`, `green`, `yellow`, `purple`, `indigo`, `cyan`, etc.
-- Hex color codes: `#3b82f6`, `#ef4444`, `#10b981`
-- Case-insensitive: `Red`, `RED`, `red` all work
+**Supported Color Formats:**
+- **Named colors**: `indigo`, `red`, `blue`, `green`, `purple`, `amber`, etc.
+- **Hex codes**: `#3b82f6`, `#ef4444`, `#10b981`
+- **Case-insensitive**: `Red`, `RED`, `red` all work
 
-**Notes:**
-- This `color:` key is currently used by Claude Code and commonly seen in community agent templates
-- While not yet documented in the official Claude Code documentation, it works in practice
-- Examples from public repositories show usage like `color: red`, `color: Cyan`
-- The feature is established and widely used in the Claude Code ecosystem
-
-**Example Usage in the Wild:**
+**Common Usage Patterns:**
 ```yaml
-# Testing framework agents
-color: green    # For test-related agents
+# Build tools
+color: amber
 
-# Security/audit agents  
-color: red      # For critical review agents
+# Testing frameworks  
+color: green
 
-# Documentation agents
-color: blue     # For documentation generators
+# Security/audit tools
+color: red
+
+# Database tools
+color: blue
 ```
 
-This feature is particularly useful for visually distinguishing agents by their role or importance in the Claude Code interface.
+**Notes:**
+- Part of claudekit's UI enhancement extensions
+- Helps visually organize agents by role or domain
+- All standard CSS named colors are supported
 
 ## Dynamic Domain Expertise Integration
 

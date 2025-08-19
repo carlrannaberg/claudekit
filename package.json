@@ -27,9 +27,13 @@
   ],
   "scripts": {
     "build": "npm run clean && npm run build:main && npm run build:hooks && npm run build:esm && npm run build:types",
-    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --packages=external --sourcemap",
-    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/hooks-cli.js --external:node:* --packages=external --sourcemap",
-    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --packages=external --sourcemap",
+    "validate:deps": "node scripts/validate-dependencies.js",
+    "validate:build": "npm run build && npm run validate:deps",
+    "validate:install": "./scripts/test-clean-install.sh",
+    "prepublish:validate": "npm run lint && npm run typecheck && npm run validate:build && npm run validate:install && npm run test",
+    "build:main": "esbuild cli/cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/cli.js --external:node:* --external:fs-extra --external:@inquirer/prompts --external:commander --external:ora --external:oh-my-logo --sourcemap",
+    "build:hooks": "esbuild cli/hooks-cli.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/hooks-cli.js --external:node:* --external:fs-extra --external:commander --sourcemap",
+    "build:esm": "esbuild cli/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --external:node:* --external:fs-extra --external:@inquirer/prompts --external:commander --external:ora --external:oh-my-logo --sourcemap",
     "build:types": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "build:hooks-dev": "tsc cli/hooks-cli.ts --outDir dist --module esnext --target es2022 --moduleResolution node --skipLibCheck",
     "build:config": "tsx build.config.ts",
@@ -64,12 +68,15 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^7.6.0",
+    "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "fs-extra": "^11.3.0",
+    "glob": "^10.4.5",
     "gray-matter": "^4.0.3",
     "oh-my-logo": "^0.2.1",
     "ora": "^8.2.0",
     "picocolors": "^1.1.0",
+    "picomatch": "^4.0.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {

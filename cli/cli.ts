@@ -210,9 +210,10 @@ export async function runCli(): Promise<void> {
     const { registerShowCommands } = await import('./commands/show.js');
     registerShowCommands(program);
   } catch (error) {
-    logger.error(
-      `Failed to register show commands: ${error instanceof Error ? error.message : String(error)}`
+    logger.debug(
+      `Show commands not available: ${error instanceof Error ? error.message : String(error)}`
     );
+    // Don't fail CLI startup if show commands can't be registered
   }
 
   // Parse command line arguments

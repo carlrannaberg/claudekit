@@ -5,6 +5,35 @@ import tsParser from '@typescript-eslint/parser';
 export default [
   eslint.configs.recommended,
   {
+    files: ['**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly'
+      }
+    },
+    rules: {
+      // General rules for JavaScript files
+      'no-console': 'off', // CLI tools need console output
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'prefer-arrow-callback': 'error',
+      'prefer-template': 'error',
+      'no-nested-ternary': 'error',
+      'curly': ['error', 'all'],
+      'eqeqeq': ['error', 'always']
+    }
+  },
+  {
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,

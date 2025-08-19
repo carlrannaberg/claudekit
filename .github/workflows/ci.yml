@@ -132,6 +132,30 @@ jobs:
         
         echo "✅ All command files are accessible"
 
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Validate dependencies
+      run: npm run validate:deps
+    
+    - name: Test clean installation
+      run: npm run validate:install
+
   tests:
     runs-on: ubuntu-latest
     

@@ -85,6 +85,7 @@ Organize commands in subdirectories:
 ```markdown
 ---
 description: Format all TypeScript files
+allowed-tools: Bash(npm:*, pnpm:*, yarn:*)
 ---
 
 Format all TypeScript files in the project:
@@ -95,7 +96,9 @@ Format all TypeScript files in the project:
 ```markdown
 ---
 description: Create a new React component
+argument-hint: <component-name>
 allowed-tools: Write
+category: workflow
 ---
 
 Create a new React component named $ARGUMENTS
@@ -113,6 +116,8 @@ export const $ARGUMENTS: React.FC = () => {
 ```markdown
 ---
 description: Analyze dependencies
+allowed-tools: Read, Bash(npm:*, pnpm:*, yarn:*)
+category: validation
 ---
 
 Current dependencies:
@@ -124,22 +129,49 @@ Outdated packages:
 Suggest which packages to update based on the above information.
 ```
 
-## YAML Frontmatter Options
+## YAML Frontmatter Schema
 
-### allowed-tools
-Specify which tools the command can use:
+Claudekit commands use standardized frontmatter that follows Claude Code's official schema with claudekit extensions:
+
 ```yaml
-allowed-tools:
-  - Write
-  - Edit
-  - Bash(<package-manager>:*)
+---
+# Official Claude Code fields:
+allowed-tools: Read, Write, Bash(git:*)
+description: Brief description of what the command does
+argument-hint: Expected arguments (e.g., "<feature-name>")
+model: sonnet  # Optional: opus, sonnet, haiku, or specific model
+
+# Claudekit extension (optional):
+category: workflow  # Optional: workflow, ai-assistant, validation
+---
 ```
 
-### description
-Brief description shown in help:
+### allowed-tools (Security Control)
+
+The `allowed-tools` field provides granular security control over what tools Claude can use during command execution:
+
 ```yaml
-description: Create a new API endpoint
+# Basic tool access
+allowed-tools: Read, Write, Edit
+
+# Tool with restrictions (recommended for security)
+allowed-tools: Bash(git:*), Read  # Only git commands, plus Read
+
+# Multiple tools with mixed restrictions
+allowed-tools: Read, Write, Bash(npm:*, git:*), Task
 ```
+
+**Important**: This differs from subagent `tools:` arrays. Command `allowed-tools` uses comma-separated strings with optional parenthetical restrictions for security.
+
+### Other Official Fields
+
+- **description**: Brief description shown in help and command listings
+- **argument-hint**: Help text for expected arguments (e.g., `"<component-name>"`, `"[environment]"`)
+- **model**: Specify which Claude model to use (`opus`, `sonnet`, `haiku`, or specific model string)
+
+### Claudekit Extensions
+
+- **category**: Optional organization field (`workflow`, `ai-assistant`, `validation`)
 
 ## Using Specialized Subagents in Commands
 
@@ -149,8 +181,9 @@ For commands that involve domain-specific work, leverage specialized subagents f
 
 ```markdown
 ---
-description: Complex task with domain expertise needed  
+description: Complex task with domain expertise needed
 allowed-tools: Task, Read, Bash
+category: ai-assistant
 ---
 
 ## Task Analysis
@@ -182,6 +215,37 @@ For each domain-specific task, use the Task tool to delegate to appropriate expe
 - `/spec:execute` - Uses specialists for implementation tasks
 - Custom workflow commands that span multiple technical domains
 
+## Validation
+
+### Linting Your Commands
+
+Claudekit provides a linter to validate your command files:
+
+```bash
+# Lint all commands in .claude/commands
+claudekit lint-commands
+
+# Lint commands in a specific directory
+claudekit lint-commands path/to/commands
+
+# Check overall project setup (not schemas)
+claudekit validate
+```
+
+The linter checks frontmatter for:
+- Valid YAML syntax
+- Required fields (`allowed-tools` when using bash commands)
+- Correct field names and types
+- Unknown or deprecated fields
+- Common mistakes and typos
+
+### Common Validation Errors
+
+1. **Invalid YAML**: Check for proper indentation and syntax
+2. **Unknown fields**: Remove any fields not in the official or claudekit schema
+3. **Missing `allowed-tools`**: Required when using `!` bash commands
+4. **Invalid tool names**: Ensure tool names match available tools
+
 ## Best Practices
 
 1. **Keep commands focused** - Each command should do one thing well
@@ -190,7 +254,8 @@ For each domain-specific task, use the Task tool to delegate to appropriate expe
 4. **Document usage** - Include examples in the command file
 5. **Use specialized subagents** - Delegate domain-specific work to experts when possible
 6. **Test thoroughly** - Ensure bash commands and file references work
-7. **Version control** - Commit project commands to share with team
+7. **Lint regularly** - Run `claudekit lint-commands` before committing
+8. **Version control** - Commit project commands to share with team
 
 ## Creating Your First Command
 
@@ -222,7 +287,9 @@ Review these files:
 ```markdown
 ---
 description: Complete PR checklist
-allowed-tools: Bash(*), Edit
+argument-hint: <pr-title>
+allowed-tools: Bash(npm:*, pnpm:*, yarn:*, git:*), Edit
+category: workflow
 ---
 
 PR Checklist for $ARGUMENTS:
