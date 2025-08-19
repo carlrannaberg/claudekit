@@ -2,6 +2,11 @@
 
 The `/create-command` is a prompt template that guides Claude Code to create new slash commands for you.
 
+## Related Documentation
+
+- [Official Commands Documentation](../official/commands.md) - Claude Code's built-in slash command features and syntax  
+- [Prompting Guide](prompting-guide.md) - Patterns and best practices for effective command prompts
+
 ## Overview
 
 This command provides Claude with structured instructions for creating new slash commands with full support for Claude Code's advanced features.
@@ -181,10 +186,11 @@ For each domain-specific task, use the Task tool to delegate to appropriate expe
 
 1. **Keep commands focused** - Each command should do one thing well
 2. **Use descriptive names** - Make it clear what the command does
-3. **Document usage** - Include examples in the command file
-4. **Test thoroughly** - Ensure bash commands and file references work
-5. **Version control** - Commit project commands to share with team
-6. **Use specialized subagents** - Delegate domain-specific work to experts when possible
+3. **Follow prompting patterns** - See [Prompting Guide](prompting-guide.md) for effective command structure and syntax
+4. **Document usage** - Include examples in the command file
+5. **Use specialized subagents** - Delegate domain-specific work to experts when possible
+6. **Test thoroughly** - Ensure bash commands and file references work
+7. **Version control** - Commit project commands to share with team
 
 ## Creating Your First Command
 

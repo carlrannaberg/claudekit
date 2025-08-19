@@ -4,8 +4,9 @@ This guide provides comprehensive instructions for creating research-driven, hig
 
 ## Related Documentation
 
+- [Official Subagents Documentation](../official/subagents.md) - Claude Code's subagent system and configuration
+- [Prompting Guide](prompting-guide.md) - Patterns and best practices for effective subagent prompts
 - [Domain Expert Principles](../internals/principles.md) - Core principles for designing domain experts
-- [Official Subagents Documentation](../official/subagents.md) - Claude's official subagent capabilities
 - [Feature Specification](../specs/feat-domain-expert-subagents-suite.md) - Complete subagent suite specification
 - [Agent Research Reports](../reports/agent-research/) - Examples of comprehensive domain research
 
@@ -270,79 +271,81 @@ bundle: [related-agent]           # Install together
 
 ### Step 4: Structure Agent Content
 
-Transform your research into the agent body:
+Transform your research into the agent body using the structured template from the [Prompting Guide](prompting-guide.md):
 
 ```markdown
 # [Domain] Expert
 
-You are [role with specific expertise from research].
+You are a [DOMAIN] expert for Claude Code with deep knowledge of [SPECIFIC_AREAS from research].
 
-## When invoked:
+## Delegation First
+0. **If ultra-specific expertise needed, delegate and stop**:
+   - [Ultra-specific case 1 from research] → [specialist-expert] 
+   - [Ultra-specific case 2 from research] → [another-specialist]
+   
+   Output: "This requires [specialty]. Use the [expert-name] subagent. Stopping here."
 
-0. If ultra-specific expertise needed, recommend specialist:
-   - Deep webpack issues → webpack-expert
-   - Complex SQL → database-expert
-   Output: "This requires [specialty]. Use the [expert] subagent. Stopping here."
-
-1. Detect environment and adapt:
+## Core Process
+1. **Environment Detection**:
    ```bash
-   # Check project setup
-   test -f package.json && echo "Node.js project"
-   test -f tsconfig.json && echo "TypeScript enabled"
+   # Detect project setup (adapt from your research)
+   test -f [config-file] && echo "[Framework] project detected"
+   which [tool] >/dev/null 2>&1 && echo "[Tool] available"
    ```
 
-2. Apply domain expertise to solve the problem
+2. **Problem Analysis** (based on your research categories):
+   - Category 1: [Common Problem Type from research]
+   - Category 2: [Another Problem Type from research]
+   - Apply appropriate solution from domain knowledge
 
-3. Validate solution works as expected
+3. **Solution Implementation**:
+   - Use domain-specific best practices
+   - Follow established patterns from research
+   - Validate using domain tools
 
 ## [Domain] Expertise
 
-[Transform your research categories into sections]
+### [Category 1]: [Problem Area from research]
+**Common Issues**:
+- Error: "[Specific error message from research]"
+- Symptom: [Observable behavior from research]
 
-### Hooks Hygiene
-[From research: problems, solutions, patterns]
+**Root Causes & Solutions**:
+1. **Quick Fix**: [Minimal change with example from research]
+2. **Proper Fix**: [Better solution with code from research]  
+3. **Best Practice**: [Architectural improvement from research]
 
-### Performance Optimization
-[From research: diagnostics, fixes, validation]
+**Validation**:
+```bash
+[domain-specific validation command from research]
+```
+
+### [Category 2-6]: [Additional Problem Areas]
+[Follow same pattern with research findings...]
 
 ## Code Review Checklist
+When reviewing [domain] code:
 
-When reviewing [Domain] code, focus on these domain-specific aspects:
+### [Technical Area 1]
+- [ ] [Specific check with example from research]
+- [ ] [Another domain-specific check from research]
 
-### [Category 1] (e.g., Type Safety)
-- [ ] [Specific check item 1]
-- [ ] [Specific check item 2]
-- [ ] [Specific check item 3]
+### [Technical Area 2] 
+- [ ] [Performance considerations from research]
+- [ ] [Security patterns from research]
 
-### [Category 2] (e.g., Performance)
-- [ ] [Domain-specific performance checks]
-- [ ] [Resource usage patterns]
-- [ ] [Optimization opportunities]
+### [Technical Area 3-6]
+[Additional categories based on research...]
 
-### [Category 3] (e.g., Best Practices)
-- [ ] [Domain conventions followed]
-- [ ] [Anti-patterns avoided]
-- [ ] [Security considerations]
-
-### Common Pitfalls
-- [ ] [Domain-specific mistakes to check]
-- [ ] [Edge cases often missed]
-- [ ] [Integration issues]
-
-## Quick Decision Trees
-
-[From research: decision frameworks]
+## Quick Reference
 ```
-< 10 packages → Turborepo
-> 50 packages → Nx
-Complex deps → Nx with visualization
+[Decision tree or common commands from research]
 ```
 
 ## Resources
-
-[From research: authoritative links]
-- [Official Docs](url)
-- [Best Practices](url)
+- [Official Documentation](link from research)
+- [Best Practices Guide](link from research)
+- [Additional authoritative sources from research]
 ```
 
 ### Step 5: Setup Integration
@@ -588,15 +591,16 @@ This creates a smart triage system that provides domain-specific diagnostic appr
 
 1. **Research First**: Invest significant time understanding the domain before implementation
 2. **Document Problems**: Base your agent on real issues with proven solutions
-3. **Test Incrementally**: Validate each section as you build
-4. **Use Real Examples**: Include working code from your research
-5. **Link Sources**: Always reference authoritative documentation
-6. **Restrict Tools**: Grant minimum necessary permissions
-7. **Plan Fallbacks**: Include error handling strategies
-8. **Save Research**: Keep research artifacts in `reports/` for future reference
-9. **Iterate Based on Usage**: Update agents as you discover new patterns
-10. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-review-expert agent
-11. **Use Expert Integration**: For general-purpose agents, implement Dynamic Domain Expertise Integration to leverage specialist knowledge
+3. **Follow prompting patterns**: Use proven system prompt structures from the [Prompting Guide](prompting-guide.md)
+4. **Test Incrementally**: Validate each section as you build
+5. **Use Real Examples**: Include working code from your research
+6. **Link Sources**: Always reference authoritative documentation
+7. **Restrict Tools**: Grant minimum necessary permissions
+8. **Plan Fallbacks**: Include error handling strategies
+9. **Save Research**: Keep research artifacts in `reports/` for future reference
+10. **Iterate Based on Usage**: Update agents as you discover new patterns
+11. **Include Review Checklist**: Every domain expert should include a "Code Review Checklist" section with domain-specific checks to aid both direct review tasks and the code-review-expert agent
+12. **Use Expert Integration**: For general-purpose agents, implement Dynamic Domain Expertise Integration to leverage specialist knowledge
 
 ## Conclusion
 

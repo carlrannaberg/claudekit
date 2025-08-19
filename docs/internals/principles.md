@@ -1,10 +1,19 @@
+# Domain Expert Principles
+
+## Related Documentation
+
+- [Official Subagents Documentation](../official/subagents.md) - Claude Code's subagent system and configuration
+- [Official Commands Documentation](../official/commands.md) - Claude Code's slash command features
+- [Prompting Guide](../guides/prompting-guide.md) - Template patterns and implementation details
+- [Creating Subagents Guide](../guides/creating-subagents.md) - Research-driven development methodology
+
 ## Core Principle: Domain Experts Over Task Specialists
 
 The most effective agents are **domain experts** that handle multiple related problems within their area of expertise. These can be organized hierarchically, with broad domain experts providing general coverage and optional sub-domain experts offering deep specialization.
 
 This hierarchy keeps agent selection manageable while allowing deep expertise where needed. Projects might have 10-20 agents total, but organized as 5-7 broad experts with selected sub-domain specialists.
 
-Why domain experts instead of specific task agents? Specific tasks (like “fix circular dependencies” or “optimize bundle size”) are better handled by explicit slash commands that users invoke when needed. This keeps the agent selection pool focused while allowing unlimited specific operations.
+Why domain experts instead of specific task agents? Specific tasks (like "fix circular dependencies" or "optimize bundle size") are better handled by explicit slash commands that users invoke when needed. This keeps the agent selection pool focused while allowing unlimited specific operations.
 
 ## The Domain Expert Formula
 
@@ -425,6 +434,8 @@ typescript-expert
 - Suggests tool installation when needed
 
 ### Domain Expert Template
+
+> **Note**: For current template patterns and implementation details, see the [Prompting Guide](../guides/prompting-guide.md). The template below shows the conceptual structure.
 
 ````yaml
 ---
