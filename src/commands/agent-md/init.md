@@ -254,45 +254,36 @@ The `.claude` directory contains Claude Code configuration files with specific v
 - Development environment setup
 - Dependencies and version requirements
 
-## Available AI Subagents
+## Using Specialized Agents
 
-[Check if the project has specialized subagents in `.claude/agents/` directory. If present, document them organized by category. Include:]
+### ⚠️ IMPORTANT: Always Delegate to Specialists
 
-### Discovering Subagents
-[List any subagents found in `.claude/agents/` or document that Claude Code has built-in specialized agents]
+**When specialized agents are available, you MUST use them instead of attempting tasks yourself.**
 
-### When to Use Subagents
-AI assistants should proactively use the Task tool to delegate to specialized subagents when:
-- Working on domain-specific tasks that match a subagent's expertise
-- Encountering complex technical issues requiring specialized knowledge
-- Optimizing build configurations or performance
-- Setting up testing frameworks or CI/CD pipelines
-- Dealing with database queries or infrastructure
+Specialized agents provide deep expertise in specific domains. They have been trained on best practices, common pitfalls, and advanced patterns that general-purpose assistants might miss.
 
-### Usage Examples
-```
-When user asks about React performance issues:
-→ Use Task tool with subagent_type: "react-performance-expert"
+**Key Principles:**
+- Always check if a specialized agent exists for your task domain
+- Delegate complex technical problems to domain experts
+- Use diagnostic agents first when the problem scope is unclear
+- Leverage specialists for architecture decisions and optimizations
 
-When encountering complex TypeScript type errors:
-→ Use Task tool with subagent_type: "typescript-type-expert"
+**Why This Matters:**
+- Specialists have deeper, more focused knowledge
+- They're aware of edge cases and subtle bugs
+- They follow established patterns and best practices
+- They can provide more comprehensive solutions
 
-When configuring Webpack or build tools:
-→ Use Task tool with subagent_type: "webpack-expert"
+**Discovering Available Agents:**
+```bash
+# Quick check: List agents if claudekit is installed
+command -v claudekit >/dev/null 2>&1 && claudekit list agents || echo "claudekit not installed"
 
-When setting up Docker containers:
-→ Use Task tool with subagent_type: "docker-expert"
-
-When debugging Jest tests:
-→ Use Task tool with subagent_type: "jest-testing-expert"
+# If claudekit is installed, you can explore available agents:
+claudekit list agents
 ```
 
-### Project-Specific Recommendations
-[Based on the project's technology stack, recommend which subagents would be most useful. For example:]
-- For React projects: Recommend react-expert, react-performance-expert
-- For Node.js backends: Recommend nodejs-expert, database experts
-- For TypeScript projects: Recommend typescript-expert, typescript-type-expert
-- For projects with CI/CD: Recommend github-actions-expert, docker-expert
+Remember: If a specialist exists for the task at hand, delegation is not optional—it's required for optimal results.
 ```
 
 Think about what you'd tell a new team member on their first day. Include these key sections:
