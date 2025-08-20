@@ -357,9 +357,9 @@ export interface ListOptions extends GlobalOptions {
 }
 
 /**
- * Options for the validate command
+ * Options for the doctor command
  */
-export interface ValidateOptions extends GlobalOptions {
+export interface DoctorOptions extends GlobalOptions {
   /** Type of validation to perform */
   type?: ValidationType;
 

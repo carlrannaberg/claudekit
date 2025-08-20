@@ -1,5 +1,5 @@
 // Main library exports
-export { validate } from './commands/validate.js';
+export { doctor } from './commands/doctor.js';
 export { setup } from './commands/setup.js';
 export { add } from './commands/add.js';
 export { remove } from './commands/remove.js';

@@ -229,7 +229,7 @@ claudekit lint-commands
 claudekit lint-commands path/to/commands
 
 # Check overall project setup (not schemas)
-claudekit validate
+claudekit doctor
 ```
 
 The linter checks frontmatter for:

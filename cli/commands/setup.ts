@@ -964,7 +964,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
         console.log(Colors.dim(`\n${'─'.repeat(40)}`));
         console.log('\nNext steps:');
-        console.log(`  1. ${Colors.accent('claudekit validate')} - Check your installation`);
+        console.log(`  1. ${Colors.accent('claudekit doctor')} - Check your installation`);
         console.log(`  2. ${Colors.accent('claudekit list')} - See available commands`);
         console.log(
           `  3. ${Colors.accent('.claude/settings.json')} - Customize your configuration`

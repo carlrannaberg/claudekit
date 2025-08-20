@@ -163,15 +163,15 @@ program
 // Legacy commands for backward compatibility - removed init command
 
 program
-  .command('validate')
+  .command('doctor')
   .description('Run project validation checks')
   .option('-t, --type <type>', 'validation type', 'all')
   .option('--prerequisites', 'check development prerequisites')
   .action(async (options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options };
-      const { validate } = await import('./commands/validate.js');
-      await validate(mergedOptions);
+      const { doctor } = await import('./commands/doctor.js');
+      await doctor(mergedOptions);
     } catch (error) {
       logger.error(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);

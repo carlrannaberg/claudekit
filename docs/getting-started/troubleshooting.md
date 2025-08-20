@@ -9,7 +9,7 @@
 **Solutions**:
 1. Check `.claude/settings.json` exists and has correct hook configuration
 2. Verify hooks are using the embedded format: `claudekit-hooks run <hook-name>`
-3. Run `claudekit validate` to check configuration syntax
+3. Run `claudekit doctor` to check configuration syntax
 4. Ensure claudekit is installed globally: `npm list -g claudekit`
 
 ### TypeScript/ESLint Not Found
@@ -136,7 +136,7 @@
 
 If you encounter issues not covered here:
 
-1. Run `claudekit validate --verbose` for detailed diagnostics
+1. Run `claudekit doctor --verbose` for detailed diagnostics
 2. Check debug output: `DEBUG=true claudekit-hooks run <hook-name>`
 3. Search [existing issues](https://github.com/carlrannaberg/claudekit/issues)
 4. Open a new issue with:

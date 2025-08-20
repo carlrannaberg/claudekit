@@ -886,7 +886,7 @@ claudekit-hooks test typecheck-changed --file src/index.ts --debug
 
 2. **Validate configuration**:
    ```bash
-   claudekit validate
+   claudekit doctor
    ```
 
 3. **View detailed logs**:

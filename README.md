@@ -96,7 +96,7 @@ claudekit show agent <id>    # Display agent prompt for external use
 claudekit show command <id>  # Display command prompt for external use
 claudekit show agent <id> -f json    # Output agent metadata and content as JSON
 claudekit show command <id> -f json  # Output command metadata and content as JSON
-claudekit validate           # Check your installation
+claudekit doctor             # Check your installation
 ```
 
 ### Using Prompts with External LLMs
@@ -262,13 +262,13 @@ Claudekit uses two configuration files:
 
 - **Documentation**: [Full docs](docs/)
 - **Issues**: [GitHub Issues](https://github.com/claudekit/claudekit/issues)
-- **Quick test**: `claudekit validate` to check setup
+- **Quick test**: `claudekit doctor` to check setup
 
 ## Common Issues
 
 **Hooks not triggering?**
 ```bash
-claudekit validate              # Check configuration
+claudekit doctor                # Check configuration
 npm list -g claudekit           # Verify installation
 ```
 

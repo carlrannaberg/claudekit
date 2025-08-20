@@ -10,7 +10,7 @@ import {
 } from '../lib/validation.js';
 import { validateClaudekitConfig } from '../types/claudekit-config.js';
 
-interface ValidateOptions {
+interface DoctorOptions {
   type?: string;
   prerequisites?: boolean;
   verbose?: boolean;
@@ -22,7 +22,7 @@ interface LegacyValidationResult {
   message: string;
 }
 
-export async function validate(options: ValidateOptions): Promise<void> {
+export async function doctor(options: DoctorOptions): Promise<void> {
   const progressReporter = createProgressReporter({
     quiet: options.quiet,
     verbose: options.verbose,
@@ -35,7 +35,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     const projectRoot = process.cwd();
 
     // Enhanced project validation using new validation module
-    progressReporter.start('Validating project structure...');
+    progressReporter.start('Running diagnostic checks...');
     const projectValidation = await validateProject(projectRoot, {
       requireGitRepository: false,
       requireNodeProject: false,
@@ -60,7 +60,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     }
 
     // Check for settings.json with enhanced validation
-    progressReporter.update('Validating configuration files...');
+    progressReporter.update('Checking configuration files...');
     const settingsPath = path.join(claudeDir, 'settings.json');
     try {
       const settings = await fs.readFile(settingsPath, 'utf-8');
@@ -336,10 +336,10 @@ export async function validate(options: ValidateOptions): Promise<void> {
       validationResults.push(prereqResult);
     }
 
-    progressReporter.succeed('Validation checks completed');
+    progressReporter.succeed('Diagnostic checks completed');
 
     // Display results
-    console.log('\nValidation Results:\n');
+    console.log('\nDiagnostic Results:\n');
 
     // Display legacy validation results
     let allPassed = true;
@@ -359,7 +359,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
       !projectValidation.isValid ||
       (options.prerequisites === true && validationResults.some((r) => !r.isValid))
     ) {
-      console.log('\nValidation Details:\n');
+      console.log('\nDiagnostic Details:\n');
 
       for (const result of validationResults) {
         if (!result.isValid || result.warnings.length > 0) {
@@ -379,7 +379,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
     console.log('');
 
     if (allPassed) {
-      console.log(Colors.bold(Colors.success('All validation checks passed!')));
+      console.log(Colors.bold(Colors.success('All diagnostic checks passed!')));
 
       // Show summary of what was checked
       if (options.verbose === true) {
@@ -409,7 +409,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
         suggestions.forEach((s) => console.log(Colors.dim(s)));
       }
     } else {
-      console.log(Colors.bold(Colors.error('Some validation checks failed.')));
+      console.log(Colors.bold(Colors.error('Some diagnostic checks failed.')));
 
       // Provide helpful suggestions
       console.log(Colors.warn('\nNext steps:'));
@@ -424,7 +424,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
       process.exit(1);
     }
   } catch (error) {
-    progressReporter.fail('Validation failed');
+    progressReporter.fail('Diagnostic checks failed');
     throw error;
   }
 }

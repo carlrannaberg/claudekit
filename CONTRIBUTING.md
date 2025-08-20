@@ -83,8 +83,8 @@ claudekit lint-subagents --verbose    # Show all files
 #### Validate Installation
 ```bash
 # Check overall installation and configuration
-claudekit validate           # Basic validation
-claudekit validate --verbose # Detailed validation
+claudekit doctor             # Basic validation
+claudekit doctor --verbose   # Detailed validation
 ```
 
 ### Creating New Components

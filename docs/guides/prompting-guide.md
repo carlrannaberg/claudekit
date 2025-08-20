@@ -325,7 +325,7 @@ This guide focuses on prompt writing patterns. For complete schema specification
 # Validate schemas and configurations
 claudekit lint-commands      # Command frontmatter validation
 claudekit lint-subagents     # Subagent frontmatter validation
-claudekit validate           # Overall project setup
+claudekit doctor             # Overall project setup
 ```
 
 ## Complete Templates and Examples
@@ -448,7 +448,7 @@ claudekit lint-commands
 claudekit lint-subagents
 
 # 2. Check project setup
-claudekit validate
+claudekit doctor
 
 # 3. Test in Claude Code
 /your-new-command test-args

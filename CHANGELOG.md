@@ -326,8 +326,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.8] - 2025-08-14
 
 ### Changed
-- **Validate Command Flag Standardization**: Replaced `--detailed` flag with universal `--verbose` flag for consistency
-  - Removed the `--detailed` option from the validate command CLI interface
+- **Doctor Command Flag Standardization**: Replaced `--detailed` flag with universal `--verbose` flag for consistency
+  - Removed the `--detailed` option from the doctor command CLI interface
   - Updated validation output logic to use `--verbose` instead of `--detailed` for enhanced details
   - Changed output header from "Detailed Validation:" to "Validation Details:" for clarity
   - Maintains same functionality while providing consistent flag naming across the CLI

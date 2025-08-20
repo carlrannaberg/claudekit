@@ -73,20 +73,21 @@ Examples:
   claudekit list -v             # Show detailed information
 ```
 
-### `claudekit validate`
-Validate installation and configuration integrity.
+### `claudekit doctor`
+Run project validation checks to diagnose installation and configuration issues.
 
 ```bash
-claudekit validate [options]
+claudekit doctor [options]
 
 Options:
-  -q, --quiet      Only show errors
-  -v, --verbose    Show detailed validation information
+  -q, --quiet         Only show errors
+  -v, --verbose       Show detailed validation information
+  --prerequisites     Check development prerequisites
 
 Examples:
-  claudekit validate           # Check installation
-  claudekit validate --verbose # Show detailed results
-  claudekit validate --quiet   # Only show problems
+  claudekit doctor             # Check installation
+  claudekit doctor --verbose   # Show detailed results
+  claudekit doctor --quiet     # Only show problems
 ```
 
 ## Hook Management
@@ -189,7 +190,7 @@ When installed globally (`npm install -g claudekit`), commands are available sys
 ```bash
 # Available from any directory
 claudekit setup
-claudekit validate
+claudekit doctor
 claudekit-hooks list
 ```
 
@@ -255,7 +256,7 @@ cd my-project
 claudekit setup
 
 # 4. Validate installation
-claudekit validate
+claudekit doctor
 ```
 
 ### Adding to Existing Project
@@ -268,7 +269,7 @@ claudekit install git:commit checkpoint:create
 ### Debugging Issues
 ```bash
 # Check installation status
-claudekit validate --verbose
+claudekit doctor --verbose
 
 # View recent hook executions
 claudekit-hooks recent
@@ -284,7 +285,7 @@ echo '{"tool_input": {"file_path": "test.ts"}}' | claudekit-hooks run typecheck-
 3. **Monitor performance**: Use `claudekit-hooks stats` to identify slow hooks
 4. **Keep hooks fast**: Hooks should complete quickly to avoid disrupting workflow
 5. **Use project-level settings**: Keep user settings minimal (environment vars only)
-6. **Regular validation**: Run `claudekit validate` after updates
+6. **Regular validation**: Run `claudekit doctor` after updates
 
 ## Troubleshooting
 
@@ -294,7 +295,7 @@ echo '{"tool_input": {"file_path": "test.ts"}}' | claudekit-hooks run typecheck-
 claudekit setup --force
 
 # Check for conflicts
-claudekit validate --verbose
+claudekit doctor --verbose
 ```
 
 ### Hook Not Triggering

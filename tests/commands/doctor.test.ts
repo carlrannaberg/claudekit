@@ -1,11 +1,11 @@
 /**
- * Tests for the validate command
+ * Tests for the doctor command
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { validate } from '../../cli/commands/validate';
+import { doctor } from '../../cli/commands/doctor';
 import {
   TestFileSystem,
   // TestAssertions, // Removed unused import
@@ -65,7 +65,7 @@ vi.mock('chalk', () => {
   };
 });
 
-describe('validate command', () => {
+describe('doctor command', () => {
   let testFs: TestFileSystem;
   let tempDir: string;
   let restoreCwd: () => void;
@@ -130,7 +130,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       // Should not exit with error
       expect(processExit.exit).not.toHaveBeenCalled();
@@ -153,7 +153,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).not.toHaveBeenCalled();
 
@@ -164,7 +164,7 @@ describe('validate command', () => {
 
   describe('validation failures', () => {
     it('should fail when .claude directory does not exist', async () => {
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
@@ -182,7 +182,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
@@ -200,7 +200,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
@@ -215,7 +215,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       // Should not exit with error - missing hooks is valid
       expect(processExit.exit).not.toHaveBeenCalled();
@@ -229,7 +229,7 @@ describe('validate command', () => {
       // Only create .claude directory, nothing else
       await fs.mkdir(path.join(tempDir, '.claude'));
 
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
@@ -255,9 +255,9 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
-      // Should still pass JSON validation (this tests that we don't schema validate in the validate command)
+      // Should still pass JSON validation (this tests that we don't schema doctor in the doctor command)
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       expect(output).toContain('settings.json is valid');
     });
@@ -270,7 +270,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
@@ -293,7 +293,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       const output = ConsoleTestHelper.getOutput('log').join('\n');
       // Should count all items in hooks directory (files and subdirectories)
@@ -310,7 +310,7 @@ describe('validate command', () => {
         },
       });
 
-      await validate({});
+      await doctor({});
 
       // Verify ora was called
       const ora = await import('ora');
@@ -324,7 +324,7 @@ describe('validate command', () => {
         .mockRejectedValueOnce(new Error('Unexpected filesystem error'));
 
       // Should not throw, but handle error gracefully
-      await validate({});
+      await doctor({});
 
       // Verify that the error was handled (access was called)
       expect(accessSpy).toHaveBeenCalled();
@@ -343,9 +343,9 @@ describe('validate command', () => {
       });
 
       // Test that options parameter is accepted but doesn't affect behavior
-      await validate({ type: 'full' });
-      await validate({ type: 'quick' });
-      await validate({});
+      await doctor({ type: 'full' });
+      await doctor({ type: 'quick' });
+      await doctor({});
 
       // All should behave the same way
       expect(processExit.exit).not.toHaveBeenCalled();

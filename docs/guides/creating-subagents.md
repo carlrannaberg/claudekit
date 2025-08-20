@@ -331,7 +331,7 @@ claudekit lint-subagents
 claudekit lint-subagents path/to/agents
 
 # Check overall project setup (counts agents, not schemas)
-claudekit validate
+claudekit doctor
 ```
 
 The linter checks for:

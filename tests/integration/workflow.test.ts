@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { setup } from '../../cli/commands/setup';
-import { validate } from '../../cli/commands/validate';
+import { doctor } from '../../cli/commands/doctor';
 import { loadConfig, saveConfig, configExists } from '../../cli/utils/config';
 import { TestFileSystem, CommandTestHelper, ConsoleTestHelper } from '../utils/test-helpers.ts';
 import type { Config } from '../../cli/types/config';
@@ -76,9 +76,9 @@ describe('CLI workflow integration', () => {
   });
 
   describe('complete initialization workflow', () => {
-    it('should complete full setup -> validate -> config modification cycle', async () => {
+    it('should complete full setup -> doctor -> config modification cycle', async () => {
       // Step 1: Fresh directory should fail validation
-      await validate({});
+      await doctor({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
       // Reset mocks for next steps
@@ -89,7 +89,7 @@ describe('CLI workflow integration', () => {
       expect(processExit.exit).not.toHaveBeenCalled();
 
       // Step 3: Validation should now pass
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
 
       // Step 4: Verify config exists and is valid
@@ -153,7 +153,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should still pass
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
     });
 
@@ -190,7 +190,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should pass
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
     });
   });
@@ -208,7 +208,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should fail
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
       // Should not be able to load config
@@ -223,7 +223,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should pass again
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
     });
 
@@ -236,7 +236,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should fail (missing settings.json)
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).toHaveBeenCalledWith(1);
 
       // Force reinitialize to recover
@@ -249,7 +249,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should pass
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
     });
   });
@@ -271,7 +271,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should still pass (it only checks JSON validity)
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
 
       // But config loading should fail with schema validation
@@ -295,7 +295,7 @@ describe('CLI workflow integration', () => {
 
       // Validation should pass
       processExit.exit.mockClear();
-      await validate({});
+      await doctor({});
       expect(processExit.exit).not.toHaveBeenCalled();
     });
   });
@@ -330,7 +330,7 @@ describe('CLI workflow integration', () => {
 
         // Validation should work
         processExit.exit.mockClear();
-        await validate({});
+        await doctor({});
         expect(processExit.exit).not.toHaveBeenCalled();
       } finally {
         restoreDeepCwd();
@@ -350,7 +350,7 @@ describe('CLI workflow integration', () => {
         expect(exists).toBe(true);
 
         processExit.exit.mockClear();
-        await validate({});
+        await doctor({});
         expect(processExit.exit).not.toHaveBeenCalled();
       } finally {
         restoreSpecialCwd();

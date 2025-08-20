@@ -690,7 +690,7 @@ done
 **Agent/Command Not Found**
 ```bash
 # Check if claudekit is properly setup
-claudekit validate
+claudekit doctor
 
 # Re-initialize if needed
 claudekit setup
