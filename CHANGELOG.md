@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.9] - 2025-08-21
+
+### Changed
+- **Command Namespace Standardization**: Renamed AI assistant command namespace for consistency
+  - Renamed command namespace from `agent-md` to `agents-md` for consistency with filename conventions
+  - Updated all command references in CLI setup configuration from `agent-md:*` to `agents-md:*`
+  - Updated documentation references from `AGENT.md` to `AGENTS.md` throughout the codebase
+  - Updated lint error messages to reference `AGENTS.md/CLAUDE.md` for command lookup
+  - Maintains full backward compatibility - existing functionality unchanged
+
 ## [0.6.8] - 2025-08-20
 
 ### Changed
