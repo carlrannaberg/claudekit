@@ -225,4 +225,4 @@ You can configure hooks in `.claudekit/config.json`:
 - Read the [full documentation](../README.md)
 - Explore [available hooks](hooks-reference.md)
 - Learn about [custom commands](create-command-documentation.md)
-- Set up [AGENT.md configuration](agent-commands-documentation.md)
+- Set up [AGENTS.md configuration](agent-commands-documentation.md)

@@ -503,4 +503,4 @@ If you encounter issues:
 
 - [Hooks Documentation](hooks-documentation.md) - Detailed hook implementation guide
 - [Create Command Documentation](create-command-documentation.md) - Creating custom commands
-- [AGENT.md Commands](agent-commands-documentation.md) - AI assistant configuration
+- [AGENTS.md Commands](agent-commands-documentation.md) - AI assistant configuration

@@ -32,7 +32,7 @@ Before reviewing any code, establish context:
 
 ```bash
 # Read project documentation for conventions and architecture
-for doc in AGENT.md CLAUDE.md README.md CONTRIBUTING.md ARCHITECTURE.md; do
+for doc in AGENTS.md CLAUDE.md README.md CONTRIBUTING.md ARCHITECTURE.md; do
   [ -f "$doc" ] && echo "=== $doc ===" && head -50 "$doc"
 done
 
