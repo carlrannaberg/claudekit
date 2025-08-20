@@ -141,7 +141,7 @@ describe('doctor command', () => {
       expect(output).toContain('.claude directory exists');
       expect(output).toContain('settings.json is valid');
       expect(output).toContain('Found 2 hook(s)');
-      expect(output).toContain('All validation checks passed!');
+      expect(output).toContain('All diagnostic checks passed!');
     });
 
     it('should handle empty hooks directory', async () => {
@@ -172,7 +172,7 @@ describe('doctor command', () => {
       expect(output).toContain('✗');
       expect(output).toContain('.claude directory not found');
       expect(output).toContain('run "claudekit setup" first');
-      expect(output).toContain('Some validation checks failed.');
+      expect(output).toContain('Some diagnostic checks failed.');
     });
 
     it('should fail when settings.json does not exist', async () => {
@@ -314,7 +314,7 @@ describe('doctor command', () => {
 
       // Verify ora was called
       const ora = await import('ora');
-      expect(ora.default).toHaveBeenCalledWith('Validating project structure...');
+      expect(ora.default).toHaveBeenCalledWith('Running diagnostic checks...');
     });
 
     it('should handle spinner errors gracefully', async () => {
