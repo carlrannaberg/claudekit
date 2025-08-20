@@ -1,71 +1,9 @@
 {
   "hooks": {
-    "typecheck-changed": {
-      "command": "npm run typecheck"
-    },
-    "typecheck-project": {
-      "command": "npm run typecheck"
-    },
-    "test-project": {
-      "command": "npm run test:fast"
-    },
-    "self-review": {
-      "targetPatterns": [
-        "**/*.ts",
-        "**/*.tsx", 
-        "**/*.js",
-        "**/*.jsx",
-        "!**/*.test.*",
-        "!**/*.spec.*"
-      ],
-      "focusAreas": [
-        {
-          "name": "Refactoring & Integration",
-          "questions": [
-            "Did you just add code on top without integrating it properly?",
-            "Should you extract the new functionality into cleaner abstractions?",
-            "Would refactoring the surrounding code make everything simpler?",
-            "Does the code structure still make sense after your additions?",
-            "Should you consolidate similar functions that now exist?",
-            "Did you leave any temporary workarounds or hacks?",
-            "Did you add feature-specific logic to generic utilities?", 
-            "Should feature-specific logic stay in the feature's own module?"
-          ]
-        },
-        {
-          "name": "Code Quality",
-          "questions": [
-            "Did you leave the code better than you found it?",
-            "Is there duplicated logic that should be extracted?",
-            "Are you using different patterns than the existing code uses?",
-            "Is the code more complex now than it needs to be?",
-            "Did you clean up after making your changes work?",
-            "Is every piece of code still serving a clear purpose?"
-          ]
-        },
-        {
-          "name": "Consistency & Completeness",
-          "questions": [
-            "Should other parts of the codebase be updated to match your improvements?",
-            "Did you update all the places that depend on what you changed?",
-            "Are there related files that need the same changes?",
-            "Did you create a utility that existing code could benefit from?",
-            "Should your solution be applied elsewhere for consistency?",
-            "Did you finish what you started or leave work half-done?"
-          ]
-        },
-        {
-          "name": "Test Coverage",
-          "questions": [
-            "Did you write automated tests for the code you just added?",
-            "Should you add tests before moving on?",
-            "Are the critical paths covered by tests?",
-            "Did you verify your tests actually catch failures?",
-            "Would another developer trust this code based on its tests?",
-            "Should you add tests now to prevent regressions later?"
-          ]
-        }
-      ]
+    "codebase-map": {
+      "include": ["src/**"],
+      "exclude": ["**/*.test.ts"],
+      "format": "auto"
     }
   }
 }

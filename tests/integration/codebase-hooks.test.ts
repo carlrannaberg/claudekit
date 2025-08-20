@@ -187,7 +187,8 @@ describe('Codebase Hooks Integration', () => {
 
     it('should share configuration between hooks using same codebase-map tool', async () => {
       const customConfig = {
-        command: 'custom-codebase-map scan --verbose',
+        include: ['src/**'],
+        exclude: ['**/*.test.ts'],
         format: 'json',
       };
 
@@ -205,10 +206,10 @@ describe('Codebase Hooks Integration', () => {
       const mapHook = new CodebaseMapHook();
       await mapHook.execute(createSessionStartContext('test-session'));
 
-      // Check that custom command was used
-      expect(mockExecAsync).toHaveBeenCalledWith(customConfig.command, expect.any(Object));
+      // Check that filtering was applied
+      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map scan', expect.any(Object));
       expect(mockExecAsync).toHaveBeenCalledWith(
-        `codebase-map format --format ${customConfig.format}`,
+        `codebase-map format --format json --include "src/**" --exclude "**/*.test.ts"`,
         expect.any(Object)
       );
 
@@ -221,10 +222,10 @@ describe('Codebase Hooks Integration', () => {
       const contextHook = new CodebaseMapHook();
       await contextHook.execute(createUserPromptContext('test-session'));
 
-      // Should use same custom command
-      expect(mockExecAsync).toHaveBeenCalledWith(customConfig.command, expect.any(Object));
+      // Should use same filtering configuration
+      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map scan', expect.any(Object));
       expect(mockExecAsync).toHaveBeenCalledWith(
-        `codebase-map format --format ${customConfig.format}`,
+        `codebase-map format --format ${customConfig.format} --include "src/**" --exclude "**/*.test.ts"`,
         expect.any(Object)
       );
     });

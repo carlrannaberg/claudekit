@@ -41,6 +41,12 @@ const SelfReviewConfigSchema = z.object({
     .optional(),
 });
 
+const CodebaseMapConfigSchema = z.object({
+  include: z.array(z.string()).optional(),
+  exclude: z.array(z.string()).optional(),
+  format: z.enum(['auto', 'json', 'dsl', 'graph', 'markdown', 'tree']).or(z.string()).optional(),
+});
+
 // Global configuration that applies to all hooks
 const GlobalHookConfigSchema = z.object({
   timeout: z.number().min(1000).max(300000).optional(),
@@ -73,6 +79,7 @@ const HooksConfigurationSchema = z.object({
       timeout: z.number().min(1000).max(300000).optional(),
     })
     .optional(),
+  'codebase-map': CodebaseMapConfigSchema.optional(),
 
   // Global config
   global: GlobalHookConfigSchema.optional(),

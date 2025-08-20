@@ -59,7 +59,8 @@ export class CodebaseMapHook extends BaseHook {
     try {
       // Generate the codebase map using shared utility
       const result = await generateCodebaseMap({
-        command: config.command,
+        include: config.include,
+        exclude: config.exclude,
         format: config.format,
         projectRoot,
       });
@@ -114,17 +115,8 @@ export class CodebaseMapUpdateHook extends BaseHook {
     dependencies: ['codebase-map'],
   };
 
-  private loadConfig(): CodebaseMapConfig {
-    return getHookConfig<CodebaseMapConfig>('codebase-map') ?? {};
-  }
-
   private shouldUpdateMap(filePath: string | undefined): boolean {
     if (filePath === undefined || filePath.length === 0) {
-      return false;
-    }
-
-    const config = this.loadConfig();
-    if (config.updateOnChanges === false) {
       return false;
     }
 
@@ -167,8 +159,8 @@ export class CodebaseMapUpdateHook extends BaseHook {
     this.lastUpdateTime = Date.now();
 
     try {
-      const config = this.loadConfig();
-      const command = config.command ?? `codebase-map update "${filePath}"`;
+      // Update the specific file in the index (no filtering needed for updates)
+      const command = `codebase-map update "${filePath}"`;
 
       await execAsync(command, {
         cwd: projectRoot,

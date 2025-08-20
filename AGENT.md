@@ -7,6 +7,28 @@ This file provides guidance to AI coding assistants working in this repository.
 
 A toolkit of custom commands, hooks, and utilities for Claude Code. This project provides powerful development workflow tools including git checkpointing, automated code quality checks, specification generation, and AI assistant configuration management. The toolkit is designed to be project-agnostic and enhances Claude Code functionality through shell scripts, commands, and hooks.
 
+## Navigating the Codebase
+
+Use the `codebase-map` tool to understand and navigate the project structure:
+
+**Recommended formats:**
+- `dsl` - For understanding code relationships, imports/exports, functions, and classes
+- `tree` - For exploring directory structure and finding files
+
+**Example usage:**
+```bash
+# Get code overview with DSL format (shows functions, classes, imports)
+codebase-map format --format dsl
+
+# Get directory/file structure with tree format
+codebase-map format --format tree
+
+# Focus on specific areas
+codebase-map format --format dsl --include "cli/**" --exclude "**/*.test.ts"
+```
+
+The codebase map is automatically provided at the start of each session and can be configured in `.claudekit/config.json` to filter what's shown.
+
 ## Build & Commands
 
 This is a TypeScript-based toolkit. Key commands:
@@ -330,24 +352,51 @@ Based on analysis of this project's git history:
 ### Directory Structure
 
 **IMPORTANT**: Keep source code and configuration separate:
-- `src/` - All source code (commands, hooks, etc.) lives here
+- `src/` - Slash commands and subagent definitions (markdown files for Claude Code)
+- `cli/` - TypeScript implementation code (CLI tool, hooks, utilities)
 - `.claude/` - Project-level configuration only (settings.json, symlinks)
 
 ```
 # claudekit repository structure
-src/
-├── commands/                 # Source code for all commands
+src/                         # Claude Code specific files (commands & agents)
+├── commands/                # Slash command definitions (markdown)
 │   ├── agent/               # Agent-related commands
 │   ├── checkpoint/          # Checkpoint commands
 │   ├── config/              # Configuration commands
 │   ├── git/                 # Git workflow commands
 │   └── ...                  # Other command namespaces
-└── hooks/                   # Source code for all hooks
+└── agents/                  # Subagent definitions (markdown)
+    ├── react/               # React-specific agents
+    ├── typescript/          # TypeScript agents
+    ├── database/            # Database agents
+    └── ...                  # Other domain experts
+
+cli/                         # TypeScript implementation
+├── cli.ts                   # Main CLI entry point
+├── hooks-cli.ts             # Hooks CLI entry point
+├── commands/                # CLI command implementations
+│   ├── setup.ts             # Setup command implementation
+│   ├── list.ts              # List command implementation
+│   └── ...                  # Other CLI commands
+├── hooks/                   # Hook implementations
+│   ├── base.ts              # Base hook class
+│   ├── codebase-map.ts      # Codebase map hooks
+│   ├── typecheck-changed.ts # TypeScript checking hook
+│   └── ...                  # Other hooks
+├── lib/                     # Core library code
+│   ├── components.ts        # Component discovery
+│   ├── installer.ts         # Installation logic
+│   └── ...                  # Other utilities
+├── types/                   # TypeScript type definitions
+└── utils/                   # Utility functions
 
 .claude/
 ├── settings.json            # Project-specific hook configuration
 ├── commands/                # Symlinks to src/commands/*
 └── hooks/                   # Legacy - hooks now managed by embedded system
+
+.claudekit/                  # Claudekit-specific configuration
+└── config.json              # Hook configurations (e.g., codebase-map filtering)
 
 examples/
 └── settings.user.example.json  # Example user-level settings (env vars only)

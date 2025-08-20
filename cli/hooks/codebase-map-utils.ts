@@ -10,13 +10,14 @@ import { checkToolAvailable } from './utils.js';
 const execAsync = promisify(exec);
 
 export interface CodebaseMapConfig {
-  command?: string;
-  format?: 'auto' | 'json' | 'dsl' | 'graph' | 'markdown' | string;
-  updateOnChanges?: boolean;
+  include?: string[];
+  exclude?: string[];
+  format?: 'auto' | 'json' | 'dsl' | 'graph' | 'markdown' | 'tree' | string;
 }
 
 export interface CodebaseMapOptions {
-  command?: string | undefined;
+  include?: string[] | undefined;
+  exclude?: string[] | undefined;
   format?: string | undefined;
   projectRoot: string;
 }
@@ -42,15 +43,28 @@ export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<
   }
 
   try {
-    // First, scan the project to create/update the index
-    const scanCommand = options.command ?? 'codebase-map scan';
+    // First, scan the project to create/update the index (scan everything for comprehensive index)
+    const scanCommand = 'codebase-map scan';
     await execAsync(scanCommand, {
       cwd: options.projectRoot,
       maxBuffer: 10 * 1024 * 1024,
     });
 
-    // Then format and get the result
-    const formatCommand = `codebase-map format --format ${options.format ?? 'auto'}`;
+    // Then format and get the result with filtering
+    let formatCommand = `codebase-map format --format ${options.format ?? 'auto'}`;
+    
+    // Add include patterns if specified
+    if (options.include && options.include.length > 0) {
+      const includeArgs = options.include.map(pattern => `--include "${pattern}"`).join(' ');
+      formatCommand += ` ${includeArgs}`;
+    }
+    
+    // Add exclude patterns if specified
+    if (options.exclude && options.exclude.length > 0) {
+      const excludeArgs = options.exclude.map(pattern => `--exclude "${pattern}"`).join(' ');
+      formatCommand += ` ${excludeArgs}`;
+    }
+    
     const { stdout } = await execAsync(formatCommand, {
       cwd: options.projectRoot,
       maxBuffer: 10 * 1024 * 1024,
@@ -70,15 +84,14 @@ export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<
  */
 export async function updateCodebaseMap(
   filePath: string,
-  projectRoot: string,
-  command?: string
+  projectRoot: string
 ): Promise<boolean> {
   if (!(await checkToolAvailable('codebase-map', 'package.json', projectRoot))) {
     return false;
   }
 
   try {
-    const updateCommand = command ?? `codebase-map update "${filePath}"`;
+    const updateCommand = `codebase-map update "${filePath}"`;
     await execAsync(updateCommand, {
       cwd: projectRoot,
       maxBuffer: 10 * 1024 * 1024,

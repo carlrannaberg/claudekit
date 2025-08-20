@@ -258,9 +258,12 @@ describe('CodebaseMapHook', () => {
       });
     });
 
-    it('should handle custom scan command configuration', async () => {
+    it('should handle include/exclude filtering configuration', async () => {
       mockCheckToolAvailable.mockResolvedValueOnce(true);
-      mockGetHookConfig.mockReturnValueOnce({ command: 'custom-scan --deep' });
+      mockGetHookConfig.mockReturnValueOnce({ 
+        include: ['src/**', 'lib/**'],
+        exclude: ['**/*.test.ts', '**/*.spec.ts']
+      });
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
         .mockResolvedValueOnce({ stdout: 'output', stderr: '' }); // format
@@ -268,10 +271,13 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockExecAsync).toHaveBeenCalledWith('custom-scan --deep', {
-        cwd: TEST_PROJECT_ROOT,
-        maxBuffer: 10 * 1024 * 1024,
-      });
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        'codebase-map format --format auto --include "src/**" --include "lib/**" --exclude "**/*.test.ts" --exclude "**/*.spec.ts"', 
+        {
+          cwd: TEST_PROJECT_ROOT,
+          maxBuffer: 10 * 1024 * 1024,
+        }
+      );
     });
 
     it('should handle large output buffers', async () => {
@@ -296,9 +302,9 @@ describe('CodebaseMapHook', () => {
     it('should handle configuration with all possible options', async () => {
       mockCheckToolAvailable.mockResolvedValueOnce(true);
       mockGetHookConfig.mockReturnValueOnce({
-        command: 'custom-command --option',
+        include: ['src/**'],
+        exclude: ['**/*.test.ts'],
         format: 'json',
-        updateOnChanges: false,
       });
       mockExecAsync
         .mockResolvedValueOnce({ stdout: '', stderr: '' }) // scan
@@ -307,9 +313,9 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(mockContext);
 
       expect(result.exitCode).toBe(0);
-      expect(mockExecAsync).toHaveBeenCalledWith('custom-command --option', expect.any(Object));
+      expect(mockExecAsync).toHaveBeenCalledWith('codebase-map scan', expect.any(Object));
       expect(mockExecAsync).toHaveBeenCalledWith(
-        'codebase-map format --format json',
+        'codebase-map format --format json --include "src/**" --exclude "**/*.test.ts"',
         expect.any(Object)
       );
     });
@@ -432,12 +438,6 @@ describe('CodebaseMapUpdateHook', () => {
 
     it('should return false for empty filePath', () => {
       const result = hook['shouldUpdateMap']('');
-      expect(result).toBe(false);
-    });
-
-    it('should return false when updateOnChanges is disabled', () => {
-      mockGetHookConfig.mockReturnValueOnce({ updateOnChanges: false });
-      const result = hook['shouldUpdateMap']('/test/file.ts');
       expect(result).toBe(false);
     });
 
