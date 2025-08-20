@@ -12,7 +12,7 @@ For complex commit scenarios (merge commits, conflict resolution, commit history
 ## Efficiency Note:
 This command intelligently reuses recent git:status results when available to avoid redundant operations. If you just ran /git:status, the commit process will be faster.
 
-When git conventions are already documented in CLAUDE.md/AGENT.md, use them directly without verbose explanation.
+When git conventions are already documented in CLAUDE.md/AGENTS.md, use them directly without verbose explanation.
 
 All git commands are combined into a single bash call for maximum speed.
 
@@ -30,7 +30,7 @@ All git commands are combined into a single bash call for maximum speed.
    - No temporary debugging scripts (test-*.js, debug-*.py, etc.) created by Claude Code
    - No temporary files or outputs in inappropriate locations (move to project's temp directory or delete)
    - All TODO/FIXME comments are addressed or intentionally left
-3. Use documented git commit conventions from CLAUDE.md/AGENT.md
+3. Use documented git commit conventions from CLAUDE.md/AGENTS.md
    - If conventions are not documented, analyze recent commits and document them
 4. If the project uses ticket/task codes, ask the user for the relevant code if not clear from context
 5. Check if README.md or other documentation needs updating to reflect the changes (see "Documentation Updates" section below)

@@ -20,7 +20,7 @@ claudekit setup --agents testing-expert,jest-expert,vitest-expert,playwright-exp
 After installation, use agents in two ways:
 
 1. **Explicit invocation**: "Use the oracle agent to debug this issue"
-2. **Proactive usage**: Run `/agent-md:init` to configure automatic delegation
+2. **Proactive usage**: Run `/agents-md:init` to configure automatic delegation
 
 ## Available Agents
 

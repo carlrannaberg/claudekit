@@ -48,7 +48,7 @@ Once configured, you can use oracle for:
 "Use the oracle agent to debug this race condition"
 "Ask oracle to review this architecture"
 
-# After running /agent-md:init for proactive usage
+# After running /agents-md:init for proactive usage
 "Debug this complex issue" # Oracle will be used automatically
 ```
 

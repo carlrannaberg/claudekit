@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced test infrastructure with comprehensive configuration validation tests
 
 ### Changed
-- **Agent MD Init Enhancement**: Improved `/agent-md:init` command to encourage delegation to specialized agents
+- **Agent MD Init Enhancement**: Improved `/agents-md:init` command to encourage delegation to specialized agents
   - Enhanced command to emphasize the importance of using domain-specific subagents
   - Updated guidance to promote proactive delegation patterns for better task management
   - Improved documentation structure for specialized agent usage
@@ -148,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added subagent integration patterns to `spec:create`, `spec:validate`, and `validate-and-fix` commands
   - Commands now intelligently delegate to domain experts based on task requirements
   - Documented specialized subagent usage patterns in creating-commands guide
-- **Mandatory Subagent Delegation Guidelines**: Enhanced AGENT.md with strict delegation requirements
+- **Mandatory Subagent Delegation Guidelines**: Enhanced AGENTS.md with strict delegation requirements
   - Added mandatory requirement to use specialized subagents for all technical issues
   - Documented clear routing patterns for different types of problems
   - Prevents direct problem solving without specialist expertise
@@ -366,9 +366,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.7] - 2025-08-14
 
 ### Added
-- **Agent Discovery Documentation**: Enhanced `/agent-md:init` command with comprehensive subagent documentation
+- **Agent Discovery Documentation**: Enhanced `/agents-md:init` command with comprehensive subagent documentation
   - Added automatic discovery of available subagents in the project
-  - Integrated detailed subagent usage guidelines into generated AGENT.md files
+  - Integrated detailed subagent usage guidelines into generated AGENTS.md files
   - Included proactive delegation patterns and examples for 24+ specialized agents across 7 categories
   - Added when-to-use guidance for domain-specific tasks (React performance, TypeScript errors, build optimization, etc.)
 
@@ -645,7 +645,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.5] - 2025-07-25
 
 ### Documentation
-- Added command execution guidelines from debugging session to AGENT.md and create-command.md
+- Added command execution guidelines from debugging session to AGENTS.md and create-command.md
 - Enhanced bash command execution best practices for complex subshells and git commands
 - Added performance optimization guidelines for combined command execution in slash commands
 

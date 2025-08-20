@@ -9,9 +9,9 @@ The file organization system consists of two main principles:
 2. **Temporary files** go in the `temp/` directory
 
 These conventions are:
-- Established by `/agent-md:init` when setting up a new project
+- Established by `/agents-md:init` when setting up a new project
 - Maintained by `/dev:cleanup` which identifies files that violate these patterns
-- Documented in your project's AGENT.md for consistency
+- Documented in your project's AGENTS.md for consistency
 
 ## Reports Directory
 
@@ -138,12 +138,12 @@ temp/                           # Root temporary directory (gitignored)
 
 ## Integration with claudekit Commands
 
-### `/agent-md:init`
+### `/agents-md:init`
 
-When you run `/agent-md:init`, it:
+When you run `/agents-md:init`, it:
 1. Creates the `reports/` directory structure
 2. Adds a comprehensive README.md to the reports directory
-3. Documents these conventions in your AGENT.md
+3. Documents these conventions in your AGENTS.md
 4. Sets up appropriate .gitignore patterns
 
 ### `/dev:cleanup`
@@ -265,7 +265,7 @@ my-project/
 
 To adopt these conventions in an existing project:
 
-1. **Run `/agent-md:init`** to set up the structure and documentation
+1. **Run `/agents-md:init`** to set up the structure and documentation
 2. **Create directories:**
    ```bash
    mkdir -p reports/{implementation,testing,performance,validation}

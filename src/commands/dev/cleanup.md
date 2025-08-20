@@ -57,7 +57,7 @@ Launch ONE subagent to analyze the git status (including ignored files) and prop
 
 **Never propose these files:**
 - Any committed files (not marked ?? or !!) unless working directory is clean
-- CHANGELOG.md, README.md, AGENT.md, CLAUDE.md (even if untracked)
+- CHANGELOG.md, README.md, AGENTS.md, CLAUDE.md (even if untracked)
 - Core project directories: src/, dist/, scripts/, node_modules/, etc.
 - Standard test directories: `test/`, `tests/`, `__tests__/` (without hyphens)
 - Any files you're uncertain about
@@ -190,7 +190,7 @@ verify-*.md
 # Preserve important documentation
 !CHANGELOG.md
 !README.md
-!AGENT.md
+!AGENTS.md
 
 # Dated reports
 reports/*_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md

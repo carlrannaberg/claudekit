@@ -1,27 +1,27 @@
 ---
-description: Initialize project with AGENT.md and create symlinks for all AI assistants
+description: Initialize project with AGENTS.md and create symlinks for all AI assistants
 category: ai-assistant
 allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Bash(echo:*), Read, Glob, Task
 ---
 
-# Initialize AGENT.md for Your Project
+# Initialize AGENTS.md for Your Project
 
-Create a comprehensive AGENT.md file following the universal standard, with symlinks for all AI assistants.
+Create a comprehensive AGENTS.md file following the universal standard, with symlinks for all AI assistants.
 
 ## Current Status
-!`test -f AGENT.md && echo "⚠️  AGENT.md already exists" || echo "✅ Ready to create AGENT.md"`
+!`test -f AGENTS.md && echo "⚠️  AGENTS.md already exists" || echo "✅ Ready to create AGENTS.md"`
 
 ## Task
 
-Please analyze this codebase and create an AGENT.md file containing:
+Please analyze this codebase and create an AGENTS.md file containing:
 1. Build/lint/test commands - especially for running a single test
 2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.
 
 Usage notes:
 - The file you create will be given to agentic coding agents (such as yourself) that operate in this repository
-- If there's already an AGENT.md, improve it
+- If there's already an AGENTS.md, improve it
 - If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them
-- Start the file with: "# AGENT.md\nThis file provides guidance to AI coding assistants working in this repository."
+- Start the file with: "# AGENTS.md\nThis file provides guidance to AI coding assistants working in this repository."
 
 ### 1. Gather Repository Information
 Use Task tool with description "Gather repository information" to run these Glob patterns in parallel:
@@ -61,20 +61,20 @@ Also examine:
 - Any setup or deployment scripts
 
 ### 2. Check for Existing Configs
-- If AGENT.md exists, improve it based on analysis
+- If AGENTS.md exists, improve it based on analysis
 - If .cursorrules or .cursor/rules/* exist, incorporate them
 - If .github/copilot-instructions.md exists, include its content
 - If other AI configs exist (.clinerules, .windsurfrules), merge them
 - If `.claude/agents/` directory exists, document available subagents with their descriptions and usage examples
 
-### 3. Create AGENT.md
-Based on your analysis, create AGENT.md with this structure:
+### 3. Create AGENTS.md
+Based on your analysis, create AGENTS.md with this structure:
 
 ```markdown
-# AGENT.md
+# AGENTS.md
 This file provides guidance to AI coding assistants working in this repository.
 
-**Note:** [Document if CLAUDE.md or other AI config files are symlinks to AGENT.md]
+**Note:** [Document if CLAUDE.md or other AI config files are symlinks to AGENTS.md]
 
 # [Project Name]
 
@@ -362,46 +362,46 @@ EOF
 ```
 
 ### 5. Create Symlinks
-After creating AGENT.md and directory structure, create symlinks for all AI assistants and document this in AGENT.md:
+After creating AGENTS.md and directory structure, create symlinks for all AI assistants and document this in AGENTS.md:
 
 ```bash
 # Claude Code
-ln -sf AGENT.md CLAUDE.md
+ln -sf AGENTS.md CLAUDE.md
 
 # Cline
-ln -sf AGENT.md .clinerules
+ln -sf AGENTS.md .clinerules
 
 # Cursor
-ln -sf AGENT.md .cursorrules
+ln -sf AGENTS.md .cursorrules
 
 # Windsurf
-ln -sf AGENT.md .windsurfrules
+ln -sf AGENTS.md .windsurfrules
 
 # Replit
-ln -sf AGENT.md .replit.md
+ln -sf AGENTS.md .replit.md
 
 # Gemini CLI, OpenAI Codex, OpenCode
-ln -sf AGENT.md GEMINI.md
+ln -sf AGENTS.md GEMINI.md
 
 # GitHub Copilot (needs directory)
 mkdir -p .github
-ln -sf ../AGENT.md .github/copilot-instructions.md
+ln -sf ../AGENTS.md .github/copilot-instructions.md
 
 # Firebase Studio (needs directory)
 mkdir -p .idx
-ln -sf ../AGENT.md .idx/airules.md
+ln -sf ../AGENTS.md .idx/airules.md
 ```
 
 ### 6. Show Results
 Display:
-- Created/updated AGENT.md
+- Created/updated AGENTS.md
 - Created reports directory structure
 - List of symlinks created
 - Key information included in the file
 - Suggest reviewing and customizing if needed
 
-**Important:** Make sure to add a note at the top of AGENT.md documenting which files are symlinks to AGENT.md. For example:
+**Important:** Make sure to add a note at the top of AGENTS.md documenting which files are symlinks to AGENTS.md. For example:
 ```markdown
-**Note:** CLAUDE.md, .clinerules, .cursorrules, and other AI config files are symlinks to AGENT.md in this project.
+**Note:** CLAUDE.md, .clinerules, .cursorrules, and other AI config files are symlinks to AGENTS.md in this project.
 ```
 

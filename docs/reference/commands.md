@@ -93,8 +93,8 @@ Clean up debug files and development artifacts.
 
 ## Agent Management
 
-### `/agent-md:init`
-Initialize or improve AGENT.md file with intelligent codebase analysis.
+### `/agents-md:init`
+Initialize or improve AGENTS.md file with intelligent codebase analysis.
 
 **What it does:**
 1. **Analyzes your codebase** to understand:
@@ -103,30 +103,30 @@ Initialize or improve AGENT.md file with intelligent codebase analysis.
    - Test frameworks and patterns
    - Code style conventions
    - Existing AI configurations
-2. **Creates or improves AGENT.md** with discovered information
+2. **Creates or improves AGENTS.md** with discovered information
 3. **Adds directory structure** (reports/, temp/) and file organization guidelines
 4. **Merges existing configs** from .cursorrules, copilot-instructions.md, etc.
 5. **Sets up symlinks** for all AI assistants
 
 **When to use:**
-- **New projects** that need AGENT.md
-- **Existing projects** to improve/update existing AGENT.md
+- **New projects** that need AGENTS.md
+- **Existing projects** to improve/update existing AGENTS.md
 - Want intelligent analysis of your codebase
 - Need to add new features (directory structure, latest best practices)
 - Replacing Claude's `/init` command
 
 **Safety:**
-✅ **Safe to run on existing AGENT.md files** - it improves rather than overwrites
-✅ **Can be run multiple times** to keep AGENT.md updated
+✅ **Safe to run on existing AGENTS.md files** - it improves rather than overwrites
+✅ **Can be run multiple times** to keep AGENTS.md updated
 ✅ **Preserves existing content** while adding enhancements
 
-### `/agent-md:migration`
-Convert other AI config files to AGENT.md standard.
+### `/agents-md:migration`
+Convert other AI config files to AGENTS.md standard.
 
 **What it does:**
 1. **Analyzes all existing config files** (CLAUDE.md, .cursorrules, .windsurfrules, etc.)
 2. **Detects content differences** and chooses appropriate migration strategy:
-   - **Single file**: Simple move to AGENT.md
+   - **Single file**: Simple move to AGENTS.md
    - **Identical files**: Move primary, symlink others
    - **Different content**: Smart merging or user-guided resolution
 3. **Creates symlinks** so all AI tools use the same file
@@ -140,20 +140,20 @@ Convert other AI config files to AGENT.md standard.
 
 **When to use:**
 - You have existing **CLAUDE.md** or **.cursorrules** files
-- Want to migrate from tool-specific configs to universal AGENT.md standard
+- Want to migrate from tool-specific configs to universal AGENTS.md standard
 - **Multiple AI config files** with different content that need merging
-- **DO NOT use** if you already have AGENT.md (use `/agent-md:init` instead)
+- **DO NOT use** if you already have AGENTS.md (use `/agents-md:init` instead)
 
 **Not for:**
-❌ Projects that already have AGENT.md (use `/agent-md:init` instead)
-❌ Creating AGENT.md from scratch (use `/agent-md:init` instead)
+❌ Projects that already have AGENTS.md (use `/agents-md:init` instead)
+❌ Creating AGENTS.md from scratch (use `/agents-md:init` instead)
 
-### `/agent-md:cli [tool]`
-Capture CLI tool help and add to AGENT.md.
-- Documents CLI tools in AGENT.md
+### `/agents-md:cli [tool]`
+Capture CLI tool help and add to AGENTS.md.
+- Documents CLI tools in AGENTS.md
 - Preserves formatting
 - Creates collapsible sections
-- Example: `/agent-md:cli npm`
+- Example: `/agents-md:cli npm`
 
 ### `/create-subagent`
 Create custom AI assistant.
@@ -203,10 +203,10 @@ Profile hook execution times.
 
 ## Agent Commands Comparison
 
-| Feature | `/agent-md:init` | `/agent-md:migration` |
+| Feature | `/agents-md:init` | `/agents-md:migration` |
 |---------|--------------|-------------------|
 | Analyzes codebase | ✅ Smart analysis | ❌ Simple rename |
-| Creates new AGENT.md | ✅ Based on analysis | ❌ Uses existing content |
+| Creates new AGENTS.md | ✅ Based on analysis | ❌ Uses existing content |
 | Merges existing configs | ✅ Incorporates all | ❌ Just moves one |
 | Best for | Any project | Simple migration |
 | Intelligence | High - infers from code | Low - just renames |
@@ -273,12 +273,12 @@ Most commands support additional options through arguments:
 
 ## Best Practices
 
-1. **Review the content**: Whether using init or migration, review AGENT.md to ensure it accurately reflects your project
+1. **Review the content**: Whether using init or migration, review AGENTS.md to ensure it accurately reflects your project
 
-2. **Keep it updated**: As your project evolves, update AGENT.md with new conventions, commands, or architectural changes
+2. **Keep it updated**: As your project evolves, update AGENTS.md with new conventions, commands, or architectural changes
 
-3. **Team alignment**: Share AGENT.md with your team and get agreement on conventions
+3. **Team alignment**: Share AGENTS.md with your team and get agreement on conventions
 
-4. **Version control**: Always commit AGENT.md and its symlinks to your repository
+4. **Version control**: Always commit AGENTS.md and its symlinks to your repository
 
 5. **Regular updates**: Periodically review and update the file as tools and practices evolve

@@ -1,19 +1,19 @@
 ---
-description: Migrate AI assistant configuration to AGENT.md standard with universal compatibility
+description: Migrate AI assistant configuration to AGENTS.md standard with universal compatibility
 category: ai-assistant
 allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Bash(grep:*), Bash(echo:*), Read
 ---
 
-# Convert to Universal AGENT.md Format
+# Convert to Universal AGENTS.md Format
 
-This command helps you adopt the AGENT.md standard by converting your existing CLAUDE.md file and creating symlinks for compatibility with various AI assistants.
+This command helps you adopt the AGENTS.md standard by converting your existing CLAUDE.md file and creating symlinks for compatibility with various AI assistants.
 
 ## Current Project State
-!`ls -la CLAUDE.md AGENT.md GEMINI.md .cursorrules .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
+!`ls -la CLAUDE.md AGENTS.md AGENT.md GEMINI.md .cursorrules .clinerules .windsurfrules .replit.md .github/copilot-instructions.md 2>/dev/null | grep -E "(CLAUDE|AGENT|AGENTS|GEMINI|cursor|cline|windsurf|replit|copilot)" || echo "Checking for AI configuration files..."`
 
 ## Task
 
-Convert this project to use the AGENT.md standard following these steps:
+Convert this project to use the AGENTS.md standard following these steps:
 
 ### 1. Pre-flight Checks
 Check for existing AI configuration files:
@@ -24,7 +24,8 @@ Check for existing AI configuration files:
 - .replit.md (Replit)
 - .github/copilot-instructions.md (GitHub Copilot)
 - GEMINI.md (Gemini CLI)
-- AGENT.md (if already exists)
+- AGENTS.md (if already exists)
+- AGENT.md (legacy, to be symlinked)
 
 ### 2. Analyze Existing Files
 Check all AI config files and their content to determine migration strategy:
@@ -47,15 +48,15 @@ Check all AI config files and their content to determine migration strategy:
 
 **Scenario A: Single file found**
 ```bash
-# Simple case - move to AGENT.md
-mv CLAUDE.md AGENT.md  # or whichever file exists
+# Simple case - move to AGENTS.md
+mv CLAUDE.md AGENTS.md  # or whichever file exists
 ```
 
 **Scenario B: Multiple identical files**
 ```bash
 # Keep the priority file, symlink others
-mv CLAUDE.md AGENT.md
-ln -sf AGENT.md .cursorrules  # if .cursorrules was identical
+mv CLAUDE.md AGENTS.md
+ln -sf AGENTS.md .cursorrules  # if .cursorrules was identical
 ```
 
 **Scenario C: Multiple files with different content**
@@ -107,60 +108,63 @@ ln -sf AGENT.md .cursorrules  # if .cursorrules was identical
    - **Selective**: Interactive selection of content blocks
    - **Manual**: Step-by-step merge assistance
 
-### 5. Create AGENT.md and Symlinks
+### 5. Create AGENTS.md and Symlinks
 After handling content merging, create the final structure:
 ```bash
 # Claude Code
-ln -s AGENT.md CLAUDE.md
+ln -s AGENTS.md CLAUDE.md
 
 # Cline
-ln -s AGENT.md .clinerules
+ln -s AGENTS.md .clinerules
 
 # Cursor
-ln -s AGENT.md .cursorrules
+ln -s AGENTS.md .cursorrules
 
 # Windsurf
-ln -s AGENT.md .windsurfrules
+ln -s AGENTS.md .windsurfrules
 
 # Replit
-ln -s AGENT.md .replit.md
+ln -s AGENTS.md .replit.md
 
 # Gemini CLI, OpenAI Codex, OpenCode
-ln -s AGENT.md GEMINI.md
+ln -s AGENTS.md GEMINI.md
+
+# Legacy AGENT.md symlink for backward compatibility
+ln -s AGENTS.md AGENT.md
 
 # GitHub Copilot (special case - needs directory)
 mkdir -p .github
-ln -s ../AGENT.md .github/copilot-instructions.md
+ln -s ../AGENTS.md .github/copilot-instructions.md
 
 # Firebase Studio (special case - needs .idx directory)
 mkdir -p .idx
-ln -s ../AGENT.md .idx/airules.md
+ln -s ../AGENTS.md .idx/airules.md
 ```
 
 ### 6. Verify Results
 - Use `ls -la` to show all created symlinks
 - Display which AI assistants are now configured
 - Show any backup files created (.bak extensions)
-- Confirm that AGENT.md includes the symlink documentation note
+- Confirm that AGENTS.md includes the symlink documentation note
 - Verify content completeness (all important sections included)
 
 ### 7. Git Guidance
 If in a git repository:
-- Show git status (including new AGENT.md and any .bak files)
-- Suggest adding AGENT.md and symlinks to git
+- Show git status (including new AGENTS.md and any .bak files)
+- Suggest adding AGENTS.md and symlinks to git
 - Recommend reviewing .bak files before deleting them
 - Remind to update .gitignore if needed (some teams ignore certain config files)
 
 ### 8. Post-Migration Cleanup
 After successful migration and git commit:
 1. **Review backup files** (.bak extensions) to ensure nothing important was missed
-2. **Delete backup files** once satisfied with AGENT.md content
+2. **Delete backup files** once satisfied with AGENTS.md content
 3. **Test with different AI assistants** to ensure all symlinks work correctly
-4. **Run `/agent-md:init`** if you want to add directory structure and latest best practices
+4. **Run `/agents-md:init`** if you want to add directory structure and latest best practices
 
-## Why AGENT.md?
+## Why AGENTS.md?
 
-AGENT.md is becoming the standard for AI assistant configuration because:
+AGENTS.md is becoming the standard for AI assistant configuration because:
 - Single source of truth for all AI tools
 - No more duplicating content across multiple files
 - Consistent experience across Claude Code, Cursor, Windsurf, and other tools

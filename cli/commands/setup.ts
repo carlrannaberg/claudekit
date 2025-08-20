@@ -58,11 +58,11 @@ const COMMAND_GROUPS: CommandGroup[] = [
   {
     id: 'ai-assistant',
     name: '🤖 AI Assistant Configuration',
-    description: 'Manage AGENT.md, create custom commands and subagents, and configure Claude Code',
+    description: 'Manage AGENTS.md, create custom commands and subagents, and configure Claude Code',
     commands: [
-      'agent-md:init',
-      'agent-md:migration',
-      'agent-md:cli',
+      'agents-md:init',
+      'agents-md:migration',
+      'agents-md:cli',
       'create-command',
       'create-subagent',
       'config:bash-timeout',

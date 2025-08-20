@@ -10,12 +10,12 @@ argument-hint: "<cli-tool-name>"
 Capture help documentation from CLI tools and add it to CLAUDE.md for future reference.
 
 ## Usage
-`/agent-md:cli <tool-name>`
+`/agents-md:cli <tool-name>`
 
 Examples:
-- `/agent-md:cli npm`
-- `/agent-md:cli git`
-- `/agent-md:cli cargo`
+- `/agents-md:cli npm`
+- `/agents-md:cli git`
+- `/agents-md:cli cargo`
 
 ## Task
 
@@ -75,7 +75,7 @@ After updating CLAUDE.md, show:
 - If tool not found: Suggest checking if it's installed and in PATH
 - If no help output: Try running the tool without arguments
 - If help output is extremely long (>500 lines): Capture key sections only
-- If CLAUDE.md is a symlink: Update the target file (likely AGENT.md)
+- If CLAUDE.md is a symlink: Update the target file (likely AGENTS.md)
 
 ## Implementation Notes
 When processing help output:

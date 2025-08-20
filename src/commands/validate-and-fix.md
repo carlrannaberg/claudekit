@@ -14,7 +14,7 @@ Run quality checks and automatically fix discovered issues using parallel execut
 
 #### Command Discovery
 First, discover what validation commands are available:
-1. Check AGENT.md/CLAUDE.md for documented build/test/lint commands
+1. Check AGENTS.md/CLAUDE.md for documented build/test/lint commands
 2. Examine package.json scripts section for available commands
 3. Look for common patterns in scripts:
    - Linting: "lint", "eslint", "lint:fix", "check:lint", "lint:js"

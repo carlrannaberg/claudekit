@@ -74,7 +74,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Code review**: Dedicated `code-review-expert` agent with 6 focused analysis aspects
 - **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
 - **Mandatory delegation**: All technical issues MUST be handled by specialized subagents
-- **Proactive help**: Run `/agent-md:init` to update AGENT.md/CLAUDE.md for automatic subagent delegation
+- **Proactive help**: Run `/agents-md:init` to update AGENTS.md/CLAUDE.md for automatic subagent delegation
 
 ### 📝 Smart Commands
 - `/code-review` - Multi-aspect code reviews with 6 parallel agents
@@ -134,7 +134,7 @@ Use these commands directly in Claude Code:
 
 ### Development Tools
 - `/spec:create [feature]` - Generate specifications
-- `/agent-md:init` - Configure AI assistants
+- `/agents-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
 

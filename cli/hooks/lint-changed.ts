@@ -117,7 +117,7 @@ export class LintChangedHook extends BaseHook {
       'REQUIRED ACTIONS:',
       '1. Fix all errors shown above',
       "2. Run the project's lint command to verify all issues are resolved",
-      '   (Check AGENT.md/CLAUDE.md or package.json scripts for the exact command)',
+      '   (Check AGENTS.md/CLAUDE.md or package.json scripts for the exact command)',
       '3. Common fixes:',
       '   - Missing semicolons or trailing commas',
       '   - Unused variables (remove or use them)',
