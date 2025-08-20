@@ -251,6 +251,11 @@ Claudekit uses two configuration files:
   "hooks": {
     "typecheck-changed": {
       "command": "npm run typecheck"
+    },
+    "codebase-map": {
+      "include": ["src/**", "lib/**"],
+      "exclude": ["**/*.test.ts", "**/*.spec.ts"],
+      "format": "dsl"
     }
   }
 }

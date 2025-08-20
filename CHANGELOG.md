@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.8] - 2025-08-20
+
+### Changed
+- **CLI Command Naming**: Renamed `validate` command to `doctor` for better CLI conventions and clarity
+  - Updated CLI registration from `claudekit validate` to `claudekit doctor`
+  - Renamed command implementation file from `validate.ts` to `doctor.ts`
+  - Updated all documentation references and setup guidance to use `doctor` terminology
+  - Maintains backward compatibility with same functionality and options
+
+### Added
+- **Codebase Map Filtering Configuration**: Enhanced codebase-map hook with advanced filtering capabilities
+  - Added `include` and `exclude` pattern support in `.claudekit/config.json` configuration
+  - Added support for glob patterns to filter which files are included in codebase maps
+  - Added filtering to codebase-map format command with `--include` and `--exclude` flags
+  - Enhanced configuration schema with validation for include/exclude string arrays
+  - Improved TypeScript types for CodebaseMapConfig with new filtering options
+
+### Fixed
+- **Test Suite**: Updated test expectations to reflect new diagnostic terminology
+  - Updated all test files to use `doctor` command instead of `validate`
+  - Fixed test assertions to match new command behavior and output
+  - Updated integration tests for proper workflow validation with new command name
+
 ## [0.6.7] - 2025-08-20
 
 ### Added
