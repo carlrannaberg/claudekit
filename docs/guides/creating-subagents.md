@@ -243,8 +243,9 @@ The frontmatter controls how your agent is discovered and grouped:
 name: my-agent
 description: Use this agent for analyzing TypeScript compilation issues and build errors
 
-# Optional official field:
+# Optional official fields:
 tools: Read, Grep, Bash
+model: opus  # or sonnet, haiku
 
 # Claudekit extensions (all optional):
 category: build
@@ -262,6 +263,7 @@ bundle: ["typescript-expert"]
 | `name` | Yes | string | Unique identifier (lowercase, hyphens only) |
 | `description` | Yes | string | Natural language description of when this agent should be invoked |
 | `tools` | No | string | Comma-separated list of allowed tools (inherits ALL if omitted) |
+| `model` | No | string | Preferred model: `opus`, `sonnet`, `haiku`, or specific model version |
 
 **Claudekit Extension Fields (all optional):**
 | Field | Type | Description | Values |
@@ -281,6 +283,11 @@ bundle: ["typescript-expert"]
   ```
   - If omitted, inherits ALL available tools (including destructive ones)
   - Designed for specialized domain experts who need broad access
+  - **WARNING**: An empty `tools:` field (or `tools:` with only a comment) grants NO tools!
+    ```yaml
+    tools:  # This grants NO tools - remove the field entirely to inherit all
+    tools: # Comment only - also grants NO tools
+    ```
 
 - **Commands `allowed-tools:`** - Granular restrictions for specific tasks  
   ```yaml
@@ -288,6 +295,18 @@ bundle: ["typescript-expert"]
   ```
   - Required field for security
   - Allows fine-grained tool restrictions
+
+**Common Mistake to Avoid:**
+```yaml
+# ❌ WRONG - This grants NO tools (empty field)
+tools: # Inherits all tools
+
+# ✅ CORRECT - Remove the field entirely to inherit all tools
+# (no tools field at all)
+
+# ✅ CORRECT - Explicitly specify tools
+tools: Read, Grep, Bash, Edit
+```
 
 **Design Philosophy:**
 - **Subagents** = Domain experts with broad tool access for comprehensive analysis
@@ -355,11 +374,16 @@ description: Expert in {domain} handling {problem-list}. Use PROACTIVELY for {tr
 
 tools: Read, Grep, Bash
 # OPTIONAL: Comma-separated string of allowed tools
-# If omitted, inherits ALL available tools (including destructive ones)
+# If omitted (field not present), inherits ALL available tools
+# WARNING: Empty field (tools:) or just comment grants NO tools - remove field to inherit all
 # Common patterns:
 #   Analysis agents: "Read, Grep, Glob, Bash"
 #   Implementation agents: "Read, Edit, MultiEdit, Bash, Grep"
 #   System agents: "Read, Write, Edit, Bash, Grep, Glob"
+
+model: opus
+# OPTIONAL: Preferred model for this agent
+# Valid values: opus, sonnet, haiku (or specific model versions)
 
 # ============================================================================
 # CLAUDEKIT EXTENSION FIELDS (ALL OPTIONAL)

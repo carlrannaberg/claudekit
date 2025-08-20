@@ -3,8 +3,6 @@ name: triage-expert
 description: Context gathering and initial problem diagnosis specialist. Use PROACTIVELY when encountering errors, performance issues, or unexpected behavior before engaging specialized experts.
 tools: Read, Grep, Glob, Bash, Edit
 category: general
-universal: true
-defaultSelected: true
 displayName: Triage Expert
 color: orange
 ---

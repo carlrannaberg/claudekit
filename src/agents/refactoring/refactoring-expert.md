@@ -3,7 +3,6 @@ name: refactoring-expert
 description: Expert in systematic code refactoring, code smell detection, and structural optimization. Use PROACTIVELY when encountering duplicated code, long methods, complex conditionals, or any code quality issues. Detects code smells and applies proven refactoring techniques without changing external behavior.
 tools: Read, Grep, Glob, Edit, MultiEdit, Bash
 category: general
-defaultSelected: false
 displayName: Refactoring Expert
 color: purple
 ---

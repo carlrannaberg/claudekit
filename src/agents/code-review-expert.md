@@ -2,8 +2,6 @@
 name: code-review-expert
 description: Comprehensive code review specialist covering 6 focused aspects - architecture & design, code quality, security & dependencies, performance & scalability, testing coverage, and documentation & API design. Provides deep analysis with actionable feedback. Use PROACTIVELY after significant code changes.
 tools: Read, Grep, Glob, Bash
-universal: true
-defaultSelected: false
 displayName: Code Review Expert
 category: general
 color: indigo

@@ -198,11 +198,13 @@ export const SubagentFrontmatterSchema = z
       .min(1, 'description is required')
       .describe('Natural language description of when this subagent should be invoked'),
 
-    // Optional field per official documentation
+    // Optional fields per official Claude Code
     tools: z
       .string()
+      .nullable()
       .optional()
       .describe('Comma-separated list of tools (inherits all if omitted)'),
+    model: z.enum(['opus', 'sonnet', 'haiku']).or(z.string()).optional().describe('Preferred model for this agent'),
 
     // Claudekit-specific fields for UI and organization
     category: AgentCategorySchema.optional().describe('Claudekit: category for grouping agents'),
@@ -239,11 +241,29 @@ interface UnrecognizedKeysIssue {
 function validateTools(tools: string | undefined): string[] {
   const warnings: string[] = [];
 
-  if (tools === undefined || tools === '') {
+  if (tools === undefined) {
+    // Field omitted - inherits all tools (valid)
     return warnings;
   }
 
-  const toolList = tools.split(',').map((t) => t.trim());
+  if (tools === '') {
+    // Empty field - likely a misconfiguration
+    warnings.push(
+      'Empty tools field detected - this will grant NO tools. Remove the field entirely to inherit all tools, or specify tools explicitly'
+    );
+    return warnings;
+  }
+
+  const toolList = tools.split(',').map((t) => t.trim()).filter(t => t !== '');
+  
+  // Check if after parsing we have no tools (e.g., "tools: ," or "tools:   ")
+  if (toolList.length === 0) {
+    warnings.push(
+      'Empty tools field detected - this will grant NO tools. Remove the field entirely to inherit all tools, or specify tools explicitly'
+    );
+    return warnings;
+  }
+  
   const validTools = new Set<string>([
     'Read',
     'Write',
@@ -311,12 +331,14 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     const { data: frontmatter, content: markdown } = matter(content);
 
     // Track which fields are present but not in schema
-    // Official docs fields: name, description, tools
+    // Official Claude Code fields: name, description, tools, model
     // Claudekit-specific: category, color, displayName, bundle
+    // Deprecated/unused: universal, defaultSelected (parsed but never used)
     const schemaFields = new Set([
       'name',
       'description',
-      'tools', // Official spec
+      'tools',
+      'model', // Official Claude Code fields
       'category',
       'color',
       'displayName',
@@ -356,11 +378,16 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
     }
 
     // Additional validations
-    if (frontmatter['tools'] !== undefined && frontmatter['tools'] !== null) {
-      // Check if tools is an array (incorrect format)
-      if (Array.isArray(frontmatter['tools'])) {
+    if (frontmatter['tools'] !== undefined) {
+      // Check if tools is null (empty field in YAML)
+      if (frontmatter['tools'] === null || frontmatter['tools'] === '') {
+        result.warnings.push(
+          'Empty tools field detected - this will grant NO tools. Remove the field entirely to inherit all tools, or specify tools explicitly'
+        );
+      } else if (Array.isArray(frontmatter['tools'])) {
+        // Check if tools is an array (incorrect format)
         result.errors.push('tools field must be a comma-separated string, not an array');
-      } else {
+      } else if (typeof frontmatter['tools'] === 'string') {
         const toolWarnings = validateTools(frontmatter['tools'] as string);
         result.warnings.push(...toolWarnings);
       }
