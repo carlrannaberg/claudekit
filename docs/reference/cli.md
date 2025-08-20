@@ -154,10 +154,11 @@ Examples:
 ```
 
 **What it checks:**
-- Required frontmatter fields (name, description, tools)
-- Valid tool names and syntax
+- Required frontmatter fields (name, description)
+- Tools field validation (empty fields, proper syntax, valid tool names)
 - Proper markdown structure
 - File naming conventions
+- Configuration best practices (warns about empty tools fields that grant no permissions)
 
 ### `claudekit lint-commands`
 Validate slash command markdown files.

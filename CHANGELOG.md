@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.7] - 2025-08-20
+
+### Added
+- **Subagent Tools Field Validation**: Enhanced subagent linter with comprehensive empty tools field detection
+  - Added detection for empty `tools` fields (null, empty string, whitespace-only) in subagent configurations
+  - Added warning messages explaining that empty tools fields grant NO tools to subagents
+  - Added guidance to either remove the field entirely (inherits all tools) or specify tools explicitly
+  - Added comprehensive test coverage with 12 test cases for various empty field scenarios
+  - Enhanced validation logic to handle YAML null values, comments-only fields, and edge cases
+
+### Fixed
+- **Code Review Command**: Fixed YAML parsing error in `/code-review` command
+  - Properly quoted `argument-hint` field to prevent YAML parsing failures
+  - Ensures command can be properly loaded and executed without syntax errors
+
 ## [0.6.6] - 2025-08-20
 
 ### Fixed
