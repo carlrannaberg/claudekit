@@ -170,4 +170,6 @@ AGENTS.md is becoming the standard for AI assistant configuration because:
 - Consistent experience across Claude Code, Cursor, Windsurf, and other tools
 - Future-proof as new AI tools emerge
 
-Learn more at https://agent.md
+AGENTS.md emerged from collaborative efforts across the AI software development ecosystem, including OpenAI Codex, Amp, Jules from Google, Cursor, and Factory.
+
+Learn more at https://agents.md
