@@ -228,11 +228,19 @@ run_tests() {
 
     # Check all markdown links in documentation
     print_info "Checking markdown links in documentation..."
-    if ! npx --yes markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md --quiet 2>/dev/null; then
+    
+    # Run markdown-link-check and capture output
+    LINK_CHECK_OUTPUT=$(npx --yes markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md 2>&1 || true)
+    
+    # Check if any broken links were found (look for [✖] in output)
+    if echo "$LINK_CHECK_OUTPUT" | grep -q '\[✖\]'; then
         print_error "Broken links found in documentation. Please fix all broken links before preparing a release."
-        print_info "Run 'npx markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md' to see detailed errors."
+        echo "$LINK_CHECK_OUTPUT" | grep '\[✖\]' | head -20
+        print_info "Run 'npx markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md' to see all errors."
         exit 1
     fi
+    
+    print_info "All documentation links verified successfully."
 
     print_success "All tests passed. Continuing with release preparation..."
 }
