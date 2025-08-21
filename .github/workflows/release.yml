@@ -123,24 +123,68 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
+    - name: Extract changelog for version
+      id: changelog
+      run: |
+        VERSION=${{ needs.check-version.outputs.version }}
+        
+        # Extract the changelog content for this version
+        # Start from the version header and stop at the next version header or end of file
+        CHANGELOG_CONTENT=$(awk -v version="$VERSION" '
+          BEGIN { found = 0; content = "" }
+          /^## \[/ {
+            if (found == 1) { exit }
+            if ($0 ~ "## \\[" version "\\]") { found = 1; next }
+          }
+          found == 1 { content = content $0 "\n" }
+          END { print content }
+        ' CHANGELOG.md)
+        
+        # If no content found for exact version, try without brackets
+        if [ -z "$CHANGELOG_CONTENT" ]; then
+          CHANGELOG_CONTENT=$(awk -v version="$VERSION" '
+            BEGIN { found = 0; content = "" }
+            /^## / {
+              if (found == 1) { exit }
+              if ($0 ~ version) { found = 1; next }
+            }
+            found == 1 { content = content $0 "\n" }
+            END { print content }
+          ' CHANGELOG.md)
+        fi
+        
+        # Create release notes file
+        mkdir -p .github
+        cat > .github/release_notes.md << EOF
+        ## Installation
+        
+        \`\`\`bash
+        npm install -g claudekit@$VERSION
+        \`\`\`
+        
+        ## What's Changed
+        
+        $CHANGELOG_CONTENT
+        
+        ## Links
+        
+        - 📖 [Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+        - 🔗 [NPM Package](https://www.npmjs.com/package/claudekit/v/$VERSION)
+        - 📦 [All Releases](https://github.com/${{ github.repository }}/releases)
+        
+        ---
+        
+        *For the complete list of changes across all versions, see the [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) file.*
+        EOF
+        
+        echo "Created release notes for version $VERSION"
+    
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ needs.check-version.outputs.version }}
         name: Release v${{ needs.check-version.outputs.version }}
-        body: |
-          ## Claudekit v${{ needs.check-version.outputs.version }}
-          
-          ### Installation
-          ```bash
-          npm install -g claudekit@${{ needs.check-version.outputs.version }}
-          ```
-          
-          ### What's Changed
-          Please see the [changelog](https://github.com/${{ github.repository }}/compare/v${{ needs.check-version.outputs.version }}...HEAD) for details.
-          
-          ### Full Changelog
-          https://github.com/${{ github.repository }}/commits/v${{ needs.check-version.outputs.version }}
+        body_path: .github/release_notes.md
         draft: false
         prerelease: false
 
