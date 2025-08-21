@@ -226,6 +226,14 @@ run_tests() {
         exit 1
     fi
 
+    # Check all markdown links in documentation
+    print_info "Checking markdown links in documentation..."
+    if ! npx --yes markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md --quiet 2>/dev/null; then
+        print_error "Broken links found in documentation. Please fix all broken links before preparing a release."
+        print_info "Run 'npx markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md' to see detailed errors."
+        exit 1
+    fi
+
     print_success "All tests passed. Continuing with release preparation..."
 }
 

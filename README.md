@@ -266,7 +266,7 @@ Claudekit uses two configuration files:
 ## Getting Help
 
 - **Documentation**: [Full docs](docs/)
-- **Issues**: [GitHub Issues](https://github.com/claudekit/claudekit/issues)
+- **Issues**: [GitHub Issues](https://github.com/carlrannaberg/claudekit/issues)
 - **Quick test**: `claudekit doctor` to check setup
 
 ## Common Issues

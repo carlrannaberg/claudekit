@@ -30,7 +30,7 @@ After installation, use agents in two ways:
 Deep debugging, audits, and architectural decisions using GPT-5.
 - **Expertise**: Complex bug analysis, security audits, code reviews
 - **Special**: Uses external CLI tools (cursor-agent, codex, opencode)
-- **Setup**: [Oracle Setup Guide](oracle-setup.md)
+- **Setup**: [Oracle Setup Guide](../integrations/oracle.md)
 
 ### 🔧 Build Tools
 
@@ -178,4 +178,4 @@ Each agent markdown file includes:
 
 ## Contributing
 
-See [Agent Authoring Guide](../src/agents/README.md) for contribution guidelines.
+See [Creating Subagents Guide](../guides/creating-subagents.md) for detailed instructions on creating custom agents.

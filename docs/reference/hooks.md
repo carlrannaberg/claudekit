@@ -896,7 +896,7 @@ claudekit-hooks test typecheck-changed --file src/index.ts --debug
    ```
 
 4. **Report issues**:
-   - GitHub Issues: https://github.com/claudekit/claudekit/issues
+   - GitHub Issues: https://github.com/carlrannaberg/claudekit/issues
    - Include output of `claudekit-hooks --version`
    - Include relevant configuration files
 
@@ -918,12 +918,7 @@ claudekit-hooks test typecheck-changed --file src/index.ts --debug
    - `2` - Validation failure (hook blocked due to errors)
    - `1` - Unexpected error or configuration issue
 
-## Migration from Shell Hooks
-
-If you're migrating from shell script hooks, see the [Migration Guide](./migration-from-shell-hooks.md) for detailed instructions on updating your configuration.
-
 ## See Also
 
-- [Migration Guide](./migration-from-shell-hooks.md) - Migrating from shell scripts
-- [Package Manager Support](./package-manager-agnostic.md) - Cross-package manager compatibility
-- [Claude Code Configuration](./claude-code-configuration.md) - Configuration guide
+- [Claude Code Configuration](../internals/claude-code-config.md) - Configuration guide
+- [Package Managers](../internals/package-managers.md) - Package manager compatibility details
