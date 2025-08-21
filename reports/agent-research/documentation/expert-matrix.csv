@@ -1,0 +1,29 @@
+Category,Symptom/Error,Root Cause,Fix 1,Fix 2,Fix 3,Diagnostic,Validation,Link
+Structure,"Navigation >3 levels deep",Organic growth without planning,Flatten to 2 levels,Hub-and-spoke model,Diátaxis framework,"grep '^#' docs/ | count depth",Max 3-click depth,https://diataxis.fr/
+Structure,"Document >10000 words",No content chunking strategy,Split into subtopics,Progressive disclosure,Modular documentation,"wc -w docs/*.md | sort",Docs <3000 words,https://www.nngroup.com/articles/chunking/
+Structure,"Orphaned pages (no links)",Missing connection strategy,Add related links,Build topic clusters,Create authority pages,"grep -r filename docs/",All pages linked,https://www.nngroup.com/articles/link-promise/
+Cohesion,"Abrupt topic transitions",Missing connectors,Add transitions,Apply old-to-new,Use templates,"grep transition words",Transitions every 2-3 paragraphs,https://developers.google.com/style/transitions
+Cohesion,"Inconsistent terminology",Multiple authors,Create glossary,Style guide,Terminology database,"grep term variations",90% consistency,https://docs.microsoft.com/style-guide/terminology
+Cohesion,"New info before context",Poor information flow,Reorder content,Add prerequisites,Context setting intro,"analyze paragraph order",Known-to-new pattern,https://www.plainlanguage.gov/guidelines/organize/
+Audience,"Mixed expertise levels",No audience analysis,Add prerequisites,Separate by level,Create personas,"grep Prerequisites docs/",Clear audience definition,https://www.usability.gov/how-to-and-tools/methods/personas.html
+Audience,"Undefined jargon",Assumption of knowledge,Define on first use,Add glossary,Link to references,"grep acronyms/terms",All terms defined,https://www.plainlanguage.gov/guidelines/words/
+Audience,"Wrong complexity level",Missing user research,Adjust language,User testing,Analytics review,"readability scores",Appropriate reading level,https://readable.com/
+Navigation,"Missing breadcrumbs",Limited navigation,Add breadcrumbs,Implement TOC,Site-wide nav,"grep navigation elements",Breadcrumbs on all pages,https://www.nngroup.com/articles/breadcrumbs/
+Navigation,"Poor discoverability",No taxonomy,Add tags/categories,Faceted search,Related content,"analyze metadata",3-5 related links,https://www.nngroup.com/articles/card-sorting-definition/
+Navigation,"Broken internal links",No link validation,Fix links,Automated checking,CI/CD validation,"link checker tools",Zero broken links,https://www.writethedocs.org/guide/tools/testing/
+Maintenance,"Outdated content",No review schedule,Add timestamps,Quarterly reviews,Automated testing,"find -mtime +180",Updated <6 months,https://www.writethedocs.org/guide/docs-as-code/
+Maintenance,"Stale version refs",Missing version tracking,Update references,Version variables,Dynamic versioning,"grep version patterns",Current versions only,https://docusaurus.io/docs/versioning
+Maintenance,"Contradictory info",Lack of single source,Content audit,Single source truth,Regular reviews,"diff similar docs",No contradictions,https://www.dita-ot.org/
+Visual,"Wall of text",No visual breaks,Add white space,Use lists/bullets,Break paragraphs,"paragraph length check",Max 5 lines/paragraph,https://www.nngroup.com/articles/how-users-read-on-the-web/
+Visual,"Inconsistent headings",No hierarchy rules,Fix heading levels,Style guide,Markdown linting,"analyze heading patterns",Consistent hierarchy,https://www.markdownguide.org/basic-syntax/
+Visual,"Poor code formatting",No code standards,Format consistently,Syntax highlighting,Code templates,"check code blocks",Code blocks <20 lines,https://www.smashingmagazine.com/2020/07/formatting-code-documentation/
+Duplication,"Repeated content",No content strategy,Consolidate topics,Create includes,Single source,"find duplicate content",No duplication >10%,https://www.madcapsoftware.com/blog/single-sourcing-documentation/
+Duplication,"Similar topics scattered",Poor organization,Merge related,Topic clustering,Authority pages,"content similarity analysis",Topics consolidated,https://www.nngroup.com/articles/topic-clusters/
+Size,"Oversized documents",No size limits,Split documents,Progressive disclosure,Modular approach,"wc -w analysis",Under 3000 words,https://www.nngroup.com/articles/progressive-disclosure/
+Size,"Too many small files",Over-fragmentation,Consolidate related,Logical grouping,Topic-based org,"file count per topic",Balanced file sizes,https://diataxis.fr/
+Links,"Over-linking",Link everything mindset,Strategic linking,Max 3-5 per para,Quality over quantity,"link density analysis",Appropriate link density,https://www.nngroup.com/articles/link-promise/
+Links,"Missing cross-refs",Isolated content,Add see also,Related topics,Link audit,"grep internal links",Interconnected docs,https://www.writethedocs.org/guide/writing/cross-references/
+Quality,"No style guide",Inconsistent writing,Create guide,Adopt standard,Team training,"style consistency check",Style guide compliance,https://developers.google.com/style
+Quality,"Missing templates",Reinventing structure,Create templates,Content types,Standardize formats,"template usage analysis",Template adoption >80%,https://www.writethedocs.org/guide/writing/templates/
+Testing,"Untested examples",No validation,Test code samples,CI/CD testing,Automated checks,"run code examples",All examples work,https://www.writethedocs.org/guide/tools/testing/
+Testing,"No user feedback",Missing feedback loop,Add feedback widget,User surveys,Analytics tracking,"feedback collection rate",Feedback rate >5%,https://www.hotjar.com/
