@@ -166,7 +166,7 @@ Hooks automatically enforce quality as Claude works:
 - `test-project` - Run full test suite
 - `create-checkpoint` - Git auto-checkpoint on stop
 - `check-todos` - Validate todo completions
-- `self-review` - Prompts a critical self-review to catch integration and refactoring issues
+- `self-review` - Prompts targeted self-review questions to catch mock implementations, code quality, integration, and consistency issues
 
 ### Hook Events
 
