@@ -368,26 +368,32 @@ export const emailValidator = z.string().email().transform(s => s.toLowerCase())
 
 ## Dynamic Domain Expertise Integration
 
-### Leverage Available Experts
+### Intelligent Expert Discovery
 
 ```bash
-# Discover available domain experts
-EXPERTS=$(claudekit list agents 2>/dev/null | grep -E "expert|specialist")
+# Get project structure for context
+codebase-map format --format tree 2>/dev/null || tree -L 3 --gitignore 2>/dev/null || find . -type d -maxdepth 3 | grep -v "node_modules\|\.git\|dist\|build"
 
-# For TypeScript files, get TypeScript expertise
-if [[ "$FILE" == *.ts || "$FILE" == *.tsx ]]; then
-  TS_KNOWLEDGE=$(claudekit show agent typescript-expert 2>/dev/null)
-  # Apply TypeScript-specific review patterns from the knowledge
-fi
-
-# For React components, get React expertise
-if [[ "$FILE" == *.tsx ]] && grep -q "React\|jsx" "$FILE"; then
-  REACT_KNOWLEDGE=$(claudekit show agent react-expert 2>/dev/null)
-  # Apply React-specific patterns and performance checks
-fi
-
-# Combine multiple expert insights for comprehensive review
+# See available experts
+claudekit list agents | grep expert
 ```
+
+### Adaptive Expert Selection
+
+Based on:
+1. The specific review focus area you've been assigned (Architecture, Code Quality, Security, Performance, Testing, or Documentation)
+2. The project structure and technologies discovered above
+3. The available experts listed
+
+Select and consult the most relevant expert(s) for deeper domain-specific insights:
+
+```bash
+# Load expertise from the most relevant expert based on your analysis
+claudekit show agent [most-relevant-expert] 2>/dev/null
+# Apply their specialized patterns and knowledge to enhance this review
+```
+
+The choice of expert should align with both the review topic and the codebase context discovered.
 
 ## Review Output Template
 
