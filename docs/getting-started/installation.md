@@ -223,6 +223,6 @@ You can configure hooks in `.claudekit/config.json`:
 ## Next Steps
 
 - Read the [full documentation](../README.md)
-- Explore [available hooks](hooks-reference.md)
-- Learn about [custom commands](create-command-documentation.md)
-- Set up [AGENTS.md configuration](agent-commands-documentation.md)
+- Explore [available hooks](../reference/hooks.md)
+- Learn about [custom commands](../reference/commands.md)
+- Set up [AI assistant configuration](configuration.md)

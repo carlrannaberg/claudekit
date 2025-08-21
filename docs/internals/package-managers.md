@@ -221,6 +221,6 @@ Potential improvements for even better package manager support:
 
 ## See Also
 
-- [Hooks Documentation](hooks-documentation.md) - Embedded hooks guide
-- [Migration Guide](migration-from-shell-hooks.md) - Migrating to embedded hooks
-- [Create Command Documentation](create-command-documentation.md) - Creating package manager agnostic commands
+- [Hooks Documentation](../reference/hooks.md) - Embedded hooks guide
+- [Commands Reference](../reference/commands.md) - Available commands
+- [Creating Subagents](../guides/creating-subagents.md) - Creating custom AI agents

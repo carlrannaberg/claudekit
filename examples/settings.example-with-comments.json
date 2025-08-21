@@ -1,6 +1,6 @@
 {
   "// Documentation": "This is a comprehensive example of claudekit hooks configuration",
-  "// Learn more": "https://github.com/carlrannaberg/claudekit/docs/hooks-reference.md",
+  "// Learn more": "https://github.com/carlrannaberg/claudekit/blob/main/docs/reference/hooks.md",
   
   "hooks": {
     "// PostToolUse": "Triggered after file modifications",

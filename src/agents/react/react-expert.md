@@ -79,7 +79,7 @@ npm test -- --watchAll=false --passWithNoTests 2>/dev/null || echo "No tests con
 
 **Resources:**
 - https://react.dev/reference/react/hooks
-- https://react.dev/reference/rules-of-hooks
+- https://react.dev/reference/rules/rules-of-hooks
 - https://react.dev/learn/removing-effect-dependencies
 
 ### Rendering Performance

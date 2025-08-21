@@ -1,6 +1,6 @@
 # Simple Task Master (STM) Integration
 
-claudekit now supports [Simple Task Master (STM)](https://github.com/kazdov-inc/simple-task-master) as an optional task management system for specification commands. When STM is installed, it provides persistent task storage with dependency tracking, replacing the session-based TodoWrite tool.
+claudekit now supports [Simple Task Master (STM)](https://github.com/carlrannaberg/simple-task-master) as an optional task management system for specification commands. When STM is installed, it provides persistent task storage with dependency tracking, replacing the session-based TodoWrite tool.
 
 ## Installation
 

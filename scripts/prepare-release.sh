@@ -229,8 +229,12 @@ run_tests() {
     # Check all markdown links in documentation
     print_info "Checking markdown links in documentation..."
     
-    # Run markdown-link-check and capture output
-    LINK_CHECK_OUTPUT=$(npx --yes markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md 2>&1 || true)
+    # Run markdown-link-check and capture output (use config if available)
+    if [ -f ".markdown-link-check.json" ]; then
+        LINK_CHECK_OUTPUT=$(npx --yes markdown-link-check --config .markdown-link-check.json README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md 2>&1 || true)
+    else
+        LINK_CHECK_OUTPUT=$(npx --yes markdown-link-check README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md 2>&1 || true)
+    fi
     
     # Check if any broken links were found (look for [✖] in output)
     if echo "$LINK_CHECK_OUTPUT" | grep -q '\[✖\]'; then

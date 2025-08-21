@@ -315,7 +315,7 @@ Environment variables are available to:
 
 **Using Embedded Hooks:**
 
-Claudekit provides embedded hooks that work cross-platform. See [Hooks Documentation](./hooks-documentation.md).
+Claudekit provides embedded hooks that work cross-platform. See [Hooks Documentation](../reference/hooks.md).
 
 **For Custom Shell Scripts:**
 
@@ -501,6 +501,6 @@ If you encounter issues:
 
 ## See Also
 
-- [Hooks Documentation](hooks-documentation.md) - Detailed hook implementation guide
-- [Create Command Documentation](create-command-documentation.md) - Creating custom commands
-- [AGENTS.md Commands](agent-commands-documentation.md) - AI assistant configuration
+- [Hooks Documentation](../reference/hooks.md) - Detailed hook implementation guide
+- [Commands Reference](../reference/commands.md) - Available commands
+- [Creating Subagents](../guides/creating-subagents.md) - Creating custom AI agents

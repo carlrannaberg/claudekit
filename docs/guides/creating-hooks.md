@@ -59,7 +59,7 @@ For a production-ready hook, you may also want to:
 
 3. **Add configuration support** (see "Making Hooks Configurable" section below)
 4. **Add tests** in `tests/unit/hooks/my-new-hook.test.sh`
-5. **Update documentation** in `docs/hooks-documentation.md`
+5. **Update documentation** in `docs/reference/hooks.md`
 
 ## Hook Metadata Fields
 

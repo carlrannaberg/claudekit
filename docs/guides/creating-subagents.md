@@ -160,7 +160,7 @@ npx eslint src/ --rule react-hooks/exhaustive-deps
 - Components render without errors
 
 **Resources:**
-- [Rules of Hooks](https://react.dev/reference/rules-of-hooks)
+- [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)
 - [useEffect Guide](https://react.dev/reference/react/useEffect)
 
 ### Categories 2-6: [Continue pattern...]
@@ -480,8 +480,8 @@ You are a {domain} expert for Claude Code with deep knowledge of {specific-exper
 ```
 
 **Resources**:
-- [{Official docs link from research}]({url})
-- [{Community resource from research}]({url})
+- [Official documentation]
+- [Community resources]
 
 ### {Category 2}: {Second Problem Area from Research}
 **Common Issues**:
@@ -573,16 +573,16 @@ When reviewing {domain} code, check for:
 
 ## Resources (Authoritative Sources)
 ### Core Documentation
-- [{Primary official docs from research}]({url})
-- [{Secondary official resource from research}]({url})
+- [Primary official documentation]
+- [Secondary official resources]
 
 ### Tools & Utilities (Research-Validated)
 - {tool-1}: {purpose and usage from research}
 - {tool-2}: {purpose and usage from research}
 
 ### Community Resources
-- [{Expert blog/guide from research}]({url})
-- [{Conference talk/presentation from research}]({url})
+- [Expert blogs and guides]
+- [Conference talks and presentations]
 ```
 
 ### Template Usage Guidelines

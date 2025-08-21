@@ -1,0 +1,28 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^\\.\\./(specs|reports|issues|plans)/"
+    },
+    {
+      "pattern": "^/en/docs/claude-code/"
+    }
+  ],
+  "replacementPatterns": [
+    {
+      "pattern": "^https://github.com/carlrannaberg/claudekit/blob/main/",
+      "replacement": "./"
+    }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://react.dev"],
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (compatible; markdown-link-check)"
+      }
+    }
+  ],
+  "timeout": "10s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "aliveStatusCodes": [200, 206, 301, 302, 303, 307, 308]
+}

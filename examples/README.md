@@ -123,7 +123,7 @@ If you have old configuration files using shell scripts, see [MIGRATION_NOTE.md]
 
 ## Getting Help
 
-- See the [Quick Start Guide](../docs/quick-start.md)
-- Read the [Getting Started Guide](../docs/getting-started.md)
-- Check [Hooks Documentation](../docs/hooks-documentation.md)
-- Review [Hook Reference](../docs/hooks-reference.md)
+- See the [Installation Guide](../docs/getting-started/installation.md)
+- Read the [Configuration Guide](../docs/getting-started/configuration.md)
+- Check [Hooks Documentation](../docs/reference/hooks.md)
+- Review [Commands Reference](../docs/reference/commands.md)

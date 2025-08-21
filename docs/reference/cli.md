@@ -323,4 +323,4 @@ claudekit-hooks recent --verbose
 
 - [Slash Commands Reference](commands.md) - Claude Code slash commands
 - [Hooks Reference](hooks.md) - Hook system documentation
-- [Configuration Guide](../guides/configuration.md) - Detailed configuration options
+- [Configuration Guide](../getting-started/configuration.md) - Detailed configuration options
