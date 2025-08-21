@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.10] - 2025-08-21
+
+### Added
+- **Documentation Expert Subagent**: Comprehensive documentation specialist with advanced research capabilities
+  - Added `documentation-expert` with expertise in structure, cohesion, flow, audience targeting, and information architecture
+  - Specialized in detecting documentation anti-patterns and optimizing for user experience
+  - Proactive usage for documentation quality issues, content organization, duplication, and readability concerns
+  - Includes comprehensive research reports for documentation structure and cohesion analysis
+- **Markdown Link Validation**: Automated broken link detection for documentation quality assurance
+  - Added `.markdown-link-check.json` configuration with pattern ignoring and replacement rules
+  - Integrated link checking into release preparation process to halt releases with broken documentation links
+  - Added GitHub-specific URL replacements and timeout/retry configurations for reliable link validation
+  - Enhanced release script with comprehensive documentation link verification before release
+
+### Changed
+- **Self-Review Hook Focus Areas**: Restructured self-review prompts with enhanced implementation completeness detection
+  - Reordered focus areas to prioritize "Implementation Completeness" first, targeting mock implementations and placeholder code
+  - Enhanced questions to detect incomplete implementations, hardcoded return values, and TODO placeholders in production code
+  - Reorganized focus areas: Implementation Completeness → Testing → Code Quality → Integration & Refactoring → Codebase Consistency
+  - Updated default configuration in both hook implementation and `.claudekit/config.json` example
+- **CLI Expert Release Workflow**: Enhanced GitHub release workflow with changelog content extraction
+  - Improved release template to automatically extract and format changelog entries for release descriptions
+  - Added intelligent changelog parsing to populate GitHub release notes with structured content
+
+### Fixed
+- **Documentation Links**: Resolved all broken markdown documentation links across the codebase
+  - Fixed broken internal links in installation guides, reference documentation, and examples
+  - Updated outdated GitHub repository URLs and internal reference paths
+  - Corrected links in hook configuration examples and README files
+  - Added systematic link validation to prevent future documentation link rot
+
 ## [0.6.9] - 2025-08-21
 
 ### Changed

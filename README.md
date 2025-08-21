@@ -96,7 +96,7 @@ claudekit show agent <id>    # Display agent prompt for external use
 claudekit show command <id>  # Display command prompt for external use
 claudekit show agent <id> -f json    # Output agent metadata and content as JSON
 claudekit show command <id> -f json  # Output command metadata and content as JSON
-claudekit doctor             # Check your installation
+claudekit doctor             # Check your installation and validate documentation links
 ```
 
 ### Using Prompts with External LLMs
@@ -166,7 +166,7 @@ Hooks automatically enforce quality as Claude works:
 - `test-project` - Run full test suite
 - `create-checkpoint` - Git auto-checkpoint on stop
 - `check-todos` - Validate todo completions
-- `self-review` - Prompts targeted self-review questions to catch mock implementations, code quality, integration, and consistency issues
+- `self-review` - Enhanced targeted self-review with implementation completeness detection, prioritizing mock implementations, placeholder code, and incomplete features over code quality concerns
 
 ### Hook Events
 
@@ -191,6 +191,7 @@ Specialized AI assistants for different domains:
 **Popular Agents**
 - `code-review-expert` - 6-agent parallel code review (architecture, security, performance, testing, quality, docs)
 - `triage-expert` - Context gathering and problem diagnosis routing to specialized experts
+- `documentation-expert` - Documentation structure, cohesion, flow, and information architecture specialist
 - `oracle` - Deep debugging and complex problem analysis ([requires setup](docs/integrations/oracle.md))
 - `refactoring-expert` - Code smell detection and comprehensive refactoring guidance
 - `typescript-expert` - TypeScript/JavaScript development and type system
