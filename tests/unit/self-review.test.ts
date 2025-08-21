@@ -82,9 +82,10 @@ describe('SelfReviewHook', () => {
       const message = consoleErrorSpy.mock.calls[0]?.[0] ?? '';
 
       // Should contain default focus areas
-      expect(message).toMatch(/Refactoring & Integration/);
+      expect(message).toMatch(/Implementation Completeness/);
       expect(message).toMatch(/Code Quality/);
-      expect(message).toMatch(/Consistency & Completeness/);
+      expect(message).toMatch(/Integration & Refactoring/);
+      expect(message).toMatch(/Codebase Consistency/);
     });
 
     it('should use custom focus areas when configured', async () => {

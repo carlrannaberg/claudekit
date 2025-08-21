@@ -31,14 +31,15 @@ export class SelfReviewHook extends BaseHook {
 
   private readonly defaultFocusAreas: FocusArea[] = [
     {
-      name: 'Refactoring & Integration',
+      name: 'Implementation Completeness',
       questions: [
-        'Did you just add code on top without integrating it properly?',
-        'Should you extract the new functionality into cleaner abstractions?',
-        'Would refactoring the surrounding code make everything simpler?',
-        'Does the code structure still make sense after your additions?',
-        'Should you consolidate similar functions that now exist?',
-        'Did you leave any temporary workarounds or hacks?',
+        'Did you create a mock implementation just to pass tests instead of real functionality?',
+        'Are there any "Not implemented yet" placeholders or TODO comments in production code?',
+        'Does the implementation actually do what it claims, or just return hardcoded values?',
+        'Did you stub out functionality with placeholder messages instead of real logic?',
+        'Are all the features actually working, or just pretending to work?',
+        'Did you implement the full solution or just the minimum to make tests green?',
+        'Did you finish what you started or leave work half-done?',
       ],
     },
     {
@@ -53,14 +54,25 @@ export class SelfReviewHook extends BaseHook {
       ],
     },
     {
-      name: 'Consistency & Completeness',
+      name: 'Integration & Refactoring',
+      questions: [
+        'Did you just add code on top without integrating it properly?',
+        'Should you extract the new functionality into cleaner abstractions?',
+        'Would refactoring the surrounding code make everything simpler?',
+        'Does the code structure still make sense after your additions?',
+        'Should you consolidate similar functions that now exist?',
+        'Did you leave any temporary workarounds or hacks?',
+      ],
+    },
+    {
+      name: 'Codebase Consistency',
       questions: [
         'Should other parts of the codebase be updated to match your improvements?',
         'Did you update all the places that depend on what you changed?',
         'Are there related files that need the same changes?',
         'Did you create a utility that existing code could benefit from?',
         'Should your solution be applied elsewhere for consistency?',
-        'Did you finish what you started or leave work half-done?',
+        'Are you following the same patterns used elsewhere in the codebase?',
       ],
     },
   ];
