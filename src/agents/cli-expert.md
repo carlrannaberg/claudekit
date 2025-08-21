@@ -626,19 +626,54 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
+    - name: Prepare release notes
+      run: |
+        VERSION=${{ needs.check-version.outputs.version }}
+        REPO_NAME=${{ github.event.repository.name }}
+        
+        # Try to extract changelog content if CHANGELOG.md exists
+        if [ -f "CHANGELOG.md" ]; then
+          CHANGELOG_CONTENT=$(awk -v version="$VERSION" '
+            BEGIN { found = 0; content = "" }
+            /^## \[/ {
+              if (found == 1) { exit }
+              if ($0 ~ "## \\[" version "\\]") { found = 1; next }
+            }
+            found == 1 { content = content $0 "\n" }
+            END { print content }
+          ' CHANGELOG.md)
+        else
+          CHANGELOG_CONTENT="*Changelog not found. See commit history for changes.*"
+        fi
+        
+        # Create release notes file
+        cat > release_notes.md << EOF
+        ## Installation
+        
+        \`\`\`bash
+        npm install -g ${REPO_NAME}@${VERSION}
+        \`\`\`
+        
+        ## What's Changed
+        
+        ${CHANGELOG_CONTENT}
+        
+        ## Links
+        
+        - 📖 [Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+        - 🔗 [NPM Package](https://www.npmjs.com/package/${REPO_NAME}/v/${VERSION})
+        - 📦 [All Releases](https://github.com/${{ github.repository }}/releases)
+        - 🔄 [Compare Changes](https://github.com/${{ github.repository }}/compare/v${{ needs.check-version.outputs.previous-version }}...v${VERSION})
+        EOF
+    
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ needs.check-version.outputs.version }}
-        generate_release_notes: true
-        body: |
-          ## Installation
-          ```bash
-          npm install -g ${{ github.event.repository.name }}@${{ needs.check-version.outputs.version }}
-          ```
-          
-          ## Changelog
-          See the [full changelog](https://github.com/${{ github.repository }}/compare/v${{ needs.check-version.outputs.previous-version }}...v${{ needs.check-version.outputs.version }})
+        name: Release v${{ needs.check-version.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
 ```
 
 ## CI/CD Best Practices
