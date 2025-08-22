@@ -37,9 +37,9 @@ When creating the command, support these Claude Code features if requested:
 - Example: `/deploy $ARGUMENTS` where user types `/deploy production`
 
 **Bash Execution:** If the user wants command output, use exclamation mark (!) prefix
-- Example: `\!git status` to include git status in the command
+- Example: `!pwd > /dev/null 2>&1` or `!ls -la > /dev/null 2>&1` to include command output
 - **Performance tip**: Combine related commands with `&&` for faster execution
-- Example: `\!git status --porcelain && echo "--- PWD: $(pwd) ---" && ls -la`
+- Example: `!pwd > /dev/null 2>&1 && ls -la 2>/dev/null | head -5 > /dev/null`
 
 **File References:** If the user wants file contents, use `@` prefix
 - Example: `@package.json` to include package.json contents
