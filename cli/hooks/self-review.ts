@@ -2,6 +2,7 @@ import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
+import { AgentLoader } from '../lib/loaders/agent-loader.js';
 
 interface FocusArea {
   name: string;
@@ -176,7 +177,7 @@ export class SelfReviewHook extends BaseHook {
     }
 
     const questions = this.getReviewQuestions(config);
-    const reviewMessage = this.constructReviewMessage(questions);
+    const reviewMessage = await this.constructReviewMessage(questions);
 
     // For Stop hooks, use exit code 0 with JSON output to control decision
     console.error(reviewMessage);
@@ -190,14 +191,42 @@ export class SelfReviewHook extends BaseHook {
     };
   }
 
-  private constructReviewMessage(questions: Array<{ area: string; question: string }>): string {
+  private async checkForCodeReviewAgent(): Promise<boolean> {
+    try {
+      const agentLoader = new AgentLoader();
+      // Check if code-review-expert is installed by user (not embedded)
+      return await agentLoader.isAgentInstalledByUser('code-review-expert');
+    } catch (error) {
+      // Error checking for agent
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Self-review: Error checking for code-review-expert agent:', error);
+      }
+      return false;
+    }
+  }
+
+  private async constructReviewMessage(
+    questions: Array<{ area: string; question: string }>
+  ): Promise<string> {
+    // Check if code-review-expert agent is available
+    const hasCodeReviewAgent = await this.checkForCodeReviewAgent();
+
     // Use consistent header for easy detection in transcript
-    return `${SELF_REVIEW_MARKER}
+    let message = `${SELF_REVIEW_MARKER}
 
 Please review these aspects of your changes:
 
 ${questions.map((q) => `**${q.area}:**\n• ${q.question}`).join('\n\n')}
+`;
 
-Address any concerns before proceeding.`;
+    if (hasCodeReviewAgent) {
+      message += `
+💡 **Tip:** The code-review-expert subagent is available. Use it to review each self-review topic.
+Use the Task tool with subagent_type: "code-review-expert"
+`;
+    }
+
+    message += '\nAddress any concerns before proceeding.';
+    return message;
   }
 }

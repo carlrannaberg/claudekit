@@ -4,10 +4,12 @@ import type { HookContext } from '../../cli/hooks/base.js';
 import * as configUtils from '../../cli/utils/claudekit-config.js';
 import * as fs from 'fs';
 import * as os from 'os';
+import { AgentLoader } from '../../cli/lib/loaders/agent-loader.js';
 
 vi.mock('../../cli/utils/claudekit-config.js');
 vi.mock('fs');
 vi.mock('os');
+vi.mock('../../cli/lib/loaders/agent-loader.js');
 
 describe('SelfReviewHook', () => {
   let hook: SelfReviewHook;
@@ -34,6 +36,13 @@ describe('SelfReviewHook', () => {
     mockReadFileSync = vi.mocked(fs.readFileSync);
     mockExistsSync = vi.mocked(fs.existsSync);
     mockHomedir = vi.mocked(os.homedir);
+
+    // Mock AgentLoader - default implementation returns false (no agent found)
+    vi.mocked(AgentLoader).mockImplementation(() => ({
+      isAgentInstalledByUser: vi.fn().mockResolvedValue(false),
+      loadAgent: vi.fn().mockRejectedValue(new Error('Agent not found')),
+      getAllAgents: vi.fn().mockResolvedValue([]),
+    }) as unknown as AgentLoader);
 
     // Default mock implementations
     mockHomedir.mockReturnValue('/home/user');
@@ -215,6 +224,43 @@ describe('SelfReviewHook', () => {
       messages.forEach((msg) => {
         expect(msg).toMatch(/Area1/);
       });
+    });
+  });
+
+  describe('code-review-expert agent detection', () => {
+    it('should suggest code-review-expert when available in user directory', async () => {
+      mockGetHookConfig.mockReturnValue({});
+      
+      // Mock that code-review-expert exists in user directory
+      vi.mocked(AgentLoader).mockImplementation(() => ({
+        isAgentInstalledByUser: vi.fn().mockResolvedValue(true),
+        loadAgent: vi.fn(),
+        getAllAgents: vi.fn(),
+      }) as unknown as AgentLoader);
+
+      const context = createMockContext();
+      await hook.execute(context);
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const message = consoleErrorSpy.mock.calls[0]?.[0] ?? '';
+      
+      // Should include the tip about code-review-expert
+      expect(message).toContain('code-review-expert subagent is available');
+      expect(message).toContain('Use the Task tool with subagent_type: "code-review-expert"');
+    });
+
+    it('should not suggest code-review-expert when not available', async () => {
+      mockGetHookConfig.mockReturnValue({});
+
+      const context = createMockContext();
+      await hook.execute(context);
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      const message = consoleErrorSpy.mock.calls[0]?.[0] ?? '';
+      
+      // Should NOT include the tip about code-review-expert
+      expect(message).not.toContain('code-review-expert subagent is available');
+      expect(message).not.toContain('Use the Task tool with subagent_type: "code-review-expert"');
     });
   });
 

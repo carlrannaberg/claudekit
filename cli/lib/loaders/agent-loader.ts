@@ -74,6 +74,55 @@ export class AgentLoader extends BaseLoader {
   }
 
   /**
+   * Check if an agent is available in user or project locations (not embedded)
+   * @param agentId The agent identifier to check
+   * @returns Promise<boolean> True if agent exists in user/project directories
+   */
+  async isAgentInstalledByUser(agentId: string): Promise<boolean> {
+    await this.ensurePathsInitialized();
+    
+    for (const searchPath of this.searchPaths) {
+      const source = this.getSourceLabel(searchPath);
+      
+      // Skip embedded agents
+      if (source === 'embedded') {
+        continue;
+      }
+      
+      // Check if agent exists in this path using the same logic as resolveAgentPath
+      if (await this.checkAgentInPath(agentId, searchPath)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Check if an agent exists in a specific search path
+   * @param agentId The agent identifier
+   * @param searchPath The path to search in
+   * @returns Promise<boolean> True if agent exists in this path
+   */
+  private async checkAgentInPath(agentId: string, searchPath: string): Promise<boolean> {
+    // Direct file match
+    const directPath = path.join(searchPath, `${agentId}.md`);
+    if (await this.fileExists(directPath)) {
+      return true;
+    }
+    
+    // Try with -expert suffix
+    if (!agentId.endsWith('-expert')) {
+      const expertPath = path.join(searchPath, `${agentId}-expert.md`);
+      if (await this.fileExists(expertPath)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * Get source label for a search path
    */
   private getSourceLabel(searchPath: string): string {
@@ -129,17 +178,19 @@ export class AgentLoader extends BaseLoader {
    */
   private async resolveAgentPath(agentId: string): Promise<string | null> {
     for (const searchPath of this.searchPaths) {
-      // Strategy 1: Direct file match {searchPath}/{agentId}.md
-      const directPath = path.join(searchPath, `${agentId}.md`);
-      if (await this.fileExists(directPath)) {
-        return directPath;
-      }
-
-      // Strategy 2: Try with -expert suffix
-      if (!agentId.endsWith('-expert')) {
-        const expertPath = path.join(searchPath, `${agentId}-expert.md`);
-        if (await this.fileExists(expertPath)) {
-          return expertPath;
+      // Use shared method to check if agent exists
+      if (await this.checkAgentInPath(agentId, searchPath)) {
+        // Return the actual path
+        const directPath = path.join(searchPath, `${agentId}.md`);
+        if (await this.fileExists(directPath)) {
+          return directPath;
+        }
+        
+        if (!agentId.endsWith('-expert')) {
+          const expertPath = path.join(searchPath, `${agentId}-expert.md`);
+          if (await this.fileExists(expertPath)) {
+            return expertPath;
+          }
         }
       }
 
