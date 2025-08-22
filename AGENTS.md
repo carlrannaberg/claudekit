@@ -334,6 +334,38 @@ Based on analysis of this project's git history:
   - `chore:` - Maintenance tasks
 - No ticket/task codes observed in recent history
 
+### Sensitive File Protection
+
+ClaudeKit respects multiple ignore file formats to protect sensitive files from AI access:
+- `.agentignore` (recommended)
+- `.aiignore`, `.aiexclude`, `.geminiignore`, `.codeiumignore`, `.cursorignore`
+
+When you attempt to access a protected file, you'll receive an error:
+```
+Access denied: '.env' is protected by .agentignore. This file matches patterns that prevent AI assistant access.
+```
+
+**Expected Behavior:**
+- **Protected files cannot be read**: The Read tool will be denied
+- **Protected files cannot be edited**: Edit, MultiEdit, and Write tools will be denied  
+- **Symlinks are resolved**: Creating symlinks to bypass protection won't work
+- **Path traversal is blocked**: Attempts to access files outside the project are denied
+- **Patterns are merged**: ClaudeKit combines patterns from ALL available ignore files
+
+**Working with Protected Files:**
+If you need to work with configuration:
+1. Use example files (`.env.example`) which can be excluded with `!.env.example`
+2. Ask the user to provide necessary values directly
+3. Guide users to edit sensitive files manually
+4. Suggest creating template/example files for reference
+
+**Security Best Practices:**
+- Never ask users to disable file protection
+- Don't attempt to circumvent protection mechanisms  
+- If access is denied, explain why the file is protected
+- Suggest safe alternatives for the task
+- Respect the principle that sensitive files should not be accessible to AI assistants
+
 ### Path Security
 - Validate file paths exist before operations
 - Handle path traversal safely

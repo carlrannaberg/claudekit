@@ -119,6 +119,9 @@ export class HookRunner {
     if (result.jsonResponse !== undefined) {
       console.log(JSON.stringify(result.jsonResponse));
     }
+    if (result.hookSpecificOutput !== undefined) {
+      console.log(JSON.stringify(result.hookSpecificOutput));
+    }
 
     // Ensure all async operations complete before returning
     await new Promise((resolve) => setImmediate(resolve));

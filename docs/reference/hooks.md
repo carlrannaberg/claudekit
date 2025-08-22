@@ -316,6 +316,72 @@ src/hooks/typecheck.ts > TypecheckHook
 - Only updates for code file changes (.ts, .tsx, .js, .jsx, .mjs, .cjs)
 - Runs silently to avoid disrupting workflow
 
+### PreToolUse Hooks
+
+These hooks run before file access operations:
+
+#### file-guard
+
+**Purpose:** Protects sensitive files like .env, API keys, and credentials from being accessed by AI assistants.
+
+**Triggers on:** Read, Edit, MultiEdit, Write tools
+
+**Configuration Options:**
+- `timeout` (number): Maximum execution time in ms (default: 5000)
+
+**Features:**
+- Merges patterns from multiple ignore file formats
+- Supports gitignore-style syntax including negation patterns (!)
+- Resolves symlinks to prevent bypass attempts
+- Blocks path traversal attempts outside project root
+- Uses minimal default patterns when no ignore files exist
+
+**Supported Ignore Files** (patterns merged from all):
+- `.agentignore` - Recommended for new projects
+- `.aiignore` - JetBrains AI Assistant
+- `.aiexclude` - Gemini Code Assist  
+- `.geminiignore` - Gemini CLI
+- `.codeiumignore` - Codeium
+- `.cursorignore` - Cursor IDE
+
+**Default Patterns** (when no ignore files exist):
+- `.env`, `.env.*` - Environment files
+- `*.pem`, `*.key` - Keys and certificates
+- `.aws/credentials` - Cloud credentials
+- `.ssh/*` - SSH keys
+
+**Example .agentignore:**
+```
+# Environment files
+.env
+.env.*
+
+# API keys and certificates  
+*.key
+*.pem
+
+# Cloud credentials
+.aws/credentials
+.gcp/credentials.json
+
+# Allow example files
+!.env.example
+!config.sample.json
+```
+
+**Example output when access denied:**
+```
+Access denied: '.env' is protected by .agentignore. This file matches patterns that prevent AI assistant access.
+```
+
+**Exit Codes:**
+- 0: Allow or deny decision made successfully
+
+**Unique Features:**
+- **Multi-format support**: Unlike other tools, ClaudeKit merges patterns from ALL available ignore files
+- **Symlink protection**: Resolves symlinks to actual targets and checks both paths
+- **Path traversal prevention**: Automatically blocks attempts to access files outside project root
+
 ### Project-Wide Hooks
 
 These hooks validate the entire project:

@@ -62,6 +62,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Linting**: Catches style issues immediately  
 - **Anti-patterns**: Prevents code replacement with comments
 - **Test Runner**: Runs relevant tests on file changes
+- **🔒 Sensitive file protection**: Automatically blocks AI access to .env files, API keys, and credentials using .agentsignore/.aiignore support
 
 ### 💾 Git Checkpoint System
 - **Auto-save**: Creates checkpoints when Claude stops
@@ -217,6 +218,35 @@ Once installed, agents work automatically or can be invoked directly:
 ```
 
 [View all agents →](docs/reference/subagents.md)
+
+## Security
+
+### Protecting Sensitive Files
+
+ClaudeKit automatically protects sensitive files from AI access. Create a `.agentignore` file:
+
+```gitignore
+# .agentignore
+.env
+.env.*
+*.key
+*.pem
+.aws/credentials
+.ssh/*
+
+# Allow example files
+!.env.example
+```
+
+The hook supports multiple ignore file formats (`.agentignore`, `.aiignore`, `.cursorignore`, `.geminiignore`, `.codeiumignore`, `.aiexclude`) and merges patterns from all of them - a unique feature that provides comprehensive protection regardless of which AI tools your team uses.
+
+**Key features:**
+- Merges patterns from ALL ignore files (unlike other tools)
+- Supports gitignore-style syntax including negation (!)
+- Resolves symlinks to prevent bypasses
+- Blocks path traversal attempts outside project
+
+See the [Security Guide](docs/guides/security.md) for detailed configuration and best practices.
 
 ## Configuration
 

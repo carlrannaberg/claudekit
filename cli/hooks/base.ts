@@ -9,6 +9,7 @@ import { execCommand, detectPackageManager, formatError, findProjectRoot } from 
 import type { ExecResult, PackageManager } from './utils.js';
 
 export interface ClaudePayload {
+  tool_name?: string;
   tool_input?: {
     file_path?: string;
     [key: string]: unknown;
@@ -29,6 +30,12 @@ export interface HookResult {
   exitCode: number;
   suppressOutput?: boolean;
   jsonResponse?: unknown;
+  hookSpecificOutput?: {
+    hookEventName?: string;
+    permissionDecision?: 'allow' | 'deny';
+    permissionDecisionReason?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface HookConfig {
@@ -44,6 +51,7 @@ export interface HookMetadata {
   category: 'validation' | 'testing' | 'git' | 'project-management' | 'utility';
   triggerEvent:
     | 'PostToolUse'
+    | 'PreToolUse'
     | 'Stop'
     | 'SubagentStop'
     | 'SessionStart'
