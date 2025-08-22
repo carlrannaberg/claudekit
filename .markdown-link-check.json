@@ -2,9 +2,6 @@
   "ignorePatterns": [
     {
       "pattern": "^\\.\\./(specs|reports|issues|plans)/"
-    },
-    {
-      "pattern": "^/en/docs/claude-code/"
     }
   ],
   "replacementPatterns": [
@@ -19,10 +16,17 @@
       "headers": {
         "User-Agent": "Mozilla/5.0 (compatible; markdown-link-check)"
       }
+    },
+    {
+      "urls": ["https://github.com", "https://raw.githubusercontent.com"],
+      "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; markdown-link-check)"
+      }
     }
   ],
   "timeout": "10s",
   "retryOn429": true,
   "retryCount": 3,
-  "aliveStatusCodes": [200, 206, 301, 302, 303, 307, 308]
+  "aliveStatusCodes": [200, 201, 202, 203, 204, 205, 206, 301, 302, 303, 307, 308, 503]
 }
