@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2025-08-23
+
+### Added
+- **UserPromptSubmit Hook Support**: New trigger event for enhanced user interaction handling
+  - Added `UserPromptSubmit` to supported trigger events in hook system
+  - Extended hook configuration schema to support UserPromptSubmit event type
+  - Added UserPromptSubmit hook arrays to project settings initialization
+
+### Fixed
+- **Codebase Map Configuration**: Corrected default codebase map settings for better project navigation
+  - Fixed include path from `src/**` to `cli/**` to properly target TypeScript implementation code
+  - Changed default format from `auto` to `dsl` for more consistent code structure visualization
+- **Vitest Command Configuration**: Fixed test command execution flags
+  - Added missing `run` flag to `test:watch` command (`vitest run --watch`)
+  - Added missing `run` flag to `test:ui` command (`vitest run --ui`)
+  - Ensures proper test execution behavior in watch and UI modes
+- **Command Template Embedding**: Enhanced create-command and create-subagent with embedded templates
+  - Fixed template content to be embedded directly in command files instead of external references
+  - Improved reliability of command creation by removing dependency on external template files
+- **Documentation Examples**: Corrected bash command syntax in command creation documentation
+  - Fixed bash command examples in create-command documentation for proper shell execution
+  - Updated command syntax examples to follow correct bash patterns
+
 ## [0.7.0] - 2025-08-22
 
 ### Added
