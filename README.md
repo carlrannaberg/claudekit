@@ -62,7 +62,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Linting**: Catches style issues immediately  
 - **Anti-patterns**: Prevents code replacement with comments
 - **Test Runner**: Runs relevant tests on file changes
-- **🔒 Sensitive file protection**: Automatically blocks AI access to .env files, API keys, and credentials using .agentsignore/.aiignore support
+- **🔒 Sensitive file protection**: Automatically blocks AI access to .env files, API keys, and credentials using .agentignore/.aiignore support
 
 ### 💾 Git Checkpoint System
 - **Auto-save**: Creates checkpoints when Claude stops

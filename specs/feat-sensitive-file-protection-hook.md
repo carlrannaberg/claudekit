@@ -90,7 +90,7 @@ Currently, there's no standardized way in ClaudeKit to prevent AI assistants fro
     └──────┬───────┘
            │
     ┌──────▼───────┐     ┌─────────────┐
-    │ .agentsignore│ ──► │.cursorignore│
+    │ .agentignore │ ──► │.cursorignore│
     └──────┬───────┘     └─────────────┘
            │
            ▼
@@ -382,7 +382,7 @@ When attempting to access a protected file:
 ```
 User: Can you read my .env file?
 Assistant: [Attempts Read tool]
-System: Access denied: '.env' is protected by .agentsignore. This file matches patterns that prevent AI assistant access.
+System: Access denied: '.env' is protected by .agentignore. This file matches patterns that prevent AI assistant access.
 Assistant: I'm unable to read the .env file as it's protected by your security settings. This is intentional to prevent accidental exposure of sensitive information like API keys and passwords.
 ```
 
@@ -413,7 +413,7 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"config/secrets/api.json"}}'
 
 # Purpose: Test negation patterns work correctly
 test_start "Allow negated patterns"
-# With .agentsignore containing: .env\n!.env.example
+# With .agentignore containing: .env\n!.env.example
 echo '{"tool_name":"Read","tool_input":{"file_path":".env.example"}}' | \
   claudekit-hooks run file-guard
 # Expect: permissionDecision: allow
@@ -464,7 +464,7 @@ test_start "Case sensitive patterns"
 
 # Purpose: Test empty/malformed ignore files
 test_start "Malformed ignore file handling"
-echo -e "\n\n#comment\n  \n" > .agentsignore
+echo -e "\n\n#comment\n  \n" > .agentignore
 # Should handle gracefully
 ```
 
@@ -499,7 +499,7 @@ echo -e "\n\n#comment\n  \n" > .agentsignore
 
 2. **Security Guide**: `docs/guides/security.md` (new)
    - Explain sensitive file protection
-   - Best practices for .agentsignore
+   - Best practices for .agentignore
    - Common patterns to protect
 
 3. **README Updates**: `README.md`
@@ -508,7 +508,7 @@ echo -e "\n\n#comment\n  \n" > .agentsignore
    - Link to detailed docs
 
 4. **AGENTS.md Updates**: `AGENTS.md`
-   - Note about respecting .agentsignore
+   - Note about respecting .agentignore
    - Security considerations for AI assistants
 
 ### Example Documentation

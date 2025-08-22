@@ -89,6 +89,14 @@ interface HookGroup {
 
 const HOOK_GROUPS: HookGroup[] = [
   {
+    id: 'file-security',
+    name: '🔒 File Security (PreToolUse)',
+    description: 'Protect sensitive files from AI access - blocks .env, keys, credentials',
+    hooks: ['file-guard'],
+    recommended: true,
+    triggerEvent: 'PreToolUse',
+  },
+  {
     id: 'file-validation',
     name: '📝 File Validation (PostToolUse)',
     description: 'Validate files immediately after modification - linting, types, and tests',

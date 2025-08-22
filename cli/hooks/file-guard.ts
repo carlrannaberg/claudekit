@@ -126,12 +126,29 @@ export class FileGuardHook extends BaseHook {
     this.projectRoot = projectRoot;
     
     // Load and merge patterns from all existing ignore files
+    const loadErrors: string[] = [];
+    
     for (const fileName of ignoreFiles) {
       const filePath = path.join(projectRoot, fileName);
       if (await this.fileExists(filePath)) {
-        this.ignoreFilesFound.push(fileName);
-        const patterns = await this.parseIgnoreFile(filePath);
-        allPatterns.push(...patterns);
+        try {
+          const patterns = await this.parseIgnoreFile(filePath);
+          this.ignoreFilesFound.push(fileName);
+          allPatterns.push(...patterns);
+        } catch (error) {
+          loadErrors.push(`Failed to load ${fileName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+    }
+    
+    // Log loading errors but don't fail completely
+    if (loadErrors.length > 0) {
+      console.error('⚠️  File Guard: Some ignore files could not be loaded:');
+      loadErrors.forEach(error => console.error(`   ${error}`));
+      
+      // If ALL files failed to load, this is critical
+      if (this.ignoreFilesFound.length === 0 && loadErrors.length > 0) {
+        console.error('⚠️  File Guard: No ignore files loaded successfully, using default protection patterns');
       }
     }
     
