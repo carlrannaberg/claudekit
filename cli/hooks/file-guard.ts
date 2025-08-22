@@ -61,12 +61,15 @@ export class FileGuardHook extends BaseHook {
     // Check if file is protected
     if (await this.isFileProtected(filePath, this.ignorePatterns)) {
       // Return PreToolUse decision to deny access
+      // Use jsonResponse for the complete structure Claude Code expects
       return {
         exitCode: 0,
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          permissionDecision: 'deny',
-          permissionDecisionReason: `Access denied: '${path.basename(filePath)}' is protected by ${this.ignoreFilesFound.length > 0 ? this.ignoreFilesFound.join(', ') : 'default patterns'}. This file matches patterns that prevent AI assistant access.`
+        jsonResponse: {
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'deny',
+            permissionDecisionReason: `Access denied: '${path.basename(filePath)}' is protected by ${this.ignoreFilesFound.length > 0 ? this.ignoreFilesFound.join(', ') : 'default patterns'}. This file matches patterns that prevent AI assistant access.`
+          }
         }
       };
     }
@@ -74,9 +77,11 @@ export class FileGuardHook extends BaseHook {
     // Allow access if not protected
     return {
       exitCode: 0,
-      hookSpecificOutput: {
-        hookEventName: 'PreToolUse',
-        permissionDecision: 'allow'
+      jsonResponse: {
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          permissionDecision: 'allow'
+        }
       }
     };
   }

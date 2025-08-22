@@ -63,7 +63,7 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 4. **For complex debugging**: Route through `triage-expert` to identify the right specialist
 
 **Examples of REQUIRED delegation:**
-- TypeScript build/compilation errors → Use `typescript-build-expert` 
+- TypeScript build/compilation errors → Use `typescript-build-expert`
 - Advanced type system issues (generics, conditionals) → Use `typescript-type-expert`
 - General TypeScript problems → Use `typescript-expert`
 - Vitest configuration and framework issues → Use `vitest-expert`
@@ -334,43 +334,6 @@ Based on analysis of this project's git history:
   - `chore:` - Maintenance tasks
 - No ticket/task codes observed in recent history
 
-### Sensitive File Protection
-
-ClaudeKit respects multiple ignore file formats to protect sensitive files from AI access:
-- `.agentignore` (recommended)
-- `.aiignore`, `.aiexclude`, `.geminiignore`, `.codeiumignore`, `.cursorignore`
-
-When you attempt to access a protected file, you'll receive an error:
-```
-Access denied: '.env' is protected by .agentignore. This file matches patterns that prevent AI assistant access.
-```
-
-**Expected Behavior:**
-- **Protected files cannot be read**: The Read tool will be denied
-- **Protected files cannot be edited**: Edit, MultiEdit, and Write tools will be denied  
-- **Symlinks are resolved**: Creating symlinks to bypass protection won't work
-- **Path traversal is blocked**: Attempts to access files outside the project are denied
-- **Patterns are merged**: ClaudeKit combines patterns from ALL available ignore files
-
-**Working with Protected Files:**
-If you need to work with configuration:
-1. Use example files (`.env.example`) which can be excluded with `!.env.example`
-2. Ask the user to provide necessary values directly
-3. Guide users to edit sensitive files manually
-4. Suggest creating template/example files for reference
-
-**Security Best Practices:**
-- Never ask users to disable file protection
-- Don't attempt to circumvent protection mechanisms  
-- If access is denied, explain why the file is protected
-- Suggest safe alternatives for the task
-- Respect the principle that sensitive files should not be accessible to AI assistants
-
-### Path Security
-- Validate file paths exist before operations
-- Handle path traversal safely
-- Expand `~` properly to avoid issues
-
 ## Configuration
 
 ### Environment Requirements
@@ -497,7 +460,7 @@ temp/                       # Temporary files (gitignored)
 See [File Organization Guide](docs/guides/project-organization.md) for detailed patterns and examples.
 
 ### Hook Configuration
-Edit `.claude/settings.json` using the new matcher format:
+`.claude/settings.json` example:
 ```json
 {
   "hooks": {
@@ -506,20 +469,11 @@ Edit `.claude/settings.json` using the new matcher format:
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]
       },
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run lint-changed"}]
-      },
-      {
-        "matcher": "Write,Edit,MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run test-changed"}]
-      }
     ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
-          {"type": "command", "command": "claudekit-hooks run create-checkpoint"},
           {"type": "command", "command": "claudekit-hooks run check-todos"}
         ]
       }
@@ -529,7 +483,7 @@ Edit `.claude/settings.json` using the new matcher format:
 ```
 
 #### Matcher Patterns
-The new hook matcher format supports:
+Hook matcher format supports:
 - **Exact Match**: `"Write"` (matches only Write tool)
 - **Multiple Tools**: `"Write,Edit,MultiEdit"` (OR logic)
 - **Regex Patterns**: `"Notebook.*"` (matches Notebook tools)
@@ -650,7 +604,7 @@ Example: If multiple hooks need JSON parsing, each hook should have its own copy
 ### Avoid "Enhanced" Prefixes
 When modifying or creating features, do not prefix names with "Enhanced", "Improved", "Better", etc.:
 - ❌ "Enhanced Orchestration Strategy"
-- ❌ "Improved Error Handling"  
+- ❌ "Improved Error Handling"
 - ❌ "Better Validation Process"
 - ✅ "Orchestration Strategy"
 - ✅ "Error Handling"
@@ -707,8 +661,8 @@ AGENTS.md should remain focused on guidance for AI assistants, not become a log 
 
 Documentation for CLI tools used in this project.
 
-<details>
-<summary><strong>stm</strong> - A simple command-line task management tool</summary>
+
+### stm - A simple command-line task management tool
 
 ```
 Usage: stm [options] [command]
@@ -729,5 +683,3 @@ Commands:
   show [options] <id>                     Show a specific task
   update [options] <id> [assignments...]  Update a task with flexible options for metadata, content sections, and editor integration
 ```
-
-</details>

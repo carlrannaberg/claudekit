@@ -48,6 +48,41 @@ export { MyNewHook } from './my-new-hook.js';
 Everything else is handled automatically:
 - Hook registry is built from exports
 - Runner automatically discovers hooks via registry
+
+## Hook Response Formats
+
+### JSON Output Options
+
+Hooks can return JSON responses using the `jsonResponse` field:
+
+```typescript
+// Return the complete JSON structure as expected by Claude Code
+return {
+  exitCode: 0,
+  jsonResponse: {
+    // Your complete JSON response here
+  }
+};
+```
+
+### PreToolUse Hook Example
+
+PreToolUse hooks must wrap their response in `hookSpecificOutput` as per Claude Code documentation:
+
+```typescript
+return {
+  exitCode: 0,
+  jsonResponse: {
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',  // or 'allow' or 'ask'
+      permissionDecisionReason: 'Access denied to sensitive file'
+    }
+  }
+};
+```
+
+This approach keeps the runner simple - it just outputs whatever is in `jsonResponse` without any hook-specific logic.
 - CLI commands (`list`, `run`) work immediately
 - Setup command includes it automatically
 - Settings are generated from hook metadata

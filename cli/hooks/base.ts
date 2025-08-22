@@ -30,12 +30,6 @@ export interface HookResult {
   exitCode: number;
   suppressOutput?: boolean;
   jsonResponse?: unknown;
-  hookSpecificOutput?: {
-    hookEventName?: string;
-    permissionDecision?: 'allow' | 'deny';
-    permissionDecisionReason?: string;
-    [key: string]: unknown;
-  };
 }
 
 export interface HookConfig {
