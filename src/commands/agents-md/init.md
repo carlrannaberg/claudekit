@@ -254,27 +254,28 @@ The `.claude` directory contains Claude Code configuration files with specific v
 - Development environment setup
 - Dependencies and version requirements
 
-## Using Specialized Agents
+## Agent Delegation & Tool Execution
 
-### ⚠️ IMPORTANT: Always Delegate to Specialists
+### ⚠️ MANDATORY: Always Delegate to Specialists & Execute in Parallel
 
 **When specialized agents are available, you MUST use them instead of attempting tasks yourself.**
 
-Specialized agents provide deep expertise in specific domains. They have been trained on best practices, common pitfalls, and advanced patterns that general-purpose assistants might miss.
+**When performing multiple operations, send all tool calls (including Task calls for agent delegation) in a single message to execute them concurrently for optimal performance.**
 
-**Key Principles:**
-- Always check if a specialized agent exists for your task domain
-- Delegate complex technical problems to domain experts
-- Use diagnostic agents first when the problem scope is unclear
-- Leverage specialists for architecture decisions and optimizations
-
-**Why This Matters:**
+#### Why Agent Delegation Matters:
 - Specialists have deeper, more focused knowledge
-- They're aware of edge cases and subtle bugs
+- They're aware of edge cases and subtle bugs  
 - They follow established patterns and best practices
 - They can provide more comprehensive solutions
 
-**Discovering Available Agents:**
+#### Key Principles:
+- **Agent Delegation**: Always check if a specialized agent exists for your task domain
+- **Complex Problems**: Delegate to domain experts, use diagnostic agents when scope is unclear
+- **Multiple Agents**: Send multiple Task tool calls in a single message to delegate to specialists in parallel
+- **DEFAULT TO PARALLEL**: Unless you have a specific reason why operations MUST be sequential (output of A required for input of B), always execute multiple tools simultaneously
+- **Plan Upfront**: Think "What information do I need to fully answer this question?" Then execute all searches together
+
+#### Discovering Available Agents:
 ```bash
 # Quick check: List agents if claudekit is installed
 command -v claudekit >/dev/null 2>&1 && claudekit list agents || echo "claudekit not installed"
@@ -283,7 +284,33 @@ command -v claudekit >/dev/null 2>&1 && claudekit list agents || echo "claudekit
 claudekit list agents
 ```
 
-Remember: If a specialist exists for the task at hand, delegation is not optional—it's required for optimal results.
+#### Critical: Always Use Parallel Tool Calls
+
+**Err on the side of maximizing parallel tool calls rather than running sequentially.**
+
+**IMPORTANT: Send all tool calls in a single message to execute them in parallel.**
+
+**These cases MUST use parallel tool calls:**
+- Searching for different patterns (imports, usage, definitions)
+- Multiple grep searches with different regex patterns
+- Reading multiple files or searching different directories
+- Combining Glob with Grep for comprehensive results
+- Searching for multiple independent concepts with codebase_search_agent
+- Any information gathering where you know upfront what you're looking for
+- Agent delegations with multiple Task calls to different specialists
+
+**Sequential calls ONLY when:**
+You genuinely REQUIRE the output of one tool to determine the usage of the next tool.
+
+**Planning Approach:**
+1. Before making tool calls, think: "What information do I need to fully answer this question?"
+2. Send all tool calls in a single message to execute them in parallel
+3. Execute all those searches together rather than waiting for each result
+4. Most of the time, parallel tool calls can be used rather than sequential
+
+**Performance Impact:** Parallel tool execution is 3-5x faster than sequential calls, significantly improving user experience.
+
+**Remember:** This is not just an optimization—it's the expected behavior. Both delegation and parallel execution are requirements, not suggestions.
 ```
 
 Think about what you'd tell a new team member on their first day. Include these key sections:

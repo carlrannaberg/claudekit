@@ -1002,6 +1002,7 @@ interface HookSettings {
     Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     SubagentStop?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     SessionStart?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
+    UserPromptSubmit?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
   };
 }
 
@@ -1029,6 +1030,7 @@ async function createProjectSettings(
       Stop: [],
       SubagentStop: [],
       SessionStart: [],
+      UserPromptSubmit: [],
     },
   };
 
@@ -1039,6 +1041,7 @@ async function createProjectSettings(
       Stop: [],
       SubagentStop: [],
       SessionStart: [],
+      UserPromptSubmit: [],
     };
   }
   if (settings.hooks.PostToolUse === null || settings.hooks.PostToolUse === undefined) {
@@ -1052,6 +1055,9 @@ async function createProjectSettings(
   }
   if (settings.hooks.SessionStart === null || settings.hooks.SessionStart === undefined) {
     settings.hooks.SessionStart = [];
+  }
+  if (settings.hooks.UserPromptSubmit === null || settings.hooks.UserPromptSubmit === undefined) {
+    settings.hooks.UserPromptSubmit = [];
   }
 
   // Helper function to check if a hook is already configured
@@ -1088,7 +1094,52 @@ async function createProjectSettings(
         }
       }
     }
+    // Check UserPromptSubmit hooks
+    if (settings.hooks.UserPromptSubmit !== null && settings.hooks.UserPromptSubmit !== undefined) {
+      for (const entry of settings.hooks.UserPromptSubmit) {
+        if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
+          return true;
+        }
+      }
+    }
     return false;
+  };
+
+  // Helper function to add a hook to a specific event type
+  const addHookToEvent = (
+    eventType: keyof HookSettings['hooks'],
+    matcher: string,
+    hookCommand: string,
+    mergeWithExisting: boolean = true
+  ): void => {
+    // Ensure the event type array exists
+    if (settings.hooks[eventType] === undefined) {
+      settings.hooks[eventType] = [];
+    }
+
+    const eventHooks = settings.hooks[eventType];
+    if (eventHooks === undefined) {
+      return; // This should never happen due to the check above, but satisfies TypeScript
+    }
+
+    if (mergeWithExisting) {
+      // Try to find existing entry with same matcher
+      const existingEntry = eventHooks.find((e) => e.matcher === matcher);
+      if (existingEntry !== undefined) {
+        existingEntry.hooks.push({ type: 'command', command: hookCommand });
+      } else {
+        eventHooks.push({
+          matcher,
+          hooks: [{ type: 'command', command: hookCommand }],
+        });
+      }
+    } else {
+      // Just add a new entry (for PostToolUse backward compatibility)
+      eventHooks.push({
+        matcher,
+        hooks: [{ type: 'command', command: hookCommand }],
+      });
+    }
   };
 
   // Add hooks based on installed components and options
@@ -1113,65 +1164,9 @@ async function createProjectSettings(
           : [metadata.triggerEvent];
 
         for (const triggerEvent of triggerEvents) {
-          if (triggerEvent === 'PostToolUse') {
-            settings.hooks.PostToolUse.push({
-              matcher,
-              hooks: [{ type: 'command', command: hookCommand }],
-            });
-          } else if (triggerEvent === 'Stop') {
-            // For Stop hooks, check if we can merge with existing entry
-            const existingEntry = settings.hooks.Stop.find((e) => e.matcher === matcher);
-            if (existingEntry !== undefined) {
-              existingEntry.hooks.push({ type: 'command', command: hookCommand });
-            } else {
-              settings.hooks.Stop.push({
-                matcher,
-                hooks: [{ type: 'command', command: hookCommand }],
-              });
-            }
-          } else if (triggerEvent === 'SubagentStop') {
-            // For SubagentStop hooks, check if we can merge with existing entry
-            const existingEntry = settings.hooks.SubagentStop?.find((e) => e.matcher === matcher);
-            if (existingEntry !== undefined) {
-              existingEntry.hooks.push({ type: 'command', command: hookCommand });
-            } else {
-              if (settings.hooks.SubagentStop === undefined) {
-                settings.hooks.SubagentStop = [];
-              }
-              settings.hooks.SubagentStop.push({
-                matcher,
-                hooks: [{ type: 'command', command: hookCommand }],
-              });
-            }
-          } else if (triggerEvent === 'SessionStart') {
-            // For SessionStart hooks, check if we can merge with existing entry
-            const existingEntry = settings.hooks.SessionStart?.find((e) => e.matcher === matcher);
-            if (existingEntry !== undefined) {
-              existingEntry.hooks.push({ type: 'command', command: hookCommand });
-            } else {
-              if (settings.hooks.SessionStart === undefined) {
-                settings.hooks.SessionStart = [];
-              }
-              settings.hooks.SessionStart.push({
-                matcher,
-                hooks: [{ type: 'command', command: hookCommand }],
-              });
-            }
-          } else if (triggerEvent === 'UserPromptSubmit') {
-            // For UserPromptSubmit hooks, map to SessionStart section
-            const existingEntry = settings.hooks.SessionStart?.find((e) => e.matcher === matcher);
-            if (existingEntry !== undefined) {
-              existingEntry.hooks.push({ type: 'command', command: hookCommand });
-            } else {
-              if (settings.hooks.SessionStart === undefined) {
-                settings.hooks.SessionStart = [];
-              }
-              settings.hooks.SessionStart.push({
-                matcher,
-                hooks: [{ type: 'command', command: hookCommand }],
-              });
-            }
-          }
+          // PostToolUse maintains backward compatibility by not merging
+          const shouldMerge = triggerEvent !== 'PostToolUse';
+          addHookToEvent(triggerEvent as keyof HookSettings['hooks'], matcher, hookCommand, shouldMerge);
         }
       } else if (component.id === 'prettier') {
         // Handle non-registry hooks (e.g., prettier)

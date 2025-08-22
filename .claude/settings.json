@@ -112,7 +112,8 @@
         ]
       }
     ],
-    "SessionStart": [
+    "SessionStart": [],
+    "UserPromptSubmit": [
       {
         "matcher": "*",
         "hooks": [

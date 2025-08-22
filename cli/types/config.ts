@@ -90,6 +90,7 @@ export const HookEventSchema = z.enum([
   'PreAction',
   'PostAction',
   'SessionStart',
+  'UserPromptSubmit',
 ]);
 
 /**
@@ -102,6 +103,7 @@ export const HooksConfigSchema = z.object({
   PreAction: z.array(HookMatcherSchema).optional(),
   PostAction: z.array(HookMatcherSchema).optional(),
   SessionStart: z.array(HookMatcherSchema).optional(),
+  UserPromptSubmit: z.array(HookMatcherSchema).optional(),
 });
 
 // ============================================================================
