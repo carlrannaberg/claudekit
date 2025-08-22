@@ -49,6 +49,7 @@ export interface HookMetadata {
     | 'Stop'
     | 'SubagentStop'
     | 'SessionStart'
+    | 'UserPromptSubmit'
     | ('Stop' | 'SubagentStop')[];
   matcher?: string; // Tool patterns that trigger this hook (e.g., "Write|Edit|MultiEdit")
   dependencies?: string[];

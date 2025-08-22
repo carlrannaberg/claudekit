@@ -1157,6 +1157,20 @@ async function createProjectSettings(
                 hooks: [{ type: 'command', command: hookCommand }],
               });
             }
+          } else if (triggerEvent === 'UserPromptSubmit') {
+            // For UserPromptSubmit hooks, map to SessionStart section
+            const existingEntry = settings.hooks.SessionStart?.find((e) => e.matcher === matcher);
+            if (existingEntry !== undefined) {
+              existingEntry.hooks.push({ type: 'command', command: hookCommand });
+            } else {
+              if (settings.hooks.SessionStart === undefined) {
+                settings.hooks.SessionStart = [];
+              }
+              settings.hooks.SessionStart.push({
+                matcher,
+                hooks: [{ type: 'command', command: hookCommand }],
+              });
+            }
           }
         }
       } else if (component.id === 'prettier') {

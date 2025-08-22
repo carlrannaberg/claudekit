@@ -112,6 +112,16 @@
         ]
       }
     ],
-    "SessionStart": []
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run codebase-map"
+          }
+        ]
+      }
+    ]
   }
 }
