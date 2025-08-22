@@ -2,7 +2,7 @@
 
 ## Overview
 
-ClaudeKit includes built-in protection for sensitive files to prevent AI assistants from accidentally accessing or exposing confidential information. The file-guard hook runs automatically before any file access operation and blocks access to files that match protection patterns.
+Claudekit includes built-in protection for sensitive files to prevent AI assistants from accidentally accessing or exposing confidential information. The file-guard hook runs automatically before any file access operation and blocks access to files that match protection patterns.
 
 ## Quick Start
 
@@ -57,7 +57,7 @@ The file-guard hook:
 
 ## Supported Ignore Files
 
-ClaudeKit's unique approach merges patterns from **all** available ignore files:
+Claudekit's unique approach merges patterns from **all** available ignore files:
 
 | File | Tool/Platform |
 |------|---------------|
@@ -68,7 +68,7 @@ ClaudeKit's unique approach merges patterns from **all** available ignore files:
 | `.codeiumignore` | Codeium |
 | `.cursorignore` | Cursor IDE |
 
-**Key Advantage**: Unlike other tools that only check their own ignore file, ClaudeKit merges patterns from ALL available files, providing comprehensive protection regardless of which AI tools your team uses.
+**Key Advantage**: Unlike other tools that only check their own ignore file, Claudekit merges patterns from ALL available files, providing comprehensive protection regardless of which AI tools your team uses.
 
 ## Pattern Syntax
 
@@ -365,7 +365,7 @@ Automatically blocks:
 - `~/.ssh/id_rsa` - User home directory access
 
 ### Limitations
-- Protection only works when ClaudeKit hooks are enabled
+- Protection only works when Claudekit hooks are enabled
 - Local file system permissions still apply
 - Does not protect against user manually sharing file contents
 - Cannot prevent AI from inferring secrets from context
@@ -470,9 +470,9 @@ Your existing `.cursorignore` works automatically. To consolidate:
 # Copy patterns to new file
 cp .cursorignore .agentignore
 
-# Add ClaudeKit-specific patterns
+# Add Claudekit-specific patterns
 echo "" >> .agentignore
-echo "# ClaudeKit additions" >> .agentignore
+echo "# Claudekit additions" >> .agentignore
 echo ".env.*" >> .agentignore
 ```
 
@@ -531,7 +531,7 @@ Add to your project README:
 ```markdown
 ## AI Assistant Setup
 
-This project uses ClaudeKit for AI assistant safety. Sensitive files are automatically protected via `.agentignore`.
+This project uses Claudekit for AI assistant safety. Sensitive files are automatically protected via `.agentignore`.
 
 To test protection:
 ```bash
@@ -589,7 +589,7 @@ Track what files were blocked:
 export CLAUDEKIT_DEBUG=true
 
 # Check logs for blocked files
-tail -f ~/.claude/hooks.log | grep "file-guard"
+tail -f ~/.claudekit/logs/hook-executions.jsonl | grep "file-guard"
 ```
 
 ## Security Patterns by Industry
@@ -641,7 +641,7 @@ orders-backup/
 
 ## Summary
 
-ClaudeKit's file protection provides:
+Claudekit's file protection provides:
 
 ✅ **Multi-format support** - Works with all major AI tools  
 ✅ **Automatic pattern merging** - Combines patterns from all ignore files  
