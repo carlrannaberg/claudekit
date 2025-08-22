@@ -22,12 +22,31 @@ Then gather the following information from the user:
 - Any required tools (for frontmatter)
 - Whether to use arguments, bash commands, or file references
 
-## Command Template Reference
+## Command Template Structure
 
-For the complete, authoritative command template structure, see:
-**[Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template)**
+### YAML Frontmatter
+Commands use standardized frontmatter that follows Claude Code's official schema:
 
-Use this single source of truth for all template structure, field definitions, and implementation patterns.
+```yaml
+---
+# Required field:
+description: Brief description of what the command does
+
+# Security control (highly recommended):
+allowed-tools: Read, Write, Bash(git:*)  # Specify allowed tools
+
+# Optional fields:
+argument-hint: "<feature-name>"  # Help text for expected arguments
+model: sonnet  # opus, sonnet, haiku, or specific model
+category: workflow  # workflow, ai-assistant, or validation
+---
+```
+
+### Security with allowed-tools
+The `allowed-tools` field provides granular security control:
+- Basic: `allowed-tools: Read, Write, Edit`
+- Restricted bash: `allowed-tools: Bash(git:*), Read`  # Only git commands
+- Multiple restrictions: `allowed-tools: Read, Write, Bash(npm:*, git:*)`
 
 ## Features to Support
 
@@ -47,7 +66,6 @@ When creating the command, support these Claude Code features if requested:
 **Namespacing:** If the command name contains `:`, create subdirectories
 - Example: `/api:create` → `.claude/commands/api/create.md`
 
-**Note**: For detailed field definitions, security patterns, and complete template structure, see the **[Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template)** reference above.
 
 ## Implementation Steps
 
@@ -71,8 +89,41 @@ When creating the command, support these Claude Code features if requested:
 
 ## Command Content Guidelines
 
-**Refer to the [Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template) for complete content structure and writing guidelines.**
-
 Key principle: Write instructions TO the AI agent, not as the AI agent. Use imperative, instructional language rather than first-person descriptions of what the agent will do.
 
-**For bash command execution patterns and examples, see the [Authoritative Command Template](../../docs/guides/creating-commands.md#authoritative-command-template) section.**
+### Example Command Templates
+
+**Simple Command:**
+```markdown
+---
+description: Create a React component
+allowed-tools: Write
+---
+
+Create a new React component named $ARGUMENTS
+
+Component template:
+\```tsx
+import React from 'react';
+
+export const $ARGUMENTS: React.FC = () => {
+  return <div>$ARGUMENTS Component</div>;
+};
+\```
+```
+
+**Command with Bash and File Analysis:**
+```markdown
+---
+description: Analyze dependencies
+allowed-tools: Read, Bash(npm:*, yarn:*, pnpm:*)
+---
+
+Current dependencies:
+@package.json
+
+Outdated packages:
+!npm outdated 2>/dev/null || echo "No outdated packages"
+
+Suggest which packages to update based on the above information.
+```
