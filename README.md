@@ -58,11 +58,12 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Quality metrics**: Scoring system and issue distribution tracking for measurable improvements
 
 ### 🛡️ Real-time Error Prevention
+- **🔒 Sensitive File Protection**: Blocks AI access to `.env` files, API keys, SSH keys, and credentials before they're accessed
 - **TypeScript Guard**: Blocks `any` types and type errors as Claude edits
 - **Linting**: Catches style issues immediately  
 - **Anti-patterns**: Prevents code replacement with comments
 - **Test Runner**: Runs relevant tests on file changes
-- **🔒 Sensitive file protection**: Automatically blocks AI access to .env files, API keys, and credentials using .agentignore/.aiignore support
+- **Multi-tool ignore file support**: Respects `.agentignore`, `.aiignore`, `.aiexclude`, `.geminiignore`, `.codeiumignore`, `.cursorignore`
 
 ### 💾 Git Checkpoint System
 - **Auto-save**: Creates checkpoints when Claude stops
@@ -147,6 +148,9 @@ Hooks automatically enforce quality as Claude works:
 
 ### Available Hooks
 
+**File Security Hooks** (PreToolUse - run before file access)
+- `file-guard` - Block AI access to sensitive files (`.env`, keys, credentials) using ignore file patterns
+
 **File Change Hooks** (PostToolUse - run on edit)
 - `typecheck-changed` - Run TypeScript type checking on file changes
 - `lint-changed` - Run ESLint validation on changed files
@@ -171,6 +175,7 @@ Hooks automatically enforce quality as Claude works:
 
 ### Hook Events
 
+**PreToolUse** - Triggered before file access (Read, Write, Edit, MultiEdit) for permission control
 **PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
 **Stop** - Triggered when Claude Code stops or conversation ends
 **SubagentStop** - Triggered when subagents complete their tasks
@@ -256,6 +261,10 @@ Claudekit uses two configuration files:
 ```json
 {
   "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read|Edit|MultiEdit|Write",
+      "hooks": [{"type": "command", "command": "claudekit-hooks run file-guard"}]
+    }],
     "PostToolUse": [{
       "matcher": "Write|Edit|MultiEdit",
       "hooks": [{"type": "command", "command": "claudekit-hooks run typecheck-changed"}]

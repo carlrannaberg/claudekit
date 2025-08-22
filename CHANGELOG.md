@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-08-22
+
+### Added
+- **Sensitive File Protection (PreToolUse Hook)**: New security hook that prevents AI access to sensitive files
+  - Added `file-guard` hook that blocks access to `.env`, keys, credentials, SSH keys, and other sensitive files
+  - Supports multiple AI tool ignore files: `.agentignore`, `.aiignore`, `.aiexclude`, `.geminiignore`, `.codeiumignore`, `.cursorignore`
+  - Pattern merging from multiple ignore files with gitignore-style syntax support
+  - Default protection patterns for common sensitive files when no ignore files exist
+  - Negation pattern support (e.g., `.env*` but `!.env.example`)
+  - Path traversal prevention and symlink resolution for comprehensive security
+  - Added to CLI setup as "File Security" group with recommended installation
+- **Code Review Expert Integration**: Enhanced self-review hook with intelligent subagent detection
+  - Added automatic detection of `code-review-expert` subagent availability
+  - Dynamic suggestion to use code-review-expert when available in user directories
+  - Enhanced self-review prompts with Task tool guidance for specialized code review
+- **Specification Validation Enhancement**: Improved overengineering detection in spec:validate command
+  - Added aggressive overengineering detection patterns and YAGNI principle enforcement
+  - Enhanced validation questions to identify premature optimization and feature creep
+  - Added comprehensive patterns for detecting over-abstraction and unnecessary complexity
+
+### Changed
+- **Hook Configuration**: Introduced PreToolUse event support in hook system
+  - Added PreToolUse trigger event to base hook types and metadata
+  - Updated hook runner to handle PreToolUse permission decisions with JSON responses
+  - Enhanced hook payload structure to include `tool_name` for PreToolUse filtering
+- **CLI Setup**: Enhanced hook group configuration with new file security category
+  - Added File Security group as recommended installation option
+  - Improved hook group organization with PreToolUse event categorization
+
+### Fixed
+- **PreToolUse Hook JSON Output**: Fixed JSON response format for file-guard hook
+  - Corrected PreToolUse permission decision structure for Claude Code compatibility
+  - Fixed hook response format to include proper `hookEventName` and decision fields
+- **Agent Loader**: Enhanced agent detection for user-installed vs embedded agents
+  - Added `isAgentInstalledByUser` method to distinguish user-installed agents from embedded ones
+  - Improved agent path resolution and existence checking
+- **File Guard Error Handling**: Improved error handling and setup integration
+  - Enhanced ignore file parsing with better error recovery
+  - Improved fallback to default patterns when ignore files fail to load
+
+### Security
+- **Default File Protection**: Added comprehensive default patterns for sensitive file protection
+  - Protects environment files (`.env`, `.env.*`)
+  - Blocks access to private keys (`*.pem`, `*.key`) 
+  - Prevents access to cloud credentials (`.aws/credentials`)
+  - Protects SSH keys (`.ssh/*`)
+  - Blocks files outside project root via path traversal prevention
+
 ## [0.6.10] - 2025-08-21
 
 ### Added
