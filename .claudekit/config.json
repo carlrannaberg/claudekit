@@ -1,9 +1,9 @@
 {
   "hooks": {
     "codebase-map": {
-      "include": ["src/**"],
+      "include": ["cli/**"],
       "exclude": ["**/*.test.ts"],
-      "format": "auto"
+      "format": "dsl"
     },
     "self-review": {
       "targetPatterns": [
