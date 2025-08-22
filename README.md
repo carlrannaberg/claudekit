@@ -183,11 +183,11 @@ Hooks automatically enforce quality as Claude works:
 
 ### Hook Events
 
-**PreToolUse** - Triggered before file access (Read, Write, Edit, MultiEdit) for permission control
-**PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
-**Stop** - Triggered when Claude Code stops or conversation ends
-**SubagentStop** - Triggered when subagents complete their tasks
-**UserPromptSubmit** - Triggered when users submit their first prompt in a session
+- **PreToolUse** - Triggered before file access (Read, Write, Edit, MultiEdit) for permission control
+- **PostToolUse** - Triggered after file modifications (Write, Edit, MultiEdit)
+- **Stop** - Triggered when Claude Code stops or conversation ends
+- **SubagentStop** - Triggered when subagents complete their tasks
+- **UserPromptSubmit** - Triggered when users submit their first prompt in a session
 
 ### List Available Hooks
 
@@ -236,7 +236,7 @@ Once installed, agents work automatically or can be invoked directly:
 
 ### Protecting Sensitive Files
 
-ClaudeKit automatically protects sensitive files from AI access. Create a `.agentignore` file:
+The `file-guard` hook automatically protects sensitive files from AI access. Create a `.agentignore` file:
 
 ```gitignore
 # .agentignore
@@ -251,7 +251,7 @@ ClaudeKit automatically protects sensitive files from AI access. Create a `.agen
 !.env.example
 ```
 
-The hook supports multiple ignore file formats (`.agentignore`, `.aiignore`, `.cursorignore`, `.geminiignore`, `.codeiumignore`, `.aiexclude`) and merges patterns from all of them - a unique feature that provides comprehensive protection regardless of which AI tools your team uses.
+The `file-guard` hook supports multiple ignore file formats (`.agentignore`, `.aiignore`, `.cursorignore`, `.geminiignore`, `.codeiumignore`, `.aiexclude`) and merges patterns from all of them - a unique feature that provides comprehensive protection regardless of which AI tools your team uses.
 
 **Key features:**
 - Merges patterns from ALL ignore files (unlike other tools)
