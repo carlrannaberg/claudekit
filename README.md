@@ -51,6 +51,14 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 
 ## Key Features
 
+### 🗺️ Instant Codebase Navigation
+**Claude sees your entire project structure automatically - skips most discovery searches.**
+- **Navigate directly to code** - Jump straight to files, functions, and classes
+- **No trial-and-error** - Avoid sifting through test files, docs, and irrelevant matches  
+- **Confident code access** - Claude knows exactly what exists and where
+- **See relationships** - Claude understands dependencies and architecture instantly
+- **Automatic setup** - Runs invisibly on first prompt, updates as you code
+
 ### 🔍 Comprehensive Code Review
 - **Multi-aspect analysis**: 6 parallel agents for architecture, security, performance, testing, quality, and documentation
 - **Intelligent targeting**: Automatically selects relevant review agents based on file types and scope
