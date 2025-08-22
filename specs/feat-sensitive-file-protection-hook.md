@@ -114,13 +114,13 @@ Currently, there's no standardized way in ClaudeKit to prevent AI assistants fro
 #### 1. Hook Class Structure
 
 ```typescript
-// cli/hooks/sensitive-file-guard.ts
-export class SensitiveFileGuardHook extends BaseHook {
-  name = 'sensitive-file-guard';
+// cli/hooks/file-guard.ts
+export class FileGuardHook extends BaseHook {
+  name = 'file-guard';
   
   static metadata = {
-    id: 'sensitive-file-guard',
-    displayName: 'Sensitive File Protection',
+    id: 'file-guard',
+    displayName: 'File Guard',
     description: 'Prevents AI from accessing sensitive files based on ignore file patterns',
     category: 'validation' as const,
     triggerEvent: 'PreToolUse' as const,
@@ -368,7 +368,7 @@ const DEFAULT_PATTERNS = [
          {
            "matcher": "Read|Edit|MultiEdit|Write",
            "hooks": [
-             {"type": "command", "command": "claudekit-hooks run sensitive-file-guard"}
+             {"type": "command", "command": "claudekit-hooks run file-guard"}
            ]
          }
        ]
@@ -391,31 +391,31 @@ Assistant: I'm unable to read the .env file as it's protected by your security s
 ### Unit Tests
 
 ```bash
-# tests/unit/hooks/sensitive-file-guard.test.sh
+# tests/unit/hooks/file-guard.test.sh
 
 # Purpose: Verify hook correctly identifies and blocks protected files
 test_start "Block .env file access"
 echo '{"tool_name":"Read","tool_input":{"file_path":".env"}}' | \
-  claudekit-hooks run sensitive-file-guard
+  claudekit-hooks run file-guard
 # Expect: permissionDecision: deny
 
 # Purpose: Verify hook allows non-protected files
 test_start "Allow regular file access"
 echo '{"tool_name":"Read","tool_input":{"file_path":"src/index.js"}}' | \
-  claudekit-hooks run sensitive-file-guard
+  claudekit-hooks run file-guard
 # Expect: permissionDecision: allow
 
 # Purpose: Test glob pattern matching for nested files
 test_start "Block nested secret files"
 echo '{"tool_name":"Edit","tool_input":{"file_path":"config/secrets/api.json"}}' | \
-  claudekit-hooks run sensitive-file-guard
+  claudekit-hooks run file-guard
 # Expect: permissionDecision: deny
 
 # Purpose: Test negation patterns work correctly
 test_start "Allow negated patterns"
 # With .agentsignore containing: .env\n!.env.example
 echo '{"tool_name":"Read","tool_input":{"file_path":".env.example"}}' | \
-  claudekit-hooks run sensitive-file-guard
+  claudekit-hooks run file-guard
 # Expect: permissionDecision: allow
 ```
 
@@ -493,7 +493,7 @@ echo -e "\n\n#comment\n  \n" > .agentsignore
 ### Files to Create/Update
 
 1. **Hook Documentation**: `docs/reference/hooks.md`
-   - Add sensitive-file-guard to hook list
+   - Add file-guard to hook list
    - Document configuration options
    - Provide examples
 
@@ -579,8 +579,8 @@ The hook merges patterns from multiple ignore file formats for comprehensive pro
 - Complete test suite
 
 **Key Files:**
-- `cli/hooks/sensitive-file-guard.ts`
-- `tests/unit/hooks/sensitive-file-guard.test.sh`
+- `cli/hooks/file-guard.ts`
+- `tests/unit/hooks/file-guard.test.sh`
 - `tests/integration/sensitive-file-protection.test.sh`
 - Update `cli/hooks/index.ts` to export new hook
 
