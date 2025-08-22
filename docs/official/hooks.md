@@ -3,12 +3,12 @@
 > This page provides reference documentation for implementing hooks in Claude Code.
 
 <Tip>
-  For a quickstart guide with examples, see [Get started with Claude Code hooks](/en/docs/claude-code/hooks-guide).
+  For a quickstart guide with examples, see [Get started with Claude Code hooks](https://docs.anthropic.com/en/docs/claude-code/hooks-guide).
 </Tip>
 
 ## Configuration
 
-Claude Code hooks are configured in your [settings files](/en/docs/claude-code/settings):
+Claude Code hooks are configured in your [settings files](https://docs.anthropic.com/en/docs/claude-code/settings):
 
 * `~/.claude/settings.json` - User settings
 * `.claude/settings.json` - Project settings
@@ -102,7 +102,7 @@ Runs after Claude creates tool parameters and before processing the tool call.
 
 **Common matchers:**
 
-* `Task` - Subagent tasks (see [subagents documentation](/en/docs/claude-code/sub-agents))
+* `Task` - Subagent tasks (see [subagents documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents))
 * `Bash` - Shell commands
 * `Glob` - File pattern matching
 * `Grep` - Content search
@@ -588,7 +588,7 @@ sys.exit(0)
 ## Working with MCP Tools
 
 Claude Code hooks work seamlessly with
-[Model Context Protocol (MCP) tools](/en/docs/claude-code/mcp). When MCP servers
+[Model Context Protocol (MCP) tools](https://docs.anthropic.com/en/docs/claude-code/mcp). When MCP servers
 provide tools, they appear with a special naming pattern that you can match in
 your hooks.
 
@@ -634,7 +634,7 @@ You can target specific MCP tools or entire MCP servers:
 ## Examples
 
 <Tip>
-  For practical examples including code formatting, notifications, and file protection, see [More Examples](/en/docs/claude-code/hooks-guide#more-examples) in the get started guide.
+  For practical examples including code formatting, notifications, and file protection, see [More Examples](https://docs.anthropic.com/en/docs/claude-code/hooks-guide#more-examples) in the get started guide.
 </Tip>
 
 ## Security Considerations

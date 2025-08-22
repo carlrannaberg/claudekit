@@ -14,7 +14,7 @@
 | `claude -c -p "query"`             | Continue via SDK                               | `claude -c -p "Check for type errors"`                             |
 | `claude -r "<session-id>" "query"` | Resume session by ID                           | `claude -r "abc123" "Finish this PR"`                              |
 | `claude update`                    | Update to latest version                       | `claude update`                                                    |
-| `claude mcp`                       | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](/en/docs/claude-code/mcp). |
+| `claude mcp`                       | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](https://docs.anthropic.com/en/docs/claude-code/mcp). |
 
 ## CLI flags
 
@@ -23,9 +23,9 @@ Customize Claude Code's behavior with these command-line flags:
 | Flag                             | Description                                                                                                                                              | Example                                                     |
 | :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
 | `--add-dir`                      | Add additional working directories for Claude to access (validates each path exists as a directory)                                                      | `claude --add-dir ../apps ../lib`                           |
-| `--allowedTools`                 | A list of tools that should be allowed without prompting the user for permission, in addition to [settings.json files](/en/docs/claude-code/settings)    | `"Bash(git log:*)" "Bash(git diff:*)" "Read"`               |
-| `--disallowedTools`              | A list of tools that should be disallowed without prompting the user for permission, in addition to [settings.json files](/en/docs/claude-code/settings) | `"Bash(git log:*)" "Bash(git diff:*)" "Edit"`               |
-| `--print`, `-p`                  | Print response without interactive mode (see [SDK documentation](/en/docs/claude-code/sdk) for programmatic usage details)                               | `claude -p "query"`                                         |
+| `--allowedTools`                 | A list of tools that should be allowed without prompting the user for permission, in addition to [settings.json files](https://docs.anthropic.com/en/docs/claude-code/settings)    | `"Bash(git log:*)" "Bash(git diff:*)" "Read"`               |
+| `--disallowedTools`              | A list of tools that should be disallowed without prompting the user for permission, in addition to [settings.json files](https://docs.anthropic.com/en/docs/claude-code/settings) | `"Bash(git log:*)" "Bash(git diff:*)" "Edit"`               |
+| `--print`, `-p`                  | Print response without interactive mode (see [SDK documentation](https://docs.anthropic.com/en/docs/claude-code/sdk) for programmatic usage details)                               | `claude -p "query"`                                         |
 | `--append-system-prompt`         | Append to system prompt (only with `--print`)                                                                                                            | `claude --append-system-prompt "Custom instruction"`        |
 | `--output-format`                | Specify output format for print mode (options: `text`, `json`, `stream-json`)                                                                            | `claude -p "query" --output-format json`                    |
 | `--input-format`                 | Specify input format for print mode (options: `text`, `stream-json`)                                                                                     | `claude -p --output-format json --input-format stream-json` |
@@ -45,13 +45,13 @@ Customize Claude Code's behavior with these command-line flags:
 
 For detailed information about print mode (`-p`) including output formats,
 streaming, verbose logging, and programmatic usage, see the
-[SDK documentation](/en/docs/claude-code/sdk).
+[SDK documentation](https://docs.anthropic.com/en/docs/claude-code/sdk).
 
 ## See also
 
-- [Interactive mode](/en/docs/claude-code/interactive-mode) - Shortcuts, input modes, and interactive features
-- [Slash commands](/en/docs/claude-code/slash-commands) - Interactive session commands
-- [Quickstart guide](/en/docs/claude-code/quickstart) - Getting started with Claude Code
-- [Common workflows](/en/docs/claude-code/common-workflows) - Advanced workflows and patterns
-- [Settings](/en/docs/claude-code/settings) - Configuration options
-- [SDK documentation](/en/docs/claude-code/sdk) - Programmatic usage and integrations
+- [Interactive mode](https://docs.anthropic.com/en/docs/claude-code/interactive-mode) - Shortcuts, input modes, and interactive features
+- [Slash commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands) - Interactive session commands
+- [Quickstart guide](https://docs.anthropic.com/en/docs/claude-code/quickstart) - Getting started with Claude Code
+- [Common workflows](https://docs.anthropic.com/en/docs/claude-code/common-workflows) - Advanced workflows and patterns
+- [Settings](https://docs.anthropic.com/en/docs/claude-code/settings) - Configuration options
+- [SDK documentation](https://docs.anthropic.com/en/docs/claude-code/sdk) - Programmatic usage and integrations

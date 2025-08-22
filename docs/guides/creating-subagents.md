@@ -7,8 +7,7 @@ This guide provides comprehensive instructions for creating research-driven, hig
 - [Official Subagents Documentation](../official/subagents.md) - Claude Code's subagent system and configuration
 - [Prompting Guide](prompting-guide.md) - Patterns and best practices for effective subagent prompts
 - [Domain Expert Principles](../internals/principles.md) - Core principles for designing domain experts
-- [Feature Specification](../specs/feat-domain-expert-subagents-suite.md) - Complete subagent suite specification
-- [Agent Research Reports](../reports/agent-research/) - Examples of comprehensive domain research
+- [Agent Research Reports](../../reports/agent-research/) - Examples of comprehensive domain research
 
 ## Table of Contents
 - [Overview](#overview)
@@ -185,9 +184,8 @@ The research phase for claudekit's 22 agents produced:
 - **Comprehensive problem matrices** for rapid development
 
 Browse examples:
-- [React Expert Research](../reports/agent-research/react/expert-research.md) + [Matrix](../reports/agent-research/react/expert-matrix.csv)
-- [Full Suite Specification](../specs/feat-domain-expert-subagents-suite.md)
-- [All Research Reports](../reports/agent-research/)
+- [React Expert Research](../../reports/agent-research/react/expert-research.md) + [Matrix](../../reports/agent-research/react/expert-matrix.csv)
+- [All Research Reports](../../reports/agent-research/)
 
 ## Implementation Guide
 
