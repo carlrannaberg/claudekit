@@ -56,6 +56,15 @@
             "command": "claudekit-hooks run check-comment-replacement"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run codebase-map-update"
+          }
+        ]
       }
     ],
     "Stop": [
