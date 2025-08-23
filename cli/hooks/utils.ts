@@ -175,9 +175,14 @@ export function getExecOptions(options: ExecAsyncOptions = {}, command?: string)
     CI: process.env['CI'] ?? 'false',
   };
   
+  const baseOptions: ExecAsyncOptions = {
+    ...options,
+    env: baseEnv,
+  };
+  
   if (isTestCommand) {
     return {
-      ...options,
+      ...baseOptions,
       env: {
         ...baseEnv,
         // Force vitest to exit after tests complete (prevents hanging workers)
@@ -190,10 +195,7 @@ export function getExecOptions(options: ExecAsyncOptions = {}, command?: string)
     };
   }
 
-  return {
-    ...options,
-    env: baseEnv,
-  };
+  return baseOptions;
 }
 
 export async function execCommand(
@@ -289,7 +291,13 @@ export async function executeCommand(
 ): Promise<{ stdout: string; stderr: string }> {
   try {
     const result = await execAsync(command, getExecOptions({ cwd }));
-    return result;
+    // Ensure stdout and stderr are always strings
+    // The Node.js types indicate these could be string | Buffer depending on encoding
+    // We always want strings for consistency
+    return {
+      stdout: String(result.stdout),
+      stderr: String(result.stderr)
+    };
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(`Command failed: ${command}`));
     throw error;

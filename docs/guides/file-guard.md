@@ -1,4 +1,4 @@
-# Security Guide: Protecting Sensitive Files
+# File Guard Hook: Protecting Sensitive Files
 
 ## Overview
 

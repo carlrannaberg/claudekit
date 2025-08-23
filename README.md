@@ -261,7 +261,7 @@ The `file-guard` hook supports multiple ignore file formats (`.agentignore`, `.a
 - Resolves symlinks to prevent bypasses
 - Blocks path traversal attempts outside project
 
-See the [Security Guide](docs/guides/security.md) for detailed configuration and best practices.
+See the [File Guard Guide](docs/guides/file-guard.md) for detailed configuration and best practices.
 
 ## Configuration
 
