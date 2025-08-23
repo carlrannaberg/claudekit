@@ -50,7 +50,7 @@
     "test:commands": "vitest run tests/commands",
     "test:utils": "vitest run tests/utils",
     "test:mocks": "vitest run tests/mocks",
-    "test:fast": "vitest run tests/unit tests/lib tests/hooks tests/mocks tests/commands tests/config --no-coverage --reporter=dot",
+    "test:fast": "vitest run tests/unit tests/lib tests/hooks tests/mocks tests/commands tests/config --no-coverage",
     "test:verbose": "VERBOSE_TESTS=true vitest run",
     "coverage:check": "VERBOSE_TESTS=true vitest run --coverage",
     "coverage:threshold": "vitest run --coverage --reporter=json --outputFile.json=./coverage/coverage-summary.json",

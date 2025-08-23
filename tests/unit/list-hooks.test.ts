@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
 import { list } from '../../cli/commands/list.js';
@@ -24,13 +24,37 @@ describe('list hooks command', () => {
   let tempDir: string;
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let originalCwd: string;
+  const createdDirs: string[] = [];
+
+  // Clean up any stale test directories from previous runs
+  beforeAll(async () => {
+    const cwd = process.cwd();
+    const entries = await fs.readdir(cwd);
+    const staleTestDirs = entries.filter(entry => 
+      entry.startsWith('test-temp-list-hooks-') || 
+      entry.startsWith('test-temp-list-')
+    );
+    
+    for (const dir of staleTestDirs) {
+      try {
+        await fs.remove(path.join(cwd, dir));
+        console.log(`Cleaned up stale test directory: ${dir}`);
+      } catch (error) {
+        console.warn(`Failed to clean up stale directory ${dir}:`, error);
+      }
+    }
+  });
 
   beforeEach(async () => {
     // Store original cwd
     originalCwd = process.cwd();
 
-    // Create temp directory
-    tempDir = path.join(process.cwd(), `test-temp-list-hooks-${Date.now()}`);
+    // Create temp directory with unique name
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    tempDir = path.join(process.cwd(), `test-temp-list-hooks-${timestamp}-${random}`);
+    createdDirs.push(tempDir);
+    
     await fs.ensureDir(tempDir);
     await fs.ensureDir(path.join(tempDir, '.claude'));
     await fs.ensureDir(path.join(tempDir, 'user-claude'));
@@ -48,18 +72,52 @@ describe('list hooks command', () => {
   });
 
   afterEach(async () => {
-    // Restore original cwd
-    process.chdir(originalCwd);
+    // Always restore original cwd first
+    try {
+      process.chdir(originalCwd);
+    } catch (error) {
+      console.warn('Failed to restore working directory:', error);
+    }
 
-    // Clean up temp directory
-    await fs.remove(tempDir);
+    // Clean up temp directory with retries
+    if (tempDir) {
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          await fs.remove(tempDir);
+          break;
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.warn(`Failed to remove temp directory ${tempDir} after 3 attempts:`, error);
+          } else {
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }
+      }
+    }
 
     // Restore console.log
-    consoleLogSpy.mockRestore();
+    consoleLogSpy?.mockRestore();
 
     // Clear all mocks
     vi.clearAllMocks();
     vi.restoreAllMocks();
+  });
+
+  // Final cleanup to ensure all directories are removed
+  afterAll(async () => {
+    for (const dir of createdDirs) {
+      try {
+        if (await fs.pathExists(dir)) {
+          await fs.remove(dir);
+        }
+      } catch (error) {
+        console.warn(`Failed to clean up directory in afterAll: ${dir}`, error);
+      }
+    }
+    createdDirs.length = 0;
   });
 
   describe('hooks with no configuration', () => {

@@ -52,17 +52,24 @@ const testConfig: InlineConfig = {
   ],
   testTimeout: 10000,
   hookTimeout: 10000,
-  teardownTimeout: 5000,
-  // Enable file watching in development
-  watch: process.env['CI'] === undefined,
-  // Use forks pool for better module resolution compatibility
-  pool: 'forks',
+  teardownTimeout: 3000,  // Shorter teardown to ensure quick exit
+  // Disable watch mode to ensure processes exit after tests complete
+  watch: false,
+  // CRITICAL: Configuration to prevent hanging vitest worker processes
+  // Issue: Multiple vitest workers were not terminating, causing process accumulation
+  // Solution: Force single process execution with explicit limits
+  pool: 'forks',  // Use fork pool (better isolation than threads)
   poolOptions: {
     forks: {
-      singleFork: false,
-      isolate: true
+      singleFork: true,  // All tests run in ONE child process (prevents orphaned workers)
+      isolate: true,     // Maintain test isolation despite single process
+      maxForks: 1,       // Enforce single worker limit (redundant but explicit)
+      minForks: 1        // Prevent dynamic worker spawning
     }
   },
+  // Disable file parallelism to ensure sequential execution in single process
+  // Works with singleFork to ensure predictable process management
+  fileParallelism: false,
   // Minimal output by default - only show failures and summary
   // Use VERBOSE_TESTS env var to get full output
   reporters: ((): Array<string | [string, Record<string, unknown>]> => {

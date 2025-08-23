@@ -4,6 +4,7 @@
  */
 
 import { exec } from 'child_process';
+import type { ExecOptions } from 'child_process';
 import { promisify } from 'util';
 import { setImmediate } from 'timers';
 import fs from 'fs-extra';
@@ -13,6 +14,9 @@ import { Logger } from '../utils/logger.js';
 const logger = new Logger('utils');
 
 const execAsync = promisify(exec);
+
+// Type alias for exec options
+type ExecAsyncOptions = ExecOptions;
 
 // Standard input reader with TTY detection and timeout
 export async function readStdin(timeoutMs: number = 100): Promise<string> {
@@ -145,6 +149,53 @@ export interface ExecResult {
   durationMs?: number;
 }
 
+/**
+ * Get execution options with environment variables for proper process management
+ * @param options - The base execution options
+ * @param command - Optional command string to determine if test-specific env vars are needed
+ */
+export function getExecOptions(options: ExecAsyncOptions = {}, command?: string): ExecAsyncOptions {
+  // Only add vitest-specific env vars when running test commands
+  const isTestCommand = command !== undefined && 
+    (command.includes('test') || command.includes('vitest'));
+  
+  // Start with process.env but exclude vitest vars for non-test commands
+  const processEnv = { ...process.env };
+  if (!isTestCommand) {
+    // Remove any vitest env vars that might be set from parent process
+    delete processEnv['VITEST_POOL_TIMEOUT'];
+    delete processEnv['VITEST_POOL_FORKS'];
+    delete processEnv['VITEST_WATCH'];
+  }
+  
+  const baseEnv = {
+    ...processEnv,
+    ...options.env,
+    // Ensure CI-like behavior for process cleanup
+    CI: process.env['CI'] ?? 'false',
+  };
+  
+  if (isTestCommand) {
+    return {
+      ...options,
+      env: {
+        ...baseEnv,
+        // Force vitest to exit after tests complete (prevents hanging workers)
+        VITEST_POOL_TIMEOUT: '30000',
+        // Use single fork configuration to prevent multiple hanging workers
+        VITEST_POOL_FORKS: '1',
+        // Disable watch mode explicitly to ensure processes terminate
+        VITEST_WATCH: 'false',
+      },
+    };
+  }
+
+  return {
+    ...options,
+    env: baseEnv,
+  };
+}
+
 export async function execCommand(
   command: string,
   args: string[] = [],
@@ -153,13 +204,19 @@ export async function execCommand(
   const fullCommand = `${command} ${args.join(' ')}`.trim();
   const start = Date.now();
   try {
-    const { stdout, stderr } = await execAsync(fullCommand, {
+    const { stdout, stderr } = await execAsync(fullCommand, getExecOptions({
       cwd: options.cwd ?? process.cwd(),
       timeout: options.timeout ?? 30000,
       maxBuffer: 1024 * 1024 * 10, // 10MB
-    });
+    }, fullCommand));
     const durationMs = Date.now() - start;
-    return { stdout, stderr, exitCode: 0, durationMs, timedOut: false };
+    return { 
+      stdout: stdout?.toString() ?? '', 
+      stderr: stderr?.toString() ?? '', 
+      exitCode: 0, 
+      durationMs, 
+      timedOut: false 
+    };
   } catch (error) {
     const durationMs = Date.now() - start;
     const execError = error as {
@@ -231,7 +288,7 @@ export async function executeCommand(
   cwd?: string
 ): Promise<{ stdout: string; stderr: string }> {
   try {
-    const result = await execAsync(command, { cwd });
+    const result = await execAsync(command, getExecOptions({ cwd }));
     return result;
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(`Command failed: ${command}`));

@@ -382,6 +382,12 @@ describe('utils', () => {
           cwd: '/test/dir',
           timeout: 30000,
           maxBuffer: 10485760,
+          env: expect.objectContaining({
+            CI: expect.any(String),
+            VITEST_POOL_TIMEOUT: '30000',
+            VITEST_POOL_FORKS: '1',
+            VITEST_WATCH: 'false',
+          }),
         },
         expect.any(Function)
       );
@@ -436,9 +442,18 @@ describe('utils', () => {
           cwd: process.cwd(),
           timeout: 30000,
           maxBuffer: 10485760,
+          env: expect.objectContaining({
+            CI: expect.any(String),
+            // No vitest env vars since 'ls' doesn't contain 'test'
+          }),
         },
         expect.any(Function)
       );
+      // Verify vitest env vars are NOT present for non-test commands
+      const callArgs = mockExec.mock.calls[0]?.[1] as { env: Record<string, string> } | undefined;
+      expect(callArgs?.env?.['VITEST_POOL_TIMEOUT']).toBeUndefined();
+      expect(callArgs?.env?.['VITEST_POOL_FORKS']).toBeUndefined();
+      expect(callArgs?.env?.['VITEST_WATCH']).toBeUndefined();
     });
 
     it('should respect custom timeout', async () => {
@@ -643,7 +658,7 @@ describe('utils', () => {
       ]);
       expect(mockExec).toHaveBeenCalledWith(
         'find . -name "*.ts"',
-        { cwd: '/test/project' },
+        expect.objectContaining({ cwd: '/test/project' }),
         expect.any(Function)
       );
     });
