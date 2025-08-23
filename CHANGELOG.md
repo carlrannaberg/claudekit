@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Optimized for finding specific files, functions, or patterns across large codebases
   - Uses parallel tool execution for 3-10x faster search performance
   - Returns focused file lists without unnecessary exploration or analysis
+  - Includes hook disabling configuration to prevent interference during search operations
+- **Subagent Hook Optimization System**: Intelligent hook management for improved performance
+  - Added `subagent-detector.ts` utility for detecting subagent context from transcripts
+  - Implemented `disableHooks` field in subagent schema to selectively disable hooks per agent
+  - Added SubagentStop event detection in BaseHook for performance optimization
+  - Enhanced subagent metadata parsing with frontmatter support for hook configuration
+- **Enhanced Hook Performance Profiling**: Improved hook execution monitoring and optimization
+  - Extended BaseHook class with subagent detection capabilities
+  - Added conditional hook execution based on subagent context
+  - Integrated performance-aware hook skipping for specialized agents
 
 ### Fixed
 - **Vitest Process Management**: Resolved hanging test processes and worker accumulation issues
@@ -32,11 +42,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented retry logic for directory removal on Windows/locked file systems
   - Added unique test directory naming to prevent conflicts between concurrent test runs
   - Improved error handling and cleanup in list command tests
+- **Subagent Schema Validation**: Corrected field categorization and validation
+  - Fixed `color` field classification as official Claude Code field (not Claudekit-specific)
+  - Enhanced subagent frontmatter schema with proper field validation
+  - Improved linter accuracy for subagent configuration files
 
 ### Changed
 - **Test Command Configuration**: Updated package.json test scripts for better performance
   - Removed `--reporter=dot` flag from `test:fast` command for clearer output
   - Streamlined test execution with consistent vitest configuration
+- **Hook Execution Model**: Enhanced conditional execution based on context
+  - Modified BaseHook to support SubagentStop event handling
+  - Improved hook performance by skipping unnecessary operations in subagent contexts
+  - Updated self-review hook with better transcript path handling
 
 ## [0.7.1] - 2025-08-23
 

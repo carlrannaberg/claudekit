@@ -84,6 +84,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Domain experts**: TypeScript, React, database, testing, infrastructure, documentation specialists
 - **Code review**: Dedicated `code-review-expert` agent with 6 focused analysis aspects
 - **Framework specialists**: Next.js, Nest.js, AI SDK, and build tool experts
+- **Performance optimization**: Intelligent hook management with `disableHooks` configuration to skip unnecessary validations during specialized operations
 - **Mandatory delegation**: All technical issues MUST be handled by specialized subagents
 - **Proactive help**: Run `/agents-md:init` to update AGENTS.md/CLAUDE.md for automatic subagent delegation
 
