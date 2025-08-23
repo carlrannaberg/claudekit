@@ -61,8 +61,10 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 2. **For domain-specific work**: Delegate directly to the relevant expert (typescript-expert, react-expert, etc.)
 3. **For code review**: Always use `code-review-expert` for comprehensive analysis
 4. **For complex debugging**: Route through `triage-expert` to identify the right specialist
+5. **For searching code content**: Use `code-search` agent to find specific implementations, string literals, or patterns within files
 
 **Examples of REQUIRED delegation:**
+- Searching for specific code implementations or content → Use `code-search`
 - TypeScript build/compilation errors → Use `typescript-build-expert`
 - Advanced type system issues (generics, conditionals) → Use `typescript-type-expert`
 - General TypeScript problems → Use `typescript-expert`
@@ -117,6 +119,7 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 - `devops-expert` - Infrastructure as code, monitoring, security
 
 **Other:**
+- `code-search` - Searches within file contents for specific implementations, patterns, or string literals (complements the codebase map which shows structure)
 - `git-expert` - Merge conflicts, branching, repository management
 - `nodejs-expert` - Node.js runtime, async patterns, streams
 - `linting-expert` - Code linting, formatting, static analysis
@@ -125,6 +128,7 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 ### When to Use Subagents
 
 Use the Task tool to delegate to subagents proactively when:
+- Searching for specific code content, patterns, or string literals within files → `code-search` (Note: The codebase map already shows function/class names)
 - Working on domain-specific tasks (e.g., React performance → `react-performance-expert`)
 - Encountering complex technical issues (e.g., TypeScript type errors → `typescript-type-expert`)
 - Optimizing build configurations (e.g., Webpack issues → `webpack-expert`)
