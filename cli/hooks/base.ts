@@ -7,6 +7,7 @@ import fs from 'fs-extra';
 import * as path from 'path';
 import { execCommand, detectPackageManager, formatError, findProjectRoot } from './utils.js';
 import type { ExecResult, PackageManager } from './utils.js';
+import { isHookDisabledForSubagent } from './subagent-detector.js';
 
 export interface ClaudePayload {
   tool_name?: string;
@@ -73,6 +74,18 @@ export abstract class BaseHook {
     // Check for infinite loop prevention
     if (payload.stop_hook_active === true) {
       return { exitCode: 0 };
+    }
+
+    // Check for subagent context on SubagentStop events
+    if (payload.hook_event_name === 'SubagentStop') {
+      const transcriptPath = payload.transcript_path as string | undefined;
+      const isDisabled = await isHookDisabledForSubagent(this.name, transcriptPath);
+      if (isDisabled) {
+        if (process.env['DEBUG'] === 'true') {
+          console.error(`${this.name}: Skipping - disabled for subagent`);
+        }
+        return { exitCode: 0, suppressOutput: true };
+      }
     }
 
     // Extract file path if present

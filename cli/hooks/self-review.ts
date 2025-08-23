@@ -3,7 +3,6 @@ import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
 import { AgentLoader } from '../lib/loaders/agent-loader.js';
-import { shouldSkipForSubagent } from './utils/performance.js';
 
 interface FocusArea {
   name: string;
@@ -147,11 +146,6 @@ export class SelfReviewHook extends BaseHook {
 
   async execute(context: HookContext): Promise<HookResult> {
     const { payload } = context;
-
-    // Check if hook should be skipped for subagent context
-    if (await shouldSkipForSubagent('self-review', payload)) {
-      return { exitCode: 0, suppressOutput: true };
-    }
     
     // Extract transcript path for use throughout the function
     const transcriptPath = payload.transcript_path as string | undefined;

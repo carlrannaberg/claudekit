@@ -1,7 +1,6 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
-import { shouldSkipForSubagent } from './utils/performance.js';
 
 export class CheckTodosHook extends BaseHook {
   name = 'check-todos';
@@ -17,11 +16,6 @@ export class CheckTodosHook extends BaseHook {
 
   async execute(context: HookContext): Promise<HookResult> {
     const { payload } = context;
-
-    // Check if hook should be skipped for subagent context
-    if (await shouldSkipForSubagent('check-todos', payload)) {
-      return { exitCode: 0, suppressOutput: true };
-    }
 
     // Get transcript path
     const transcriptPath = payload.transcript_path as string | undefined;
