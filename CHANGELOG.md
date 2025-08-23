@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2025-08-24
+
+### Added
+- **Codebase Map Automatic Updates**: New hook for keeping codebase maps synchronized
+  - Added `codebase-map-update` hook that automatically refreshes codebase maps when files are modified
+  - Enabled by default in project `.claude/settings.json` for Write|Edit|MultiEdit operations
+  - Ensures AI assistants always have up-to-date project structure information
+- **Node.js Import Migration Script**: Automated tool for modernizing import statements
+  - Added `scripts/migrate-node-imports.js` for converting legacy Node.js imports to `node:` prefix format
+  - Supports comprehensive migration of 23+ Node.js built-in modules (fs, path, crypto, etc.)
+  - Handles ES6 imports, require statements, and dynamic imports
+- **Documentation Validation System**: Comprehensive docs accuracy checking
+  - Added `scripts/validate-docs.sh` for systematic documentation validation against implementation
+  - Color-coded output and structured validation reports
+  - Checks command documentation, example accuracy, and configuration consistency
+- **Comprehensive Codebase Map Guide**: Detailed documentation for codebase map functionality
+  - Added `docs/guides/codebase-map.md` with complete setup and configuration instructions
+  - Includes format explanations, filtering options, and performance optimization tips
+  - Documents both manual and automatic codebase map management workflows
+- **Unused Parameters Detection**: New code quality hook
+  - Added `check-unused-parameters` hook to Code Quality group in setup
+  - Automatically detects and flags unused function/method parameters
+  - Helps maintain cleaner, more maintainable code
+
+### Fixed
+- **Code Search Agent Color Configuration**: Updated agent configuration for better UI consistency
+  - Fixed `code-search` agent color from invalid "amber" to valid "purple" for Claude Code compatibility
+  - Ensures proper agent display and color coding in the interface
+- **Node.js Import Standardization**: Modernized all Node.js import statements across the codebase
+  - Standardized 65+ files to use `node:` prefix for all Node.js built-in modules
+  - Updated imports for fs, path, crypto, child_process, os, and other built-ins
+  - Improves bundling compatibility and prevents module resolution issues
+  - Aligns with modern Node.js best practices and esbuild requirements
+
+### Changed
+- **Documentation Structure Reorganization**: Improved documentation consistency and navigation
+  - Restructured checkpoint guide from `checkpoint-workflow.md` to `checkpoint.md` to match other documentation format
+  - Enhanced file-guard setup documentation with one-liner installation commands
+  - Improved documentation organization for better user experience
+- **Setup Command Hook Groups**: Enhanced setup command with additional quality checks
+  - Added `check-unused-parameters` to Code Quality hook group
+  - Extended hook configuration with PreToolUse support for file-guard integration
+
+### Documentation
+- Enhanced file-guard setup documentation with quick installation commands
+- Added comprehensive configuration examples and troubleshooting guides
+- Improved documentation structure consistency across all guides
+
 ## [0.7.2] - 2025-08-23
 
 ### Added

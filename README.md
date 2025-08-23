@@ -238,7 +238,17 @@ Once installed, agents work automatically or can be invoked directly:
 
 ### Protecting Sensitive Files
 
-The `file-guard` hook automatically protects sensitive files from AI access. Create a `.agentignore` file:
+The `file-guard` hook automatically protects sensitive files from AI access. Quick setup:
+
+```bash
+# New projects: Install claudekit with file-guard protection
+npm install -g claudekit && claudekit setup --yes --force --hooks file-guard
+
+# Existing projects: Add file-guard to current setup
+claudekit setup --hooks file-guard
+```
+
+Or manually create a `.agentignore` file:
 
 ```gitignore
 # .agentignore
