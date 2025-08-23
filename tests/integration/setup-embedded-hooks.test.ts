@@ -327,6 +327,42 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         },
       ],
       [
+        'check-any-changed',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/check-any-changed.sh',
+          hash: 'any123',
+          lastModified: new Date(),
+          metadata: {
+            id: 'check-any-changed',
+            name: 'Check Any (Changed Files)',
+            description: 'Detect forbidden any types',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
+        'check-unused-parameters',
+        {
+          type: 'hook',
+          path: '/mock/src/hooks/check-unused-parameters.sh',
+          hash: 'unused123',
+          lastModified: new Date(),
+          metadata: {
+            id: 'check-unused-parameters',
+            name: 'Check Unused Parameters',
+            description: 'Detect lazy refactoring with underscore prefixes',
+            category: 'validation',
+            platforms: ['darwin', 'linux'],
+            dependencies: [],
+            enabled: true,
+          },
+        },
+      ],
+      [
         'git:commit',
         {
           type: 'command',
@@ -361,6 +397,8 @@ describe('Setup Command - Embedded Hooks Integration', () => {
             'test-changed',
             'test-project',
             'check-todos',
+            'check-any-changed',
+            'check-unused-parameters',
           ]),
         ],
         ['git', new Set(['create-checkpoint', 'git:commit'])],
