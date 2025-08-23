@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { validateClaudekitConfig, type ClaudekitConfig } from '../types/claudekit-config.js';
 
 /**

@@ -2,7 +2,7 @@ import { Logger } from '../utils/logger.js';
 import { loadConfig, loadUserConfig } from '../utils/config.js';
 import type { Config } from '../types/config.js';
 import { progress } from '../utils/progress.js';
-import * as path from 'path';
+import * as path from 'node:path';
 import fs from 'fs-extra';
 import { Colors } from '../utils/colors.js';
 import { HOOK_REGISTRY } from '../hooks/registry.js';

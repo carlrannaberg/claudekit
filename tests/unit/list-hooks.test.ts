@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import fs from 'fs-extra';
-import path from 'path';
+import path from 'node:path';
 import { list } from '../../cli/commands/list.js';
 import * as paths from '../../cli/lib/paths.js';
 import type { HooksConfig } from '../../cli/types/config.js';

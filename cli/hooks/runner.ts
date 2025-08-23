@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
-import * as path from 'path';
-import { setImmediate } from 'timers';
+import * as path from 'node:path';
+import { setImmediate } from 'node:timers';
 import { z } from 'zod';
 import { readStdin } from './utils.js';
 import type { BaseHook, HookConfig } from './base.js';

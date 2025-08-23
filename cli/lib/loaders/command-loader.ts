@@ -1,5 +1,5 @@
-import * as path from 'path';
-import { promises as fs } from 'fs';
+import * as path from 'node:path';
+import { promises as fs } from 'node:fs';
 import type { CommandDefinition } from './types.js';
 import { BaseLoader } from './base-loader.js';
 

@@ -168,6 +168,39 @@ When configuring Webpack or build tools:
 
 ## Code Style
 
+### Node.js Import Conventions
+- **ALWAYS use `node:` prefix for Node.js built-in modules**
+- This ensures proper recognition by build tools (esbuild) and validation scripts
+- Prevents bundling issues where built-ins are incorrectly treated as external dependencies
+
+```typescript
+// ✅ CORRECT - Use node: prefix
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
+import { exec } from 'node:child_process';
+import * as crypto from 'node:crypto';
+
+// ❌ INCORRECT - Legacy style without prefix
+import { promises as fs } from 'fs';
+import * as path from 'path';
+```
+
+**Common Node.js built-ins that require `node:` prefix:**
+- `node:fs`, `node:fs/promises`
+- `node:path`
+- `node:os`
+- `node:crypto`
+- `node:child_process`
+- `node:url`
+- `node:util`
+- `node:stream`
+- `node:http`, `node:https`
+- `node:events`
+- `node:buffer`
+- `node:timers`
+- `node:perf_hooks`
+- `node:worker_threads`
+
 ### Shell Scripts
 - **Shebang**: Always use `#!/usr/bin/env bash`
 - **Error handling**: Start with `set -euo pipefail`

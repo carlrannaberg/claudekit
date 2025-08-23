@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import type { ExecResult, PackageManager } from './utils.js';

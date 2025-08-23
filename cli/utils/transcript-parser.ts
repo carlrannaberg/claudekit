@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from 'fs';
-import { homedir } from 'os';
+import { readFileSync, existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import picomatch from 'picomatch';
 
 export interface ToolInput {

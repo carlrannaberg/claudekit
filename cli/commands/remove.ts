@@ -1,6 +1,6 @@
 import { Logger } from '../utils/logger.js';
 import { confirm } from '@inquirer/prompts';
-import * as path from 'path';
+import * as path from 'node:path';
 import fs from 'fs-extra';
 
 interface RemoveOptions {

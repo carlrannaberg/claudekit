@@ -1,7 +1,7 @@
 import { BaseHook } from './base.js';
 import type { HookContext, HookResult } from './base.js';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import picomatch from 'picomatch';
 
 // Default patterns for essential sensitive files

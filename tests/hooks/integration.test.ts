@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import { spawn } from 'child_process';
-import os from 'os';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import os from 'node:os';
 import type { Config } from '@/types/config';
 
 /**

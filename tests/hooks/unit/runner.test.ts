@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as path from 'path';
+import * as path from 'node:path';
 
 // Mock all dependencies before imports
 vi.mock('fs-extra', () => ({

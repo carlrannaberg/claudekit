@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
-import path from 'path';
-import { spawn } from 'child_process';
-import { promises as fs } from 'fs';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
 import { TestFileSystem } from '../utils/test-helpers.js';
 import type { AgentDefinition, CommandDefinition } from '../../cli/lib/loaders/types.js';
 

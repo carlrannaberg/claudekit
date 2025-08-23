@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi, type MockInstance } from 'vitest'
 import { SelfReviewHook } from '../../cli/hooks/self-review.js';
 import type { HookContext } from '../../cli/hooks/base.js';
 import * as configUtils from '../../cli/utils/claudekit-config.js';
-import * as fs from 'fs';
-import * as os from 'os';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import { AgentLoader } from '../../cli/lib/loaders/agent-loader.js';
 import * as subagentDetector from '../../cli/hooks/subagent-detector.js';
 

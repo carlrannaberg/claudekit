@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import type { Stats } from 'fs';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import type { Stats } from 'node:fs';
 import { setup } from '../../cli/commands/setup';
 import type { SetupOptions } from '../../cli/commands/setup';
 

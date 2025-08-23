@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { AgentLoader } from '../../../cli/lib/loaders/agent-loader.js';
 import { TestFileSystem } from '../../utils/test-helpers.js';
 import * as paths from '../../../cli/lib/paths.js';

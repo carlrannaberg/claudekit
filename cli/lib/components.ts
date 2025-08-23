@@ -1,5 +1,5 @@
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
 import { pathExists, getFileStats } from './filesystem.js';
 import type { Component, ComponentType, ComponentCategory, ProjectInfo } from '../types/config.js';
 import { HOOK_REGISTRY } from '../hooks/registry.js';

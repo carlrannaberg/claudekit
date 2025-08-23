@@ -6,7 +6,7 @@
  */
 
 import { Command } from 'commander';
-import { setImmediate } from 'timers';
+import { setImmediate } from 'node:timers';
 import { HookRunner } from './hooks/runner.js';
 
 export function createHooksCLI(): Command {

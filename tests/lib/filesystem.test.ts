@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { promises as fs, constants } from 'fs';
-import path from 'path';
-// import os from 'os'; // Removed unused import
-import crypto from 'crypto';
+import { promises as fs, constants } from 'node:fs';
+import path from 'node:path';
+// import os from 'node:os'; // Removed unused import
+import crypto from 'node:crypto';
 
 // Mock modules before importing the module under test
 vi.mock('fs', async () => {

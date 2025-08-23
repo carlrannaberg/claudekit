@@ -1,6 +1,6 @@
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter } from '../utils/progress.js';
-import * as path from 'path';
+import * as path from 'node:path';
 import fs from 'fs-extra';
 
 interface AddOptions {

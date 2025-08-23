@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TranscriptParser } from '../../cli/utils/transcript-parser.js';
-import * as fs from 'fs';
-import * as os from 'os';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 
 vi.mock('fs');
 vi.mock('os');

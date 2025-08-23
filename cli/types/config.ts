@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HOOK_EVENTS } from './hooks.js';
 
 // ============================================================================
 // Core Configuration Schemas
@@ -81,22 +82,15 @@ export const HookMatcherSchema = z.object({
 });
 
 /**
- * Hook event configuration schema
+ * Hook event configuration schema - uses centralized HOOK_EVENTS
  */
-export const HookEventSchema = z.enum([
-  'PostToolUse',
-  'Stop',
-  'SubagentStop',
-  'PreAction',
-  'PostAction',
-  'SessionStart',
-  'UserPromptSubmit',
-]);
+export const HookEventSchema = z.enum(HOOK_EVENTS);
 
 /**
  * Complete hooks configuration schema
  */
 export const HooksConfigSchema = z.object({
+  PreToolUse: z.array(HookMatcherSchema).optional(),
   PostToolUse: z.array(HookMatcherSchema).optional(),
   Stop: z.array(HookMatcherSchema).optional(),
   SubagentStop: z.array(HookMatcherSchema).optional(),

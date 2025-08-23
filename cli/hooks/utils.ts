@@ -3,12 +3,12 @@
  * Common utilities for hook implementation
  */
 
-import { exec } from 'child_process';
-import type { ExecOptions } from 'child_process';
-import { promisify } from 'util';
-import { setImmediate } from 'timers';
+import { exec } from 'node:child_process';
+import type { ExecOptions } from 'node:child_process';
+import { promisify } from 'node:util';
+import { setImmediate } from 'node:timers';
 import fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { Logger } from '../utils/logger.js';
 
 const logger = new Logger('utils');

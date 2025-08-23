@@ -1,6 +1,6 @@
 import { Colors, symbols } from '../utils/colors.js';
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
 import { createProgressReporter } from '../utils/progress.js';
 import {
   validateProject,

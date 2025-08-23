@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { performance } from 'perf_hooks';
+import { performance } from 'node:perf_hooks';
 
 describe('Vitest Configuration Validation', () => {
   describe('Main Configuration', () => {

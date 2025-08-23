@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as path from 'path';
+import * as path from 'node:path';
 import type { HookContext, HookResult, ClaudePayload } from '../../../cli/hooks/base.js';
 import { BaseHook } from '../../../cli/hooks/base.js';
 import * as utils from '../../../cli/hooks/utils.js';

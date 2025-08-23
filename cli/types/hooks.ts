@@ -62,13 +62,20 @@ export interface HookTrigger {
 }
 
 /**
- * Hook events
+ * Hook events - Single source of truth for all hook event types
  */
-export enum HookEvent {
-  PostToolUse = 'PostToolUse',
-  Stop = 'Stop',
-  PreToolUse = 'PreToolUse',
-}
+export const HOOK_EVENTS = [
+  'PreToolUse',
+  'PostToolUse',
+  'Stop',
+  'SubagentStop',
+  'PreAction',
+  'PostAction',
+  'SessionStart',
+  'UserPromptSubmit',
+] as const;
+
+export type HookEvent = typeof HOOK_EVENTS[number];
 
 /**
  * Hook condition

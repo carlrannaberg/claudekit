@@ -1,6 +1,6 @@
-import { promises as fs } from 'fs';
-import * as path from 'path';
-// import os from 'os'; // Unused
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
+// import os from 'node:os'; // Unused
 import { confirm } from '@inquirer/prompts';
 import { Logger } from '../utils/logger.js';
 import { Colors } from '../utils/colors.js';

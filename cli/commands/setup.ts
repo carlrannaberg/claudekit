@@ -1,7 +1,7 @@
 import { select, checkbox, input, confirm } from '@inquirer/prompts';
 import { Colors } from '../utils/colors.js';
-import * as path from 'path';
-import { promises as fs } from 'fs';
+import * as path from 'node:path';
+import { promises as fs } from 'node:fs';
 import { Logger } from '../utils/logger.js';
 import { createProgressReporter, ComponentProgressReporter } from '../utils/progress.js';
 import {
@@ -998,6 +998,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
  */
 interface HookSettings {
   hooks: {
+    PreToolUse?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     PostToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     Stop: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
     SubagentStop?: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }>;
@@ -1026,6 +1027,7 @@ async function createProjectSettings(
   // Start with existing settings or create new structure
   const settings: HookSettings = existingSettings ?? {
     hooks: {
+      PreToolUse: [],
       PostToolUse: [],
       Stop: [],
       SubagentStop: [],
@@ -1037,12 +1039,16 @@ async function createProjectSettings(
   // Ensure required structure exists
   if (settings.hooks === null || settings.hooks === undefined) {
     settings.hooks = {
+      PreToolUse: [],
       PostToolUse: [],
       Stop: [],
       SubagentStop: [],
       SessionStart: [],
       UserPromptSubmit: [],
     };
+  }
+  if (settings.hooks.PreToolUse === null || settings.hooks.PreToolUse === undefined) {
+    settings.hooks.PreToolUse = [];
   }
   if (settings.hooks.PostToolUse === null || settings.hooks.PostToolUse === undefined) {
     settings.hooks.PostToolUse = [];
@@ -1066,6 +1072,14 @@ async function createProjectSettings(
     const oldCommand = `.claude/hooks/${hookId}.sh`;
     const newCommand = `claudekit-hooks run ${hookId}`;
 
+    // Check PreToolUse hooks
+    if (settings.hooks.PreToolUse) {
+      for (const entry of settings.hooks.PreToolUse) {
+        if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {
+          return true;
+        }
+      }
+    }
     // Check PostToolUse hooks
     for (const entry of settings.hooks.PostToolUse) {
       if (entry.hooks.some((h) => h.command === oldCommand || h.command === newCommand)) {

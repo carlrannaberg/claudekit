@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 import {
   loadConfig,
   saveConfig,
@@ -12,6 +12,7 @@ import {
   resolveHookPaths,
 } from '../cli/utils/config';
 import type { Config } from '../cli/types/config';
+import { HooksConfigSchema, HookEventSchema } from '../cli/types/config';
 
 describe('Config utilities', () => {
   let tempDir: string;
@@ -692,6 +693,94 @@ describe('Config utilities', () => {
         h.hooks.some((hook) => hook.command.includes('hook2.sh'))
       );
       expect(absoluteHook?.hooks[0]?.command).toBe('/absolute/path/hook2.sh');
+    });
+  });
+
+  describe('HooksConfigSchema validation', () => {
+    it('should accept all valid hook event types', () => {
+      
+      const validConfig = {
+        PreToolUse: [{ matcher: 'Read', hooks: [{ type: 'command', command: 'test' }] }],
+        PostToolUse: [{ matcher: 'Write', hooks: [{ type: 'command', command: 'test' }] }],
+        Stop: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        SubagentStop: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        PreAction: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        PostAction: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        SessionStart: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        UserPromptSubmit: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+      };
+      
+      expect(() => HooksConfigSchema.parse(validConfig)).not.toThrow();
+    });
+
+    it('should accept partial hook configurations', () => {
+      
+      const partialConfig = {
+        PreToolUse: [{ matcher: 'Read', hooks: [{ type: 'command', command: 'test' }] }],
+        PostToolUse: [{ matcher: 'Write', hooks: [{ type: 'command', command: 'test' }] }],
+      };
+      
+      expect(() => HooksConfigSchema.parse(partialConfig)).not.toThrow();
+    });
+
+    it('should accept empty hook configuration', () => {
+      
+      const emptyConfig = {};
+      
+      expect(() => HooksConfigSchema.parse(emptyConfig)).not.toThrow();
+    });
+
+    it('should allow additional properties (Zod default behavior)', () => {
+      // Note: Zod by default allows additional properties. This is actually
+      // beneficial as it allows forward compatibility with new hook types.
+      const configWithExtra = {
+        InvalidEvent: [{ matcher: '*', hooks: [{ type: 'command', command: 'test' }] }],
+        PreToolUse: [{ matcher: 'Read', hooks: [{ type: 'command', command: 'test' }] }],
+      };
+      
+      const result = HooksConfigSchema.parse(configWithExtra);
+      expect(result).toBeDefined();
+      expect(result.PreToolUse).toBeDefined();
+      // The InvalidEvent will be present in the result but that's OK
+    });
+
+    it('should ensure HookEventSchema and HooksConfigSchema are in sync', () => {
+      
+      const eventSchemaKeys = HookEventSchema.options;
+      const hooksConfigKeys = Object.keys(HooksConfigSchema.shape);
+      
+      // Every event in HookEventSchema should be in HooksConfigSchema
+      for (const event of eventSchemaKeys) {
+        expect(hooksConfigKeys).toContain(event);
+      }
+      
+      // Every key in HooksConfigSchema should be in HookEventSchema
+      for (const key of hooksConfigKeys) {
+        expect(eventSchemaKeys).toContain(key);
+      }
+    });
+
+    it('should validate PreToolUse hook configuration specifically', () => {
+      
+      const preToolUseConfig = {
+        PreToolUse: [
+          {
+            matcher: 'Read|Edit|MultiEdit|Write',
+            hooks: [
+              {
+                type: 'command',
+                command: 'claudekit-hooks run file-guard',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const result = HooksConfigSchema.parse(preToolUseConfig);
+      expect(result.PreToolUse).toBeDefined();
+      expect(result.PreToolUse).toHaveLength(1);
+      expect(result.PreToolUse?.[0]?.matcher).toBe('Read|Edit|MultiEdit|Write');
+      expect(result.PreToolUse?.[0]?.hooks[0]?.command).toBe('claudekit-hooks run file-guard');
     });
   });
 });

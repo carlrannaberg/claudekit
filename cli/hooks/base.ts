@@ -4,7 +4,7 @@
  */
 
 import fs from 'fs-extra';
-import * as path from 'path';
+import * as path from 'node:path';
 import { execCommand, detectPackageManager, formatError, findProjectRoot } from './utils.js';
 import type { ExecResult, PackageManager } from './utils.js';
 import { isHookDisabledForSubagent } from './subagent-detector.js';

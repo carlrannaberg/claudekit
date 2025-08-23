@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { setup } from '../../cli/commands/setup';
 import { doctor } from '../../cli/commands/doctor';
 import { loadConfig, saveConfig, configExists } from '../../cli/utils/config';

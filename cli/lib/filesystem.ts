@@ -1,8 +1,8 @@
-import type { Stats } from 'fs';
-import { promises as fs, constants } from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import * as crypto from 'crypto';
+import type { Stats } from 'node:fs';
+import { promises as fs, constants } from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import * as crypto from 'node:crypto';
 import { Logger } from '../utils/logger.js';
 
 const logger = Logger.create('filesystem');
