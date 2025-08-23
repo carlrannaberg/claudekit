@@ -205,10 +205,10 @@ export const SubagentFrontmatterSchema = z
       .optional()
       .describe('Comma-separated list of tools (inherits all if omitted)'),
     model: z.enum(['opus', 'sonnet', 'haiku']).or(z.string()).optional().describe('Preferred model for this agent'),
-
-    // Claudekit-specific fields for UI and organization
+    color: ColorSchema.describe('UI color scheme'),
+    
+    // Claudekit-specific fields for organization and behavior
     category: AgentCategorySchema.optional().describe('Claudekit: category for grouping agents'),
-    color: ColorSchema.describe('Claudekit: UI color scheme'),
     displayName: z.string().optional().describe('Claudekit: display name for UI'),
     bundle: z.array(z.string()).optional().describe('Claudekit: bundled subagent names'),
     disableHooks: z.array(z.string()).optional().describe('Claudekit: hooks to disable for this subagent'),
