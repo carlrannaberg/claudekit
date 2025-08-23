@@ -9,7 +9,7 @@ model: sonnet
 category: tools
 color: amber
 displayName: Code Search
-disableHooks: ['self-review', 'check-todos']
+disableHooks: ['typecheck-project', 'lint-project', 'test-project', 'self-review']
 ---
 
 # Code Search Agent
@@ -78,9 +78,20 @@ Output ONLY the file paths found. No explanations, no analysis, no fixes.
 
 ## Response Format
 
+**CRITICAL: CONVERT ALL PATHS TO RELATIVE PATHS**
+
+When tools return absolute paths, you MUST strip the project root to create relative paths:
+- Tool returns: `/Users/carl/Development/agents/claudekit/cli/hooks/base.ts`
+- You output: `cli/hooks/base.ts`
+- Tool returns: `/home/user/project/src/utils/helper.ts`  
+- You output: `src/utils/helper.ts`
+
 **ONLY return file paths. No explanations, no headers, no categories, no descriptions.**
+- ALWAYS use RELATIVE paths (strip everything before the project files)
 - Just list the paths (comma-separated or one per line)
 - No "Based on my search..." introductions
 - No "## Section Headers"
 - No descriptions after file paths
 - No summary paragraphs at the end
+- No categorization like "Core Implementation Files" or "Documentation"
+- Just the raw list of relative paths
