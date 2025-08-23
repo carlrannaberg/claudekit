@@ -6,9 +6,52 @@ Claudekit includes built-in protection for sensitive files to prevent AI assista
 
 ## Quick Start
 
-### Basic Protection
+### New to Claudekit?
 
-Create a `.agentignore` file in your project root:
+Install claudekit and enable file-guard protection with a single command:
+
+```bash
+npm install -g claudekit && claudekit setup --yes --force --hooks file-guard
+```
+
+### Already Have Claudekit?
+
+Add file-guard to your existing project:
+
+```bash
+claudekit setup --yes --force --hooks file-guard
+```
+
+Both commands will:
+- Add file-guard hook to your `.claude/settings.json` 
+- Merge with any existing configuration (won't overwrite other hooks)
+- Skip interactive prompts with `--yes --force`
+
+### Manual Configuration
+
+You can also manually add file-guard to `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run file-guard"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Customize Protection
+
+After installation, customize your `.agentignore` file in your project root:
 
 ```gitignore
 # .agentignore
@@ -31,25 +74,93 @@ Create a `.agentignore` file in your project root:
 !config.sample.json
 ```
 
-That's it! The hook will automatically protect these files from AI access.
+### Verify Protection
 
-### Testing Your Protection
-
-Test if files are properly protected:
+Test that your sensitive files are properly protected:
 
 ```bash
-# Test if .env is blocked
+# Check if file-guard is configured
+claudekit list hooks | grep file-guard
+
+# Test if .env is blocked (create a test .env file first)
+echo "SECRET_KEY=test123" > .env
 echo '{"tool_name":"Read","tool_input":{"file_path":".env"}}' | \
   claudekit-hooks run file-guard
 
 # Should output: permissionDecision: "deny"
 ```
 
+## Configuration
+
+### Enabling File Guard in .claude/settings.json
+
+The file-guard hook must be configured in your project's `.claude/settings.json` to activate:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run file-guard"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This configuration:
+- Triggers on `PreToolUse` event (before tools execute)
+- Matches file operation tools: Read, Edit, MultiEdit, and Write
+- Runs the file-guard hook to check if access should be allowed
+
+### Alternative Configuration Options
+
+#### Specific Tools Only
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run file-guard"}]
+      },
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [{"type": "command", "command": "claudekit-hooks run file-guard"}]
+      }
+    ]
+  }
+}
+```
+
+#### With Other Hooks
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|MultiEdit|Write",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run file-guard"},
+          {"type": "command", "command": "claudekit-hooks run another-hook"}
+        ]
+      }
+    ]
+  }
+}
+```
+
 ## How It Works
 
 The file-guard hook:
 
-1. **Triggers before file access** - Runs on Read, Edit, MultiEdit, and Write tools
+1. **Triggers before file access** - Runs on Read, Edit, MultiEdit, and Write tools via PreToolUse event
 2. **Merges patterns from all ignore files** - Checks multiple formats simultaneously
 3. **Resolves symlinks** - Prevents bypassing protection via symbolic links
 4. **Blocks path traversal** - Prevents accessing files outside the project
