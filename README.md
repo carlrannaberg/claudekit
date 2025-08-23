@@ -263,6 +263,18 @@ The `file-guard` hook supports multiple ignore file formats (`.agentignore`, `.a
 
 See the [File Guard Guide](docs/guides/file-guard.md) for detailed configuration and best practices.
 
+### 🗺️ Automated Codebase Context
+
+Claudekit provides intelligent codebase mapping that automatically gives AI assistants comprehensive project context:
+
+- **Automatic context provision** - Claude receives your project structure at session start
+- **Live updates** - Map stays current as files change during development
+- **Configurable filtering** - Focus on relevant code and exclude tests/dependencies
+- **Multiple output formats** - DSL, tree, markdown, and JSON formats optimized for different use cases
+- **Session awareness** - Loads once per session, avoiding repetitive context
+
+See the [Codebase Map Guide](docs/guides/codebase-map.md) for setup, configuration, and best practices.
+
 ## Configuration
 
 Claudekit uses two configuration files:

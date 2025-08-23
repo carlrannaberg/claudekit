@@ -29,6 +29,8 @@ codebase-map format --format dsl --include "cli/**" --exclude "**/*.test.ts"
 
 The codebase map is automatically provided at the start of each session and can be configured in `.claudekit/config.json` to filter what's shown.
 
+**For complete setup and configuration details, see the [Codebase Map Guide](docs/guides/codebase-map.md).**
+
 ## Build & Commands
 
 This is a TypeScript-based toolkit. Key commands:

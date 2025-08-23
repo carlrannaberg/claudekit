@@ -271,6 +271,8 @@ These hooks run when users submit their first prompt in a Claude Code session:
 
 **Dependencies:** Requires [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI tool installed
 
+> 💡 **Comprehensive Guide Available**: For detailed setup, configuration options, troubleshooting, and best practices, see the [Codebase Map Hooks Guide](../guides/codebase-map.md).
+
 **Configuration Options:**
 - `format` (string): Output format - auto|json|dsl|graph|markdown (default: "auto")
 - `command` (string): Custom command to run (default: "codebase-map scan")
@@ -305,6 +307,8 @@ src/hooks/typecheck.ts > TypecheckHook
 **Triggers on:** Write, Edit, MultiEdit tools (TypeScript/JavaScript files only)
 
 **Dependencies:** Requires codebase-map CLI tool installed
+
+> 💡 **Used with codebase-map hook**: This update hook works in conjunction with the `codebase-map` hook. See the [Codebase Map Hooks Guide](../guides/codebase-map.md) for the complete two-hook system setup.
 
 **Configuration Options:**
 - `updateOnChanges` (boolean): Enable/disable automatic updates (default: true)

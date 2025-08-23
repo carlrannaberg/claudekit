@@ -106,6 +106,7 @@ const HOOK_GROUPS: HookGroup[] = [
       'check-any-changed',
       'test-changed',
       'check-comment-replacement',
+      'check-unused-parameters',
     ],
     recommended: true,
     triggerEvent: 'PostToolUse',
