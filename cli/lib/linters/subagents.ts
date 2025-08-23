@@ -211,6 +211,7 @@ export const SubagentFrontmatterSchema = z
     color: ColorSchema.describe('Claudekit: UI color scheme'),
     displayName: z.string().optional().describe('Claudekit: display name for UI'),
     bundle: z.array(z.string()).optional().describe('Claudekit: bundled subagent names'),
+    disableHooks: z.array(z.string()).optional().describe('Claudekit: hooks to disable for this subagent'),
   })
   .strict(); // Strict mode will catch any extra fields
 
@@ -330,20 +331,8 @@ export async function lintSubagentFile(filePath: string): Promise<LintResult> {
 
     const { data: frontmatter, content: markdown } = matter(content);
 
-    // Track which fields are present but not in schema
-    // Official Claude Code fields: name, description, tools, model
-    // Claudekit-specific: category, color, displayName, bundle
-    // Deprecated/unused: universal, defaultSelected (parsed but never used)
-    const schemaFields = new Set([
-      'name',
-      'description',
-      'tools',
-      'model', // Official Claude Code fields
-      'category',
-      'color',
-      'displayName',
-      'bundle', // Claudekit extensions
-    ]);
+    // Get valid fields directly from the Zod schema - single source of truth!
+    const schemaFields = new Set(Object.keys(SubagentFrontmatterSchema.shape));
 
     const presentFields = Object.keys(frontmatter);
     result.unusedFields = presentFields.filter((field) => !schemaFields.has(field));
