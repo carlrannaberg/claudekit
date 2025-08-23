@@ -3,6 +3,7 @@ import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
 import { AgentLoader } from '../lib/loaders/agent-loader.js';
+import { isHookDisabledForSubagent } from './subagent-detector.js';
 
 interface FocusArea {
   name: string;
@@ -145,6 +146,16 @@ export class SelfReviewHook extends BaseHook {
   }
 
   async execute(context: HookContext): Promise<HookResult> {
+    // Check if this hook is disabled for the current subagent
+    const transcriptPath = context.payload?.transcript_path as string | undefined;
+    const isDisabled = await isHookDisabledForSubagent('self-review', transcriptPath);
+    if (isDisabled) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Self-review: Skipping - disabled for current subagent');
+      }
+      return { exitCode: 0, suppressOutput: true };
+    }
+    
     if (process.env['DEBUG'] === 'true') {
       console.error('Self-review: Hook starting');
     }
@@ -166,7 +177,6 @@ export class SelfReviewHook extends BaseHook {
     }
 
     // Check if there were recent file changes matching target patterns
-    const transcriptPath = context.payload?.transcript_path as string | undefined;
     const targetPatterns = config.targetPatterns;
     const hasChanges = await this.hasRecentFileChanges(targetPatterns, transcriptPath);
     if (!hasChanges) {

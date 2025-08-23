@@ -1,6 +1,7 @@
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
+import { isHookDisabledForSubagent } from './subagent-detector.js';
 
 export class CheckTodosHook extends BaseHook {
   name = 'check-todos';
@@ -19,6 +20,15 @@ export class CheckTodosHook extends BaseHook {
 
     // Get transcript path
     const transcriptPath = payload.transcript_path as string | undefined;
+    
+    // Check if this hook is disabled for the current subagent
+    const isDisabled = await isHookDisabledForSubagent('check-todos', transcriptPath);
+    if (isDisabled) {
+      if (process.env['DEBUG'] === 'true') {
+        console.error('Check-todos: Skipping - disabled for current subagent');
+      }
+      return { exitCode: 0, suppressOutput: true };
+    }
     if (transcriptPath === undefined || transcriptPath === '') {
       // Allow stop - no transcript to check
       return { exitCode: 0 };

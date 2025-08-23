@@ -79,6 +79,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Checkpoint management**: List, restore, or clean up checkpoints
 
 ### 🤖 AI Subagents
+- **Code Search**: `code-search` for fast, parallel codebase searches with 3-10x speed improvements
 - **Triage Expert**: `triage-expert` for initial problem diagnosis and routing to specialists
 - **Domain experts**: TypeScript, React, database, testing, infrastructure, documentation specialists
 - **Code review**: Dedicated `code-review-expert` agent with 6 focused analysis aspects

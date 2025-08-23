@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2025-08-23
+
+### Added
+- **Code Search Agent**: New specialized codebase search agent with optimized file discovery capabilities
+  - Added `code-search` agent for fast, parallel file pattern searches
+  - Optimized for finding specific files, functions, or patterns across large codebases
+  - Uses parallel tool execution for 3-10x faster search performance
+  - Returns focused file lists without unnecessary exploration or analysis
+
+### Fixed
+- **Vitest Process Management**: Resolved hanging test processes and worker accumulation issues
+  - Added `getExecOptions` function with intelligent environment variable management
+  - Implemented vitest-specific environment variables (VITEST_POOL_TIMEOUT, VITEST_POOL_FORKS, VITEST_WATCH)
+  - Fixed test command execution to prevent orphaned vitest worker processes
+  - Enhanced process cleanup with proper timeout and fork management
+- **Test Configuration Optimization**: Streamlined vitest configuration to prevent process hangs
+  - Configured `singleFork: true` to run all tests in single child process
+  - Disabled `fileParallelism` for predictable process management
+  - Reduced `teardownTimeout` to 3000ms for faster test completion
+  - Removed separate hook configuration file (vitest.hook.config.ts) to eliminate complexity
+- **Test Reliability Improvements**: Enhanced test cleanup and directory management
+  - Added comprehensive test directory cleanup in beforeAll/afterAll hooks
+  - Implemented retry logic for directory removal on Windows/locked file systems
+  - Added unique test directory naming to prevent conflicts between concurrent test runs
+  - Improved error handling and cleanup in list command tests
+
+### Changed
+- **Test Command Configuration**: Updated package.json test scripts for better performance
+  - Removed `--reporter=dot` flag from `test:fast` command for clearer output
+  - Streamlined test execution with consistent vitest configuration
+
 ## [0.7.1] - 2025-08-23
 
 ### Added

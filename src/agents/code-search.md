@@ -9,6 +9,7 @@ model: sonnet
 category: tools
 color: amber
 displayName: Code Search
+disableHooks: ['self-review', 'check-todos']
 ---
 
 # Code Search Agent
