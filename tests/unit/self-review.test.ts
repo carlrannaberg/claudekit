@@ -5,11 +5,13 @@ import * as configUtils from '../../cli/utils/claudekit-config.js';
 import * as fs from 'fs';
 import * as os from 'os';
 import { AgentLoader } from '../../cli/lib/loaders/agent-loader.js';
+import * as subagentDetector from '../../cli/hooks/subagent-detector.js';
 
 vi.mock('../../cli/utils/claudekit-config.js');
 vi.mock('fs');
 vi.mock('os');
 vi.mock('../../cli/lib/loaders/agent-loader.js');
+vi.mock('../../cli/hooks/subagent-detector.js');
 
 describe('SelfReviewHook', () => {
   let hook: SelfReviewHook;
@@ -19,6 +21,7 @@ describe('SelfReviewHook', () => {
   let mockReadFileSync: MockInstance;
   let mockExistsSync: MockInstance;
   let mockHomedir: MockInstance;
+  let mockIsHookDisabledForSubagent: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,6 +39,10 @@ describe('SelfReviewHook', () => {
     mockReadFileSync = vi.mocked(fs.readFileSync);
     mockExistsSync = vi.mocked(fs.existsSync);
     mockHomedir = vi.mocked(os.homedir);
+    
+    // Mock subagent detector
+    mockIsHookDisabledForSubagent = vi.mocked(subagentDetector.isHookDisabledForSubagent);
+    mockIsHookDisabledForSubagent.mockResolvedValue(false);
 
     // Mock AgentLoader - default implementation returns false (no agent found)
     vi.mocked(AgentLoader).mockImplementation(() => ({
@@ -352,6 +359,86 @@ describe('SelfReviewHook', () => {
         decision: 'block',
         reason: expect.stringContaining('📋 **Self-Review**'),
       });
+    });
+  });
+
+  describe('performance optimization', () => {
+    it('should NOT call subagent detection on regular Stop events', async () => {
+      mockGetHookConfig.mockReturnValue({});
+      
+      // Mock transcript with recent code changes to ensure hook would normally trigger
+      const mockTranscript = [
+        JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Edit', input: { file_path: 'src/test.ts' } }],
+          },
+        }),
+      ].join('\n');
+      mockReadFileSync.mockReturnValue(mockTranscript);
+
+      const context: HookContext = {
+        ...createMockContext(),
+        payload: {
+          transcript_path: '/tmp/test-transcript.jsonl',
+          hook_event_name: 'Stop', // Regular Stop, not SubagentStop
+        },
+      };
+
+      await hook.execute(context);
+      
+      // The expensive subagent detection operation should NOT be called
+      expect(mockIsHookDisabledForSubagent).not.toHaveBeenCalled();
+    });
+
+    it('should call subagent detection only on SubagentStop events', async () => {
+      mockGetHookConfig.mockReturnValue({});
+      
+      // Mock transcript with recent code changes
+      const mockTranscript = [
+        JSON.stringify({
+          type: 'assistant',
+          message: {
+            content: [{ type: 'tool_use', name: 'Edit', input: { file_path: 'src/test.ts' } }],
+          },
+        }),
+      ].join('\n');
+      mockReadFileSync.mockReturnValue(mockTranscript);
+
+      const context: HookContext = {
+        ...createMockContext(),
+        payload: {
+          transcript_path: '/tmp/test-transcript.jsonl',
+          hook_event_name: 'SubagentStop', // SubagentStop event
+        },
+      };
+
+      await hook.execute(context);
+      
+      // The expensive operation SHOULD be called for SubagentStop
+      expect(mockIsHookDisabledForSubagent).toHaveBeenCalledWith('self-review', '/tmp/test-transcript.jsonl');
+    });
+
+    it('should skip hook when subagent detection returns true on SubagentStop', async () => {
+      mockGetHookConfig.mockReturnValue({});
+      mockIsHookDisabledForSubagent.mockResolvedValue(true); // Hook is disabled for subagent
+      
+      const context: HookContext = {
+        ...createMockContext(),
+        payload: {
+          transcript_path: '/tmp/test-transcript.jsonl',
+          hook_event_name: 'SubagentStop',
+        },
+      };
+
+      const result = await hook.execute(context);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.suppressOutput).toBe(true);
+      expect(mockIsHookDisabledForSubagent).toHaveBeenCalledWith('self-review', '/tmp/test-transcript.jsonl');
+      
+      // Should not proceed to check for file changes or generate review
+      expect(jsonOutputSpy).not.toHaveBeenCalled();
     });
   });
 });

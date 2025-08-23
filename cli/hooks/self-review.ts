@@ -3,7 +3,7 @@ import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { TranscriptParser } from '../utils/transcript-parser.js';
 import { AgentLoader } from '../lib/loaders/agent-loader.js';
-import { isHookDisabledForSubagent } from './subagent-detector.js';
+import { shouldSkipForSubagent } from './utils/performance.js';
 
 interface FocusArea {
   name: string;
@@ -146,20 +146,20 @@ export class SelfReviewHook extends BaseHook {
   }
 
   async execute(context: HookContext): Promise<HookResult> {
-    // Check if this hook is disabled for the current subagent
-    const transcriptPath = context.payload?.transcript_path as string | undefined;
-    const isDisabled = await isHookDisabledForSubagent('self-review', transcriptPath);
-    if (isDisabled) {
-      if (process.env['DEBUG'] === 'true') {
-        console.error('Self-review: Skipping - disabled for current subagent');
-      }
+    const { payload } = context;
+
+    // Check if hook should be skipped for subagent context
+    if (await shouldSkipForSubagent('self-review', payload)) {
       return { exitCode: 0, suppressOutput: true };
     }
+    
+    // Extract transcript path for use throughout the function
+    const transcriptPath = payload.transcript_path as string | undefined;
     
     if (process.env['DEBUG'] === 'true') {
       console.error('Self-review: Hook starting');
     }
-    const stopHookActive = context.payload?.stop_hook_active;
+    const stopHookActive = payload.stop_hook_active;
 
     // Don't trigger if already in a stop hook loop
     if (stopHookActive === true) {

@@ -16,6 +16,9 @@ export interface ClaudePayload {
   };
   stop_hook_active?: boolean;
   transcript_path?: string;
+  hook_event_name?: string;
+  session_id?: string;
+  cwd?: string;
   [key: string]: unknown;
 }
 
