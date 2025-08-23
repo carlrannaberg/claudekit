@@ -4,7 +4,7 @@ description: A specialized agent for searching through codebases to find relevan
 
 tools: Read, Grep, Glob, LS
 model: sonnet
-color: amber
+color: purple
 
 # Claudekit extensions
 category: tools
