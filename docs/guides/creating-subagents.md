@@ -405,6 +405,14 @@ displayName: Domain Expert
 bundle: ["related-expert-1", "related-expert-2"]
 # OPTIONAL: Related agents to install together
 # Array of agent names that work well with this agent
+
+disableHooks: ["hook-name-1", "hook-name-2"]
+# OPTIONAL: Hooks to disable when this subagent is running
+# Prevents specific hooks from executing during subagent operations
+# Useful for performance-critical agents that don't need validation
+# Common hooks to disable for search/read-only agents:
+#   ["typecheck-project", "lint-project", "test-project", "self-review"]
+# This prevents validation hooks from slowing down quick searches
 ---
 
 # {Domain} Expert

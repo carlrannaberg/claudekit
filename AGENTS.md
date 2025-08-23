@@ -46,6 +46,7 @@ This is a TypeScript-based toolkit. Key commands:
 ### Creating New Components
 
 - **Subagents**: See [Subagent Development Guide](docs/guides/creating-subagents.md) for creating AI assistant subagents
+  - Use `disableHooks` field to prevent validation hooks from running during performance-critical operations
 - **Commands**: Use `/create-command` in Claude Code for guidance
 - **Hooks**: Follow self-contained patterns in `src/hooks/`
 
