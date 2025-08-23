@@ -98,8 +98,9 @@ When tools return absolute paths, you MUST strip the project root to create rela
 
 Example good output:
 ```
-cli/hooks/base.ts - contains subagent detection logic
-src/agents/code-search.md - has disableHooks field
-src/agents/typescript/expert.md
-src/utils/validation.ts - validates color field
+src/auth/login.ts - handles OAuth flow
+src/auth/session.ts - JWT validation
+src/middleware/auth.ts
+config/auth.json - contains secret keys
+tests/auth.test.ts - mock authentication
 ```
