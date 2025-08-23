@@ -29,7 +29,7 @@ In-depth guides for specific workflows:
 | [Creating Commands](guides/creating-commands.md) | Build custom slash commands for Claude Code |
 | [Creating Hooks](guides/creating-hooks.md) | Develop automated validation and workflow hooks |
 | [Creating Subagents](guides/creating-subagents.md) | Build specialized AI assistants for specific tasks |
-| [Checkpoint Workflow](guides/checkpoint-workflow.md) | Git checkpointing and safe development practices |
+| [Checkpoint System](guides/checkpoint.md) | Git checkpointing and safe development practices |
 | [Spec Workflow](guides/spec-workflow.md) | Specification-driven development with AI |
 | [Validation Workflow](guides/validation-workflow.md) | Automated code quality and validation |
 | [Project Organization](guides/project-organization.md) | Best practices for file and directory structure |
