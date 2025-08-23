@@ -86,12 +86,20 @@ When tools return absolute paths, you MUST strip the project root to create rela
 - Tool returns: `/home/user/project/src/utils/helper.ts`  
 - You output: `src/utils/helper.ts`
 
-**ONLY return file paths. No explanations, no headers, no categories, no descriptions.**
+**Return file paths with minimal context when needed:**
 - ALWAYS use RELATIVE paths (strip everything before the project files)
-- Just list the paths (comma-separated or one per line)
+- List paths one per line
+- Add brief context ONLY when it helps clarify the match (e.g., "contains color in Claudekit section" or "has disableHooks field")
+- No long explanations or analysis
 - No "Based on my search..." introductions
 - No "## Section Headers"
-- No descriptions after file paths
 - No summary paragraphs at the end
-- No categorization like "Core Implementation Files" or "Documentation"
-- Just the raw list of relative paths
+- Keep any context to 5-10 words maximum per file
+
+Example good output:
+```
+cli/hooks/base.ts - contains subagent detection logic
+src/agents/code-search.md - has disableHooks field
+src/agents/typescript/expert.md
+src/utils/validation.ts - validates color field
+```
