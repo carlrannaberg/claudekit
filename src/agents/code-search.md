@@ -4,10 +4,10 @@ description: A specialized agent for searching through codebases to find relevan
 
 tools: Read, Grep, Glob, LS
 model: sonnet
+color: amber
 
 # Claudekit extensions
 category: tools
-color: amber
 displayName: Code Search
 disableHooks: ['typecheck-project', 'lint-project', 'test-project', 'self-review']
 ---
