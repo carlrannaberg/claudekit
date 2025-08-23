@@ -1,4 +1,3 @@
-# AGENTS.md
 This file provides guidance to AI coding assistants working in this repository.
 
 **Note:** CLAUDE.md is a symlink to AGENTS.md in this project.
