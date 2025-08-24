@@ -59,15 +59,8 @@ export class ThinkingLevelHook extends BaseHook {
       return { exitCode: 0 };
     }
 
-    // Return the keyword in hookSpecificOutput.additionalContext to inject invisibly
-    return {
-      exitCode: 0,
-      jsonResponse: {
-        hookSpecificOutput: {
-          hookEventName: 'UserPromptSubmit',
-          additionalContext: keyword,
-        },
-      },
-    };
+    console.log(keyword);
+    
+    return { exitCode: 0 };
   }
 }
