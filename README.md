@@ -325,6 +325,10 @@ Claudekit uses two configuration files:
     "typecheck-changed": {
       "command": "npm run typecheck"
     },
+    "thinking-level": {
+      "enabled": true,
+      "level": 2
+    },
     "codebase-map": {
       "include": ["src/**", "lib/**"],
       "exclude": ["**/*.test.ts", "**/*.spec.ts"],

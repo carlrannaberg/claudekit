@@ -1,6 +1,6 @@
 {
   "name": "claudekit",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "description": "CLI tools for Claude Code development workflow",
   "type": "module",
   "engines": {

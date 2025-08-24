@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-08-24
+
+### Added
+- **Thinking Level Hook**: New AI reasoning enhancement hook
+  - Added `thinking-level` hook that injects thinking keywords based on configuration
+  - Supports levels 0-4 with keywords: '', 'think', 'think hard', 'think harder', 'ultrathink'
+  - Configurable via `.claudekit/config.json` with `enabled` and `level` settings
+  - Triggers on UserPromptSubmit events to enhance AI reasoning capabilities
+- **Enhanced Hook Event Support**: Extended hook system with new event types
+  - Added SessionStart event support to codebase-map hook
+  - Updated codebase-map hook to trigger on both SessionStart and UserPromptSubmit events
+  - Added thinking-level hook configuration to setup command initialization
+- **JSON Response System for Hooks**: New structured hook output format
+  - Updated UserPromptSubmit hooks to return JSON responses with additionalContext
+  - Implemented character limit handling (9000 chars) for UserPromptSubmit context
+  - Enhanced hook output with hookEventName tracking for better event handling
+- **cclint Configuration**: Added code linting configuration for Claude Code projects
+  - Added `cclint.config.js` with extended schemas for claudekit-specific features
+  - Support for agent categories, display names, and bundled subagents
+  - Enhanced command and settings schema validation with claudekit extensions
+
+### Changed
+- **Codebase Map Hook Behavior**: Improved context delivery and event handling
+  - Updated codebase-map hook to support both SessionStart and UserPromptSubmit triggers
+  - Enhanced hook description to reflect dual event support
+  - Improved character limit handling with truncation for UserPromptSubmit events
+- **Hook Configuration Structure**: Enhanced claudekit configuration schema
+  - Added thinking-level and thinking-budget configuration schemas
+  - Extended hook configuration types with new validation rules
+  - Updated setup command to include thinking-level in session initialization group
+- **Test Infrastructure**: Updated test expectations for new JSON response format
+  - Modified hook tests to validate JSON response structure instead of console output
+  - Updated integration tests to check hookSpecificOutput.additionalContext fields
+  - Enhanced test coverage for new hook response patterns
+
+### Fixed
+- **UserPromptSubmit Hook Output**: Standardized hook response format
+  - Fixed codebase-map hook to use JSON responses instead of console.log output
+  - Resolved hook output consistency issues with structured JSON responses
+  - Fixed character limit enforcement for UserPromptSubmit context injection
+
 ## [0.7.3] - 2025-08-24
 
 ### Added
