@@ -88,6 +88,38 @@ This approach keeps the runner simple - it just outputs whatever is in `jsonResp
 - Settings are generated from hook metadata
 - Component discovery happens automatically
 
+### UserPromptSubmit Hook Example
+
+UserPromptSubmit hooks can inject additional context into user prompts:
+
+```typescript
+return {
+  exitCode: 0,
+  jsonResponse: {
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: 'Additional context to prepend to the prompt'
+    }
+  }
+};
+```
+
+#### Known Limitation: First Prompt Issue
+
+**Important:** There is a known Claude Code limitation where UserPromptSubmit hooks may not trigger on the very first prompt of a new session. This appears to be a platform initialization issue.
+
+**Symptoms:**
+- First prompt: Hook doesn't trigger at all
+- Second prompt: Hook may trigger for one hook but not others if multiple are configured
+- Third+ prompts: All hooks work normally
+
+**Workarounds:**
+1. Use `SessionStart` hook for critical context that must be available from the start
+2. Combine multiple UserPromptSubmit hooks into a single hook
+3. Accept that the first prompt may not have the injected context
+
+This limitation has been observed even when hooks are correctly implemented according to the official Claude Code documentation.
+
 ## Optional Steps
 
 For a production-ready hook, you may also want to:
