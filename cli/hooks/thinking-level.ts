@@ -59,10 +59,15 @@ export class ThinkingLevelHook extends BaseHook {
       return { exitCode: 0 };
     }
 
-    // Output as plain text to stdout (like codebase-map does)
-    // Add a newline before to separate from other output
-    console.log(`\n${keyword}`);
-    
-    return { exitCode: 0 };
+    // Return JSON response with additionalContext
+    return {
+      exitCode: 0,
+      jsonResponse: {
+        hookSpecificOutput: {
+          hookEventName: 'UserPromptSubmit',
+          additionalContext: keyword,
+        },
+      },
+    };
   }
 }

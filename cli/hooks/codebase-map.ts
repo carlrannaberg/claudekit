@@ -82,9 +82,17 @@ export class CodebaseMapHook extends BaseHook {
         // Clean up old session files (async, non-blocking)
         this.cleanOldSessions();
 
-        // Output the codebase map to stdout (which adds it to context for UserPromptSubmit)
+        // Return JSON response with additionalContext
         const contextMessage = `📍 Codebase Map (loaded once per session):\n\n${result.output}`;
-        console.log(contextMessage);
+        return {
+          exitCode: 0,
+          jsonResponse: {
+            hookSpecificOutput: {
+              hookEventName: 'UserPromptSubmit',
+              additionalContext: contextMessage,
+            },
+          },
+        };
       }
 
       return { exitCode: 0 };
