@@ -75,26 +75,24 @@ Organize tasks by:
 - **Dependencies**: What must complete before this task
 - **Assignability**: Can multiple agents work on it
 
-### 3. Launch Concurrent Agents
+### 3. Iterative Implementation Workflow
 
-**CRITICAL**: Include multiple Task tool calls in ONE message ONLY for independent, parallelizable tasks. Tasks with dependencies should be executed sequentially (separate messages).
+**OPERATING PROCEDURE**: Each task follows a quality-assured implementation cycle:
 
-For each independent task group:
+#### Phase 1: Initial Implementation
+For each task (process sequentially for dependent tasks, in parallel for independent ones):
 
 1. **Prepare Task Brief**:
    - Clear scope and boundaries
    - Expected deliverables
    - Files to modify/create
-   - Testing requirements
+   - Quality requirements
 
-2. **Launch Subagents** (multiple in one message for parallel execution):
+2. **Launch Implementation Subagent**:
    - **ALWAYS use specialized subagents** when tasks match expert domains (TypeScript, React, testing, databases, etc.)
    - Run `claudekit list agents` if you need to see available specialized agents
    - Match task requirements to expert domains for optimal results  
    - Use `general-purpose` subagent only when no specialized expert fits
-   - Ensure each agent has non-overlapping responsibilities
-   
-   Example task details for EACH agent (include multiple Task tool calls in ONE message):
    
    If using STM, include task details:
    ```
@@ -111,8 +109,9 @@ For each independent task group:
      
      Additional Instructions:
      - Follow project code style guidelines
-     - Write comprehensive tests
-     - Update STM status when complete: stm update [task-id] --status done
+     - Implement complete functionality
+     - Add appropriate error handling
+     - Document complex logic
    ```
    
    If using TodoWrite:
@@ -122,24 +121,97 @@ For each independent task group:
    - Specification reference
    - Technical requirements
    - Code style guidelines
-   - Testing requirements
+   - Error handling requirements
    ```
+
+#### Phase 2: Code Review
+After implementation completes:
+
+1. **Launch Code Review Agent**:
+   ```
+   Task: "Review [component name]"
+   Subagent: code-review-expert
+   Prompt: |
+     Review the recently implemented [component/feature]:
+     - Files modified: [list files from implementation]
+     - Focus areas:
+       * Architecture & design patterns
+       * Code quality and maintainability
+       * Security vulnerabilities
+       * Performance considerations
+       * Error handling completeness
+       * Testing coverage needs
+     
+     Provide actionable feedback for any issues found.
+   ```
+
+2. **Analyze Review Results**:
+   - Critical issues (must fix)
+   - Important improvements (should fix)
+   - Minor suggestions (nice to have)
+
+#### Phase 3: Iterative Improvement
+If issues are found:
+
+1. **Fix Critical Issues**:
+   - Launch appropriate specialist subagent for fixes
+   - Examples:
+     * Security issues → Use specialized expert or general-purpose with security focus
+     * Performance issues → Use react-performance-expert or relevant specialist
+     * Type errors → Use typescript-expert
+     * Test failures → Use testing-expert
+
+2. **Re-Review After Fixes**:
+   - Run code-review-expert again on modified files
+   - Continue cycle until no critical issues remain
+
+3. **Update Task Status**:
+   - If using STM: `stm update [task-id] --status done`
+   - If using TodoWrite: Mark task as completed
+
+#### Phase 4: Commit Changes
+Once all critical issues are resolved:
+
+1. **Create Atomic Commit**:
+   ```bash
+   git add [relevant files]
+   git commit -m "feat: [component name] - [brief description]
    
-   **Remember**: Include Task tool invocations in a SINGLE message ONLY for truly parallel, independent tasks!
+   - Implemented [key functionality]
+   - Passed code review
+   - Addresses spec requirements: [reference]
+   
+   🤖 Generated with Claude Code
+   
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
 
-3. **Monitor Progress**:
-   - If using STM: `stm list --status in-progress --pretty`
-   - If using TodoWrite: Track task completion in session
-   - Identify blocked tasks
-   - Coordinate dependencies
+2. **Verify Commit**:
+   ```bash
+   git log -1 --stat
+   ```
 
-### 4. Validation Points
+#### Phase 5: Progress Tracking
 
-After each major component:
+**Monitor Overall Progress**:
+- If using STM: `stm list --status in-progress --pretty`
+- If using TodoWrite: Track task completion in session
+- Identify blocked tasks
+- Coordinate dependencies
+
+**Track Quality Metrics**:
+- Tasks implemented: X/Y
+- Code reviews passed: X/Y
+- Issues fixed: Count
+- Commits created: Count
+
+### 4. Testing & Validation
+
+After each component is implemented and reviewed:
+- Write tests using appropriate testing expert
 - Run tests to verify functionality
 - Check integration with other components
 - Update documentation
-- Mark tasks as complete in TodoWrite
 
 ### 5. Final Integration
 
