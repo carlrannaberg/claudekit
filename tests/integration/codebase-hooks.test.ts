@@ -121,8 +121,15 @@ describe('Codebase Hooks Integration', () => {
       );
 
       expect(firstPromptResult.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      expect(firstPromptResult.jsonResponse).toBeDefined();
+      const jsonResponse = firstPromptResult.jsonResponse as {
+        hookSpecificOutput: {
+          hookEventName: string;
+          additionalContext: string;
+        };
+      };
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain(
+        '📍 Codebase Map (loaded once per session):'
       );
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining(`codebase-map-session-${sessionId}.json`),
@@ -280,7 +287,14 @@ describe('Codebase Hooks Integration', () => {
 
       expect(result.exitCode).toBe(0);
       expect(mockExecAsync).toHaveBeenCalled(); // Should treat as new session
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('📍 Codebase Map'));
+      expect(result.jsonResponse).toBeDefined();
+      const jsonResponse = result.jsonResponse as {
+        hookSpecificOutput: {
+          hookEventName: string;
+          additionalContext: string;
+        };
+      };
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain('📍 Codebase Map');
     });
   });
 

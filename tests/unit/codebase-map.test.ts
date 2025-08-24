@@ -171,10 +171,17 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      expect(result.jsonResponse).toBeDefined();
+      const jsonResponse = result.jsonResponse as {
+        hookSpecificOutput: {
+          hookEventName: string;
+          additionalContext: string;
+        };
+      };
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain(
+        '📍 Codebase Map (loaded once per session):'
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('# Project Structure'));
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain('# Project Structure');
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining('codebase-map-session-test-session-123.json'),
         expect.stringContaining('"contextProvided": true')
@@ -291,11 +298,18 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      expect(result.jsonResponse).toBeDefined();
+      const jsonResponse = result.jsonResponse as {
+        hookSpecificOutput: {
+          hookEventName: string;
+          additionalContext: string;
+        };
+      };
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain(
+        '📍 Codebase Map (loaded once per session):'
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining(largeOutput.substring(0, 100))
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain(
+        largeOutput.substring(0, 100)
       ); // Check part of the large output
     });
 
@@ -335,8 +349,15 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(userContext);
 
       expect(result.exitCode).toBe(0);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('📍 Codebase Map (loaded once per session):')
+      expect(result.jsonResponse).toBeDefined();
+      const jsonResponse = result.jsonResponse as {
+        hookSpecificOutput: {
+          hookEventName: string;
+          additionalContext: string;
+        };
+      };
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toContain(
+        '📍 Codebase Map (loaded once per session):'
       );
       expect(mockFsWriteFile).toHaveBeenCalledWith(
         expect.stringContaining('codebase-map-session-test-session-123.json'),
