@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2025-08-24
+
+### Fixed
+- **Agent Registry Consistency**: Fixed agent registry to use consistent naming conventions
+  - Updated testing agent reference from `vitest-expert` to `vitest-testing-expert` in agent registry
+  - Ensures proper agent resolution and availability detection in spec:execute workflows
+  - Aligns with standardized naming convention where framework-specific testing experts use `-testing-` suffix
+
+### Added
+- **Iterative Code Review Workflow**: Enhanced spec:execute command with comprehensive quality assurance
+  - Added Phase 2: Test Writing with automatic selection of appropriate testing experts
+  - Added Phase 3: Code Review with code-review-expert integration for comprehensive analysis
+  - Added Phase 4: Iterative Improvement with specialist agent selection for fixing identified issues
+  - Added Phase 5: Atomic commit creation with standardized commit message format
+  - Added Phase 6: Progress tracking with quality metrics monitoring
+- **Dynamic Agent Availability Detection**: Improved agent orchestration in spec:execute
+  - Added real-time agent availability checks using `claudekit list agents`
+  - Dynamic selection of specialized agents based on actual availability rather than hardcoded lists
+  - Fallback to general-purpose agents when specialized experts are unavailable
+  - Enhanced agent matching logic for optimal task assignment
+
+### Changed
+- **Spec Execution Architecture**: Restructured spec:execute for better quality and maintainability
+  - Reorganized workflow into 6 distinct phases with clear quality gates
+  - Enhanced task management integration with both STM and TodoWrite systems
+  - Improved error handling and blocked task management
+  - Added comprehensive success criteria validation
+  - Enhanced progress tracking with status monitoring and quality metrics
+
 ## [0.8.0] - 2025-08-24
 
 ### Added

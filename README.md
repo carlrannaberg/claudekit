@@ -65,6 +65,12 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Structured reports**: Prioritized issues (Critical/High/Medium) with type icons and actionable solutions
 - **Quality metrics**: Scoring system and issue distribution tracking for measurable improvements
 
+### 🚀 Iterative Spec Implementation
+- **6-phase workflow**: Implementation → Test Writing → Code Review → Iterative Improvement → Commit → Progress Tracking
+- **Dynamic agent selection**: Real-time detection of available specialized agents with intelligent fallbacks
+- **Quality gates**: Each phase includes validation before proceeding to ensure high-quality deliverables
+- **Atomic commits**: Standardized commit messages with comprehensive change documentation
+
 ### 🛡️ Real-time Error Prevention
 - **🔒 Sensitive File Protection**: Blocks AI access to `.env` files, API keys, SSH keys, and credentials before they're accessed
 - **TypeScript Guard**: Blocks `any` types and type errors as Claude edits
@@ -93,6 +99,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - `/git:commit` - Creates commits following your project's conventions
 - `/validate-and-fix` - Runs all quality checks and fixes issues
 - `/spec:create` - Generates comprehensive specifications
+- `/spec:execute` - Implements specifications with iterative quality assurance workflow
 - `/create-subagent` - Build custom AI assistants
 
 ## CLI Commands
@@ -146,6 +153,7 @@ Use these commands directly in Claude Code:
 
 ### Development Tools
 - `/spec:create [feature]` - Generate specifications
+- `/spec:execute [file]` - Implement specifications with 6-phase iterative workflow
 - `/agents-md:init` - Configure AI assistants
 - `/create-subagent` - Build custom agents
 - `/create-command` - Create custom commands
