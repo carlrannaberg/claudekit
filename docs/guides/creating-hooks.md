@@ -104,21 +104,19 @@ return {
 };
 ```
 
-#### Known Limitation: First Prompt Issue
+#### Known Limitation: Multiple UserPromptSubmit Hooks
 
-**Important:** There is a known Claude Code limitation where UserPromptSubmit hooks may not trigger on the very first prompt of a new session. This appears to be a platform initialization issue.
+**Important:** There is a known Claude Code limitation where only one UserPromptSubmit hook's `additionalContext` gets processed when multiple hooks return JSON responses simultaneously. This appears to be a platform issue with merging multiple hook outputs.
 
-**Symptoms:**
-- First prompt: Hook doesn't trigger at all
-- Second prompt: Hook may trigger for one hook but not others if multiple are configured
-- Third+ prompts: All hooks work normally
+**The Issue:**
+When multiple UserPromptSubmit hooks are configured and all return `additionalContext`, Claude Code may only add one hook's context to the prompt, ignoring the others.
 
 **Workarounds:**
-1. Use `SessionStart` hook for critical context that must be available from the start
-2. Combine multiple UserPromptSubmit hooks into a single hook
-3. Accept that the first prompt may not have the injected context
+1. Combine multiple UserPromptSubmit hooks into a single hook that returns all contexts
+2. Use different hook events (e.g., `SessionStart` for initial context, `UserPromptSubmit` for per-prompt context)
+3. Have hooks coordinate to avoid returning context simultaneously
 
-This limitation has been observed even when hooks are correctly implemented according to the official Claude Code documentation.
+This limitation has been observed even when hooks are correctly implemented according to the official Claude Code documentation and return proper JSON responses with `hookSpecificOutput.additionalContext`.
 
 ## Optional Steps
 
