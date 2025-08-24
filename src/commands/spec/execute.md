@@ -82,6 +82,9 @@ Organize tasks by:
 #### Phase 1: Initial Implementation
 For each task (process sequentially for dependent tasks, in parallel for independent ones):
 
+**Available Specialized Agents:**
+!claudekit list agents || echo "Unable to list agents"
+
 1. **Prepare Task Brief**:
    - Clear scope and boundaries
    - Expected deliverables
@@ -89,8 +92,7 @@ For each task (process sequentially for dependent tasks, in parallel for indepen
    - Quality requirements
 
 2. **Launch Implementation Subagent**:
-   - **ALWAYS use specialized subagents** when tasks match expert domains (TypeScript, React, testing, databases, etc.)
-   - Run `claudekit list agents` if you need to see available specialized agents
+   - **ALWAYS use specialized subagents** from the list above when tasks match expert domains
    - Match task requirements to expert domains for optimal results  
    - Use `general-purpose` subagent only when no specialized expert fits
    
@@ -124,8 +126,38 @@ For each task (process sequentially for dependent tasks, in parallel for indepen
    - Error handling requirements
    ```
 
-#### Phase 2: Code Review
+#### Phase 2: Test Writing
 After implementation completes:
+
+**Available Testing Experts:**
+!claudekit list agents | grep -i test || echo "No testing experts found"
+
+1. **Launch Testing Expert**:
+   - Select the most appropriate testing expert from the list above based on project stack
+   - If no specialized testing expert is available, use general-purpose agent
+   
+   ```
+   Task: "Write tests for [component name]"
+   Subagent: [select from available testing experts above]
+   Prompt: |
+     Write comprehensive tests for the recently implemented [component/feature]:
+     - Files to test: [list files from implementation]
+     - Test requirements:
+       * Unit tests for all functions/methods
+       * Edge cases and error conditions
+       * Integration points with other components
+       * Coverage targets: aim for >80%
+     
+     Follow project testing conventions and patterns.
+   ```
+
+2. **Run Tests**:
+   - Execute test suite for the component
+   - Verify all tests pass
+   - Check coverage metrics
+
+#### Phase 3: Code Review
+After tests are written and passing:
 
 1. **Launch Code Review Agent**:
    ```
@@ -150,7 +182,7 @@ After implementation completes:
    - Important improvements (should fix)
    - Minor suggestions (nice to have)
 
-#### Phase 3: Iterative Improvement
+#### Phase 4: Iterative Improvement
 If issues are found:
 
 1. **Fix Critical Issues**:
@@ -161,16 +193,20 @@ If issues are found:
      * Type errors → Use typescript-expert
      * Test failures → Use testing-expert
 
-2. **Re-Review After Fixes**:
+2. **Re-Test After Fixes**:
+   - Run test suite again to verify fixes
+   - Ensure no regressions introduced
+
+3. **Re-Review After Fixes**:
    - Run code-review-expert again on modified files
    - Continue cycle until no critical issues remain
 
-3. **Update Task Status**:
+4. **Update Task Status**:
    - If using STM: `stm update [task-id] --status done`
    - If using TodoWrite: Mark task as completed
 
-#### Phase 4: Commit Changes
-Once all critical issues are resolved:
+#### Phase 5: Commit Changes
+Once all critical issues are resolved and tests pass:
 
 1. **Create Atomic Commit**:
    ```bash
@@ -178,6 +214,7 @@ Once all critical issues are resolved:
    git commit -m "feat: [component name] - [brief description]
    
    - Implemented [key functionality]
+   - Tests written and passing
    - Passed code review
    - Addresses spec requirements: [reference]
    
@@ -191,7 +228,7 @@ Once all critical issues are resolved:
    git log -1 --stat
    ```
 
-#### Phase 5: Progress Tracking
+#### Phase 6: Progress Tracking
 
 **Monitor Overall Progress**:
 - If using STM: `stm list --status in-progress --pretty`
@@ -201,17 +238,19 @@ Once all critical issues are resolved:
 
 **Track Quality Metrics**:
 - Tasks implemented: X/Y
+- Tests written: X/Y
+- Test coverage: X%
 - Code reviews passed: X/Y
 - Issues fixed: Count
 - Commits created: Count
 
-### 4. Testing & Validation
+### 4. Integration & Validation
 
-After each component is implemented and reviewed:
-- Write tests using appropriate testing expert
-- Run tests to verify functionality
-- Check integration with other components
-- Update documentation
+After each component cycle completes:
+- Run full test suite to check for regressions
+- Verify integration with other components
+- Update documentation as needed
+- Validate against specification requirements
 
 ### 5. Final Integration
 
