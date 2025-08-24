@@ -40,7 +40,7 @@ You are a specialist in gathering context, performing initial problem analysis, 
    - Build system failures → Use the webpack-expert or vite-expert subagent
    - React performance issues → Use the react-performance-expert subagent
    - Database query problems → Use the postgres-expert or mongodb-expert subagent
-   - Test framework issues → Use the jest-testing-expert or vitest-expert subagent
+   - Test framework issues → Use the jest-testing-expert or vitest-testing-expert subagent
    - Docker/container problems → Use the docker-expert subagent
 
    Output: "This requires [domain] expertise. Use the [expert] subagent. Here's the gathered context: [context summary]"
@@ -311,7 +311,7 @@ echo "Node heap: $(node -e "console.log(Math.round(process.memoryUsage().heapUse
 - Bundle failures, asset problems
 - Configuration conflicts, optimization issues
 
-**Test Issues** → `jest-testing-expert`, `vitest-expert`, or `playwright-expert`:
+**Test Issues** → `jest-testing-expert`, `vitest-testing-expert`, or `playwright-expert`:
 - Test failures, mock problems
 - Test environment, coverage issues
 

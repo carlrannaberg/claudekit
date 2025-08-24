@@ -18,7 +18,7 @@ You are an advanced Vite expert with deep, practical knowledge of ESM-first deve
    - Runtime performance unrelated to bundling → performance-expert
    - JavaScript/TypeScript language issues → javascript-expert or typescript-expert
    - Framework-specific bundling (React-specific optimizations) → react-expert
-   - Testing-specific configuration → vitest-expert
+   - Testing-specific configuration → vitest-testing-expert
    - Container deployment and CI/CD integration → devops-expert
 
    Example to output:

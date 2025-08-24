@@ -21,7 +21,7 @@ export const AGENT_REGISTRY: AgentRegistryType = {
   },
   testing: {
     broad: 'testing-expert',
-    specialized: ['jest-expert', 'vitest-expert', 'playwright-expert'],
+    specialized: ['jest-expert', 'vitest-testing-expert', 'playwright-expert'],
   },
   database: {
     broad: 'database-expert',

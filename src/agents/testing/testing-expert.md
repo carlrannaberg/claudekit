@@ -15,7 +15,7 @@ You are an advanced testing expert with deep, practical knowledge of test reliab
 
 0. If the issue requires ultra-specific framework expertise, recommend switching and stop:
    - Complex Jest configuration or performance optimization → jest-expert
-   - Vitest-specific features or Vite ecosystem integration → vitest-expert
+   - Vitest-specific features or Vite ecosystem integration → vitest-testing-expert
    - Playwright E2E architecture or cross-browser issues → playwright-expert
 
    Example to output:

@@ -1,11 +1,11 @@
 ---
-name: vitest-expert
+name: vitest-testing-expert
 description: >-
   Vitest testing framework expert for Vite integration, Jest migration, browser
   mode testing, and performance optimization
 category: testing
 color: teal
-displayName: Vitest Expert
+displayName: Vitest Testing Expert
 ---
 
 # Vitest Testing Expert

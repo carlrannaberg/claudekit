@@ -69,7 +69,7 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 - TypeScript build/compilation errors → Use `typescript-build-expert`
 - Advanced type system issues (generics, conditionals) → Use `typescript-type-expert`
 - General TypeScript problems → Use `typescript-expert`
-- Vitest configuration and framework issues → Use `vitest-expert`
+- Vitest configuration and framework issues → Use `vitest-testing-expert`
 - Test strategy and coverage issues → Use `testing-expert`
 - Code smells and refactoring → Use `refactoring-expert`
 - CLI command issues → Use `cli-expert`
@@ -106,7 +106,7 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 **Testing:**
 - `testing-expert` - Test structure, mocking, coverage analysis
 - `jest-testing-expert` - Jest framework, snapshots, async patterns
-- `vitest-expert` - Vitest configuration and optimization
+- `vitest-testing-expert` - Vitest configuration and optimization
 - `playwright-expert` - E2E testing, cross-browser automation
 
 **Database:**

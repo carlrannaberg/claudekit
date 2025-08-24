@@ -12,7 +12,7 @@ claudekit setup --all
 claudekit setup --agents typescript-expert,react-expert
 
 # Install by category (e.g., testing stack)
-claudekit setup --agents testing-expert,jest-expert,vitest-expert,playwright-expert
+claudekit setup --agents testing-expert,jest-expert,vitest-testing-expert,playwright-expert
 ```
 
 ## Usage
@@ -140,7 +140,7 @@ Cross-framework testing architecture specialist.
 Jest testing framework specialist.
 - **Expertise**: Advanced mocking, snapshots, async patterns
 
-#### vitest-expert (testing/vitest-expert)
+#### vitest-testing-expert (testing/vitest-testing-expert)
 Vitest modern testing framework expert.
 - **Expertise**: ESM patterns, Vite integration, performance
 

@@ -130,7 +130,7 @@ For each task (process sequentially for dependent tasks, in parallel for indepen
 After implementation completes:
 
 **Available Testing Experts:**
-!claudekit list agents | grep -i test || echo "Use general-purpose agent for test writing"
+!claudekit list agents | grep -i "testing-expert" || echo "Use general-purpose agent for test writing"
 
 1. **Launch Testing Expert**:
    - Select the most appropriate testing expert from the list above based on project stack
