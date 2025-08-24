@@ -9,7 +9,7 @@ argument-hint: "<path-to-spec-file>"
 
 Implement the specification at: $ARGUMENTS
 
-!which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")
+!`which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")`
 
 ## Pre-Execution Checks
 
@@ -48,7 +48,7 @@ Create tasks for each component in the specification
 For each task, follow this cycle:
 
 **Available Agents:**
-!claudekit list agents | head -20
+!`claudekit list agents`
 
 #### Step 1: Implement
 
