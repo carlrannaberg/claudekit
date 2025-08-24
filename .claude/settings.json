@@ -128,11 +128,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claudekit-hooks run codebase-map"
+            "command": "claudekit-hooks run thinking-level"
           },
           {
             "type": "command",
-            "command": "claudekit-hooks run thinking-level"
+            "command": "claudekit-hooks run codebase-map"
           }
         ]
       }

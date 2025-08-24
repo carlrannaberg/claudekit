@@ -59,7 +59,9 @@ export class ThinkingLevelHook extends BaseHook {
       return { exitCode: 0 };
     }
 
-    console.log(keyword);
+    // Output as plain text to stdout (like codebase-map does)
+    // Add a newline before to separate from other output
+    console.log(`\n${keyword}`);
     
     return { exitCode: 0 };
   }
