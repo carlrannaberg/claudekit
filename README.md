@@ -171,6 +171,7 @@ Hooks automatically enforce quality as Claude works:
 
 **UserPromptSubmit Hooks** (run on first user prompt of each session)
 - `codebase-map` - Provide invisible codebase context once per session using codebase-map CLI
+- `thinking-level` - Inject thinking level keywords to enhance Claude's reasoning capabilities
 
 **PostToolUse Hooks** (also includes file monitoring)
 - `codebase-map-update` - Incrementally update codebase map when files change

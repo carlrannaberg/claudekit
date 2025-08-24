@@ -12,6 +12,7 @@ export { CheckTodosHook } from './check-todos.js';
 export { TypecheckProjectHook } from './typecheck-project.js';
 export { LintProjectHook } from './lint-project.js';
 export { TestProjectHook } from './test-project.js';
+export { ThinkingLevelHook } from './thinking-level.js';
 export { CheckCommentReplacementHook } from './check-comment-replacement.js';
 export { CheckUnusedParametersHook } from './check-unused-parameters.js';
 export { SelfReviewHook } from './self-review.js';

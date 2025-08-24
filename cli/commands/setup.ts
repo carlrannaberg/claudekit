@@ -130,8 +130,8 @@ const HOOK_GROUPS: HookGroup[] = [
   {
     id: 'session-initialization',
     name: '🚀 Session Initialization (UserPromptSubmit)',
-    description: 'Initialize project context and maps when user submits first prompt',
-    hooks: ['codebase-map'],
+    description: 'Initialize project context on first prompt and enhance reasoning when user submits prompts',
+    hooks: ['codebase-map', 'thinking-level'],
     recommended: false,
     triggerEvent: 'UserPromptSubmit',
   },
