@@ -31,7 +31,65 @@ npm install -g codebase-map && claudekit setup --yes --force --hooks codebase-ma
 
 ### Manual Configuration
 
-You can also manually add both hooks to `.claude/settings.json`:
+You can manually add both hooks to `.claude/settings.json`. Choose one of these options:
+
+**Option 1: SessionStart (Visible to Users)**
+
+✅ **Pros:**
+- No character limit (full output allowed)
+- Claude gets complete context without truncation
+- Transparent about what context Claude has
+
+❌ **Cons:**
+- Long DSL output visible at the start of each session
+- Takes up significant visual space in the UI
+- Can be distracting or overwhelming for users
+
+**Best for:** When you need the full codebase context without any truncation risk and don't mind the visual clutter.
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run codebase-map"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run codebase-map-update"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Option 2: UserPromptSubmit (Hidden from Users)**
+
+✅ **Pros:**
+- Completely invisible to users (clean UI)
+- Claude still gets the context automatically
+- No visual clutter at session start
+- Works seamlessly in the background
+
+❌ **Cons:**
+- Subject to 10,000 character limit (shared with other UserPromptSubmit hooks)
+- May require configuration to stay under limit
+- Must implement 9,000 char self-limit to leave room for other hooks
+
+**Best for:** Most users who want a clean experience and have configured their codebase-map to stay under 9,000 characters.
 
 ```json
 {
@@ -62,6 +120,216 @@ You can also manually add both hooks to `.claude/settings.json`:
 }
 ```
 
+### How to Choose Between SessionStart and UserPromptSubmit
+
+**Choose SessionStart if:**
+- Your codebase-map output exceeds 9,000 characters
+- You want to verify the context is being loaded
+- You're debugging or teaching
+
+**Choose UserPromptSubmit if:**
+- You prefer a clean, distraction-free UI (recommended for most users)
+- Your codebase-map output is under 9,000 characters
+- You've configured includes/excludes to optimize output size
+
+**To check your output size:**
+```bash
+codebase-map scan && codebase-map format --format dsl | wc -c
+```
+
+If the result is over 9,000, either use SessionStart or configure filtering (see Configuration section below).
+
+## Staying Under the 9,000 Character Limit
+
+When using UserPromptSubmit hooks, Claude Code has a 10,000 character limit for all combined context. The codebase-map hook self-limits to 9,000 characters to leave room for other hooks (like thinking-level).
+
+### Check Your Output Size
+
+Create a simple script to monitor your codebase-map size:
+
+```bash
+#!/usr/bin/env bash
+# save as: check-map-size.sh
+
+# Test your current configuration
+SIZE=$(codebase-map format --format dsl 2>/dev/null | wc -c | tr -d ' ')
+
+echo "Codebase-map output: $SIZE characters"
+
+if [ "$SIZE" -lt 9000 ]; then
+  echo "✅ Under limit ($(( 9000 - SIZE )) chars available)"
+else
+  echo "❌ Over limit by $(( SIZE - 9000 )) chars"
+fi
+```
+
+### Size Optimization Strategies
+
+#### 1. Start Small, Add Gradually
+
+Begin with core directories and expand as needed:
+
+```json
+{
+  "hooks": {
+    "codebase-map": {
+      "include": ["src/**"],           // Start with just src
+      "exclude": ["**/*.test.*"],
+      "format": "dsl"
+    }
+  }
+}
+```
+
+Check size, then add more:
+
+```bash
+# Test with just src
+codebase-map format --format dsl --include "src/**" --exclude "**/*.test.*" 2>/dev/null | wc -c
+
+# If under limit, add more directories
+codebase-map format --format dsl --include "src/**" --include "lib/**" --exclude "**/*.test.*" 2>/dev/null | wc -c
+```
+
+#### 2. Common Size-Saving Exclusions
+
+Add these to your exclude patterns to significantly reduce size:
+
+```json
+{
+  "hooks": {
+    "codebase-map": {
+      "exclude": [
+        "**/*.test.*",        // Test files
+        "**/*.spec.*",        // Spec files
+        "**/tests/**",        // Test directories
+        "**/dist/**",         // Build output
+        "**/build/**",        // Build directories
+        "**/coverage/**",     // Test coverage
+        "**/*.min.js",        // Minified files
+        "**/vendor/**",       // Third-party code
+        "**/node_modules/**", // Dependencies
+        "**/__tests__/**",    // Jest test folders
+        "**/__mocks__/**",    // Mock files
+        "**/examples/**",     // Example code
+        "**/*.md",            // Documentation
+        "**/*.json"           // Config files
+      ]
+    }
+  }
+}
+```
+
+#### 3. Format Selection for Size Reduction
+
+If DSL format is too large, consider these smaller alternatives:
+
+- **Tree format**: ~75% smaller than DSL - Shows directory structure only
+- **Graph format**: ~15% smaller than DSL - Shows dependency relationships
+
+```bash
+# Compare sizes
+echo "DSL format (baseline):"
+codebase-map format --format dsl 2>/dev/null | wc -c
+
+echo "Graph format (15% smaller):"
+codebase-map format --format graph 2>/dev/null | wc -c
+
+echo "Tree format (75% smaller):"
+codebase-map format --format tree 2>/dev/null | wc -c
+```
+
+Tree format is the most compact, ideal when you need maximum size reduction. Graph format provides a middle ground, preserving dependency information while saving some space.
+
+#### 4. Framework-Specific Optimizations
+
+**React Project (~5-7K chars)**
+```json
+{
+  "hooks": {
+    "codebase-map": {
+      "include": ["src/components/**", "src/hooks/**", "src/utils/**"],
+      "exclude": ["**/*.test.*", "**/*.stories.*", "**/node_modules/**"],
+      "format": "dsl"
+    }
+  }
+}
+```
+
+**Node.js API (~6-8K chars)**
+```json
+{
+  "hooks": {
+    "codebase-map": {
+      "include": ["src/routes/**", "src/models/**", "src/middleware/**"],
+      "exclude": ["**/*.test.*", "**/dist/**"],
+      "format": "tree"  // Tree often better for APIs
+    }
+  }
+}
+```
+
+**Large Monorepo (Focus on current package)**
+```json
+{
+  "hooks": {
+    "codebase-map": {
+      "include": ["packages/current-package/src/**"],
+      "exclude": ["**/*.test.*", "**/node_modules/**"],
+      "format": "tree"
+    }
+  }
+}
+```
+
+### Testing Multiple Include Patterns
+
+When testing configurations with the CLI, use separate `--include` flags:
+
+```bash
+# ✅ CORRECT - Multiple --include flags
+codebase-map format --format dsl \
+  --include "src/**" \
+  --include "lib/**" \
+  --exclude "**/*.test.*"
+
+# ❌ WRONG - Comma-separated (doesn't work)
+codebase-map format --format dsl \
+  --include "src/**,lib/**" \
+  --exclude "**/*.test.*"
+```
+
+### Quick Size Reduction Checklist
+
+If your output is over 9,000 characters:
+
+1. **Remove test files**: Add `**/*.test.*`, `**/*.spec.*` to excludes
+2. **Remove documentation**: Add `**/*.md` to excludes
+3. **Focus on source only**: Change include from `**` to `src/**`
+4. **Switch to tree format**: Change `"format": "dsl"` to `"format": "tree"`
+5. **Exclude generated code**: Add `dist/**`, `build/**`, `coverage/**`
+6. **Remove examples**: Add `examples/**`, `demos/**` to excludes
+
+### Monitoring in Production
+
+Add this to your package.json for easy monitoring:
+
+```json
+{
+  "scripts": {
+    "check:map-size": "codebase-map format --format dsl 2>/dev/null | wc -c",
+    "check:map": "codebase-map format --format dsl | head -50"
+  }
+}
+```
+
+Then check regularly:
+
+```bash
+npm run check:map-size  # Shows character count
+npm run check:map       # Shows first 50 lines of output
+```
+
 ### Install codebase-map CLI
 
 The hooks require the `codebase-map` CLI tool:
@@ -90,13 +358,16 @@ codebase-map format --format dsl
 The codebase-map system consists of two complementary hooks:
 
 ### 1. Codebase Map Hook (`codebase-map`)
-- **Trigger**: `UserPromptSubmit` (beginning of each session)
+- **Trigger**: `SessionStart` or `UserPromptSubmit` (beginning of each session)
 - **Purpose**: Provides initial project context to Claude
 - **Behavior**: 
   - Runs once per session (tracked by session ID)
   - Scans entire project to build/update index
   - Formats and outputs context based on configuration
   - Skips if context already provided for current session
+- **Context Visibility**:
+  - `SessionStart`: Visible to users (wrapped in `<session-start-hook>` tags)
+  - `UserPromptSubmit`: Hidden from users (only Claude sees it)
 
 ### 2. Codebase Map Update Hook (`codebase-map-update`)
 - **Trigger**: `PostToolUse` after Write, Edit, or MultiEdit

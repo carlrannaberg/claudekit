@@ -121,7 +121,17 @@
         ]
       }
     ],
-    "SessionStart": [],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claudekit-hooks run codebase-map"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "matcher": "*",
@@ -129,10 +139,6 @@
           {
             "type": "command",
             "command": "claudekit-hooks run thinking-level"
-          },
-          {
-            "type": "command",
-            "command": "claudekit-hooks run codebase-map"
           }
         ]
       }

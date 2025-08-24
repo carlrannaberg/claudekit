@@ -104,19 +104,120 @@ return {
 };
 ```
 
-#### Known Limitation: Multiple UserPromptSubmit Hooks
+### Important Hook Processing Behaviors
 
-**Important:** There is a known Claude Code limitation where only one UserPromptSubmit hook's `additionalContext` gets processed when multiple hooks return JSON responses simultaneously. This appears to be a platform issue with merging multiple hook outputs.
+**⚠️ OBSERVED BEHAVIOR:** Claude Code's hook processing has specific behaviors that may not match expectations when using multiple hooks with `additionalContext`.
 
-**The Issue:**
-When multiple UserPromptSubmit hooks are configured and all return `additionalContext`, Claude Code may only add one hook's context to the prompt, ignoring the others.
+#### Hook Output Processing Decision Tree
 
-**Workarounds:**
-1. Combine multiple UserPromptSubmit hooks into a single hook that returns all contexts
-2. Use different hook events (e.g., `SessionStart` for initial context, `UserPromptSubmit` for per-prompt context)
-3. Have hooks coordinate to avoid returning context simultaneously
+Claude Code follows this decision tree when processing hook output:
 
-This limitation has been observed even when hooks are correctly implemented according to the official Claude Code documentation and return proper JSON responses with `hookSpecificOutput.additionalContext`.
+**Step 1: Exit Code Check**
+- Exit code 0 → Use stdout as output
+- Non-zero exit code → Use stderr as output
+
+**Step 2: Output Format Detection**
+- Output starts with `{` → Try to parse as JSON
+- Output doesn't start with `{` → Treat as plain text → **IGNORED COMPLETELY**
+
+**Step 3: JSON Parsing**
+- Valid JSON → Extract `hookSpecificOutput.additionalContext`
+- Invalid JSON → Treat as plain text → **IGNORED COMPLETELY**
+
+**Step 4: Context Collection**
+- Multiple hooks' `additionalContext` values are collected into arrays
+- Contexts are joined with `\n\n` separator
+- **IMPORTANT: Total combined context has a 10,000 character limit**
+- If combined contexts exceed 10,000 characters, content is truncated
+
+##### Critical Implications
+
+**✅ Working Configuration:**
+- Exit with code 0
+- Output valid JSON to stdout
+- Include `hookSpecificOutput.additionalContext` structure
+- Multiple hooks' contexts are collected properly
+
+**❌ Silent Failures:**
+- Plain text output → Completely ignored, no context added
+- Malformed JSON → Treated as plain text, ignored
+
+#### Observed Behavior with Multiple Hooks
+
+When multiple UserPromptSubmit hooks return `additionalContext`:
+- The system collects ALL contexts correctly into arrays
+- Processing appears to handle multiple contexts appropriately
+- If you observe missing context, investigate other factors such as:
+  - Hook execution order in `.claude/settings.json`
+  - Individual hook failures (check each hook's output independently)
+  - JSON formatting issues in specific hooks
+
+#### Hook Context Visibility and Limits
+
+**UserPromptSubmit vs SessionStart Behavior:**
+
+| Feature          | UserPromptSubmit                       | SessionStart              |
+|------------------|-----------------------------------------|---------------------------|
+| Character Limit  | 10,000                                  | None                      |
+| Hidden from User | ✅ Yes (`isVisibleInTranscriptOnly`)   | ❌ No (visible in UI)     |
+| Wrapped in Tags  | `<user-prompt-submit-hook>`            | `<session-start-hook>`    |
+| Use Case         | Hidden context injection                | Visible session setup     |
+
+**UserPromptSubmit Context Length Limit:**
+
+Claude Code enforces a 10,000 character limit on the combined `additionalContext` from UserPromptSubmit hooks.
+
+**Processing behavior:**
+1. All UserPromptSubmit hooks' `additionalContext` values are collected
+2. Contexts are joined with `\n\n` separator between each
+3. If the total exceeds 10,000 characters, content is truncated at character 10,000
+4. A truncation message is appended: `[output truncated - exceeded 10000 characters]`
+
+**Implications:**
+- Large context outputs can cause subsequent hooks' contexts to be truncated
+- Hook execution order affects which contexts are preserved
+- Hooks generating large output should implement self-imposed limits
+
+**Example implementation:**
+The codebase-map hook implements a 9,000 character limit to ensure space for other hooks:
+```typescript
+const MAX_CONTEXT_LENGTH = 9000; // Leave 1,000 chars for other hooks
+if (contextMessage.length > MAX_CONTEXT_LENGTH) {
+  contextMessage = `${contextMessage.substring(0, MAX_CONTEXT_LENGTH)}\n\n[output truncated - exceeded 9000 characters]`;
+}
+```
+
+#### Best Practices for Multiple Hooks
+
+When using multiple hooks that provide `additionalContext`:
+
+**1. Verify Individual Hook Output**
+Test each hook independently to ensure it outputs valid JSON:
+```bash
+echo '{"hook_event_name": "UserPromptSubmit"}' | claudekit-hooks run your-hook-name
+```
+
+**2. Check Hook Order**
+The order in `.claude/settings.json` determines execution sequence. Place smaller, critical contexts last to avoid truncation.
+
+**3. Monitor Context Sizes**
+```bash
+# Test combined output length
+echo '{"hook_event_name": "UserPromptSubmit"}' | claudekit-hooks run your-hook | jq -r '.hookSpecificOutput.additionalContext' | wc -c
+```
+
+**4. Implement Self-Limiting**
+For hooks that generate large output, implement character limits to leave room for other hooks:
+- Consider 8,000-9,000 character limits for large context generators
+- Add truncation messages when limits are exceeded
+- Configure include/exclude patterns to reduce output naturally
+
+**5. Debug Hook Failures**
+If context appears missing:
+- Check if total context exceeds 10,000 characters
+- Verify each hook's output format (must be valid JSON starting with `{`)
+- Verify exit codes (must be 0 for successful context addition)
+- Test hook order impact by checking which contexts appear
 
 ## Optional Steps
 

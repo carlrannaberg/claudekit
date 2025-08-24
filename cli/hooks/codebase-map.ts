@@ -18,9 +18,9 @@ export class CodebaseMapHook extends BaseHook {
   static metadata = {
     id: 'codebase-map',
     displayName: 'Codebase Map Provider',
-    description: 'Adds codebase map to context on first user prompt of each session',
+    description: 'Adds codebase map to context at session start or first user prompt',
     category: 'utility' as const,
-    triggerEvent: 'UserPromptSubmit' as const,
+    triggerEvent: ['SessionStart', 'UserPromptSubmit'] as const,
     matcher: '*',
     dependencies: [],
   };
@@ -83,12 +83,23 @@ export class CodebaseMapHook extends BaseHook {
         this.cleanOldSessions();
 
         // Return JSON response with additionalContext
-        const contextMessage = `📍 Codebase Map (loaded once per session):\n\n${result.output}`;
+        const eventName = context.payload.hook_event_name ?? 'UserPromptSubmit';
+        let contextMessage = `📍 Codebase Map (loaded once per session):\n\n${result.output}`;
+        
+        // Only apply cutoff for UserPromptSubmit (10,000 char limit)
+        // SessionStart has no limit and is visible to users
+        if (eventName === 'UserPromptSubmit') {
+          const MAX_CONTEXT_LENGTH = 9000; // Leave 1,000 chars for other hooks
+          if (contextMessage.length > MAX_CONTEXT_LENGTH) {
+            contextMessage = `${contextMessage.substring(0, MAX_CONTEXT_LENGTH)}\n\n[output truncated - exceeded 9000 characters]`;
+          }
+        }
+        
         return {
           exitCode: 0,
           jsonResponse: {
             hookSpecificOutput: {
-              hookEventName: 'UserPromptSubmit',
+              hookEventName: eventName,
               additionalContext: contextMessage,
             },
           },

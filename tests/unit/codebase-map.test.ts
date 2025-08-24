@@ -410,9 +410,9 @@ describe('CodebaseMapHook', () => {
       expect(CodebaseMapHook.metadata).toEqual({
         id: 'codebase-map',
         displayName: 'Codebase Map Provider',
-        description: 'Adds codebase map to context on first user prompt of each session',
+        description: 'Adds codebase map to context at session start or first user prompt',
         category: 'utility',
-        triggerEvent: 'UserPromptSubmit',
+        triggerEvent: ['SessionStart', 'UserPromptSubmit'],
         matcher: '*',
         dependencies: [],
       });

@@ -265,9 +265,9 @@ These hooks run when users submit their first prompt in a Claude Code session:
 
 #### codebase-map
 
-**Purpose:** Provide codebase map context to Claude Code on the first user prompt of each session.
+**Purpose:** Provide codebase map context to Claude Code at the beginning of each session.
 
-**Triggers on:** UserPromptSubmit event (first prompt only)
+**Triggers on:** SessionStart or UserPromptSubmit event (first prompt only)
 
 **Dependencies:** Requires [codebase-map](https://github.com/carlrannaberg/codebase-map) CLI tool installed
 
