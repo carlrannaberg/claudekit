@@ -8,6 +8,7 @@
 import { Command } from 'commander';
 import { setImmediate } from 'node:timers';
 import { HookRunner } from './hooks/runner.js';
+import { profileHooks } from './hooks/profile.js';
 
 export function createHooksCLI(): Command {
   const program = new Command('claudekit-hooks')
@@ -59,6 +60,15 @@ export function createHooksCLI(): Command {
         const time = new Date(exec.timestamp).toLocaleString();
         console.log(`${status} ${exec.hookName} - ${time} (${exec.executionTime}ms)`);
       }
+    });
+
+  // Add profile command
+  program
+    .command('profile [hook]')
+    .description('Profile hook performance (time and output)')
+    .option('-i, --iterations <n>', 'Number of iterations', '1')
+    .action(async (hook, options) => {
+      await profileHooks(hook, options);
     });
 
   // Add run command (default)

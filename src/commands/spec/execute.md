@@ -40,6 +40,17 @@ Before launching ANY subagents:
 
 ## Implementation Process
 
+**IMPORTANT**: This command uses MANDATORY/MUST/CRITICAL language because:
+- Without strong directives, agents often skip launching subagents entirely
+- Soft suggestions like "consider" or "you may" are frequently ignored
+- Task details get paraphrased and lose critical context without explicit "stm show" commands
+- Subagents need clear instructions to report back instead of marking tasks complete
+
+The directive language ensures YOU (the main agent) will:
+1. Actually launch the required subagents using the Task tool
+2. Pass exact STM task IDs so subagents get full context
+3. Receive reports back to coordinate the workflow properly
+
 ### 1. Analyze Specification
 
 Read the specification to extract:
@@ -91,64 +102,75 @@ For each task (process sequentially for dependent tasks, in parallel for indepen
    - Files to modify/create
    - Quality requirements
 
-2. **Launch Implementation Subagent**:
-   - **ALWAYS use specialized subagents** from the list above when tasks match expert domains
-   - Match task requirements to expert domains for optimal results  
-   - Use `general-purpose` subagent only when no specialized expert fits
+2. **MANDATORY: Launch Implementation Subagent**:
+   YOU MUST launch a specialized subagent using the Task tool.
+   - Select from the specialists listed above that match the task domain
+   - Use `general-purpose` only if no specialist matches
    
-   If using STM, include task details:
+   If using STM, launch with EXACTLY this format:
    ```
-   Task: "Implement [component name]"
-   Prompt: |
-     Task ID: [STM task ID]
-     Title: [Task title from STM]
+   Task tool invocation:
+   - description: "Implement [component]"  
+   - subagent_type: [SELECT FROM AVAILABLE AGENTS ABOVE]
+   - prompt: |
+     CRITICAL: You MUST first run this exact command to get the full task details:
+     stm show [INSERT-ACTUAL-STM-TASK-ID-HERE]
      
-     Technical Details:
-     [Contents of task 'details' section from STM]
+     Then implement the component based on the ACTUAL task details retrieved from STM.
+     Do NOT paraphrase or summarize - use the exact details from STM.
      
-     Validation Criteria:
-     [Contents of task 'validation' section from STM]
-     
-     Additional Instructions:
+     Additional Requirements:
      - Follow project code style guidelines
      - Implement complete functionality
      - Add appropriate error handling
      - Document complex logic
+     
+     IMPORTANT: Report back when complete. Do NOT mark the STM task as done.
    ```
    
    If using TodoWrite:
    ```
-   Task: "Implement [component name]"
-   Prompt: Detailed implementation instructions including:
-   - Specification reference
-   - Technical requirements
-   - Code style guidelines
-   - Error handling requirements
+   Task: "Implement component"  
+   Subagent: [REQUIRED: select appropriate specialist from available agents above]
+   Prompt: |
+     Implement the component with these requirements:
+     - Follow specification reference
+     - Meet technical requirements
+     - Follow code style guidelines
+     - Add error handling
+     
+     REPORT BACK when implementation is complete.
    ```
 
 #### Phase 2: Test Writing
-After implementation completes:
+After implementation subagent reports back:
 
 **Available Testing Experts:**
 !claudekit list agents | grep -i "testing-expert" || echo "Use general-purpose agent for test writing"
 
-1. **Launch Testing Expert**:
-   - Select the most appropriate testing expert from the list above based on project stack
-   - If none shown, use general-purpose agent
+1. **MANDATORY: Launch Testing Expert**:
+   YOU MUST launch a testing expert using the Task tool IMMEDIATELY after implementation is complete.
    
+   Launch with EXACTLY this format:
    ```
-   Task: "Write tests for [component name]"
-   Subagent: [select from available testing experts above]
-   Prompt: |
-     Write comprehensive tests for the recently implemented [component/feature]:
-     - Files to test: [list files from implementation]
-     - Test requirements:
-       * Unit tests for all functions/methods
-       * Edge cases and error conditions
-       * Integration points with other components
-       * Coverage targets: aim for >80%
+   Task tool invocation:
+   - description: "Write tests"
+   - subagent_type: [SELECT testing-expert, jest-testing-expert, or vitest-testing-expert FROM LIST ABOVE]
+   - prompt: |
+     CRITICAL: You MUST first run this exact command to get the full task details:
+     stm show [INSERT-ACTUAL-STM-TASK-ID-HERE]
      
-     Follow project testing conventions and patterns.
+     Then write comprehensive tests for the implemented component based on the ACTUAL task details from STM.
+     Do NOT paraphrase - use the exact implementation details from STM.
+     
+     Requirements:
+     - Test all functions/methods with unit tests
+     - Cover edge cases and error conditions  
+     - Test integration points
+     - Achieve >80% coverage
+     
+     Follow project testing conventions.
+     IMPORTANT: Report back when complete. Do NOT mark the STM task as done.
    ```
 
 2. **Run Tests**:
@@ -162,24 +184,31 @@ After tests are written and passing:
 **Available Code Review Agents:**
 !claudekit list agents | grep -i "code-review" || echo "Use general-purpose agent for code review"
 
-1. **Launch Code Review Agent**:
-   - Select code-review-expert if shown above, otherwise use general-purpose agent
+1. **MANDATORY: Launch Code Review Agent**:
+   YOU MUST launch code-review-expert using the Task tool IMMEDIATELY after tests pass.
    
+   Launch with EXACTLY this format:
    ```
-   Task: "Review [component name]"
-   Subagent: [select code-review-expert if available, otherwise general-purpose]
-   Prompt: |
-     Review the recently implemented [component/feature]:
-     - Files modified: [list files from implementation]
-     - Focus areas:
-       * Architecture & design patterns
-       * Code quality and maintainability
-       * Security vulnerabilities
-       * Performance considerations
-       * Error handling completeness
-       * Testing coverage needs
+   Task tool invocation:
+   - description: "Review code"
+   - subagent_type: code-review-expert [or general-purpose if not available]
+   - prompt: |
+     CRITICAL: You MUST first run this exact command to get the full task details:
+     stm show [INSERT-ACTUAL-STM-TASK-ID-HERE]
      
-     Provide actionable feedback for any issues found.
+     Then perform comprehensive code review based on the ACTUAL task requirements from STM.
+     
+     Review the implementation AND tests for:
+     * Architecture & design patterns
+     * Code quality and maintainability
+     * Security vulnerabilities
+     * Performance considerations
+     * Error handling completeness
+     * Test coverage adequacy
+     
+     Provide specific, actionable feedback for any issues found.
+     Categorize as: CRITICAL (must fix), IMPORTANT (should fix), MINOR (nice to have).
+     IMPORTANT: Report back with findings. Do NOT mark the STM task as done.
    ```
 
 2. **Analyze Review Results**:
@@ -193,24 +222,62 @@ If issues are found:
 **Available Specialist Agents for Fixes:**
 !claudekit list agents | grep -E "typescript|react|security|performance" || echo "Use general-purpose agent for fixes"
 
-1. **Fix Critical Issues**:
-   - Launch appropriate specialist subagent from the list above if available
-   - Otherwise use general-purpose agent with specific focus
-   - Examples:
-     * Security issues → Use security specialist if available, otherwise general-purpose
-     * Performance issues → Use performance specialist if available, otherwise general-purpose
-     * Type errors → Use typescript-expert if available, otherwise general-purpose
-     * Test failures → Use testing specialist if available, otherwise general-purpose
+1. **MANDATORY: Fix Critical Issues**:
+   If code review found CRITICAL issues, YOU MUST launch appropriate specialist to fix them.
+   
+   Launch with EXACTLY this format:
+   ```
+   Task tool invocation:
+   - description: "Fix critical issues"
+   - subagent_type: [SELECT specialist matching the issue type from available agents]
+   - prompt: |
+     CRITICAL: You MUST first run this exact command to get the full task details:
+     stm show [INSERT-ACTUAL-STM-TASK-ID-HERE]
+     
+     Then fix these SPECIFIC critical issues from code review:
+     [COPY EXACT CRITICAL ISSUES FROM REVIEW - DO NOT PARAPHRASE]
+     
+     Requirements:
+     - Fix ONLY the critical issues listed
+     - Ensure fixes align with original STM task requirements
+     - Maintain existing functionality
+     - Update tests if needed
+     
+     IMPORTANT: Report back when fixes complete. Do NOT mark the STM task as done.
+   ```
 
 2. **Re-Test After Fixes**:
    - Run test suite again to verify fixes
    - Ensure no regressions introduced
 
-3. **Re-Review After Fixes**:
-   - Run code-review-expert again on modified files
-   - Continue cycle until no critical issues remain
+3. **MANDATORY: Re-Review After Fixes**:
+   YOU MUST launch code-review-expert again to verify fixes.
+   
+   Launch with EXACTLY this format:
+   ```
+   Task tool invocation:
+   - description: "Re-review fixes"
+   - subagent_type: code-review-expert [or general-purpose if not available]
+   - prompt: |
+     CRITICAL: You MUST first run this exact command to get the full task details:
+     stm show [INSERT-ACTUAL-STM-TASK-ID-HERE]
+     
+     Then verify that these critical issues have been resolved:
+     [COPY EXACT CRITICAL ISSUES THAT WERE FIXED]
+     
+     Check:
+     - Are all critical issues properly fixed?
+     - Do fixes introduce any new problems?
+     - Are tests still passing?
+     
+     Report: RESOLVED or STILL HAS ISSUES (with details).
+     IMPORTANT: Report back with assessment. Do NOT mark the STM task as done.
+   ```
+   
+   - Continue fix/review cycle until all critical issues are RESOLVED
 
-4. **Update Task Status**:
+4. **Update Task Status (Orchestrator Only)**:
+   - Only after all subagents report back successfully:
    - If using STM: `stm update [task-id] --status done`
    - If using TodoWrite: Mark task as completed
 
