@@ -40,17 +40,6 @@ Before launching ANY subagents:
 
 ## Implementation Process
 
-**IMPORTANT**: This command uses MANDATORY/MUST/CRITICAL language because:
-- Without strong directives, agents often skip launching subagents entirely
-- Soft suggestions like "consider" or "you may" are frequently ignored
-- Task details get paraphrased and lose critical context without explicit "stm show" commands
-- Subagents need clear instructions to report back instead of marking tasks complete
-
-The directive language ensures YOU (the main agent) will:
-1. Actually launch the required subagents using the Task tool
-2. Pass exact STM task IDs so subagents get full context
-3. Receive reports back to coordinate the workflow properly
-
 ### 1. Analyze Specification
 
 Read the specification to extract:
