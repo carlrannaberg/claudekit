@@ -83,7 +83,7 @@ Organize tasks by:
 For each task (process sequentially for dependent tasks, in parallel for independent ones):
 
 **Available Specialized Agents:**
-!claudekit list agents || echo "Unable to list agents"
+!claudekit list agents || echo "Using general-purpose agent (no specialized agents found)"
 
 1. **Prepare Task Brief**:
    - Clear scope and boundaries
@@ -130,11 +130,11 @@ For each task (process sequentially for dependent tasks, in parallel for indepen
 After implementation completes:
 
 **Available Testing Experts:**
-!claudekit list agents | grep -i test || echo "No testing experts found"
+!claudekit list agents | grep -i test || echo "Use general-purpose agent for test writing"
 
 1. **Launch Testing Expert**:
    - Select the most appropriate testing expert from the list above based on project stack
-   - If no specialized testing expert is available, use general-purpose agent
+   - If none shown, use general-purpose agent
    
    ```
    Task: "Write tests for [component name]"
@@ -159,10 +159,15 @@ After implementation completes:
 #### Phase 3: Code Review
 After tests are written and passing:
 
+**Available Code Review Agents:**
+!claudekit list agents | grep -i "code-review" || echo "Use general-purpose agent for code review"
+
 1. **Launch Code Review Agent**:
+   - Select code-review-expert if shown above, otherwise use general-purpose agent
+   
    ```
    Task: "Review [component name]"
-   Subagent: code-review-expert
+   Subagent: [select code-review-expert if available, otherwise general-purpose]
    Prompt: |
      Review the recently implemented [component/feature]:
      - Files modified: [list files from implementation]
@@ -185,13 +190,17 @@ After tests are written and passing:
 #### Phase 4: Iterative Improvement
 If issues are found:
 
+**Available Specialist Agents for Fixes:**
+!claudekit list agents | grep -E "typescript|react|security|performance" || echo "Use general-purpose agent for fixes"
+
 1. **Fix Critical Issues**:
-   - Launch appropriate specialist subagent for fixes
+   - Launch appropriate specialist subagent from the list above if available
+   - Otherwise use general-purpose agent with specific focus
    - Examples:
-     * Security issues → Use specialized expert or general-purpose with security focus
-     * Performance issues → Use react-performance-expert or relevant specialist
-     * Type errors → Use typescript-expert
-     * Test failures → Use testing-expert
+     * Security issues → Use security specialist if available, otherwise general-purpose
+     * Performance issues → Use performance specialist if available, otherwise general-purpose
+     * Type errors → Use typescript-expert if available, otherwise general-purpose
+     * Test failures → Use testing specialist if available, otherwise general-purpose
 
 2. **Re-Test After Fixes**:
    - Run test suite again to verify fixes
