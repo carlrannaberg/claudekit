@@ -326,9 +326,16 @@ Focus optimization on hooks that:
 
 ### "My hook shows 0 characters but I know it produces output"
 
-Some hooks only produce output under specific conditions:
+The only hook that should consistently show 0 characters is:
 - `codebase-map-update`: Designed to run silently in the background (always 0)
-- Other hooks may show 0 if their trigger conditions aren't met during profiling
+
+All other hooks are tested with appropriate inputs during profiling:
+- `file-guard`: Tests with sensitive files (.env or patterns from ignore files)
+- `check-todos`: Tests with transcript containing incomplete todos
+- `self-review`: Tests with transcript containing file changes
+- `check-comment-replacement`: Tests with code being replaced by comments
+
+If a hook still shows 0 characters, it may indicate the hook is working correctly and found no issues to report
 
 ### "Profiling takes too long"
 
