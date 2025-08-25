@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2025-08-25
+
+### Added
+- **Hook Performance Profiling System**: Comprehensive performance analysis for hooks
+  - Added `claudekit-hooks profile` command for measuring hook execution time and output size
+  - Performance analysis includes execution time, character count, and estimated token usage
+  - Support for single runs or averaged measurements across multiple iterations
+  - Automatic detection of configured hooks from `.claude/settings.json` for batch profiling
+  - Color-coded warnings for slow hooks (>5 seconds) and output size limits
+  - Specialized UserPromptSubmit limit checking for hooks that inject context into Claude prompts
+  - Comprehensive test coverage with 493 test cases for profiling system validation
+- **Enhanced Hook Testing Infrastructure**: Improved hook validation and testing capabilities
+  - Added intelligent test payload generation for different hook types (PostToolUse, Stop, UserPromptSubmit)
+  - Enhanced file-guard hook testing with support for all AI ignore file formats (`.agentignore`, `.aiignore`, `.aiexclude`, `.geminiignore`, `.codeiumignore`, `.cursorignore`)
+  - Improved pattern matching for synthetic test file generation from glob patterns
+  - Added comprehensive test transcript creation for hooks requiring conversation context
+- **Hook Performance Constants**: Standardized performance thresholds and limits
+  - Added performance threshold constants for execution time and output size monitoring
+  - Claude Code specific output limits (10k character truncation threshold)
+  - Token estimation utilities for output size analysis
+
+### Fixed
+- **File-guard Pattern Matching**: Improved ignore file processing and pattern handling
+  - Fixed file-guard to check all supported ignore files (6 different AI tool formats)
+  - Enhanced pattern-to-filepath conversion for more accurate testing
+  - Improved glob pattern handling for nested directories and wildcards
+- **Hook Output Capture**: Enhanced hook execution output collection
+  - Fixed hook profiling to properly capture both stdout and stderr streams
+  - Improved output size limiting with 10MB buffer for large hook outputs
+  - Enhanced error handling for hook execution failures during profiling
+- **Test Infrastructure**: Resolved testing framework issues
+  - Fixed Date constructor mocking in tests to avoid breaking Date functionality
+  - Improved mock fs-extra implementation to use proper Date constructors
+  - Enhanced test stability and reliability across different execution environments
+
+### Changed
+- **Hook Runner Architecture**: Enhanced hook execution and output management
+  - Updated HookRunner with standalone hook execution function for profiling integration
+  - Improved output capture system with memory limits and truncation handling
+  - Enhanced hook execution error handling and graceful failure management
+- **Hook CLI Interface**: Extended command-line interface capabilities
+  - Added profile subcommand to hooks CLI with iterations parameter support
+  - Enhanced argument validation for profile command parameters
+  - Improved CLI help text and command structure for profiling features
+
 ## [0.8.1] - 2025-08-24
 
 ### Fixed

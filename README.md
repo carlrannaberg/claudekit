@@ -94,6 +94,14 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Mandatory delegation**: All technical issues MUST be handled by specialized subagents
 - **Proactive help**: Run `/agents-md:init` to update AGENTS.md/CLAUDE.md for automatic subagent delegation
 
+### 📊 Hook Performance Profiling
+- **Performance monitoring**: Analyze hook execution time and output size with `claudekit-hooks profile`
+- **Batch analysis**: Automatically profiles all configured hooks from `.claude/settings.json`
+- **Statistical analysis**: Support for multiple iterations with averaging for accurate measurements
+- **Smart warnings**: Color-coded alerts for slow hooks (>5s) and output size limits
+- **Claude Code integration**: Specialized limits for UserPromptSubmit hooks that inject context
+- **Token estimation**: Calculate estimated token usage for hook outputs
+
 ### 📝 Smart Commands
 - `/code-review` - Multi-aspect code reviews with 6 parallel agents
 - `/git:commit` - Creates commits following your project's conventions
@@ -116,6 +124,11 @@ claudekit show command <id>  # Display command prompt for external use
 claudekit show agent <id> -f json    # Output agent metadata and content as JSON
 claudekit show command <id> -f json  # Output command metadata and content as JSON
 claudekit doctor             # Check your installation and validate documentation links
+
+# Hook management and profiling
+claudekit-hooks run <hook>   # Execute a specific hook manually
+claudekit-hooks profile      # Profile all configured hooks performance
+claudekit-hooks profile <hook> --iterations 5  # Profile specific hook with averaging
 ```
 
 ### Using Prompts with External LLMs
