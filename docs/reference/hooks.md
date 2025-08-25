@@ -629,26 +629,17 @@ Configuration is resolved in the following order (highest to lowest priority):
 
 ## Testing Hooks
 
-You can test hooks outside of Claude Code using the `claudekit-hooks` command:
-
-### Basic Testing
+You can test hooks outside of Claude Code using the `claudekit-hooks run` command with JSON input:
 
 ```bash
-# Test a specific hook with a file
-claudekit-hooks test typecheck-changed --file src/index.ts
-
-# Test without a specific file (for hooks that don't need one)
-claudekit-hooks test create-checkpoint
-
-# Test ESLint validation
-claudekit-hooks test lint-changed --file src/app.js
-```
-
-### Testing with stdin (legacy method)
-
-```bash
-# Run a specific hook (reads stdin for file context)
+# Test TypeScript validation
 echo '{"tool_input": {"file_path": "src/index.ts"}}' | claudekit-hooks run typecheck-changed
+
+# Test ESLint validation  
+echo '{"tool_input": {"file_path": "src/app.js"}}' | claudekit-hooks run lint-changed
+
+# Test hooks that don't need file input
+claudekit-hooks run create-checkpoint
 
 # Test parameter validation hook
 echo '{"tool_input": {"file_path": "src/component.ts"}}' | claudekit-hooks run check-unused-parameters
