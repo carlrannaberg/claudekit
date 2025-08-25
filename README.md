@@ -200,14 +200,24 @@ Hooks automatically enforce quality as Claude works:
 - **SubagentStop** - Triggered when subagents complete their tasks
 - **UserPromptSubmit** - Triggered when users submit their first prompt in a session
 
-### List Available Hooks
+### Hook Commands
 
 ```bash
 # See all available hooks with descriptions
 claudekit-hooks list
+
+# Profile hook performance and output size
+claudekit-hooks profile                   # Profile all hooks
+claudekit-hooks profile typecheck-changed  # Profile specific hook
+claudekit-hooks profile --iterations 5    # Multiple runs for averages
 ```
 
-[Hook configuration →](docs/reference/hooks.md)
+The profile command helps identify:
+- Slow hooks (>5s) that delay your workflow
+- High-output hooks that consume context window
+- UserPromptSubmit hooks approaching the 10k character limit
+
+[Hook configuration →](docs/reference/hooks.md) | [Profiling guide →](docs/guides/hook-profiling.md)
 
 ## Subagents
 

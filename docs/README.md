@@ -28,6 +28,7 @@ In-depth guides for specific workflows:
 |-------|-------------|
 | [Creating Commands](guides/creating-commands.md) | Build custom slash commands for Claude Code |
 | [Creating Hooks](guides/creating-hooks.md) | Develop automated validation and workflow hooks |
+| [Hook Profiling](guides/hook-profiling.md) | Measure and optimize hook performance and output |
 | [Creating Subagents](guides/creating-subagents.md) | Build specialized AI assistants for specific tasks |
 | [Checkpoint System](guides/checkpoint.md) | Git checkpointing and safe development practices |
 | [Spec Workflow](guides/spec-workflow.md) | Specification-driven development with AI |
