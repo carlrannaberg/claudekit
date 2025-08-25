@@ -1,6 +1,5 @@
 // cli/hooks/profile.ts
 import * as fs from 'node:fs/promises';
-import { runHook } from './runner.js';
 import { PERFORMANCE_THRESHOLDS, CLAUDE_CODE_LIMITS } from './constants.js';
 
 interface ProfileOptions {
@@ -102,11 +101,49 @@ function truncateMiddle(str: string, maxLength: number = PERFORMANCE_THRESHOLDS.
 async function measureHook(hookName: string): Promise<MeasureResult | null> {
   try {
     const startTime = Date.now();
-    const result = await runHook(hookName);
+    
+    // Prepare test payload for hooks that need input
+    let testPayload: Record<string, unknown> = {};
+    
+    // For hooks that need a file path
+    if (hookName.includes('changed') || hookName === 'file-guard' || 
+        hookName === 'check-any' || hookName === 'check-comment-replacement' ||
+        hookName === 'check-unused-parameters' || hookName === 'codebase-map-update') {
+      // Use the profile.ts file itself as a test file
+      testPayload = {
+        tool_input: {
+          file_path: 'cli/hooks/profile.ts'
+        }
+      };
+    }
+    
+    // Execute hook using the actual CLI command with piped input
+    const { execSync } = await import('node:child_process');
+    let output = '';
+    try {
+      const payloadJson = JSON.stringify(testPayload);
+      // Capture both stdout and stderr (hooks output to stderr)
+      output = execSync(`echo '${payloadJson}' | claudekit-hooks run ${hookName} 2>&1`, {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024, // 10MB
+        stdio: 'pipe'
+      });
+    } catch (execError: unknown) {
+      // Even if command exits with non-zero, we may still have output
+      if (execError !== null && typeof execError === 'object' && 'stdout' in execError) {
+        output = String(execError.stdout);
+      } else if (execError !== null && typeof execError === 'object' && 'output' in execError) {
+        // Some errors have output array
+        const outputArray = execError.output as unknown[];
+        if (Array.isArray(outputArray)) {
+          output = outputArray.filter(o => o !== null && o !== undefined).join('');
+        }
+      }
+    }
+    
     const duration = Date.now() - startTime;
     
     // Measure output size
-    const output = result.stdout ?? '';
     const characters = output.length;
     const tokens = estimateTokens(output);
     
@@ -174,6 +211,15 @@ function displayResults(results: ProfileResult[]): void {
     return;
   }
   
+  // ANSI color codes
+  const RED = '\x1b[31m';
+  const YELLOW = '\x1b[33m';
+  const RESET = '\x1b[0m';
+  
+  // Identify UserPromptSubmit hooks (these have character limits)
+  // Based on hook metadata, only these hooks use UserPromptSubmit event
+  const userPromptSubmitHooks = ['codebase-map', 'thinking-level'];
+  
   // Display table header
   console.log('Hook Performance Profile');
   console.log('─'.repeat(PERFORMANCE_THRESHOLDS.TABLE_WIDTH));
@@ -183,22 +229,54 @@ function displayResults(results: ProfileResult[]): void {
   // Display each result
   for (const result of results) {
     const command = truncateMiddle(result.hookName);
-    const time = `${Math.round(result.time)}ms`;
-    const chars = Math.round(result.characters).toString();
+    const timeMs = Math.round(result.time);
+    const charsNum = Math.round(result.characters);
+    const time = `${timeMs}ms`;
+    const chars = charsNum.toString();
     const tokens = Math.round(result.tokens).toString();
     
-    console.log(`${command.padEnd(44)} ${time.padEnd(10)} ${chars.padEnd(12)} ${tokens}`);
+    // Determine if line should be colored
+    let lineColor = '';
+    let resetColor = '';
+    
+    // Check time threshold
+    if (timeMs > PERFORMANCE_THRESHOLDS.SLOW_EXECUTION_MS) {
+      lineColor = RED;
+      resetColor = RESET;
+    }
+    
+    // Check character limits (only for UserPromptSubmit hooks)
+    if (userPromptSubmitHooks.includes(result.hookName)) {
+      if (charsNum > CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS) {
+        lineColor = RED;
+        resetColor = RESET;
+      } else if (charsNum > CLAUDE_CODE_LIMITS.SAFE_OUTPUT_CHARS && !lineColor) {
+        lineColor = YELLOW;
+        resetColor = RESET;
+      }
+    }
+    
+    // Print the entire line with color if needed
+    const line = `${command.padEnd(44)} ${time.padEnd(10)} ${chars.padEnd(12)} ${tokens}`;
+    console.log(`${lineColor}${line}${resetColor}`);
   }
   
   console.log('─'.repeat(PERFORMANCE_THRESHOLDS.TABLE_WIDTH));
   
   // Display warnings based on performance thresholds
   const slowHooks = results.filter(r => r.time > PERFORMANCE_THRESHOLDS.SLOW_EXECUTION_MS);
+  // Only check UserPromptSubmit limits for hooks that are UserPromptSubmit hooks
+  // Based on hook metadata, only these hooks use UserPromptSubmit event
+  const userPromptSubmitHooksList = ['codebase-map', 'thinking-level'];
   const nearLimitHooks = results.filter(r => 
+    userPromptSubmitHooksList.includes(r.hookName) &&
     r.characters > CLAUDE_CODE_LIMITS.SAFE_OUTPUT_CHARS && 
     r.characters <= CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS
   );
-  const overLimitHooks = results.filter(r => r.characters > CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS);
+  const overLimitHooks = results.filter(r => 
+    userPromptSubmitHooksList.includes(r.hookName) &&
+    r.characters > CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS
+  );
   
   if (slowHooks.length > 0 || nearLimitHooks.length > 0 || overLimitHooks.length > 0) {
     console.log('\n⚠ Performance Issues:');
