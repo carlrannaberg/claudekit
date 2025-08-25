@@ -233,22 +233,35 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
     
     // Special case for file-guard - test with a sensitive file to trigger blocking
     if (hookName === 'file-guard') {
-      // Check for .agentignore or use default sensitive patterns
+      // Check all ignore files that file-guard supports
       const { existsSync, readFileSync } = await import('node:fs');
       let testFile = '.env';  // Default sensitive file
       
-      if (existsSync('.agentignore')) {
-        // Read first pattern from .agentignore and generate a matching test file
-        try {
-          const content = readFileSync('.agentignore', 'utf8');
-          const patterns = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
-          
-          if (patterns.length > 0 && patterns[0] !== undefined) {
-            // Generate a test file path that matches the first pattern
-            testFile = generateTestFileFromPattern(patterns[0]);
+      // List of ignore files that file-guard checks (from file-guard.ts)
+      const ignoreFiles = [
+        '.agentignore',    // OpenAI Codex CLI
+        '.aiignore',       // JetBrains AI Assistant
+        '.aiexclude',      // Gemini Code Assist
+        '.geminiignore',   // Gemini CLI
+        '.codeiumignore',  // Codeium
+        '.cursorignore'    // Cursor IDE
+      ];
+      
+      // Check each ignore file and use the first one found
+      for (const ignoreFile of ignoreFiles) {
+        if (existsSync(ignoreFile)) {
+          try {
+            const content = readFileSync(ignoreFile, 'utf8');
+            const patterns = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
+            
+            if (patterns.length > 0 && patterns[0] !== undefined) {
+              // Generate a test file path that matches the first pattern
+              testFile = generateTestFileFromPattern(patterns[0]);
+              break;  // Use the first ignore file found
+            }
+          } catch {
+            // Continue to next ignore file
           }
-        } catch {
-          // Fallback to default
         }
       }
       
