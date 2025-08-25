@@ -145,15 +145,27 @@ export class HookRunner {
 export async function runHook(hookName: string): Promise<{ stdout: string }> {
   const runner = new HookRunner('.claudekit/config.json', false);
   
-  // Create a temporary stdout capture with memory limit
+  // Create a temporary output capture with memory limit
   const MAX_OUTPUT_SIZE = 10 * 1024 * 1024; // 10MB limit
   let capturedOutput = '';
   let totalBytesWritten = 0;
   let truncated = false;
-  const originalWrite = process.stdout.write;
   
-  // Capture stdout with size limit
-  process.stdout.write = function(chunk: string | Uint8Array): boolean {
+  // Save original methods
+  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+  const originalStderrWrite = process.stderr.write.bind(process.stderr);
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+  
+  // Type definition for Node.js write method
+  type WriteMethod = typeof process.stdout.write;
+  
+  // Helper to capture output with size limit
+  const captureOutput: WriteMethod = function(
+    chunk: string | Uint8Array,
+    encodingOrCallback?: string | ((error?: Error | null) => void),
+    callback?: (error?: Error | null) => void
+  ): boolean {
     const chunkStr = typeof chunk === 'string' ? chunk : chunk.toString();
     const chunkSize = Buffer.byteLength(chunkStr, 'utf8');
     
@@ -162,20 +174,45 @@ export async function runHook(hookName: string): Promise<{ stdout: string }> {
         capturedOutput += '\n[Output truncated - exceeded 10MB limit]';
         truncated = true;
       }
-      // Still return true to avoid breaking the hook execution
+      // Handle callbacks
+      if (typeof encodingOrCallback === 'function') {
+        encodingOrCallback();
+      } else if (callback) {
+        callback();
+      }
       return true;
     }
     
     capturedOutput += chunkStr;
     totalBytesWritten += chunkSize;
+    
+    // Handle callbacks
+    if (typeof encodingOrCallback === 'function') {
+      encodingOrCallback();
+    } else if (callback) {
+      callback();
+    }
     return true;
+  };
+  
+  // Capture all output streams
+  process.stdout.write = captureOutput;
+  process.stderr.write = captureOutput;
+  console.log = (...args: unknown[]): void => {
+    captureOutput(`${args.map(a => String(a)).join(' ')}\n`);
+  };
+  console.error = (...args: unknown[]): void => {
+    captureOutput(`${args.map(a => String(a)).join(' ')}\n`);
   };
   
   try {
     await runner.run(hookName);
     return { stdout: capturedOutput };
   } finally {
-    // Restore original stdout
-    process.stdout.write = originalWrite;
+    // Restore all original methods
+    process.stdout.write = originalStdoutWrite;
+    process.stderr.write = originalStderrWrite;
+    console.log = originalConsoleLog;
+    console.error = originalConsoleError;
   }
 }
