@@ -194,6 +194,36 @@ async function createTestTranscript(type: 'todos' | 'review'): Promise<string> {
   }
 }
 
+/**
+ * Generate a test file path from a pattern for testing file-guard
+ */
+function generateTestFileFromPattern(pattern: string): string {
+  // Remove leading slashes and whitespace
+  const cleanPattern = pattern.trim().replace(/^\//, '');
+  
+  // Handle different pattern types
+  if (cleanPattern.startsWith('*.')) {
+    // Extension pattern like *.env, *.key
+    const extension = cleanPattern.substring(1);
+    return `test-file${extension}`;
+  }
+  
+  // Handle glob patterns with directories like src/**/*.spec.ts
+  if (cleanPattern.includes('**')) {
+    return cleanPattern
+      .replace(/\*\*/g, 'test/nested')  // Replace ** with test directory path
+      .replace(/\*/g, 'test-file');      // Replace remaining * with test filename
+  }
+  
+  if (cleanPattern.includes('*')) {
+    // Wildcard in middle or end like secrets/*, */passwords.txt, src/*.test.js
+    return cleanPattern.replace(/\*/g, 'test-data');
+  }
+  
+  // Direct file or directory pattern
+  return cleanPattern;
+}
+
 async function measureHook(hookName: string): Promise<MeasureResult | null> {
   try {
     const startTime = Date.now();
@@ -208,14 +238,14 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
       let testFile = '.env';  // Default sensitive file
       
       if (existsSync('.agentignore')) {
-        // Read first pattern from .agentignore
+        // Read first pattern from .agentignore and generate a matching test file
         try {
           const content = readFileSync('.agentignore', 'utf8');
-          const lines = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
-          if (lines.length > 0 && lines[0] !== undefined) {
-            // Use the first pattern as a test file (remove wildcards for simplicity)
-            const firstPattern = lines[0].replace(/\*/g, '').replace(/^\//,'').trim();
-            testFile = firstPattern !== '' ? firstPattern : '.env';
+          const patterns = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
+          
+          if (patterns.length > 0 && patterns[0] !== undefined) {
+            // Generate a test file path that matches the first pattern
+            testFile = generateTestFileFromPattern(patterns[0]);
           }
         } catch {
           // Fallback to default
