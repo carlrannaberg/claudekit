@@ -105,7 +105,7 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
     // Prepare test payload for hooks that need input
     let testPayload: Record<string, unknown> = {};
     
-    // For hooks that need a file path
+    // For hooks that need a file path (PostToolUse hooks)
     if (hookName.includes('changed') || hookName === 'file-guard' || 
         hookName === 'check-any' || hookName === 'check-comment-replacement' ||
         hookName === 'check-unused-parameters' || hookName === 'codebase-map-update') {
@@ -114,6 +114,24 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
         tool_input: {
           file_path: 'cli/hooks/profile.ts'
         }
+      };
+    }
+    // For Stop hooks - they need different input
+    else if (hookName === 'check-todos' || hookName === 'self-review' ||
+             hookName === 'typecheck-project' || hookName === 'lint-project' ||
+             hookName === 'test-project' || hookName === 'create-checkpoint') {
+      // Stop hooks often need a transcript path or just basic event info
+      testPayload = {
+        hook_event_name: 'Stop',
+        transcript_path: '~/.claude/transcripts/test.jsonl' // Fake path for testing
+      };
+    }
+    // For UserPromptSubmit hooks
+    else if (hookName === 'codebase-map' || hookName === 'thinking-level') {
+      testPayload = {
+        hook_event_name: 'UserPromptSubmit',
+        session_id: `test-session-${Date.now()}`, // Unique session ID
+        user_message: 'test message'
       };
     }
     

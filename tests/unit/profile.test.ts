@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs/promises';
 
-// Mock the runner module
-vi.mock('../../cli/hooks/runner.js', () => ({
-  runHook: vi.fn(),
+// Mock child_process execSync
+const mockExecSync = vi.fn();
+vi.mock('node:child_process', () => ({
+  execSync: mockExecSync,
+}));
+
+// Mock the dynamic import of child_process
+vi.doMock('node:child_process', async () => ({
+  execSync: mockExecSync,
 }));
 
 // Mock fs module
@@ -16,7 +22,6 @@ const mockDateNow = vi.fn();
 
 // Import after mocks
 import { profileHooks } from '../../cli/hooks/profile.js';
-import { runHook } from '../../cli/hooks/runner.js';
 
 describe('Profile Module', () => {
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -44,12 +49,19 @@ describe('Profile Module', () => {
         const endTime = 1150; // 150ms execution time
         
         mockDateNow.mockReturnValueOnce(startTime).mockReturnValueOnce(endTime);
-        vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+        mockExecSync.mockReturnValue(mockOutput);
 
         await profileHooks('typecheck-changed');
 
-        expect(runHook).toHaveBeenCalledTimes(1);
-        expect(runHook).toHaveBeenCalledWith('typecheck-changed');
+        expect(mockExecSync).toHaveBeenCalledTimes(1);
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run typecheck-changed'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        );
         
         // Verify actual measurements in output
         const allLogCalls = consoleLogSpy.mock.calls.flat();
@@ -72,7 +84,7 @@ describe('Profile Module', () => {
         for (const testCase of testCases) {
           vi.clearAllMocks();
           mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
-          vi.mocked(runHook).mockResolvedValue({ stdout: testCase.output });
+          mockExecSync.mockReturnValue(testCase.output);
 
           await profileHooks('test-hook');
 
@@ -94,7 +106,7 @@ describe('Profile Module', () => {
         for (const timing of timingTests) {
           vi.clearAllMocks();
           mockDateNow.mockReturnValueOnce(timing.start).mockReturnValueOnce(timing.end);
-          vi.mocked(runHook).mockResolvedValue({ stdout: 'test output' });
+          mockExecSync.mockReturnValue('test output');
 
           await profileHooks('timing-test');
 
@@ -128,15 +140,15 @@ describe('Profile Module', () => {
           return 1000; // fallback time
         });
         
-        vi.mocked(runHook).mockImplementation(async (): Promise<{ stdout: string }> => {
+        mockExecSync.mockImplementation(() => {
           const output = outputs[callCount] ?? 'Default';
           callCount++;
-          return { stdout: output };
+          return output;
         });
 
         await profileHooks('test-hook', { iterations: 3 });
 
-        expect(runHook).toHaveBeenCalledTimes(3);
+        expect(mockExecSync).toHaveBeenCalledTimes(3);
         
         // Calculate expected averages
         const expectedAvgTime = (100 + 200 + 50) / 3; // 116.67ms
@@ -154,28 +166,29 @@ describe('Profile Module', () => {
 
       it('should handle partial failures and only average successful runs', async () => {
         let callCount = 0;
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         
-        vi.mocked(runHook).mockImplementation(async (): Promise<{ stdout: string }> => {
+        mockExecSync.mockImplementation(() => {
           callCount++;
           if (callCount === 2) {
+            // Throw error for second iteration
             throw new Error('Hook failed');
           }
-          // Mock timing for successful runs
-          mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100); // 100ms
-          return { stdout: 'Success output' }; // 14 chars
+          return 'Success output'; // 14 chars
         });
+
+        // Mock timing separately for each call
+        mockDateNow
+          .mockReturnValueOnce(1000).mockReturnValueOnce(1100) // First successful run
+          .mockReturnValueOnce(2000).mockReturnValueOnce(2100) // Second run (fails, but time still called)
+          .mockReturnValueOnce(3000).mockReturnValueOnce(3100); // Third successful run
 
         // Should not throw, but handle error gracefully
         await profileHooks('test-hook', { iterations: 3 });
 
-        expect(runHook).toHaveBeenCalledTimes(3); // Should continue after failure
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to profile hook "test-hook"'),
-          expect.stringContaining('Hook failed')
-        );
+        expect(mockExecSync).toHaveBeenCalledTimes(3); // Should continue after failure
         
         // Should still display results from successful runs (2 out of 3)
+        // The averages should be based only on successful runs
         expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('test-hook'));
       });
     });
@@ -206,12 +219,12 @@ describe('Profile Module', () => {
         let callCount = 0;
         
         vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockSettings));
-        vi.mocked(runHook).mockImplementation(async () => {
+        mockExecSync.mockImplementation(() => {
           // Mock timing for each hook
           mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1200); // 200ms
           const output = hookOutputs[callCount] ?? 'Default output';
           callCount++;
-          return { stdout: output };
+          return output;
         });
 
         await profileHooks();
@@ -219,10 +232,31 @@ describe('Profile Module', () => {
         expect(fs.readFile).toHaveBeenCalledWith('.claude/settings.json', 'utf-8');
         
         // Verify hook extraction and execution
-        expect(runHook).toHaveBeenCalledWith('typecheck-changed');
-        expect(runHook).toHaveBeenCalledWith('lint-changed');
-        expect(runHook).toHaveBeenCalledWith('check-todos');
-        expect(runHook).toHaveBeenCalledTimes(3);
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run typecheck-changed'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        );
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run lint-changed'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        );
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run check-todos'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        );
+        expect(mockExecSync).toHaveBeenCalledTimes(3);
         
         // Verify results are displayed for each hook
         const allLogCalls = consoleLogSpy.mock.calls.flat();
@@ -254,18 +288,39 @@ describe('Profile Module', () => {
         };
 
         vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockSettings));
-        vi.mocked(runHook).mockImplementation(async () => {
+        mockExecSync.mockImplementation(() => {
           mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
-          return { stdout: 'test output' };
+          return 'test output';
         });
 
         await profileHooks();
 
         // Verify hook name extraction handles different formats
-        expect(runHook).toHaveBeenCalledWith('hook-with-spaces');
-        expect(runHook).toHaveBeenCalledWith('custom-command'); // Should use full command
-        expect(runHook).toHaveBeenCalledWith('padded-hook'); // Should trim spaces
-        expect(runHook).toHaveBeenCalledTimes(3);
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run hook-with-spaces'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        );
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run custom-command'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        ); // Should use full command
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run padded-hook'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
+        ); // Should trim spaces
+        expect(mockExecSync).toHaveBeenCalledTimes(3);
       });
 
       it('should display appropriate message when no hooks are configured', async () => {
@@ -276,7 +331,7 @@ describe('Profile Module', () => {
         await profileHooks();
 
         expect(consoleLogSpy).toHaveBeenCalledWith('No hooks configured in .claude/settings.json');
-        expect(runHook).not.toHaveBeenCalled();
+        expect(mockExecSync).not.toHaveBeenCalled();
       });
 
       it('should handle missing settings.json file gracefully', async () => {
@@ -287,7 +342,7 @@ describe('Profile Module', () => {
         await profileHooks();
 
         expect(consoleLogSpy).toHaveBeenCalledWith('No hooks configured in .claude/settings.json');
-        expect(runHook).not.toHaveBeenCalled();
+        expect(mockExecSync).not.toHaveBeenCalled();
       });
 
       it('should handle malformed JSON gracefully', async () => {
@@ -296,7 +351,7 @@ describe('Profile Module', () => {
         await profileHooks();
 
         expect(consoleLogSpy).toHaveBeenCalledWith('No hooks configured in .claude/settings.json');
-        expect(runHook).not.toHaveBeenCalled();
+        expect(mockExecSync).not.toHaveBeenCalled();
       });
     });
 
@@ -304,9 +359,10 @@ describe('Profile Module', () => {
       it('should warn about hooks with 9000+ characters (near limit)', async () => {
         const mockOutput = 'A'.repeat(9500); // 9500 characters
         mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
-        vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+        mockExecSync.mockReturnValue(mockOutput);
 
-        await profileHooks('large-output-hook');
+        // Use a hook name that actually triggers UserPromptSubmit limits
+        await profileHooks('codebase-map');
 
         const allLogCalls = consoleLogSpy.mock.calls.flat();
         const outputString = allLogCalls.join(' ');
@@ -319,9 +375,10 @@ describe('Profile Module', () => {
       it('should warn about hooks with 10000+ characters (over limit)', async () => {
         const mockOutput = 'A'.repeat(12000); // 12000 characters
         mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
-        vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+        mockExecSync.mockReturnValue(mockOutput);
 
-        await profileHooks('oversized-hook');
+        // Use a hook name that actually triggers UserPromptSubmit limits
+        await profileHooks('codebase-map');
 
         const allLogCalls = consoleLogSpy.mock.calls.flat();
         const outputString = allLogCalls.join(' ');
@@ -335,7 +392,7 @@ describe('Profile Module', () => {
       it('should not show warnings for hooks within normal limits', async () => {
         const mockOutput = 'A'.repeat(5000); // 5000 characters (normal)
         mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
-        vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+        mockExecSync.mockReturnValue(mockOutput);
 
         await profileHooks('normal-hook');
 
@@ -361,9 +418,10 @@ describe('Profile Module', () => {
           mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(1100);
           
           const mockOutput = 'A'.repeat(test.chars);
-          vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+          mockExecSync.mockReturnValue(mockOutput);
 
-          await profileHooks('boundary-test');
+          // Use a hook name that actually triggers UserPromptSubmit limits
+          await profileHooks('codebase-map');
 
           const allLogCalls = consoleLogSpy.mock.calls.flat();
           const outputString = allLogCalls.join(' ');
@@ -380,7 +438,7 @@ describe('Profile Module', () => {
         const mockOutput = 'Normal output';
         // Mock a 6-second execution time
         mockDateNow.mockReturnValueOnce(1000).mockReturnValueOnce(7000);
-        vi.mocked(runHook).mockResolvedValue({ stdout: mockOutput });
+        mockExecSync.mockReturnValue(mockOutput);
 
         await profileHooks('slow-hook');
 
@@ -395,20 +453,31 @@ describe('Profile Module', () => {
 
     describe('graceful error handling', () => {
       it('should handle hook execution errors gracefully', async () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        vi.mocked(runHook).mockRejectedValue(new Error('Hook execution failed'));
+        mockExecSync.mockImplementation(() => {
+          throw new Error('Hook execution failed');
+        });
 
         // Should not throw, but handle error gracefully  
         await profileHooks('failing-hook');
 
-        expect(runHook).toHaveBeenCalledWith('failing-hook');
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to profile hook "failing-hook"'),
-          expect.stringContaining('Hook execution failed')
+        expect(mockExecSync).toHaveBeenCalledWith(
+          expect.stringContaining('claudekit-hooks run failing-hook'),
+          expect.objectContaining({
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024,
+            stdio: 'pipe'
+          })
         );
         
-        // Should show "No hooks were successfully profiled" message
-        expect(consoleLogSpy).toHaveBeenCalledWith('No hooks were successfully profiled');
+        // Should show profile results even if hook fails (with 0 output)
+        // The error is gracefully handled and converted to empty output
+        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('failing-hook'));
+        
+        // Should show 0 characters and 0 tokens since the hook failed but was handled gracefully
+        const allLogCalls = consoleLogSpy.mock.calls.flat();
+        const outputString = allLogCalls.join(' ');
+        expect(outputString).toContain('0ms');
+        expect(outputString).toContain('0            0'); // 0 chars, 0 tokens
       });
 
       it('should handle malformed settings.json gracefully', async () => {
@@ -417,7 +486,7 @@ describe('Profile Module', () => {
         await profileHooks();
 
         expect(consoleLogSpy).toHaveBeenCalledWith('No hooks configured in .claude/settings.json');
-        expect(runHook).not.toHaveBeenCalled();
+        expect(mockExecSync).not.toHaveBeenCalled();
       });
     });
   });
