@@ -68,7 +68,13 @@ export function createHooksCLI(): Command {
     .description('Profile hook performance (time and output)')
     .option('-i, --iterations <n>', 'Number of iterations', '1')
     .action(async (hook, options) => {
-      await profileHooks(hook, options);
+      // Parse iterations to number (CLI provides string)
+      const iterations = parseInt(options.iterations, 10);
+      if (isNaN(iterations) || iterations < 1) {
+        console.error('Error: Iterations must be a positive number');
+        process.exit(1);
+      }
+      await profileHooks(hook, { iterations });
     });
 
   // Add run command (default)

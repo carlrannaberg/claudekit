@@ -103,10 +103,14 @@ Commands:
   list            List all available hooks
   stats           Show hook execution statistics
   recent [limit]  Show recent hook executions (default: 20)
+  profile [hook]  Profile hook performance (time and output)
 
 Options:
   --config <path>  Path to config file (default: .claudekit/config.json)
   --debug          Enable debug logging
+  
+Profile Options:
+  -i, --iterations <n>  Number of iterations for averaging (default: 1)
 ```
 
 **Examples:**
@@ -122,6 +126,12 @@ claudekit-hooks stats
 
 # View recent executions
 claudekit-hooks recent 10
+
+# Profile all configured hooks
+claudekit-hooks profile
+
+# Profile specific hook with multiple iterations
+claudekit-hooks profile typecheck-changed --iterations 5
 ```
 
 **Testing Hooks Directly:**

@@ -145,17 +145,29 @@ export class HookRunner {
 export async function runHook(hookName: string): Promise<{ stdout: string }> {
   const runner = new HookRunner('.claudekit/config.json', false);
   
-  // Create a temporary stdout capture
+  // Create a temporary stdout capture with memory limit
+  const MAX_OUTPUT_SIZE = 10 * 1024 * 1024; // 10MB limit
   let capturedOutput = '';
+  let totalBytesWritten = 0;
+  let truncated = false;
   const originalWrite = process.stdout.write;
   
-  // Capture stdout
+  // Capture stdout with size limit
   process.stdout.write = function(chunk: string | Uint8Array): boolean {
-    if (typeof chunk === 'string') {
-      capturedOutput += chunk;
-    } else if (chunk instanceof Uint8Array) {
-      capturedOutput += chunk.toString();
+    const chunkStr = typeof chunk === 'string' ? chunk : chunk.toString();
+    const chunkSize = Buffer.byteLength(chunkStr, 'utf8');
+    
+    if (totalBytesWritten + chunkSize > MAX_OUTPUT_SIZE) {
+      if (!truncated) {
+        capturedOutput += '\n[Output truncated - exceeded 10MB limit]';
+        truncated = true;
+      }
+      // Still return true to avoid breaking the hook execution
+      return true;
     }
+    
+    capturedOutput += chunkStr;
+    totalBytesWritten += chunkSize;
     return true;
   };
   

@@ -295,9 +295,9 @@ const createMockFsExtra = (): MockFsExtra => {
         isDirectory: () => isDir,
         isSymbolicLink: () => false,
         size: isFile ? (mockState.files.get(path)?.length ?? 0) : 0,
-        mtime: new Date(),
-        ctime: new Date(),
-        atime: new Date(),
+        mtime: new globalThis.Date(),
+        ctime: new globalThis.Date(),
+        atime: new globalThis.Date(),
       };
     },
 

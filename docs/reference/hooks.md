@@ -640,8 +640,8 @@ claudekit-hooks test typecheck-changed --file src/index.ts
 # Test without a specific file (for hooks that don't need one)
 claudekit-hooks test create-checkpoint
 
-# Test with verbose output
-claudekit-hooks test lint-changed --file src/app.js --verbose
+# Test ESLint validation
+claudekit-hooks test lint-changed --file src/app.js
 ```
 
 ### Testing with stdin (legacy method)
@@ -708,12 +708,6 @@ claudekit-hooks profile typecheck-changed
 
 # Run multiple iterations for more accurate averages
 claudekit-hooks profile --iterations 3
-
-# Profile hooks with verbose output showing execution details
-claudekit-hooks profile --verbose
-
-# Profile hooks and save results to a file
-claudekit-hooks profile --output profile-results.json
 ```
 
 **Command Examples:**
@@ -722,14 +716,11 @@ claudekit-hooks profile --output profile-results.json
 # Quick profile of TypeScript validation
 claudekit-hooks profile typecheck-changed
 
-# Comprehensive analysis with multiple runs
-claudekit-hooks profile --iterations 5 --verbose
+# Comprehensive analysis with multiple runs for averaging
+claudekit-hooks profile --iterations 5
 
-# Profile all PostToolUse hooks
-claudekit-hooks profile --event PostToolUse
-
-# Profile only slow hooks (>2s execution time)
-claudekit-hooks profile --min-time 2000
+# Profile all configured hooks in your project
+claudekit-hooks profile
 ```
 
 ### Understanding the Output

@@ -1,6 +1,7 @@
 // cli/hooks/profile.ts
 import * as fs from 'node:fs/promises';
 import { runHook } from './runner.js';
+import { PERFORMANCE_THRESHOLDS, CLAUDE_CODE_LIMITS } from './constants.js';
 
 interface ProfileOptions {
   iterations: number;
@@ -85,7 +86,7 @@ export async function profileHooks(hookName?: string, options: ProfileOptions = 
   displayResults(results);
 }
 
-function truncateMiddle(str: string, maxLength: number = 40): string {
+function truncateMiddle(str: string, maxLength: number = PERFORMANCE_THRESHOLDS.TRUNCATE_LENGTH): string {
   if (str.length <= maxLength) {
     return str;
   }
@@ -99,21 +100,26 @@ function truncateMiddle(str: string, maxLength: number = 40): string {
 }
 
 async function measureHook(hookName: string): Promise<MeasureResult | null> {
-  const startTime = Date.now();
-  const result = await runHook(hookName);
-  const duration = Date.now() - startTime;
-  
-  // Measure output size
-  const output = result.stdout ?? '';
-  const characters = output.length;
-  const tokens = estimateTokens(output);
-  
-  return { time: duration, characters, tokens };
+  try {
+    const startTime = Date.now();
+    const result = await runHook(hookName);
+    const duration = Date.now() - startTime;
+    
+    // Measure output size
+    const output = result.stdout ?? '';
+    const characters = output.length;
+    const tokens = estimateTokens(output);
+    
+    return { time: duration, characters, tokens };
+  } catch (error) {
+    console.error(`Failed to profile hook "${hookName}":`, error instanceof Error ? error.message : String(error));
+    return null;
+  }
 }
 
 function estimateTokens(text: string): number {
-  // Simple estimation: ~4 characters per token
-  return Math.ceil(text.length / 4);
+  // Simple estimation based on typical tokenization patterns
+  return Math.ceil(text.length / PERFORMANCE_THRESHOLDS.TOKENS_PER_CHAR);
 }
 
 function extractConfiguredHooks(settings: Settings): string[] {
@@ -170,48 +176,51 @@ function displayResults(results: ProfileResult[]): void {
   
   // Display table header
   console.log('Hook Performance Profile');
-  console.log('─'.repeat(84));
+  console.log('─'.repeat(PERFORMANCE_THRESHOLDS.TABLE_WIDTH));
   console.log('Command                                     Time      Characters   Tokens');
-  console.log('─'.repeat(84));
+  console.log('─'.repeat(PERFORMANCE_THRESHOLDS.TABLE_WIDTH));
   
   // Display each result
   for (const result of results) {
-    const command = truncateMiddle(result.hookName, 40);
-    const time = `${result.time}ms`;
-    const chars = result.characters.toLocaleString();
-    const tokens = result.tokens.toLocaleString();
+    const command = truncateMiddle(result.hookName);
+    const time = `${Math.round(result.time)}ms`;
+    const chars = Math.round(result.characters).toString();
+    const tokens = Math.round(result.tokens).toString();
     
     console.log(`${command.padEnd(44)} ${time.padEnd(10)} ${chars.padEnd(12)} ${tokens}`);
   }
   
-  console.log('─'.repeat(84));
+  console.log('─'.repeat(PERFORMANCE_THRESHOLDS.TABLE_WIDTH));
   
-  // Display warnings
-  const slowHooks = results.filter(r => r.time > 5000);
-  const nearLimitHooks = results.filter(r => r.characters > 9000 && r.characters <= 10000);
-  const overLimitHooks = results.filter(r => r.characters > 10000);
+  // Display warnings based on performance thresholds
+  const slowHooks = results.filter(r => r.time > PERFORMANCE_THRESHOLDS.SLOW_EXECUTION_MS);
+  const nearLimitHooks = results.filter(r => 
+    r.characters > CLAUDE_CODE_LIMITS.SAFE_OUTPUT_CHARS && 
+    r.characters <= CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS
+  );
+  const overLimitHooks = results.filter(r => r.characters > CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS);
   
   if (slowHooks.length > 0 || nearLimitHooks.length > 0 || overLimitHooks.length > 0) {
     console.log('\n⚠ Performance Issues:');
     
     if (slowHooks.length > 0) {
-      console.log('  Slow commands (>5s):');
+      console.log(`  Slow commands (>${PERFORMANCE_THRESHOLDS.SLOW_EXECUTION_MS / 1000}s):`);
       for (const hook of slowHooks) {
-        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${(hook.time / 1000).toFixed(1)}s)`);
+        console.log(`    ${truncateMiddle(hook.hookName)} (${(hook.time / 1000).toFixed(1)}s)`);
       }
     }
     
     if (nearLimitHooks.length > 0) {
-      console.log('  \n  Near UserPromptSubmit limit (>9k chars):');
+      console.log(`  \n  Near UserPromptSubmit limit (>${CLAUDE_CODE_LIMITS.SAFE_OUTPUT_CHARS / 1000}k chars):`);
       for (const hook of nearLimitHooks) {
-        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${hook.characters.toLocaleString()} chars - at risk of truncation)`);
+        console.log(`    ${truncateMiddle(hook.hookName)} (${hook.characters} chars - at risk of truncation)`);
       }
     }
     
     if (overLimitHooks.length > 0) {
-      console.log('  \n  Exceeds UserPromptSubmit limit (>10k chars):');
+      console.log(`  \n  Exceeds UserPromptSubmit limit (>${CLAUDE_CODE_LIMITS.MAX_OUTPUT_CHARS / 1000}k chars):`);
       for (const hook of overLimitHooks) {
-        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${hook.characters.toLocaleString()} chars - WILL BE TRUNCATED)`);
+        console.log(`    ${truncateMiddle(hook.hookName)} (${hook.characters} chars - WILL BE TRUNCATED)`);
       }
     }
   }
