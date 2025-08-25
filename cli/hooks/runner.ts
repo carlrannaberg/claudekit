@@ -137,3 +137,33 @@ export class HookRunner {
     }
   }
 }
+
+/**
+ * Standalone function to run a hook and return stdout
+ * Used by the profiling system
+ */
+export async function runHook(hookName: string): Promise<{ stdout: string }> {
+  const runner = new HookRunner('.claudekit/config.json', false);
+  
+  // Create a temporary stdout capture
+  let capturedOutput = '';
+  const originalWrite = process.stdout.write;
+  
+  // Capture stdout
+  process.stdout.write = function(chunk: string | Uint8Array): boolean {
+    if (typeof chunk === 'string') {
+      capturedOutput += chunk;
+    } else if (chunk instanceof Uint8Array) {
+      capturedOutput += chunk.toString();
+    }
+    return true;
+  };
+  
+  try {
+    await runner.run(hookName);
+    return { stdout: capturedOutput };
+  } finally {
+    // Restore original stdout
+    process.stdout.write = originalWrite;
+  }
+}

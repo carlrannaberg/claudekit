@@ -691,6 +691,210 @@ export CLAUDEKIT_DEBUG=true
 claudekit-hooks test typecheck-changed --file src/index.ts --debug
 ```
 
+## Performance Profiling
+
+The `claudekit-hooks profile` command helps you identify performance bottlenecks and output issues in your hooks. This tool is essential for maintaining a responsive development workflow while ensuring hooks provide valuable validation feedback.
+
+### Usage
+
+The profile command provides several options for analyzing hook performance:
+
+```bash
+# Profile all configured hooks in your project
+claudekit-hooks profile
+
+# Profile a specific hook by name
+claudekit-hooks profile typecheck-changed
+
+# Run multiple iterations for more accurate averages
+claudekit-hooks profile --iterations 3
+
+# Profile hooks with verbose output showing execution details
+claudekit-hooks profile --verbose
+
+# Profile hooks and save results to a file
+claudekit-hooks profile --output profile-results.json
+```
+
+**Command Examples:**
+
+```bash
+# Quick profile of TypeScript validation
+claudekit-hooks profile typecheck-changed
+
+# Comprehensive analysis with multiple runs
+claudekit-hooks profile --iterations 5 --verbose
+
+# Profile all PostToolUse hooks
+claudekit-hooks profile --event PostToolUse
+
+# Profile only slow hooks (>2s execution time)
+claudekit-hooks profile --min-time 2000
+```
+
+### Understanding the Output
+
+The profile command measures three key metrics that affect Claude Code performance:
+
+#### 1. Time (Execution Duration)
+- **Measured in**: Milliseconds (ms)
+- **Impact**: Directly affects how long Claude Code waits after each file modification
+- **Good range**: <2000ms for PostToolUse hooks, <5000ms for Stop hooks
+- **Concerning**: >5000ms (causes noticeable delays in development workflow)
+
+#### 2. Characters (Total Output)
+- **Measured in**: Character count
+- **Impact**: Affects token consumption and context window usage
+- **Critical limit**: 10,000 characters for UserPromptSubmit hooks (hard truncation)
+- **Recommended limit**: <9,000 characters to avoid truncation risk
+
+#### 3. Tokens (Estimated Token Count)
+- **Calculated**: Approximately 1 token per 4 characters
+- **Impact**: Affects Claude's context consumption and API costs
+- **Usage**: Helps estimate how much context space hooks consume
+
+### Character Limits and Truncation
+
+UserPromptSubmit hooks (like `codebase-map`) face strict output limits that can cause information loss:
+
+#### The 10,000 Character Limit
+- Claude Code enforces a 10,000 character limit on UserPromptSubmit hook output
+- Output exceeding this limit is **truncated without warning**
+- Truncation can cut off critical information mid-sentence
+- No error is displayed when truncation occurs
+
+#### Staying Under the Limit
+**Safe Practices:**
+- Keep output under 9,000 characters for safety margin
+- Implement self-limiting patterns in your hook logic
+- Use structured summaries instead of verbose dumps
+- Monitor character count during hook development
+
+**Example Self-Limiting Implementation:**
+```typescript
+// codebase-map hook pattern
+const maxChars = 9000;
+let output = generateFullOutput();
+
+if (output.length > maxChars) {
+  output = output.substring(0, maxChars - 100) + '\n\n[Output truncated for size]';
+}
+```
+
+#### Recommendations for High-Output Hooks
+- **Summarize instead of dump**: Provide key insights rather than complete data
+- **Use structured formats**: JSON or tables are more space-efficient than prose
+- **Implement pagination**: Return most important information first
+- **Exit codes over text**: Use exit codes to signal success/failure instead of verbose messages
+
+### Performance Optimization Tips
+
+#### For Slow Hooks (>5s execution time)
+
+**Caching Strategies:**
+- Cache results when possible (TypeScript incremental builds)
+- Store intermediate results between executions
+- Use file modification timestamps to avoid redundant work
+
+**Processing Optimization:**
+- Process only changed files instead of entire project
+- Use incremental analysis where supported by tools
+- Implement file filtering to exclude irrelevant paths
+
+**Asynchronous Operations:**
+- Run expensive operations in background when possible
+- Use streaming output for long-running operations
+- Consider spawning background processes for heavy computation
+
+**Example Optimization:**
+```bash
+# Before: Always runs full type check
+tsc --noEmit
+
+# After: Incremental compilation with caching
+tsc --noEmit --incremental --tsBuildInfoFile .tscache
+```
+
+#### For High-Output Hooks
+
+**Output Reduction:**
+- Summarize findings instead of listing every detail
+- Return only essential information for decision-making
+- Use compact formats (JSON over verbose text)
+- Implement intelligent filtering of results
+
+**Structured Output:**
+```bash
+# Before: Verbose text output
+Found 15 TypeScript errors in 8 files:
+- Error in src/index.ts line 42: Type 'string' is not assignable...
+- Error in src/utils.ts line 15: Property 'name' does not exist...
+
+# After: Structured summary
+TypeScript: 15 errors in 8 files
+Critical: 3 | Warnings: 12
+Most affected: src/index.ts (5 errors)
+```
+
+**Pagination Patterns:**
+- Show most critical issues first
+- Limit output to top N results
+- Provide summary statistics instead of full lists
+
+### Example Output
+
+Here's what a typical profiling session looks like:
+
+```
+Hook Performance Profile
+────────────────────────────────────────────────────────────────────────────────────
+Command                                     Time      Characters   Tokens    Status
+────────────────────────────────────────────────────────────────────────────────────
+claudekit-hooks run codebase-map           1,234ms   8,750        2,188     ✓
+claudekit-hooks run typecheck-changed      8,456ms   1,200        300       ⚠ SLOW
+claudekit-hooks run lint-changed           567ms     2,400        600       ✓
+claudekit-hooks run check-any-changed      123ms     150          38        ✓
+claudekit-hooks run create-checkpoint      2,100ms   0            0         ✓
+────────────────────────────────────────────────────────────────────────────────────
+
+📊 Performance Summary:
+   Total hooks analyzed: 5
+   Average execution time: 2,495ms
+   Total output: 12,500 characters (3,126 tokens)
+
+⚠  Performance Issues Detected:
+
+   Slow Commands (>5s execution time):
+   • claudekit-hooks run typecheck-changed (8.5s)
+     Recommendation: Enable incremental compilation or use file filtering
+
+   High Output (approaching limits):
+   • claudekit-hooks run codebase-map (8,750 chars)
+     Status: Safe (within 9k limit)
+     Recommendation: Monitor growth as project scales
+
+✅ Well-Optimized Hooks:
+   • lint-changed: Fast execution (567ms), moderate output
+   • check-any-changed: Minimal footprint (123ms, 150 chars)
+
+🔧 Optimization Suggestions:
+   1. Configure TypeScript incremental builds to reduce typecheck-changed time
+   2. Consider file filtering for large projects
+   3. Monitor codebase-map output as project grows
+```
+
+#### Understanding the Status Column
+- **✓**: Hook is performing well within recommended limits
+- **⚠ SLOW**: Execution time exceeds 5 seconds
+- **⚠ OUTPUT**: Character count approaching or exceeding safe limits
+- **❌**: Hook failed to execute or returned errors
+
+#### Performance Warnings Explained
+- **Slow commands**: Impact development workflow responsiveness
+- **High output**: Risk truncation or excessive token consumption
+- **Failed hooks**: May indicate configuration or dependency issues
+- **Memory usage**: Large hooks can impact Claude Code stability
+
 ## Configuration Examples
 
 ### Minimal Setup

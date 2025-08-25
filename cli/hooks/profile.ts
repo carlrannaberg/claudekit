@@ -1,142 +1,218 @@
-/**
- * Hook profiling functionality
- * Provides performance measurement and analysis for Claude Code hooks
- */
-
-import { performance } from 'node:perf_hooks';
-import { HookRunner } from './runner.js';
-import { HOOK_REGISTRY } from './registry.js';
+// cli/hooks/profile.ts
+import * as fs from 'node:fs/promises';
+import { runHook } from './runner.js';
 
 interface ProfileOptions {
-  iterations?: string;
+  iterations: number;
+}
+
+interface Settings {
+  hooks?: Record<string, Array<{
+    hooks?: Array<{
+      command?: string;
+    }>;
+  }>>;
 }
 
 interface ProfileResult {
   hookName: string;
-  iterations: number;
-  totalTime: number;
-  averageTime: number;
-  minTime: number;
-  maxTime: number;
-  successRate: number;
-  errors: string[];
+  time: number;
+  characters: number;
+  tokens: number;
+  runs?: number;
 }
 
-/**
- * Profile hook performance with multiple iterations
- */
-export async function profileHooks(hookName?: string, options: ProfileOptions = {}): Promise<void> {
-  const iterations = parseInt(options.iterations ?? '1', 10);
-  
-  if (isNaN(iterations) || iterations < 1) {
-    console.error('Error: Iterations must be a positive number');
-    process.exit(1);
-  }
+interface MeasureResult {
+  time: number;
+  characters: number;
+  tokens: number;
+}
 
-  // If no hook specified, show available hooks
-  if (hookName === undefined || hookName === '') {
-    console.log('Available hooks to profile:');
-    for (const [id, HookClass] of Object.entries(HOOK_REGISTRY)) {
-      const description = HookClass.metadata?.description ?? `${id} hook`;
-      const padding = ' '.repeat(Math.max(0, 30 - id.length));
-      console.log(`  ${id}${padding}- ${description}`);
+export async function profileHooks(hookName?: string, options: ProfileOptions = { iterations: 1 }): Promise<void> {
+  // 1. Get hooks to profile
+  let hooks: string[];
+  
+  if (hookName !== undefined && hookName !== '') {
+    // Profile specific hook (even if not configured)
+    hooks = [hookName];
+  } else {
+    // Profile only hooks that are actually configured in .claude/settings.json
+    const settings = await loadSettings('.claude/settings.json');
+    hooks = extractConfiguredHooks(settings);
+    
+    if (hooks.length === 0) {
+      console.log('No hooks configured in .claude/settings.json');
+      return;
     }
-    console.log('\nUsage: claudekit-hooks profile <hook-name> [--iterations <n>]');
+  }
+  
+  // 2. Execute profiling
+  const results: ProfileResult[] = [];
+  for (const hook of hooks) {
+    if (options.iterations === 1) {
+      // Single run (default)
+      const profile = await measureHook(hook);
+      if (profile !== null) {
+        results.push({ 
+          hookName: hook, 
+          time: profile.time,
+          characters: profile.characters,
+          tokens: profile.tokens 
+        });
+      }
+    } else {
+      // Multiple runs (average)
+      const profiles: MeasureResult[] = [];
+      for (let i = 0; i < options.iterations; i++) {
+        const profile = await measureHook(hook);
+        if (profile !== null) {
+          profiles.push(profile);
+        }
+      }
+      if (profiles.length > 0) {
+        results.push({
+          hookName: hook,
+          time: average(profiles.map(p => p.time)),
+          characters: average(profiles.map(p => p.characters)),
+          tokens: average(profiles.map(p => p.tokens)),
+          runs: profiles.length
+        });
+      }
+    }
+  }
+  
+  // 3. Display results
+  displayResults(results);
+}
+
+function truncateMiddle(str: string, maxLength: number = 40): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  
+  const ellipsis = '...';
+  const charsToShow = maxLength - ellipsis.length;
+  const frontChars = Math.ceil(charsToShow / 2);
+  const backChars = Math.floor(charsToShow / 2);
+  
+  return str.substr(0, frontChars) + ellipsis + str.substr(str.length - backChars);
+}
+
+async function measureHook(hookName: string): Promise<MeasureResult | null> {
+  const startTime = Date.now();
+  const result = await runHook(hookName);
+  const duration = Date.now() - startTime;
+  
+  // Measure output size
+  const output = result.stdout ?? '';
+  const characters = output.length;
+  const tokens = estimateTokens(output);
+  
+  return { time: duration, characters, tokens };
+}
+
+function estimateTokens(text: string): number {
+  // Simple estimation: ~4 characters per token
+  return Math.ceil(text.length / 4);
+}
+
+function extractConfiguredHooks(settings: Settings): string[] {
+  const commands = new Set<string>();
+  
+  // Extract hook names from all event types (PostToolUse, Stop, etc.)
+  const hooks = settings.hooks;
+  if (hooks !== undefined) {
+    for (const eventType in hooks) {
+      const eventConfigs = hooks[eventType];
+      if (eventConfigs !== undefined) {
+        for (const config of eventConfigs) {
+          const configHooks = config.hooks;
+          if (configHooks !== undefined) {
+            for (const hook of configHooks) {
+              if (hook.command !== undefined) {
+                // Extract just the hook name from commands like "claudekit-hooks run hook-name"
+                const match = hook.command.match(/claudekit-hooks\s+run\s+(.+)/);
+                if (match !== null && match[1] !== undefined && match[1] !== '') {
+                  commands.add(match[1].trim());
+                } else {
+                  // If it doesn't match the pattern, use the full command
+                  commands.add(hook.command);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return Array.from(commands);
+}
+
+async function loadSettings(filePath: string): Promise<Settings> {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(content) as Settings;
+  } catch {
+    return {};
+  }
+}
+
+function average(numbers: number[]): number {
+  return numbers.reduce((a, b) => a + b, 0) / numbers.length;
+}
+
+function displayResults(results: ProfileResult[]): void {
+  if (results.length === 0) {
+    console.log('No hooks were successfully profiled');
     return;
   }
-
-  // Validate hook exists
-  if (!HOOK_REGISTRY[hookName]) {
-    console.error(`Error: Hook '${hookName}' not found`);
-    console.log('\nAvailable hooks:');
-    for (const id of Object.keys(HOOK_REGISTRY)) {
-      console.log(`  ${id}`);
-    }
-    process.exit(1);
-  }
-
-  console.log(`\n=== Profiling Hook: ${hookName} ===`);
-  console.log(`Iterations: ${iterations}`);
-  console.log('');
-
-  const runner = new HookRunner();
-  const results: ProfileResult = {
-    hookName,
-    iterations,
-    totalTime: 0,
-    averageTime: 0,
-    minTime: Infinity,
-    maxTime: 0,
-    successRate: 0,
-    errors: []
-  };
-
-  let successCount = 0;
-  const executionTimes: number[] = [];
-
-  for (let i = 0; i < iterations; i++) {
-    const startTime = performance.now();
+  
+  // Display table header
+  console.log('Hook Performance Profile');
+  console.log('─'.repeat(84));
+  console.log('Command                                     Time      Characters   Tokens');
+  console.log('─'.repeat(84));
+  
+  // Display each result
+  for (const result of results) {
+    const command = truncateMiddle(result.hookName, 40);
+    const time = `${result.time}ms`;
+    const chars = result.characters.toLocaleString();
+    const tokens = result.tokens.toLocaleString();
     
-    try {
-      const exitCode = await runner.run(hookName);
-      const endTime = performance.now();
-      const executionTime = endTime - startTime;
-      
-      executionTimes.push(executionTime);
-      results.totalTime += executionTime;
-      results.minTime = Math.min(results.minTime, executionTime);
-      results.maxTime = Math.max(results.maxTime, executionTime);
-      
-      if (exitCode === 0) {
-        successCount++;
-        console.log(`  Run ${i + 1}: ✓ ${executionTime.toFixed(2)}ms`);
-      } else {
-        console.log(`  Run ${i + 1}: ✗ ${executionTime.toFixed(2)}ms (exit code: ${exitCode})`);
-        results.errors.push(`Run ${i + 1}: exit code ${exitCode}`);
+    console.log(`${command.padEnd(44)} ${time.padEnd(10)} ${chars.padEnd(12)} ${tokens}`);
+  }
+  
+  console.log('─'.repeat(84));
+  
+  // Display warnings
+  const slowHooks = results.filter(r => r.time > 5000);
+  const nearLimitHooks = results.filter(r => r.characters > 9000 && r.characters <= 10000);
+  const overLimitHooks = results.filter(r => r.characters > 10000);
+  
+  if (slowHooks.length > 0 || nearLimitHooks.length > 0 || overLimitHooks.length > 0) {
+    console.log('\n⚠ Performance Issues:');
+    
+    if (slowHooks.length > 0) {
+      console.log('  Slow commands (>5s):');
+      for (const hook of slowHooks) {
+        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${(hook.time / 1000).toFixed(1)}s)`);
       }
-    } catch (error) {
-      const endTime = performance.now();
-      const executionTime = endTime - startTime;
-      
-      executionTimes.push(executionTime);
-      results.totalTime += executionTime;
-      results.minTime = Math.min(results.minTime, executionTime);
-      results.maxTime = Math.max(results.maxTime, executionTime);
-      
-      console.log(`  Run ${i + 1}: ✗ ${executionTime.toFixed(2)}ms (error)`);
-      results.errors.push(`Run ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    
+    if (nearLimitHooks.length > 0) {
+      console.log('  \n  Near UserPromptSubmit limit (>9k chars):');
+      for (const hook of nearLimitHooks) {
+        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${hook.characters.toLocaleString()} chars - at risk of truncation)`);
+      }
+    }
+    
+    if (overLimitHooks.length > 0) {
+      console.log('  \n  Exceeds UserPromptSubmit limit (>10k chars):');
+      for (const hook of overLimitHooks) {
+        console.log(`    ${truncateMiddle(hook.hookName, 40)} (${hook.characters.toLocaleString()} chars - WILL BE TRUNCATED)`);
+      }
     }
   }
-
-  // Calculate final statistics
-  results.averageTime = results.totalTime / iterations;
-  results.successRate = (successCount / iterations) * 100;
-  
-  // Reset min time if no executions
-  if (results.minTime === Infinity) {
-    results.minTime = 0;
-  }
-
-  // Display summary
-  console.log('\n=== Profile Summary ===');
-  console.log(`Hook: ${results.hookName}`);
-  console.log(`Iterations: ${results.iterations}`);
-  console.log(`Success Rate: ${results.successRate.toFixed(1)}% (${successCount}/${iterations})`);
-  console.log(`Total Time: ${results.totalTime.toFixed(2)}ms`);
-  console.log(`Average Time: ${results.averageTime.toFixed(2)}ms`);
-  console.log(`Min Time: ${results.minTime.toFixed(2)}ms`);
-  console.log(`Max Time: ${results.maxTime.toFixed(2)}ms`);
-  
-  if (executionTimes.length > 1) {
-    const variance = executionTimes.reduce((sum, time) => sum + Math.pow(time - results.averageTime, 2), 0) / executionTimes.length;
-    const stdDev = Math.sqrt(variance);
-    console.log(`Std Deviation: ${stdDev.toFixed(2)}ms`);
-  }
-
-  if (results.errors.length > 0) {
-    console.log('\n=== Errors ===');
-    results.errors.forEach(error => console.log(`  ${error}`));
-  }
-
-  console.log('');
 }
