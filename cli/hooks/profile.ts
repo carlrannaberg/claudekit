@@ -98,6 +98,102 @@ function truncateMiddle(str: string, maxLength: number = PERFORMANCE_THRESHOLDS.
   return str.substr(0, frontChars) + ellipsis + str.substr(str.length - backChars);
 }
 
+/**
+ * Create test transcript files for hooks that need them
+ */
+async function createTestTranscript(type: 'todos' | 'review'): Promise<string> {
+  const { writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  
+  const tmpDir = tmpdir();
+  const timestamp = new Date().toISOString();
+  
+  if (type === 'todos') {
+    // Create transcript with incomplete todos
+    const transcript = [
+      {
+        type: "assistant",
+        message: {
+          content: [{
+            type: "tool_use",
+            name: "TodoWrite",
+            input: {
+              todos: [
+                {content: "Fix the bug", status: "pending", activeForm: "Fixing the bug", id: "todo-1"},
+                {content: "Write tests", status: "in_progress", activeForm: "Writing tests", id: "todo-2"}
+              ]
+            }
+          }]
+        },
+        timestamp
+      },
+      {
+        type: "user",
+        message: {content: [{type: "tool_result", tool_use_id: "test-1", content: "Success"}]},
+        toolUseResult: {
+          newTodos: [
+            {content: "Fix the bug", status: "pending"},
+            {content: "Write tests", status: "in_progress"}
+          ]
+        },
+        timestamp
+      }
+    ].map(obj => JSON.stringify(obj)).join('\n');
+    
+    const path = join(tmpDir, `claudekit-test-todos-${Date.now()}.jsonl`);
+    writeFileSync(path, transcript, 'utf8');
+    return path;
+  } else {
+    // Create transcript with file changes for self-review
+    const transcript = [
+      {
+        type: "assistant",
+        message: {
+          content: [{
+            type: "tool_use",
+            name: "Edit",
+            input: {
+              file_path: "src/app.ts",
+              old_string: "const x = 1;",
+              new_string: "const x = 2;"
+            }
+          }]
+        },
+        timestamp
+      },
+      {
+        type: "user",
+        message: {content: [{type: "tool_result", tool_use_id: "test-1", content: "Success"}]},
+        timestamp
+      },
+      {
+        type: "assistant",
+        message: {
+          content: [{
+            type: "tool_use",
+            name: "Write",
+            input: {
+              file_path: "src/new-feature.ts",
+              content: "export function newFeature() { return true; }"
+            }
+          }]
+        },
+        timestamp
+      },
+      {
+        type: "user",
+        message: {content: [{type: "tool_result", tool_use_id: "test-2", content: "Success"}]},
+        timestamp
+      }
+    ].map(obj => JSON.stringify(obj)).join('\n');
+    
+    const path = join(tmpDir, `claudekit-test-review-${Date.now()}.jsonl`);
+    writeFileSync(path, transcript, 'utf8');
+    return path;
+  }
+}
+
 async function measureHook(hookName: string): Promise<MeasureResult | null> {
   try {
     const startTime = Date.now();
@@ -105,10 +201,48 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
     // Prepare test payload for hooks that need input
     let testPayload: Record<string, unknown> = {};
     
+    // Special case for file-guard - test with a sensitive file to trigger blocking
+    if (hookName === 'file-guard') {
+      // Check for .agentignore or use default sensitive patterns
+      const { existsSync, readFileSync } = await import('node:fs');
+      let testFile = '.env';  // Default sensitive file
+      
+      if (existsSync('.agentignore')) {
+        // Read first pattern from .agentignore
+        try {
+          const content = readFileSync('.agentignore', 'utf8');
+          const lines = content.split('\n').filter(line => line.trim() !== '' && !line.startsWith('#'));
+          if (lines.length > 0 && lines[0] !== undefined) {
+            // Use the first pattern as a test file (remove wildcards for simplicity)
+            const firstPattern = lines[0].replace(/\*/g, '').replace(/^\//,'').trim();
+            testFile = firstPattern !== '' ? firstPattern : '.env';
+          }
+        } catch {
+          // Fallback to default
+        }
+      }
+      
+      testPayload = {
+        tool_name: 'Read',
+        tool_input: {
+          file_path: testFile  // Sensitive file that will be blocked
+        }
+      };
+    }
+    // Special case for check-comment-replacement - test with Edit tool replacing code with comment
+    else if (hookName === 'check-comment-replacement') {
+      testPayload = {
+        tool_name: 'Edit',
+        tool_input: {
+          file_path: 'test.js',
+          old_string: 'const result = calculateValue();',
+          new_string: '// const result = calculateValue();'  // Code replaced with comment
+        }
+      };
+    }
     // For hooks that need a file path (PostToolUse hooks)
-    if (hookName.includes('changed') || hookName === 'file-guard' || 
-        hookName === 'check-any' || hookName === 'check-comment-replacement' ||
-        hookName === 'check-unused-parameters' || hookName === 'codebase-map-update') {
+    else if (hookName.includes('changed') || hookName === 'check-any' || 
+             hookName === 'check-unused-parameters' || hookName === 'codebase-map-update') {
       // Use the profile.ts file itself as a test file
       testPayload = {
         tool_input: {
@@ -116,9 +250,24 @@ async function measureHook(hookName: string): Promise<MeasureResult | null> {
         }
       };
     }
-    // For Stop hooks - they need different input
-    else if (hookName === 'check-todos' || hookName === 'self-review' ||
-             hookName === 'typecheck-project' || hookName === 'lint-project' ||
+    // Special case for check-todos - create test transcript with incomplete todos
+    else if (hookName === 'check-todos') {
+      const transcriptPath = await createTestTranscript('todos');
+      testPayload = {
+        hook_event_name: 'Stop',
+        transcript_path: transcriptPath
+      };
+    }
+    // Special case for self-review - create test transcript with file changes
+    else if (hookName === 'self-review') {
+      const transcriptPath = await createTestTranscript('review');
+      testPayload = {
+        hook_event_name: 'Stop',
+        transcript_path: transcriptPath
+      };
+    }
+    // For other Stop hooks
+    else if (hookName === 'typecheck-project' || hookName === 'lint-project' || 
              hookName === 'test-project' || hookName === 'create-checkpoint') {
       // Stop hooks often need a transcript path or just basic event info
       testPayload = {
