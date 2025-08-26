@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Thinking Level Hook**: Simplified configuration and improved defaults
+  - Changed default thinking level from 0 to 2 ("think hard") for better reasoning out of the box
+  - Removed unnecessary `enabled` flag - use `level: 0` to disable the hook
+  - Added comprehensive unit tests for thinking-level hook
+  - Improved documentation with clear instructions on how to disable the hook
+
+### Fixed
+- **Dead Code Removal**: Cleaned up unused configuration schemas
+  - Removed `ThinkingBudgetConfigSchema` which was added but never implemented
+  - Cleaned up references to thinking-budget throughout the codebase
+
 ## [0.8.2] - 2025-08-25
 
 ### Added

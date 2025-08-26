@@ -3,7 +3,6 @@ import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 
 interface ThinkingLevelConfig {
-  enabled?: boolean;
   level?: number; // 0-4
 }
 
@@ -45,13 +44,8 @@ export class ThinkingLevelHook extends BaseHook {
   async execute(_context: HookContext): Promise<HookResult> {
     const config = this.loadConfig();
 
-    // Check if hook is enabled (default to true if not specified)
-    if (config.enabled === false) {
-      return { exitCode: 0 };
-    }
-
-    // Get the configured level (default to 0)
-    const level = config.level ?? 0;
+    // Get the configured level (default to 2)
+    const level = config.level ?? 2;
     const keyword = this.getKeywordForLevel(level);
 
     // If level 0 or empty keyword, don't inject anything

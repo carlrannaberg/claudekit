@@ -307,36 +307,49 @@ src/hooks/typecheck.ts > TypecheckHook
 **Triggers on:** UserPromptSubmit event (every prompt)
 
 **Configuration Options:**
-- `enabled` (boolean): Enable/disable the hook (default: true)
-- `level` (number): Thinking intensity level 0-4 (default: 0)
+- `level` (number): Thinking intensity level 0-4 (default: 2)
 
 **Level Mappings:**
 - Level 0: No keyword injection (disabled)
 - Level 1: "think" - Basic reasoning enhancement
-- Level 2: "think hard" - Moderate reasoning enhancement  
+- Level 2: "think hard" - Moderate reasoning enhancement (default)
 - Level 3: "think harder" - Strong reasoning enhancement
 - Level 4: "ultrathink" - Maximum reasoning enhancement
 
 **Features:**
 - Invisibly injects thinking keywords into Claude's context
 - Configurable intensity levels from 0 (off) to 4 (maximum)
+- Default level 2 provides balanced reasoning enhancement
 - Lightweight operation with minimal performance impact
 - Runs on every user prompt submission
+
+**Disabling the Hook:**
+
+To disable the thinking-level hook, set the level to 0:
+
+```json
+{
+  "hooks": {
+    "thinking-level": {
+      "level": 0
+    }
+  }
+}
+```
 
 **Configuration Example (.claudekit/config.json):**
 ```json
 {
   "hooks": {
     "thinking-level": {
-      "enabled": true,
-      "level": 2
+      "level": 3
     }
   }
 }
 ```
 
 **Exit Codes:**
-- 0: Success (keyword injected or hook disabled)
+- 0: Success (keyword injected or level set to 0)
 
 #### codebase-map-update
 

@@ -1,7 +1,6 @@
 {
   "hooks": {
     "thinking-level": {
-      "enabled": true,
       "level": 2
     },
     "codebase-map": {

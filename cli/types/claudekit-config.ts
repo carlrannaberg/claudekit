@@ -42,26 +42,7 @@ const SelfReviewConfigSchema = z.object({
 });
 
 const ThinkingLevelConfigSchema = z.object({
-  enabled: z.boolean().optional(),
   level: z.number().min(0).max(4).optional(),
-});
-
-const ThinkingBudgetConfigSchema = z.object({
-  enabled: z.boolean().optional(),
-  timeout: z.number().min(1000).max(300000).optional(),
-  triggerPatterns: z.array(z.string()).optional(),
-  thinkingLevels: z
-    .object({
-      0: z.string().optional(),
-      1: z.string().optional(),
-      2: z.string().optional(), 
-      3: z.string().optional(),
-      4: z.string().optional(),
-    })
-    .optional(),
-  defaultLevel: z.number().min(0).max(4).optional(),
-  contextWindow: z.number().min(1).max(50).optional(),
-  adaptiveThreshold: z.number().min(0.1).max(1.0).optional(),
 });
 
 const CodebaseMapConfigSchema = z.object({
@@ -103,7 +84,6 @@ const HooksConfigurationSchema = z.object({
     })
     .optional(),
   'codebase-map': CodebaseMapConfigSchema.optional(),
-  'thinking-budget': ThinkingBudgetConfigSchema.optional(),
   'thinking-level': ThinkingLevelConfigSchema.optional(),
 
   // Global config
