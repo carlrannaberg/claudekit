@@ -25,10 +25,9 @@ npm install -g claudekit
 claudekit setup
 
 # In Claude Code, try these commands:
-/git:status                             # Groups changes by type & suggests commit strategy
-/validate-and-fix                       # Runs lint, tests, typecheck & fixes issues
-/spec:create "your next feature"        # Researches codebase & writes full spec
-/code-review                             # 6 specialized agents analyze code in parallel
+/git:status                      # Groups changes by type & suggests commit strategy
+/spec:create "your next feature" # Researches codebase & writes full spec
+/code-review                     # 6 specialized agents analyze code in parallel
 ```
 
 ## 🎯 What It Does
