@@ -316,6 +316,35 @@ Claudekit provides intelligent codebase mapping that automatically gives AI assi
 
 See the [Codebase Map Guide](docs/guides/codebase-map.md) for setup, configuration, and best practices.
 
+### 🧠 Enhanced AI Reasoning
+
+The `thinking-level` hook automatically enhances Claude's reasoning capabilities by invisibly injecting thinking keywords into prompts:
+
+- **Automatic enhancement** - No manual prompt engineering needed
+- **4 configurable levels** - From disabled (0) to maximum reasoning (3)
+- **Smart default** - Level 2 ("megathink") provides balanced enhancement
+- **Invisible operation** - Keywords are injected silently without user awareness
+- **Lightweight** - < 5ms overhead with minimal token usage
+
+Quick setup:
+```bash
+# Add thinking-level to your project
+claudekit setup --hooks thinking-level
+```
+
+Configure in `.claudekit/config.json`:
+```json
+{
+  "hooks": {
+    "thinking-level": {
+      "level": 2  // 0-3, default is 2
+    }
+  }
+}
+```
+
+See the [Thinking Level Guide](docs/guides/thinking-level.md) for detailed configuration and best practices.
+
 ## Configuration
 
 Claudekit uses two configuration files:
@@ -356,7 +385,6 @@ Claudekit uses two configuration files:
       "command": "npm run typecheck"
     },
     "thinking-level": {
-      "enabled": true,
       "level": 2
     },
     "codebase-map": {

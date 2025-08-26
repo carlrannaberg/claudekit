@@ -42,7 +42,7 @@ const SelfReviewConfigSchema = z.object({
 });
 
 const ThinkingLevelConfigSchema = z.object({
-  level: z.number().min(0).max(4).optional(),
+  level: z.number().min(0).max(3).optional(),
 });
 
 const CodebaseMapConfigSchema = z.object({

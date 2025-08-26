@@ -52,7 +52,7 @@ describe('ThinkingLevelHook', () => {
       
       expect(result.exitCode).toBe(0);
       const jsonResponse = result.jsonResponse as { hookSpecificOutput?: { additionalContext?: string; hookEventName?: string } };
-      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('think hard');
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('megathink');
       expect(jsonResponse?.hookSpecificOutput?.hookEventName).toBe('UserPromptSubmit');
     });
 
@@ -65,7 +65,7 @@ describe('ThinkingLevelHook', () => {
       
       expect(result.exitCode).toBe(0);
       const jsonResponse = result.jsonResponse as { hookSpecificOutput?: { additionalContext?: string } };
-      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('think hard');
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('megathink');
     });
   });
 
@@ -74,9 +74,8 @@ describe('ThinkingLevelHook', () => {
       const levelMappings = [
         { level: 0, keyword: null },
         { level: 1, keyword: 'think' },
-        { level: 2, keyword: 'think hard' },
-        { level: 3, keyword: 'think harder' },
-        { level: 4, keyword: 'ultrathink' },
+        { level: 2, keyword: 'megathink' },
+        { level: 3, keyword: 'ultrathink' },
       ];
 
       for (const mapping of levelMappings) {
@@ -110,7 +109,7 @@ describe('ThinkingLevelHook', () => {
 
   describe('invalid input handling', () => {
     it('should handle invalid level values gracefully', async () => {
-      const invalidLevels = [-1, 5, 2.5, NaN, Infinity, -Infinity];
+      const invalidLevels = [-1, 4, 5, 2.5, NaN, Infinity, -Infinity];
 
       for (const level of invalidLevels) {
         mockGetHookConfig.mockReturnValue({ level });
@@ -149,7 +148,7 @@ describe('ThinkingLevelHook', () => {
       
       expect(result.exitCode).toBe(0);
       const jsonResponse = result.jsonResponse as { hookSpecificOutput?: { additionalContext?: string } };
-      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('think hard');
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('megathink');
     });
 
     it('should handle null configuration', async () => {
@@ -161,7 +160,7 @@ describe('ThinkingLevelHook', () => {
       
       expect(result.exitCode).toBe(0);
       const jsonResponse = result.jsonResponse as { hookSpecificOutput?: { additionalContext?: string } };
-      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('think hard');
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('megathink');
     });
 
     it('should handle configuration with extra fields', async () => {
@@ -177,7 +176,7 @@ describe('ThinkingLevelHook', () => {
       
       expect(result.exitCode).toBe(0);
       const jsonResponse = result.jsonResponse as { hookSpecificOutput?: { additionalContext?: string } };
-      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('think harder');
+      expect(jsonResponse?.hookSpecificOutput?.additionalContext).toBe('ultrathink');
     });
   });
 
@@ -186,9 +185,8 @@ describe('ThinkingLevelHook', () => {
       const expectations = [
         { level: 0, keyword: '' },
         { level: 1, keyword: 'think' },
-        { level: 2, keyword: 'think hard' },
-        { level: 3, keyword: 'think harder' },
-        { level: 4, keyword: 'ultrathink' },
+        { level: 2, keyword: 'megathink' },
+        { level: 3, keyword: 'ultrathink' },
       ];
 
       for (const { level, keyword } of expectations) {
@@ -200,7 +198,7 @@ describe('ThinkingLevelHook', () => {
     });
 
     it('should return empty string for invalid levels', () => {
-      const invalidLevels = [-1, 5, 10, 2.5, NaN];
+      const invalidLevels = [-1, 4, 5, 10, 2.5, NaN];
       
       for (const level of invalidLevels) {
         const hookWithMethod = hook as unknown as { getKeywordForLevel: (level: number) => string };

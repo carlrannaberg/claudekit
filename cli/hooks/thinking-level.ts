@@ -3,7 +3,7 @@ import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
 
 interface ThinkingLevelConfig {
-  level?: number; // 0-4
+  level?: number; // 0-3
 }
 
 export class ThinkingLevelHook extends BaseHook {
@@ -22,9 +22,8 @@ export class ThinkingLevelHook extends BaseHook {
   private readonly levelKeywords: Record<number, string> = {
     0: '',
     1: 'think',
-    2: 'think hard',
-    3: 'think harder',
-    4: 'ultrathink',
+    2: 'megathink',
+    3: 'ultrathink',
   };
 
   private loadConfig(): ThinkingLevelConfig {
@@ -32,8 +31,8 @@ export class ThinkingLevelHook extends BaseHook {
   }
 
   private getKeywordForLevel(level: number): string {
-    // Ensure level is within valid range
-    if (level < 0 || level > 4 || !Number.isInteger(level)) {
+    // Ensure level is within valid range (0-3)
+    if (level < 0 || level > 3 || !Number.isInteger(level)) {
       const fallbackKeyword = this.levelKeywords[0];
       return fallbackKeyword !== undefined ? fallbackKeyword : '';
     }

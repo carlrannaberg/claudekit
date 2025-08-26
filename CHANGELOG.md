@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Thinking Level Hook**: Simplified configuration and improved defaults
-  - Changed default thinking level from 0 to 2 ("think hard") for better reasoning out of the box
+  - Simplified to 4 levels (0-3) instead of 5, as "think harder" and "ultrathink" both trigger 31,999 tokens
+  - Changed keywords to use special Claude Code keywords: "think" (level 1), "megathink" (level 2), "ultrathink" (level 3)
+  - Changed default thinking level from 0 to 2 ("megathink") for better reasoning out of the box
   - Removed unnecessary `enabled` flag - use `level: 0` to disable the hook
   - Added comprehensive unit tests for thinking-level hook
   - Improved documentation with clear instructions on how to disable the hook

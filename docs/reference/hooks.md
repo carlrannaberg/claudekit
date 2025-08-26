@@ -307,18 +307,17 @@ src/hooks/typecheck.ts > TypecheckHook
 **Triggers on:** UserPromptSubmit event (every prompt)
 
 **Configuration Options:**
-- `level` (number): Thinking intensity level 0-4 (default: 2)
+- `level` (number): Thinking intensity level 0-3 (default: 2)
 
 **Level Mappings:**
 - Level 0: No keyword injection (disabled)
-- Level 1: "think" - Basic reasoning enhancement
-- Level 2: "think hard" - Moderate reasoning enhancement (default)
-- Level 3: "think harder" - Strong reasoning enhancement
-- Level 4: "ultrathink" - Maximum reasoning enhancement
+- Level 1: "think" - Basic reasoning enhancement (4,000 tokens)
+- Level 2: "megathink" - Moderate reasoning enhancement (10,000 tokens, default)
+- Level 3: "ultrathink" - Maximum reasoning enhancement (31,999 tokens)
 
 **Features:**
 - Invisibly injects thinking keywords into Claude's context
-- Configurable intensity levels from 0 (off) to 4 (maximum)
+- Configurable intensity levels from 0 (off) to 3 (maximum)
 - Default level 2 provides balanced reasoning enhancement
 - Lightweight operation with minimal performance impact
 - Runs on every user prompt submission
@@ -350,6 +349,8 @@ To disable the thinking-level hook, set the level to 0:
 
 **Exit Codes:**
 - 0: Success (keyword injected or level set to 0)
+
+> **📚 Full Guide**: See the [Thinking Level Guide](../guides/thinking-level.md) for detailed configuration, best practices, and troubleshooting.
 
 #### codebase-map-update
 
@@ -431,6 +432,8 @@ Access denied: '.env' is protected by .agentignore. This file matches patterns t
 
 **Exit Codes:**
 - 0: Allow or deny decision made successfully
+
+> **🔒 Full Guide**: See the [File Guard Guide](../guides/file-guard.md) for setup instructions, configuration options, and security best practices.
 
 **Unique Features:**
 - **Multi-format support**: Unlike other tools, ClaudeKit merges patterns from ALL available ignore files
