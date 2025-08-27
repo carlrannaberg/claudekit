@@ -188,8 +188,6 @@ For the current default focus areas and questions, see the source code:
 
 **📋 [View Current Defaults →](https://github.com/carlrannaberg/claudekit/blob/main/cli/hooks/self-review.ts#L33-L79)**
 
-The defaults are defined in the `defaultFocusAreas` property and are always up-to-date in the source code.
-
 ### Target Patterns Examples
 
 ```json
