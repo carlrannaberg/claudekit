@@ -8,6 +8,10 @@
     {
       "pattern": "^https://github.com/carlrannaberg/claudekit/blob/main/",
       "replacement": "./"
+    },
+    {
+      "pattern": "^\\./cli/hooks/self-review\\.ts#L33-L79",
+      "replacement": "https://github.com/carlrannaberg/claudekit/blob/main/cli/hooks/self-review.ts#L33-L79"
     }
   ],
   "httpHeaders": [
@@ -28,5 +32,5 @@
   "timeout": "10s",
   "retryOn429": true,
   "retryCount": 3,
-  "aliveStatusCodes": [200, 201, 202, 203, 204, 205, 206, 301, 302, 303, 307, 308, 503]
+  "aliveStatusCodes": [200, 201, 202, 203, 204, 205, 206, 301, 302, 303, 307, 308, 503, 525]
 }
