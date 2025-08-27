@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2025-08-27
+
+### Fixed
+- **Hook Installation**: Fixed duplicate hook installation for multi-trigger hooks
+  - Hooks that support multiple trigger events (e.g., both `Stop` and `SubagentStop`) are now installed only once per selection
+  - Added `hookTriggerEvents` Map to track specific trigger event assignments during setup
+  - For individually selected hooks, only the primary (first) trigger event is used to prevent duplicates
+  - For group-selected hooks, the hook is assigned to the specific trigger event of that group
+  - Eliminates cluttered settings.json files with duplicate hook entries and unnecessary multiple hook executions
+- **Documentation Link Validation**: Fixed broken link patterns in markdown link checker configuration
+  - Added specific replacement pattern for self-review hook documentation links
+  - Added status code 525 to accepted alive status codes for better link validation coverage
+
 ## [0.8.3] - 2025-08-26
 
 ### Changed
