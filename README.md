@@ -226,6 +226,8 @@ Hooks automatically enforce quality as Claude works:
 - `check-todos` - Validate todo completions
 - `self-review` - Enhanced targeted self-review with implementation completeness detection, prioritizing mock implementations, placeholder code, and incomplete features over code quality concerns
 
+[Self-review guide →](docs/guides/self-review.md)
+
 ### Hook Events
 
 - **PreToolUse** - Triggered before file access (Read, Write, Edit, MultiEdit) for permission control
