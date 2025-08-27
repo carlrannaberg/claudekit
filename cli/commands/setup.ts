@@ -143,8 +143,10 @@ const HOOK_GROUPS: HookGroup[] = [
 async function performThreeStepSelection(
   projectInfo: ProjectInfo,
   registry: Awaited<ReturnType<typeof discoverComponents>>
-): Promise<{ components: string[] }> {
+): Promise<{ components: string[]; hookTriggerEvents: Map<string, string> }> {
   const selectedComponents: string[] = [];
+  // Track which trigger event each hook should use (from selected groups)
+  const hookTriggerEvents: Map<string, string> = new Map();
 
   // Step 1: Command Group Selection
   console.log(`\n${Colors.bold('Step 1: Choose Command Groups')}`);
@@ -267,6 +269,21 @@ async function performThreeStepSelection(
     })) as string[];
 
     selectedComponents.push(...selectedIndividualHooks);
+    
+    // For individually selected hooks with multiple trigger events,
+    // use the primary (first) trigger event to avoid duplicate installation
+    for (const hookId of selectedIndividualHooks) {
+      const HookClass = HOOK_REGISTRY[hookId];
+      const metadata = HookClass?.metadata;
+      if (metadata?.triggerEvent !== undefined) {
+        const primaryTrigger = Array.isArray(metadata.triggerEvent)
+          ? metadata.triggerEvent[0]
+          : metadata.triggerEvent;
+        if (primaryTrigger !== undefined) {
+          hookTriggerEvents.set(hookId, primaryTrigger);
+        }
+      }
+    }
   }
 
   // Add selected hooks from groups (excluding custom)
@@ -275,6 +292,10 @@ async function performThreeStepSelection(
     const group = HOOK_GROUPS.find((g) => g.id === groupId);
     if (group) {
       selectedComponents.push(...group.hooks);
+      // Store the trigger event for each hook from this group
+      for (const hookId of group.hooks) {
+        hookTriggerEvents.set(hookId, group.triggerEvent);
+      }
     }
   }
 
@@ -354,7 +375,7 @@ async function performThreeStepSelection(
     console.log(Colors.success(`\n${finalAgents.length} agents selected`));
   }
 
-  return { components: selectedComponents };
+  return { components: selectedComponents, hookTriggerEvents };
 }
 
 export interface SetupOptions {
@@ -590,6 +611,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
     // Step 4: Component selection - Two-step process with groups
     let selectedComponents: string[];
+    let hookTriggerEvents: Map<string, string> = new Map();
 
     if (
       options.commands !== undefined ||
@@ -694,6 +716,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
       // New improved three-step selection process
       const selectionResult = await performThreeStepSelection(projectInfo, registry);
       selectedComponents = selectionResult.components;
+      // Pass along hook trigger events from group selections
+      hookTriggerEvents = selectionResult.hookTriggerEvents;
 
       // Agents are now part of the unified component system, no special handling needed
     }
@@ -915,7 +939,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
         settingsBackupPath = await createProjectSettings(
           claudeDir,
           finalComponents,
-          installOptions
+          installOptions,
+          hookTriggerEvents
         );
       }
 
@@ -1011,7 +1036,8 @@ interface HookSettings {
 async function createProjectSettings(
   claudeDir: string,
   components: Component[],
-  options: InstallOptions
+  options: InstallOptions,
+  hookTriggerEvents?: Map<string, string>
 ): Promise<string | null> {
   const settingsPath = path.join(claudeDir, 'settings.json');
   let backupPath: string | null = null;
@@ -1174,9 +1200,19 @@ async function createProjectSettings(
 
       if (metadata !== undefined) {
         const matcher = metadata.matcher ?? 'Write|Edit|MultiEdit';
-        const triggerEvents = Array.isArray(metadata.triggerEvent)
-          ? metadata.triggerEvent
-          : [metadata.triggerEvent];
+        
+        // Check if a specific trigger event was provided via group selection
+        let triggerEvents: readonly string[];
+        const groupTriggerEvent = hookTriggerEvents?.get(component.id);
+        if (groupTriggerEvent !== undefined) {
+          // Use the specific trigger event from the group selection
+          triggerEvents = [groupTriggerEvent];
+        } else {
+          // Fall back to all trigger events from metadata
+          triggerEvents = Array.isArray(metadata.triggerEvent)
+            ? metadata.triggerEvent
+            : [metadata.triggerEvent];
+        }
 
         for (const triggerEvent of triggerEvents) {
           // PostToolUse maintains backward compatibility by not merging
