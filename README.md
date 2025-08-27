@@ -61,17 +61,23 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **See relationships** - Claude understands dependencies and architecture instantly
 - **Automatic setup** - Runs invisibly on first prompt, updates as you code
 
+[Codebase map guide →](docs/guides/codebase-map.md)
+
 ### 🔍 Comprehensive Code Review
 - **Multi-aspect analysis**: 6 parallel agents for architecture, security, performance, testing, quality, and documentation
 - **Intelligent targeting**: Automatically selects relevant review agents based on file types and scope
 - **Structured reports**: Prioritized issues (Critical/High/Medium) with type icons and actionable solutions
 - **Quality metrics**: Scoring system and issue distribution tracking for measurable improvements
 
+[Code review workflow →](docs/guides/validation-workflow.md)
+
 ### 🚀 Iterative Spec Implementation
 - **6-phase workflow**: Implementation → Test Writing → Code Review → Iterative Improvement → Commit → Progress Tracking
 - **Dynamic agent selection**: Real-time detection of available specialized agents with intelligent fallbacks
 - **Quality gates**: Each phase includes validation before proceeding to ensure high-quality deliverables
 - **Atomic commits**: Standardized commit messages with comprehensive change documentation
+
+[Spec workflow guide →](docs/guides/spec-workflow.md)
 
 ### 🛡️ Real-time Error Prevention
 - **🔒 Sensitive File Protection**: Blocks AI access to `.env` files, API keys, SSH keys, and credentials before they're accessed
@@ -85,6 +91,8 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Auto-save**: Creates checkpoints when Claude stops
 - **Easy restore**: `/checkpoint:restore` to undo changes
 - **Checkpoint management**: List, restore, or clean up checkpoints
+
+[Checkpoint guide →](docs/guides/checkpoint.md)
 
 ### 🤖 AI Subagents
 - **Code Search**: `code-search` for fast, parallel codebase searches with 3-10x speed improvements
@@ -103,6 +111,17 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - **Smart warnings**: Color-coded alerts for slow hooks (>5s) and output size limits
 - **Claude Code integration**: Specialized limits for UserPromptSubmit hooks that inject context
 - **Token estimation**: Calculate estimated token usage for hook outputs
+
+[Hook profiling guide →](docs/guides/hook-profiling.md)
+
+### 🧠 Enhanced AI Reasoning
+- **Automatic enhancement**: The `thinking-level` hook invisibly enhances Claude's reasoning without manual prompt engineering
+- **4 configurable levels**: From disabled (0) to maximum reasoning (3) with smart defaults
+- **Invisible operation**: Keywords are injected silently without user awareness
+- **Lightweight**: < 5ms overhead with minimal token usage
+- **Session-aware**: Activates on first user prompt to enhance AI reasoning throughout the session
+
+[Thinking level guide →](docs/guides/thinking-level.md)
 
 ### 📝 Smart Commands
 - `/code-review` - Multi-aspect code reviews with 6 parallel agents
@@ -306,47 +325,6 @@ The `file-guard` hook supports multiple ignore file formats (`.agentignore`, `.a
 - Blocks path traversal attempts outside project
 
 See the [File Guard Guide](docs/guides/file-guard.md) for detailed configuration and best practices.
-
-### 🗺️ Automated Codebase Context
-
-Claudekit provides intelligent codebase mapping that automatically gives AI assistants comprehensive project context:
-
-- **Automatic context provision** - Claude receives your project structure at session start
-- **Live updates** - Map stays current as files change during development
-- **Configurable filtering** - Focus on relevant code and exclude tests/dependencies
-- **Multiple output formats** - DSL, tree, markdown, and JSON formats optimized for different use cases
-- **Session awareness** - Loads once per session, avoiding repetitive context
-
-See the [Codebase Map Guide](docs/guides/codebase-map.md) for setup, configuration, and best practices.
-
-### 🧠 Enhanced AI Reasoning
-
-The `thinking-level` hook automatically enhances Claude's reasoning capabilities by invisibly injecting thinking keywords into prompts:
-
-- **Automatic enhancement** - No manual prompt engineering needed
-- **4 configurable levels** - From disabled (0) to maximum reasoning (3)
-- **Smart default** - Level 2 ("megathink") provides balanced enhancement
-- **Invisible operation** - Keywords are injected silently without user awareness
-- **Lightweight** - < 5ms overhead with minimal token usage
-
-Quick setup:
-```bash
-# Add thinking-level to your project
-claudekit setup --hooks thinking-level
-```
-
-Configure in `.claudekit/config.json`:
-```json
-{
-  "hooks": {
-    "thinking-level": {
-      "level": 2  // 0-3, default is 2
-    }
-  }
-}
-```
-
-See the [Thinking Level Guide](docs/guides/thinking-level.md) for detailed configuration and best practices.
 
 ## Configuration
 
