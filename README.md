@@ -2,7 +2,7 @@
 
 # claudekit
 
-> Intelligent guardrails and workflow automation for Claude Code - catch errors in real-time, save checkpoints, and enhance AI coding with expert subagents
+> Smart guardrails and workflow automation for Claude Code - catch errors in real-time, save checkpoints, and enhance AI coding with expert subagents
 
 [![npm version](https://img.shields.io/npm/v/claudekit.svg)](https://www.npmjs.com/package/claudekit)
 [![npm downloads](https://img.shields.io/npm/dt/claudekit.svg)](https://www.npmjs.com/package/claudekit)
@@ -65,15 +65,14 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 
 ### 🔍 Comprehensive Code Review
 - **Multi-aspect analysis**: 6 parallel agents for architecture, security, performance, testing, quality, and documentation
-- **Intelligent targeting**: Automatically selects relevant review agents based on file types and scope
+- **Smart targeting**: Automatically selects relevant review agents based on file types and scope
 - **Structured reports**: Prioritized issues (Critical/High/Medium) with type icons and actionable solutions
 - **Quality metrics**: Scoring system and issue distribution tracking for measurable improvements
 
-[Code review workflow →](docs/guides/validation-workflow.md)
 
 ### 🚀 Iterative Spec Implementation
 - **6-phase workflow**: Implementation → Test Writing → Code Review → Iterative Improvement → Commit → Progress Tracking
-- **Dynamic agent selection**: Real-time detection of available specialized agents with intelligent fallbacks
+- **Dynamic agent selection**: Real-time detection of available specialized agents with automatic fallbacks
 - **Quality gates**: Each phase includes validation before proceeding to ensure high-quality deliverables
 - **Atomic commits**: Standardized commit messages with comprehensive change documentation
 
@@ -304,7 +303,7 @@ The `file-guard` hook automatically protects sensitive files from AI access. Qui
 npm install -g claudekit && claudekit setup --yes --force --hooks file-guard
 
 # Existing projects: Add file-guard to current setup
-claudekit setup --hooks file-guard
+claudekit setup --yes --force --hooks file-guard
 ```
 
 Or manually create a `.agentignore` file:
