@@ -79,7 +79,8 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 [Spec workflow guide →](docs/guides/spec-workflow.md)
 
 ### 🛡️ Real-time Error Prevention
-- **🔒 Sensitive File Protection**: Blocks AI access to `.env` files, API keys, SSH keys, and credentials before they're accessed
+- **🔒 Enhanced Sensitive File Protection**: Comprehensive security with 195+ patterns across 12 categories including cloud credentials, cryptocurrencies, databases, tokens, and production data
+- **Multi-category Protection**: Environment files, SSH keys, cloud provider credentials (AWS/Azure/GCP), package manager auth, crypto wallets, production databases
 - **TypeScript Guard**: Blocks `any` types and type errors as Claude edits
 - **Linting**: Catches style issues immediately  
 - **Anti-patterns**: Prevents code replacement with comments
@@ -94,6 +95,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 [Checkpoint guide →](docs/guides/checkpoint.md)
 
 ### 🤖 AI Subagents
+- **Research Expert**: `research-expert` for comprehensive parallel research with 90% time reduction, automatic source analysis, and structured reporting
 - **Code Search**: `code-search` for fast, parallel codebase searches with 3-10x speed improvements
 - **Triage Expert**: `triage-expert` for initial problem diagnosis and routing to specialists
 - **Domain experts**: TypeScript, React, database, testing, infrastructure, documentation specialists
@@ -122,9 +124,19 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 
 [Thinking level guide →](docs/guides/thinking-level.md)
 
+### 🔬 Multi-Agent Research System
+- **Parallel Information Gathering**: Launch 5-10 research agents simultaneously for 90% faster investigation
+- **Intelligent Query Classification**: Automatically determines research strategy (breadth-first, depth-first, or simple factual)
+- **Comprehensive Source Analysis**: Cross-references findings across multiple domains with automatic citation management
+- **Structured Research Reports**: Executive summaries, key findings, detailed analysis, and methodology documentation
+- **Filesystem Artifacts**: Subagents write full reports to `/tmp/research_*.md` for efficient synthesis and token optimization
+
 ### 📝 Smart Commands
+- `/research [query]` - Deep parallel research with specialized subagents and structured reporting
 - `/code-review` - Multi-aspect code reviews with 6 parallel agents
 - `/git:commit` - Creates commits following your project's conventions
+- `/git:checkout` - Smart branch creation and switching with conventional naming
+- `/git:ignore-init` - Initialize AI-safe .gitignore patterns for sensitive file protection
 - `/validate-and-fix` - Runs all quality checks and fixes issues
 - `/spec:create` - Generates comprehensive specifications
 - `/spec:execute` - Implements specifications with iterative quality assurance workflow
@@ -183,12 +195,15 @@ Use these commands directly in Claude Code:
 - `/checkpoint:list` - View all checkpoints
 - `/git:commit` - Smart commit with conventions
 - `/git:status` - Intelligent git analysis
+- `/git:checkout [branch]` - Smart branch creation and switching with conventional naming
+- `/git:ignore-init` - Initialize AI-safe .gitignore patterns
 
 ### Code Quality
 - `/code-review [target]` - Multi-aspect code review with parallel agents
 - `/validate-and-fix` - Run all quality checks
 
 ### Development Tools
+- `/research [query]` - Deep parallel research with specialized subagents
 - `/spec:create [feature]` - Generate specifications
 - `/spec:execute [file]` - Implement specifications with 6-phase iterative workflow
 - `/agents-md:init` - Configure AI assistants

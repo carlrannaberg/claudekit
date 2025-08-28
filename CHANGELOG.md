@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2025-08-29
+
+### Added
+- **Git Workflow Commands**: Enhanced git functionality with new commands
+  - Added `git:checkout` command for smart branch switching with auto-completion
+  - Added `git:ignore-init` command for initializing AI-safe .gitignore patterns
+- **Research Workflow System**: Multi-agent research command for parallel information gathering
+  - Added `research` command with concurrent agent execution for comprehensive analysis
+  - Added `research-expert` subagent with specialized research capabilities
+  - Supports parallel research across multiple domains with structured output
+- **Enhanced File Security**: Expanded sensitive file protection patterns
+  - Added comprehensive sensitive patterns module (`cli/hooks/sensitive-patterns.ts`) with 12 security categories
+  - Added 195+ sensitive file patterns covering cloud credentials, cryptocurrencies, databases, tokens, and production data
+  - Enhanced file-guard hook with categorized pattern management and validation utilities
+  - Added extensive test coverage (330+ lines) for all sensitive file pattern categories
+
+### Changed
+- **Command Categories**: Renamed command category system for better clarity
+  - Changed `ai-assistant` category to `claude-setup` throughout the codebase
+  - Updated setup wizard command grouping: "🤖 Claude Setup & Configuration" 
+  - Updated recommendation engine and component discovery to use new category names
+- **Release Process Integration**: Enhanced release preparation with automated quality checks
+  - Integrated claudekit linting (`@carlrannaberg/cclint`) into release preparation workflow
+  - Added JSON-formatted linting output parsing and error reporting
+  - Release preparation now validates all command and agent files before publishing
+- **Setup Command Organization**: Improved command organization in setup wizard
+  - Added new git workflow commands to recommended workflow group
+  - Updated command descriptions for better clarity and consistency
+  - Enhanced command grouping logic with better category inference
+
+### Fixed
+- **Documentation Links**: Resolved broken documentation link patterns
+  - Fixed markdown link validation patterns in configuration
+  - Updated documentation structure and internal linking consistency
+- **Build Tool Recognition**: Enhanced ESBuild external dependency detection
+  - Improved validation to properly recognize Node.js built-in modules with `node:` prefix
+  - Fixed build tool configuration for better dependency bundling
+
 ## [0.8.5] - 2025-08-28
 
 ### Changed
