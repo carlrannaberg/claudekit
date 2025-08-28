@@ -1,8 +1,8 @@
-# Git Workflow: Intelligent Version Control for Claude Code
+# Git Workflow: Safe Version Control for Claude Code
 
 ## Overview
 
-Claudekit's git workflow commands provide intelligent, safe, and convention-aware version control operations designed specifically for AI-assisted development. These commands enhance standard git operations with safety checks, automatic formatting, and smart insights to prevent common mistakes and maintain clean repository history.
+Claudekit's git workflow commands provide safe, convention-aware version control operations designed specifically for AI-assisted development. These commands add safety checks, automatic formatting, and helpful insights to prevent common mistakes and maintain clean repository history.
 
 **Key Benefits:**
 - **Smart commits** - Automatic message formatting following project conventions
@@ -11,39 +11,21 @@ Claudekit's git workflow commands provide intelligent, safe, and convention-awar
 - **Clean setup** - Initialize proper .gitignore for Claude Code projects
 - **Convention-aware** - Respects and follows existing project patterns
 
-## Quick Start
-
-### New to Claudekit?
-
-Install claudekit and set up git commands:
+## Installation
 
 ```bash
-npm install -g claudekit && claudekit setup --yes --force --commands git:checkout,git:commit,git:status,git:push,git:ignore-init
+# Install claudekit (if not already installed)
+npm install -g claudekit
+
+# Add git workflow commands to your project
+claudekit setup --yes --force --commands git:commit,git:status,git:push,gh:repo-init
 ```
 
-### Already Have Claudekit?
-
-Add git workflow commands to your existing project:
-
-```bash
-claudekit setup --yes --force --commands git:checkout,git:commit,git:status,git:push,git:ignore-init
-```
-
-Both commands will:
-- Install all five git workflow commands
+This will:
+- Install all git workflow commands
 - Create symlinks in `.claude/commands/git/`
 - Preserve existing configuration
 - Skip interactive prompts with `--yes --force`
-
-### Manual Installation
-
-```bash
-# Create commands directory
-mkdir -p .claude/commands/git
-
-# Copy commands from claudekit
-cp $(npm root -g)/claudekit/src/commands/git/* .claude/commands/git/
-```
 
 ### Verify Setup
 
@@ -63,7 +45,7 @@ ls -la .claude/commands/git/
 
 ### 1. `/git:checkout` - Smart Branch Management
 
-**Purpose**: Create and switch branches with intelligent naming conventions
+**Purpose**: Create and switch branches with consistent naming conventions
 
 **Features**:
 - Supports conventional branch prefixes (feature/, hotfix/, bugfix/, etc.)
@@ -122,9 +104,9 @@ ls -la .claude/commands/git/
 # Automatically uses: git push -u origin feature/oauth-login
 ```
 
-### 2. `/git:status` - Intelligent Repository Analysis
+### 2. `/git:status` - Repository Analysis
 
-**Purpose**: Provides enhanced git status with insights and recommendations
+**Purpose**: Provides detailed git status with insights and recommendations
 
 **Features**:
 - Shows uncommitted changes with file categorization
@@ -517,7 +499,7 @@ The `/git:push` command automatically handles new branches:
 
 ### Checkout Creates Wrong Base
 
-The `/git:checkout` command uses intelligent base selection:
+The `/git:checkout` command uses automatic base selection:
 - `hotfix/*` branches always base off main/master
 - `feature/*` branches use develop if it exists
 - Override by checking out base branch first if needed
@@ -527,11 +509,11 @@ The `/git:checkout` command uses intelligent base selection:
 Claudekit's git workflow commands provide:
 
 ✅ **Smart branch management** - `/git:checkout` with conventional naming
-✅ **Intelligent commits** - `/git:commit` follows project conventions
+✅ **Smart commits** - `/git:commit` follows project conventions
 ✅ **Safe push operations** - `/git:push` with pre-flight checks
-✅ **Enhanced status** - `/git:status` with actionable insights
+✅ **Detailed status** - `/git:status` with actionable insights
 ✅ **Clean .gitignore** - `/git:ignore-init` for Claude Code projects
 
-These commands work together to create a seamless, safe, and intelligent git workflow optimized for AI-assisted development with Claude Code.
+These commands work together to create a seamless, safe git workflow optimized for AI-assisted development with Claude Code.
 
 For questions or issues, visit [GitHub Issues](https://github.com/carlrannaberg/claudekit/issues).

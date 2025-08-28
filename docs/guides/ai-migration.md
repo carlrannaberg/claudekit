@@ -1,6 +1,16 @@
-# AGENTS.md Migration Command Documentation
+# AGENTS.md Migration Command
 
-The `/agent-migration` command helps you migrate to the [AGENTS.md standard](https://agent.md) - a universal configuration format for AI coding assistants.
+The `/agents-md:migration` command helps you migrate to the [AGENTS.md standard](https://agents.md) - a universal configuration format for AI coding assistants.
+
+## Installation
+
+```bash
+# Install claudekit globally
+npm install -g claudekit
+
+# Initialize commands in your project
+claudekit setup --yes --force --commands agents-md
+```
 
 ## Supported AI Assistants
 
@@ -15,22 +25,24 @@ The command creates symlinks for the following AI tools:
 | GitHub Copilot | .github/copilot-instructions.md | → ../AGENTS.md |
 | Replit | .replit.md | → AGENTS.md |
 | Gemini CLI | GEMINI.md | → AGENTS.md |
-| OpenAI Codex | GEMINI.md | → AGENTS.md |
-| OpenCode | GEMINI.md | → AGENTS.md |
+| Legacy Support | AGENT.md | → AGENTS.md |
 | Firebase Studio | .idx/airules.md | → ../AGENTS.md |
 
 ## How It Works
 
-1. **Searches for existing config files** in priority order:
+1. **Analyzes existing config files** in priority order:
    - CLAUDE.md
    - .clinerules
    - .cursorrules
    - .windsurfrules
-   - .replit.md
    - .github/copilot-instructions.md
+   - .replit.md
    - GEMINI.md
 
-2. **Moves the first found config** to AGENTS.md (if AGENTS.md doesn't already exist)
+2. **Handles content intelligently**:
+   - **Single file**: Moves to AGENTS.md
+   - **Multiple identical files**: Keeps one, symlinks others
+   - **Different content**: Offers merge options (auto-merge, backup, selective, manual)
 
 3. **Creates symlinks** for all supported AI assistants pointing to AGENTS.md
 
@@ -38,26 +50,28 @@ The command creates symlinks for the following AI tools:
 
 ## Usage Examples
 
-### New Project
-If you're starting fresh with CLAUDE.md:
+### Simple Migration
 ```bash
-# Before: CLAUDE.md exists
-/agent-migration
-# After: AGENTS.md exists with symlinks from all AI config files
+# Single config file exists
+/agents-md:migration
+# Result: Moves to AGENTS.md, creates all symlinks
+```
+
+### Conflict Resolution
+When multiple config files with different content exist:
+```bash
+/agents-md:migration
+# Shows differences and offers options:
+# 1. Auto-merge - Combine all unique content
+# 2. Backup - Keep primary, backup others as .bak
+# 3. Selective - Choose which sections to include
+# 4. Manual - Step-by-step merge assistance
 ```
 
 ### Existing AGENTS.md
-If AGENTS.md already exists:
 ```bash
 # Creates any missing symlinks without modifying AGENTS.md
-/agent-migration
-```
-
-### Migration from Other Tools
-If you have .cursorrules but no CLAUDE.md:
-```bash
-# Moves .cursorrules to AGENTS.md and creates all symlinks
-/agent-migration
+/agents-md:migration
 ```
 
 ## Benefits
@@ -69,31 +83,47 @@ If you have .cursorrules but no CLAUDE.md:
 
 ## Git Integration
 
-After running the command, you'll typically want to:
+After successful migration, the command:
+- Shows git status including new AGENTS.md and any .bak files
+- Identifies which files were created, modified, or backed up
+- Suggests reviewing backup files before deletion
+- Recommends appropriate git commands for staging changes
 
-```bash
-# Add all changes
-git add AGENTS.md CLAUDE.md .clinerules .cursorrules .windsurfrules .replit.md GEMINI.md .github/copilot-instructions.md .idx/airules.md
+Example output guidance the command provides:
+```
+✓ Migration complete! Next steps:
 
-# Commit
-git commit -m "Adopt AGENTS.md standard for AI assistant configuration"
+1. Review changes:
+   git status
+   
+2. Check backup files (if any):
+   ls -la *.bak
+   
+3. Stage and commit:
+   git add AGENTS.md CLAUDE.md .clinerules .cursorrules
+   git commit -m "feat: adopt AGENTS.md standard"
 ```
 
-## Troubleshooting
+## Key Features
 
-### Permission Denied
-If you get permission errors creating symlinks:
-- Check file permissions: `ls -la`
-- Run with appropriate permissions
+### Smart Content Merging
+- Detects identical files and deduplicates automatically
+- Offers merge strategies for different content
+- Creates backups (.bak) when needed
+- Preserves important sections from all configs
 
-### Symlink Already Exists
-The command will skip existing symlinks and only create missing ones.
+### Conflict Resolution
+- Shows clear differences between files
+- Provides multiple resolution options
+- Guides through manual merging if needed
+- Never loses data (creates backups)
 
-### Wrong Symlink Target
-If a symlink points to the wrong file:
-1. Remove the incorrect symlink: `rm symlink-name`
-2. Run `/agent-migration` again
+## Limitations
+
+- Symlinks may not work on some Windows systems without developer mode
+- Manual merge may be needed for significantly different configs
+- Some tools may cache old config files (restart may be needed)
 
 ## Learn More
 
-Visit [agent.md](https://agent.md) for the full AGENTS.md specification and best practices.
+Visit [agents.md](https://agents.md) for the full AGENTS.md specification and best practices.

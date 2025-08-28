@@ -1,734 +1,233 @@
-# Using claudekit Prompts with Claude Code and External LLMs
+# Using Claudekit Prompts with External LLMs
 
-This guide shows how to leverage claudekit's `show` command to extract specialized AI assistant prompts for use with Claude Code's non-interactive mode (`claude -p`) and other LLM systems.
+## Overview
+
+Claudekit's `show` command extracts specialized AI assistant prompts for use with Claude Code's non-interactive mode and other LLM CLI tools. This enables automated code review, CI/CD integration, and specialized expertise in scripts.
+
+**Key Benefits:**
+- **Specialized expertise** - Access domain-specific agents (TypeScript, React, PostgreSQL, etc.)
+- **Automation-ready** - Perfect for CI/CD pipelines and scripts
+- **Tool compatibility** - Works with multiple LLM CLI tools
+- **Consistent quality** - Standardized prompts across your team
+
+## Installation
+
+```bash
+# Install claudekit (if not already installed)
+npm install -g claudekit && claudekit setup --yes --force --agents typescript-expert,react-expert,postgres-expert
+```
 
 ## Key Use Case: Claude Code Non-Interactive Mode
 
-The primary use case is enhancing Claude Code's non-interactive mode with specialized expertise:
+Transform Claude Code's non-interactive mode with specialized expertise:
 
 ```bash
-# Instead of generic Claude Code:
+# Generic approach
 cat complex_code.ts | claude -p "Review this code"
 
-# Use specialized expertise from claudekit:
+# With specialized expertise
 EXPERT=$(claudekit show agent typescript-expert)
 cat complex_code.ts | claude -p --append-system-prompt "$EXPERT" "Review this code"
 ```
 
-This approach gives you:
-- **Specialized expertise** - Access to domain-specific agents (TypeScript, React, PostgreSQL, etc.)
-- **Consistent quality** - Standardized prompts across your team
-- **Automation-ready** - Perfect for CI/CD pipelines and scripts
-- **Tool compatibility** - Works with multiple LLM CLI tools
-
-## Overview
-
-The `claudekit show` command provides access to:
-- **Agent prompts** - Specialized AI assistant configurations for different domains (typescript-expert, react-performance-expert, etc.)
-- **Command prompts** - Reusable task templates and workflows from Claude Code slash commands
-
-These prompts can be:
-- Used with Claude Code's non-interactive print mode (`claude -p`)
-- Piped to Claude Code for streaming operations
-- Integrated into CI/CD pipelines for automated code review
-- Exported for use with various LLM CLI tools
-
-### Compatible CLI Tools
-
-claudekit prompts work with these AI coding CLI tools:
-
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code/cli)** - Primary integration via `claude -p --append-system-prompt`
-- **[Amp](https://ampcode.com/)** - Agentic coding tool with CLI support
-- **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** - Google's AI agent for terminal
-- **[Cursor CLI](https://cursor.com/cli)** - Cursor's terminal coding agent
-- **[Codex](https://github.com/openai/codex)** - OpenAI's lightweight coding agent
-- **[OpenCode](https://github.com/sst/opencode)** - Open-source AI coding agent for terminal
-
 ## Basic Usage
 
-### Show Agent Prompts
+### Extract Agent Prompts
 
 ```bash
-# Show agent prompt as plain text (default)
+# Show available agents
+claudekit list agents
+
+# Extract specific agent prompt
 claudekit show agent typescript-expert
 
-# Show agent metadata and content as JSON
-claudekit show agent react-performance-expert --format json
-
-# List all available agents with their actual names
-claudekit list agents
-# Output shows: typescript-expert, postgres-expert, docker-expert, etc.
+# Use in Claude Code non-interactive mode
+EXPERT=$(claudekit show agent typescript-expert)
+echo "const x: any = 123" | claude -p --append-system-prompt "$EXPERT" "Review this TypeScript"
 ```
 
-### Show Command Prompts
+### Extract Command Prompts
 
 ```bash
-# Show command prompt as plain text
-claudekit show command spec:create
-
-# Show command metadata and content as JSON  
-claudekit show command checkpoint:restore --format json
-
-# List all available commands
+# Show available commands
 claudekit list commands
+
+# Extract command prompt
+claudekit show command git:commit
+
+# Use the extracted template
+PROMPT=$(claudekit show command git:commit)
+git diff --staged | claude -p "$PROMPT"
 ```
 
-## Integration with Claude Code Non-Interactive Mode
+## Compatible CLI Tools
 
-Claude Code's print mode (`claude -p`) is perfect for using claudekit prompts in automated workflows:
+Claudekit prompts work with these AI coding tools:
 
-### Using Agent Prompts with Claude Code
+**Primary Integration:**
+- **Claude Code** - `claude -p --append-system-prompt "$PROMPT"`
 
-```bash
-#!/bin/bash
-
-# Use TypeScript expert for code review
-PROMPT=$(claudekit show agent typescript-expert)
-cat src/app.ts | claude -p --append-system-prompt "$PROMPT" "Review this TypeScript code for best practices"
-
-# Stream JSON output for programmatic processing
-claudekit show agent react-performance-expert | \
-  claude -p --output-format json "Analyze the performance of ProductList.tsx"
-
-# Use with verbose mode for debugging
-claudekit show agent postgres-expert | \
-  claude -p --verbose "Optimize this query: SELECT * FROM orders WHERE status='pending'"
-```
-
-### Piping Content Through Claude Code
-
-```bash
-# Process logs with specialized agent
-cat error.log | claudekit show agent nodejs-expert | \
-  claude -p "Analyze these Node.js errors and suggest fixes"
-
-# Review git changes with expert prompt
-git diff main..feature | claudekit show agent git-expert | \
-  claude -p "Review these changes for potential issues"
-
-# Analyze test failures
-npm test 2>&1 | claudekit show agent jest-testing-expert | \
-  claude -p "Explain why these tests are failing"
-```
-
-### Non-Interactive Workflows with Commands
-
-```bash
-# Execute a command workflow non-interactively
-SPEC_WORKFLOW=$(claudekit show command spec:create)
-echo "User authentication system with OAuth2" | \
-  claude -p --append-system-prompt "$SPEC_WORKFLOW" --max-turns 5
-
-# Use checkpoint commands in automation
-CHECKPOINT_CMD=$(claudekit show command checkpoint:create)
-claude -p --append-system-prompt "$CHECKPOINT_CMD" "Create a checkpoint before deployment"
-```
-
-### CI/CD Integration with Claude Code
-
-```yaml
-# GitHub Actions example using Claude Code non-interactive mode
-name: AI Code Review with Claude Code
-
-on: [pull_request]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          npm install -g @anthropic/claude-code
-          npm install -g claudekit
-      
-      - name: Review TypeScript changes
-        run: |
-          # Get TypeScript expert prompt inline
-          for file in $(git diff --name-only origin/main...HEAD | grep '\.ts$'); do
-            echo "Reviewing $file..."
-            cat "$file" | claude -p \
-              --append-system-prompt "$(claudekit show agent typescript-expert)" \
-              --output-format json \
-              "Review this TypeScript file for issues" > "review-$file.json"
-          done
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-```
-
-## Integration with Other AI Coding CLI Tools
-
-### Gemini CLI (Google's AI Agent)
-
-[Gemini CLI](https://github.com/google-gemini/gemini-cli) provides powerful AI capabilities with a free tier (60 req/min, 1000 req/day):
-
-```bash
-#!/bin/bash
-
-# Use expert prompts with Gemini in non-interactive mode
-echo "Find and fix the memory leak in app.ts" | \
-  gemini -c "$(claudekit show agent nodejs-expert)" -m gemini-2.5-pro
-
-# Process files with specialized expertise
-cat ProductList.tsx | gemini -c "$(claudekit show agent react-performance-expert). Identify render performance issues and suggest memoization strategies"
-
-# Use for database optimization
-cat schema.sql | gemini -c "$(claudekit show agent postgres-expert). Analyze this schema and create optimal indexes for common queries"
-
-# Code review with TypeScript expertise
-cat new-feature.ts | gemini -c "$(claudekit show agent typescript-expert). Review for type safety and suggest improvements"
-```
-
-### Amp (Agentic Coding Tool)
-
-[Amp](https://ampcode.com/) supports execute mode (`-x`) for non-interactive usage:
-
-```bash
-#!/bin/bash
-
-# Use expert prompts with Amp in execute mode
-amp -x "$(claudekit show agent typescript-expert)
-
-Review the TypeScript codebase for type safety issues and fix any 'any' types"
-
-# Pipe content with expert context
-cat ProductList.tsx | amp -x "$(claudekit show agent react-performance-expert)
-
-Analyze this React component for performance bottlenecks and suggest optimizations"
-
-# For automated workflows with tool permissions
-amp --dangerously-allow-all -x "$(claudekit show agent postgres-expert)
-
-Analyze the database schema in schema.sql and create optimal indexes"
-
-# Execute mode is automatic when redirecting stdout
-echo "$(claudekit show agent testing-expert)
-
-Write comprehensive unit tests for all functions in UserService.ts" | amp > tests.ts
-
-# Combine expert knowledge with specific file processing
-amp -x "$(claudekit show agent nodejs-expert)
-
-Find and fix all unhandled promise rejections in the src/ directory"
-```
-
-### OpenCode (Open-Source Terminal Agent)
-
-[OpenCode](https://github.com/sst/opencode) is an open-source AI coding agent for terminal:
-
-```bash
-#!/bin/bash
-
-# Use claudekit prompts with OpenCode in non-interactive mode
-EXPERT=$(claudekit show agent typescript-expert)
-opencode -p "$EXPERT
-
-Review this TypeScript codebase for issues" -q
-
-# Pipe content with expert context
-PROMPT=$(claudekit show agent react-performance-expert)
-cat app.tsx | opencode -p "$PROMPT
-
-Refactor this component for better performance"
-
-# Use with specific providers
-export OPENAI_API_KEY="your-key"
-DB_EXPERT=$(claudekit show agent postgres-expert)
-opencode -p "$DB_EXPERT
-
-Optimize the database queries in this project"
-```
-
-### Cursor CLI (Terminal Coding Agent)
-
-[Cursor CLI](https://cursor.com/cli) brings Cursor's AI capabilities to the terminal:
-
-```bash
-#!/bin/bash
-
-# Use claudekit agents with Cursor CLI
-export CURSOR_API_KEY="your-key"
-
-# Provide expert context directly in the prompt
-EXPERT=$(claudekit show agent typescript-expert)
-cursor-agent "$EXPERT
-
-Refactor this TypeScript module for better type safety"
-
-# For specific tasks
-TESTING_EXPERT=$(claudekit show agent testing-expert)
-cursor-agent "$TESTING_EXPERT
-
-Write comprehensive unit tests for the UserService class"
-```
-
-### Codex (OpenAI's Coding Agent)
-
-[Codex](https://github.com/openai/codex) is OpenAI's terminal coding agent. While primarily interactive, it can accept initial prompts:
-
-```bash
-#!/bin/bash
-
-# Use claudekit prompts with Codex
-EXPERT=$(claudekit show agent typescript-expert)
-codex "$EXPERT
-
-Refactor the Dashboard component to use React Hooks"
-
-# With specific model
-REACT_EXPERT=$(claudekit show agent react-performance-expert)
-codex --model gpt-5 "$REACT_EXPERT
-
-Optimize all React components for performance"
-
-# Auto-edit mode with expert knowledge
-NODE_EXPERT=$(claudekit show agent nodejs-expert)
-codex --auto-edit "$NODE_EXPERT
-
-Fix all async/await issues in the codebase"
-```
-
+**Other Compatible Tools:**
+- **Gemini CLI** - `gemini -c "$PROMPT"`
+- **Cursor CLI** - `cursor --system "$PROMPT"`
+- **OpenCode** - `opencode --prompt "$PROMPT"`
 
 ## CI/CD Pipeline Integration
 
-### GitHub Actions
+### GitHub Actions Example
 
 ```yaml
-# .github/workflows/ai-code-review.yml
 name: AI Code Review
-
-on:
-  pull_request:
-    types: [opened, synchronize]
+on: [pull_request]
 
 jobs:
   ai-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install claudekit
-        run: npm install -g claudekit
+    - uses: actions/checkout@v3
+    - name: Install tools
+      run: |
+        npm install -g claudekit
+        # Install Claude Code CLI per official docs
+    
+    - name: AI Code Review
+      run: |
+        EXPERT=$(claudekit show agent typescript-expert)
         
-      - name: Setup claudekit
-        run: claudekit setup --no-interactive
+        # Review changed TypeScript files
+        git diff --name-only origin/main...HEAD | grep '\.tsx\?$' | while read file; do
+          echo "## AI Review: $file" >> review.md
+          cat "$file" | claude -p --append-system-prompt "$EXPERT" \
+            "Review for type safety and best practices" >> review.md
+          echo "" >> review.md
+        done
         
-      - name: Get TypeScript expert prompt
-        id: expert-prompt
-        run: |
-          PROMPT=$(claudekit show agent typescript-expert)
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-      - name: Review changed TypeScript files
-        run: |
-          # Get changed .ts/.tsx files
-          CHANGED_FILES=$(git diff --name-only origin/main...HEAD | grep -E '\.(ts|tsx)$' | head -5)
-          
-          for file in $CHANGED_FILES; do
-            echo "Reviewing $file..."
-            CONTENT=$(cat "$file")
-            
-            # Send to OpenAI for review
-            echo "Review this TypeScript code for best practices, performance, and potential issues:
-
-          \`\`\`typescript
-          $CONTENT
-          \`\`\`" | openai chat \
-              --system "${{ steps.expert-prompt.outputs.prompt }}" \
-              --model gpt-5 > "review-$file.md"
-          done
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          
-      - name: Post review comments
-        # Upload review files as artifacts or post as PR comments
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-code-reviews
-          path: review-*.md
+        # Post as PR comment (with appropriate GitHub Action)
 ```
 
-### GitLab CI
-
-```yaml
-# .gitlab-ci.yml
-ai-code-review:
-  stage: test
-  image: node:18
-  script:
-    - npm install -g claudekit
-    - claudekit setup --no-interactive
-    
-    # Get React performance expert for component analysis
-    - EXPERT_PROMPT=$(claudekit show agent react-performance-expert)
-    
-    # Review React components in merge request
-    - |
-      git diff --name-only origin/main...HEAD | grep -E '\.(jsx|tsx)$' | while read file; do
-        echo "Analyzing $file for performance issues..."
-        COMPONENT_CODE=$(cat "$file")
-        echo "Analyze this React component: $COMPONENT_CODE" | \
-          curl -X POST "https://api.openai.com/v1/chat/completions" \
-            -H "Authorization: Bearer $OPENAI_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"model\": \"gpt-5\",
-              \"messages\": [
-                {\"role\": \"system\", \"content\": \"$EXPERT_PROMPT\"},
-                {\"role\": \"user\", \"content\": \"Analyze this React component: $COMPONENT_CODE\"}
-              ]
-            }" > "analysis-$file.json"
-      done
-  artifacts:
-    paths:
-      - analysis-*.json
-```
-
-## Extracting Specific Fields with jq
-
-### Agent Metadata Extraction
-
-```bash
-# Get just the agent description
-claudekit show agent oracle --format json | jq -r '.description'
-
-# Get agent category for filtering
-claudekit show agent typescript-expert --format json | jq -r '.category'
-
-# Get display name and color for UI
-claudekit show agent react-expert --format json | jq -r '"\(.displayName) (\(.color))"'
-
-# Extract all agents in a specific category  
-claudekit list agents --format json | jq '.agents[] | select(.category == "typescript") | .name'
-```
-
-### Command Metadata Extraction
-
-```bash
-# Get allowed tools for security validation
-claudekit show command git:commit --format json | jq -r '.allowedTools[]'
-
-# Get argument hint for CLI help
-claudekit show command checkpoint:create --format json | jq -r '.argumentHint // "No arguments"'
-
-# Extract command category
-claudekit show command spec:create --format json | jq -r '.category'
-```
-
-### Advanced jq Processing
-
-```bash
-# Create a prompt library JSON file
-cat > prompt-library.json << 'EOF'
-{
-  "agents": [],
-  "commands": []
-}
-EOF
-
-# Populate with all agents
-claudekit list agents --format json | jq '.' > agents.json
-claudekit list commands --format json | jq '.' > commands.json
-
-# Combine into single library
-jq -s '{agents: .[0], commands: .[1]}' agents.json commands.json > prompt-library.json
-
-# Clean up
-rm agents.json commands.json
-```
-
-## Shell Scripting Examples
-
-### Prompt Selection Menu
+### Shell Script Example
 
 ```bash
 #!/bin/bash
+# Automated TypeScript review script
 
-# Interactive prompt selection
-select_agent() {
-    echo "Available AI Experts:"
-    claudekit list agents --format json | jq -r '.agents[] | "\(.name) - \(.description)"' | nl
-    
-    read -p "Select an expert (number): " selection
-    AGENT_ID=$(claudekit list agents --format json | jq -r ".agents[$((selection-1))].name")
-    
-    if [ "$AGENT_ID" != "null" ]; then
-        claudekit show agent "$AGENT_ID"
-    else
-        echo "Invalid selection"
-        exit 1
-    fi
-}
-
-# Usage
-EXPERT_PROMPT=$(select_agent)
-echo "Using expert prompt for your query..."
-```
-
-### Bulk Prompt Export
-
-```bash
-#!/bin/bash
-
-# Export all prompts to a directory structure
-export_all_prompts() {
-    local output_dir="exported-prompts"
-    mkdir -p "$output_dir/agents" "$output_dir/commands"
-    
-    # Export all agents
-    claudekit list agents --format json | jq -r '.agents[].name' | while read agent_id; do
-        echo "Exporting agent: $agent_id"
-        claudekit show agent "$agent_id" > "$output_dir/agents/${agent_id}.md"
-        claudekit show agent "$agent_id" --format json > "$output_dir/agents/${agent_id}.json"
-    done
-    
-    # Export all commands
-    claudekit list commands --format json | jq -r '.commands[].name' | while read command_id; do
-        echo "Exporting command: $command_id"
-        # Replace : with _ for filenames
-        safe_name=$(echo "$command_id" | tr ':' '_')
-        claudekit show command "$command_id" > "$output_dir/commands/${safe_name}.md"
-        claudekit show command "$command_id" --format json > "$output_dir/commands/${safe_name}.json"
-    done
-    
-    echo "All prompts exported to $output_dir/"
-}
-
-export_all_prompts
-```
-
-### Dynamic Prompt Composition
-
-```bash
-#!/bin/bash
-
-# Combine multiple expert prompts
-compose_multi_expert() {
-    local query="$1"
-    local experts=("$@")
-    
-    echo "# Multi-Expert Analysis"
-    echo "Query: $query"
-    echo ""
-    
-    for expert in "${experts[@]:1}"; do
-        echo "## Expert: $expert"
-        PROMPT=$(claudekit show agent "$expert")
-        echo "Analyzing with $expert expertise..."
-        echo "$query" | your-llm-cli --system "$PROMPT"
-        echo ""
-    done
-}
-
-# Usage
-compose_multi_expert "Review this database schema" \
-    "postgres-expert" \
-    "database-expert" \
-    "typescript-expert"
-```
-
-## Best Practices and Tips
-
-### Security Considerations
-
-```bash
-# Validate agent exists before using
-validate_agent() {
-    local agent_id="$1"
-    if ! claudekit show agent "$agent_id" >/dev/null 2>&1; then
-        echo "Error: Agent '$agent_id' not found"
-        echo "Available agents:"
-        claudekit list agents | head -10
-        exit 1
-    fi
-}
-
-# Sanitize user input
-sanitize_input() {
-    local input="$1"
-    # Remove potentially dangerous characters
-    echo "$input" | sed 's/[`$]//g' | tr -d '\0'
-}
-```
-
-### Performance Optimization
-
-```bash
-# Store prompts in variables when using multiple times
-get_prompt_once() {
-    local agent_id="$1"
-    # Store in global variable to avoid repeated calls
-    if [ -z "${CACHED_PROMPTS[$agent_id]}" ]; then
-        CACHED_PROMPTS[$agent_id]=$(claudekit show agent "$agent_id")
-    fi
-    echo "${CACHED_PROMPTS[$agent_id]}"
-}
-
-# Usage with associative array for multiple prompts
-declare -A CACHED_PROMPTS
-TS_EXPERT=$(get_prompt_once "typescript-expert")
-REACT_EXPERT=$(get_prompt_once "react-expert")
-```
-
-### Error Handling
-
-```bash
-# Robust prompt retrieval with fallbacks
-get_prompt_with_fallback() {
-    local primary_agent="$1"
-    local fallback_agent="$2"
-    
-    if claudekit show agent "$primary_agent" 2>/dev/null; then
-        return 0
-    elif [[ -n "$fallback_agent" ]]; then
-        echo "Warning: Using fallback agent '$fallback_agent'" >&2
-        claudekit show agent "$fallback_agent"
-    else
-        echo "Error: No available agents" >&2
-        return 1
-    fi
-}
-
-# Usage
-PROMPT=$(get_prompt_with_fallback "typescript-type-expert" "typescript-expert")
-```
-
-### Quick Agent Discovery
-
-```bash
-# Find agents by keyword
-find_agent() {
-    local keyword="$1"
-    echo "Agents matching '$keyword':"
-    claudekit list agents --format json | \
-        jq -r --arg kw "$keyword" '.agents[] | 
-        select(.description | ascii_downcase | contains($kw | ascii_downcase)) | 
-        "\(.name): \(.description)"' | head -5
-}
-
-# Usage examples
-find_agent "typescript"  # Find TypeScript-related agents
-find_agent "database"    # Find database experts
-find_agent "performance" # Find performance optimization experts
-```
-
-
-
-## Practical Examples
-
-### Real-World Code Review Pipeline
-
-```bash
-#!/bin/bash
-# Automated code review using claudekit agents with Claude Code
-
-review_typescript_project() {
-  echo "🔍 Starting TypeScript code review..."
+review_typescript() {
+  local file="$1"
+  local expert=$(claudekit show agent typescript-expert)
   
-  # Get the TypeScript expert prompt
-  TS_EXPERT=$(claudekit show agent typescript-expert)
-  
-  # Review all TypeScript files
-  find src -name "*.ts" -o -name "*.tsx" | while read file; do
-    echo "Reviewing: $file"
-    
-    cat "$file" | claude -p \
-      --append-system-prompt "$TS_EXPERT" \
-      --output-format json \
-      --max-turns 1 \
-      "Review this TypeScript file for: type safety, best practices, performance, and potential bugs" \
-      > "reviews/$(basename $file).review.json"
-  done
-  
-  echo "✅ Reviews saved to reviews/ directory"
+  cat "$file" | claude -p \
+    --append-system-prompt "$expert" \
+    --output-format json \
+    "Review this TypeScript file for type safety, performance, and best practices"
 }
 
-# Usage
-review_typescript_project
-```
-
-### Database Query Optimization
-
-```bash
-#!/bin/bash
-# Optimize slow queries using postgres-expert
-
-SLOW_QUERIES=$(psql -c "SELECT query FROM pg_stat_statements WHERE mean_exec_time > 1000")
-POSTGRES_EXPERT=$(claudekit show agent postgres-expert)
-
-echo "$SLOW_QUERIES" | claude -p \
-  --append-system-prompt "$POSTGRES_EXPERT" \
-  "Analyze these slow queries and provide optimization strategies with index recommendations"
-```
-
-### React Component Performance Analysis
-
-```bash
-#!/bin/bash
-# Analyze React components for performance issues
-
-REACT_EXPERT=$(claudekit show agent react-performance-expert)
-
-# Find large React components
-find src/components -name "*.tsx" -size +100 | while read component; do
-  echo "Analyzing: $component"
-  
-  cat "$component" | claude -p \
-    --append-system-prompt "$REACT_EXPERT" \
-    --verbose \
-    "Identify performance bottlenecks and suggest optimizations including memoization opportunities"
+# Review all TypeScript files
+find src -name "*.ts" -o -name "*.tsx" | while read file; do
+  echo "Reviewing: $file"
+  review_typescript "$file" > "reviews/$(basename $file).json"
 done
 ```
 
+## Integration Patterns
+
+### Structured Output with jq
+
+```bash
+# Get JSON-formatted review
+EXPERT=$(claudekit show agent typescript-expert)
+REVIEW=$(cat app.ts | claude -p --append-system-prompt "$EXPERT" --output-format json \
+  "Review this code and return JSON with fields: issues, suggestions, score")
+
+# Extract specific fields
+echo "$REVIEW" | jq -r '.issues[]'
+echo "$REVIEW" | jq -r '.score'
+```
+
+### Multi-Agent Pipeline
+
+```bash
+# Sequential reviews with different experts
+TS_EXPERT=$(claudekit show agent typescript-expert)
+PERF_EXPERT=$(claudekit show agent react-performance-expert)
+
+# TypeScript review
+cat component.tsx | claude -p --append-system-prompt "$TS_EXPERT" \
+  "Review TypeScript code quality" > typescript-review.txt
+
+# Performance review  
+cat component.tsx | claude -p --append-system-prompt "$PERF_EXPERT" \
+  "Review React performance" > performance-review.txt
+
+# Combine results
+echo "## Combined Review" > final-review.md
+cat typescript-review.txt performance-review.txt >> final-review.md
+```
+
+## Best Practices
+
+### Performance Optimization
+- **Cache agent prompts** in variables to avoid repeated `claudekit show` calls
+- **Use structured output** (JSON) for programmatic processing  
+- **Batch similar files** together for efficiency
+
+### Error Handling
+```bash
+# Check if claudekit is available
+if ! command -v claudekit &> /dev/null; then
+  echo "Error: claudekit not installed"
+  exit 1
+fi
+
+# Verify agent exists
+if ! claudekit show agent typescript-expert &> /dev/null; then
+  echo "Error: typescript-expert agent not found"
+  exit 1
+fi
+```
+
+### Security Considerations
+- **Never log full agent prompts** in CI/CD - they may contain sensitive instructions
+- **Validate file inputs** before passing to LLM APIs
+- **Use appropriate rate limiting** for batch operations
+
 ## Troubleshooting
 
-### Common Issues
-
-**Agent/Command Not Found**
+### Agent Not Found
 ```bash
-# Check if claudekit is properly setup
-claudekit doctor
-
-# Re-initialize if needed
-claudekit setup
-
-# List available items
+# List available agents
 claudekit list agents
-claudekit list commands
+
+# Check if specific agent exists
+claudekit show agent typescript-expert || echo "Agent not found"
 ```
 
-**JSON Parsing Errors**
+### Claude Code Integration Issues
 ```bash
-# Validate JSON output
-claudekit show agent oracle --format json | jq '.'
+# Verify Claude Code CLI is installed and accessible
+claude --version
 
-# Check for binary/non-text content
-claudekit show agent oracle --format json | file -
+# Test basic non-interactive mode
+echo "test" | claude -p "Echo this back"
+
+# Test with system prompt
+echo "test" | claude -p --append-system-prompt "You are a helpful assistant" "Echo this back"
 ```
 
-**Permission Issues**
-```bash
-# Check claudekit installation
-which claudekit
-claudekit --version
+### Empty or Invalid Output
+- **Check agent exists**: `claudekit list agents | grep your-agent`
+- **Verify file permissions**: Ensure readable files and writable output directories
+- **Test with simple input**: Use basic examples before complex pipelines
 
-# Verify file permissions
-ls -la ~/.claude/
-```
+## Limitations
 
-**Integration Failures**
-```bash
-# Test with simple prompt first
-echo "Hello" | openai chat --system "You are a helpful assistant"
+- **Claude Code dependency** - Primary integration requires Claude Code CLI
+- **Token usage** - Specialized prompts use more tokens than basic queries
+- **Rate limits** - External LLM APIs have rate limiting for batch operations
+- **Agent availability** - Requires claudekit agents to be installed locally
+- **No real-time updates** - Extracted prompts are static snapshots
 
-# Verify environment variables
-echo $OPENAI_API_KEY | wc -c  # Should be > 1
+## Learn More
 
-# Test jq availability
-echo '{"test": "value"}' | jq '.test'
-```
-
-This guide provides comprehensive examples for integrating claudekit's powerful prompt system with external LLMs and automation workflows. The prompts are designed to be portable and can enhance AI interactions across different platforms and use cases.
+- [Claude Code CLI Documentation](https://docs.anthropic.com/en/docs/claude-code/cli) - Official non-interactive mode reference
+- [Agent Configurations](../reference/agents.md) - Available specialized agents
+- [Command Reference](../reference/commands.md) - Extractable command prompts

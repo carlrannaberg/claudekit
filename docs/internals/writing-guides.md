@@ -108,7 +108,7 @@ Include diagrams when they clarify complex flows:
 
 **Good:**
 ```bash
-# Single command
+# Single command with consistent flags
 claudekit setup --yes --force --commands feature --agents helper
 ```
 
@@ -118,7 +118,69 @@ claudekit setup --yes --force --commands feature --agents helper
 cp $(npm root -g)/claudekit/src/new-feature.md .claude/
 ```
 
-### 7. Appropriate Length for Complexity
+#### Installation Command Consistency
+
+**Always use `--yes --force` flags:**
+- `--yes` skips interactive prompts (enables copy-paste)
+- `--force` overwrites existing config without asking (prevents failures)
+
+**Use one-liners when possible:**
+```bash
+# Good - single copyable command
+npm install -g claudekit && claudekit setup --yes --force --hooks feature
+
+# Bad - requires multiple copy-paste operations
+npm install -g claudekit
+claudekit setup --yes --force --hooks feature
+```
+
+**Troubleshooting commands should also be consistent:**
+```bash
+# Good - includes flags for reliability
+claudekit setup --yes --force --hooks feature
+
+# Bad - might prompt user unexpectedly  
+claudekit setup --hooks feature
+```
+
+### 7. Distinguish Command Output from User Instructions
+
+When documenting commands that provide guidance or perform actions, clearly distinguish:
+- What the command does automatically
+- What guidance the command provides
+- What the user needs to do manually
+
+**Bad (ambiguous):**
+```markdown
+## After Running the Command
+
+```bash
+git status
+git add AGENTS.md 
+git commit -m "feat: update configuration"
+```
+```
+
+**Good (clear about command behavior):**
+```markdown
+## After Running the Command
+
+The command automatically:
+- Creates symlinks for all AI tools
+- Backs up conflicting files as .bak
+
+The command suggests these next steps:
+```
+✓ Complete! Next steps:
+1. Review changes: git status
+2. Stage files: git add AGENTS.md
+3. Commit: git commit -m "feat: update"
+```
+```
+
+This prevents users from thinking they need to manually run commands that the tool handles automatically.
+
+### 8. Appropriate Length for Complexity
 
 **Simple features** (e.g., single command):
 - Target: 50-100 lines
@@ -143,7 +205,7 @@ cp $(npm root -g)/claudekit/src/new-feature.md .claude/
 - Exhaustive troubleshooting for non-problems
 - Internal implementation details users don't need
 
-### 8. Troubleshooting Must Be Accurate
+### 9. Troubleshooting Must Be Accurate
 
 **Bad troubleshooting:**
 ```markdown
@@ -161,7 +223,7 @@ cp $(npm root -g)/claudekit/src/new-feature.md .claude/
 
 Always verify troubleshooting steps actually work before including them.
 
-### 9. Be Critical During Review
+### 10. Be Critical During Review
 
 Before publishing, ask:
 - Is everything in this guide actually true?
@@ -210,6 +272,9 @@ Before publishing any guide:
 - [ ] Architecture diagram if helpful
 - [ ] Concrete usage examples
 - [ ] Honest limitations section
+- [ ] Clear distinction between command actions vs user instructions
+- [ ] Consistent use of `--yes --force` flags in all claudekit setup commands
+- [ ] One-liner installation commands when possible (using `&&`)
 - [ ] Length matches complexity (concise but complete)
 - [ ] No unnecessary repetition
 - [ ] No first-person language in prompts
