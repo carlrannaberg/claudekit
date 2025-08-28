@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script automates the release preparation process with AI assistance
 # Optimized with pre-computation and smart diff filtering

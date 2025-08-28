@@ -4,7 +4,7 @@ description: Comprehensive code review specialist covering 6 focused aspects - a
 tools: Read, Grep, Glob, Bash
 displayName: Code Review Expert
 category: general
-color: indigo
+color: blue
 model: opus
 ---
 

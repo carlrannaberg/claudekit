@@ -1,8 +1,6 @@
-import { lintSubagentFile, hasFrontmatter } from '../lib/linters/subagents.js';
-import { glob } from 'glob';
+import CClint from '@carlrannaberg/cclint';
 import chalk from 'chalk';
 import * as path from 'node:path';
-import { promises as fs } from 'node:fs';
 
 interface LintSubagentsOptions {
   root?: string;
@@ -15,54 +13,52 @@ interface LintSubagentsOptions {
  */
 export async function lintSubagents(options: LintSubagentsOptions): Promise<void> {
   const root = options.root ?? process.cwd();
-  const pattern = path.join(root, '**/*.md');
 
   if (options.quiet !== true) {
     console.log(chalk.bold('\n🔍 Subagent Linter\n'));
     console.log(chalk.gray(`Directory: ${root}`));
   }
 
-  // Find all matching files
-  const files = await glob(pattern);
+  const linter = new CClint();
+  // Use lintAgents with followSymlinks option
+  const results = await linter.lintAgents(root, { followSymlinks: true });
 
-  // Filter to only files with frontmatter
-  const agentFiles: string[] = [];
-  for (const file of files) {
-    try {
-      const content = await fs.readFile(file, 'utf-8');
-      if (hasFrontmatter(content)) {
-        agentFiles.push(file);
-      }
-    } catch {
-      // Skip files that can't be read
-    }
-  }
-
-  if (agentFiles.length === 0) {
+  if (results.length === 0) {
     console.log(chalk.yellow('No subagent files found (markdown files with frontmatter)'));
     return;
   }
 
   if (options.quiet !== true) {
-    console.log(chalk.gray(`Found ${agentFiles.length} subagent files to lint\n`));
+    console.log(chalk.gray(`Found ${results.length} subagent files to lint\n`));
   }
 
+  // Process each file result
+  const allUnusedFields = new Set<string>();
   let totalErrors = 0;
   let totalWarnings = 0;
   let totalUnusedFields = 0;
-  const allUnusedFields = new Set<string>();
+  let totalSuggestions = 0;
 
-  for (const file of agentFiles) {
-    const relativePath = path.relative(root, file);
+  for (const fileResult of results) {
+    const relativePath = path.relative(root, fileResult.file);
 
-    const result = await lintSubagentFile(file);
+    // Count totals
+    totalErrors += fileResult.errors.length;
+    totalWarnings += fileResult.warnings.length;
+    totalSuggestions += fileResult.suggestions.length;
+    
+    // Handle unusedFields if it exists (may be optional in SDK)
+    // Check if unusedFields property exists on the result
+    const hasUnusedFields = 'unusedFields' in fileResult && Array.isArray((fileResult as Record<string, unknown>)['unusedFields']);
+    const unusedFields: string[] = hasUnusedFields ? (fileResult as { unusedFields: string[] }).unusedFields : [];
+    totalUnusedFields += unusedFields.length;
 
     // Skip files that were valid and had no issues
     if (
-      result.valid === true &&
-      result.warnings.length === 0 &&
-      result.unusedFields.length === 0 &&
-      result.suggestions.length === 0
+      fileResult.errors.length === 0 &&
+      fileResult.warnings.length === 0 &&
+      unusedFields.length === 0 &&
+      fileResult.suggestions.length === 0
     ) {
       if (options.quiet !== true && options.verbose === true) {
         console.log(chalk.bold(`\n${relativePath}:`));
@@ -75,42 +71,32 @@ export async function lintSubagents(options: LintSubagentsOptions): Promise<void
     console.log(chalk.bold(`\n${relativePath}:`));
 
     // Show errors
-    for (const error of result.errors) {
+    for (const error of fileResult.errors) {
       console.log(chalk.red(`  ✗ ${error}`));
-      totalErrors++;
     }
 
     // Show warnings
-    for (const warning of result.warnings) {
+    for (const warning of fileResult.warnings) {
       console.log(chalk.yellow(`  ⚠ ${warning}`));
-      totalWarnings++;
     }
 
     // Show unused fields
-    if (result.unusedFields.length > 0) {
-      console.log(chalk.yellow(`  ⚠ Unused fields: ${result.unusedFields.join(', ')}`));
-      totalUnusedFields += result.unusedFields.length;
-      result.unusedFields.forEach((field: string) => allUnusedFields.add(field));
+    if (unusedFields.length > 0) {
+      console.log(chalk.yellow(`  ⚠ Unused fields: ${unusedFields.join(', ')}`));
+      unusedFields.forEach((field: string) => allUnusedFields.add(field));
     }
 
     // Show suggestions
     if (options.quiet !== true) {
-      for (const suggestion of result.suggestions) {
+      for (const suggestion of fileResult.suggestions) {
         console.log(chalk.gray(`  💡 ${suggestion}`));
       }
     }
   }
 
-  // Count total suggestions
-  let totalSuggestions = 0;
-  for (const file of agentFiles) {
-    const result = await lintSubagentFile(file);
-    totalSuggestions += result.suggestions.length;
-  }
-
   // Summary
   console.log(chalk.bold('\n📊 Summary:\n'));
-  console.log(`  Files checked: ${agentFiles.length}`);
+  console.log(`  Files checked: ${results.length}`);
   console.log(`  Errors: ${totalErrors > 0 ? chalk.red(String(totalErrors)) : chalk.green('0')}`);
   console.log(
     `  Warnings: ${totalWarnings > 0 ? chalk.yellow(String(totalWarnings)) : chalk.green('0')}`

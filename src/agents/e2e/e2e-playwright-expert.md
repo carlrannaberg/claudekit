@@ -3,7 +3,7 @@ name: playwright-expert
 description: Expert in Playwright end-to-end testing, cross-browser automation, visual regression testing, and CI/CD integration
 category: testing
 tools: Bash, Read, Write, Edit, MultiEdit, Grep, Glob
-color: indigo
+color: blue
 displayName: Playwright Expert
 ---
 

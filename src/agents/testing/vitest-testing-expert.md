@@ -4,7 +4,7 @@ description: >-
   Vitest testing framework expert for Vite integration, Jest migration, browser
   mode testing, and performance optimization
 category: testing
-color: teal
+color: cyan
 displayName: Vitest Testing Expert
 ---
 

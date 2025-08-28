@@ -3,7 +3,7 @@ name: database-expert
 description: Use PROACTIVELY for database performance optimization, schema design issues, query performance problems, connection management, and transaction handling across PostgreSQL, MySQL, MongoDB, and SQLite with ORM integration
 category: database
 tools: Bash(psql:*), Bash(mysql:*), Bash(mongosh:*), Bash(sqlite3:*), Read, Grep, Edit
-color: violet
+color: purple
 displayName: Database Expert
 ---
 

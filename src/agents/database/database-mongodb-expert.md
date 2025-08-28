@@ -3,7 +3,7 @@ name: mongodb-expert
 description: Use PROACTIVELY for MongoDB-specific issues including document modeling, aggregation pipeline optimization, sharding strategies, replica set configuration, connection pool management, indexing strategies, and NoSQL performance patterns
 category: database
 tools: Bash(mongosh:*), Bash(mongo:*), Read, Grep, Edit
-color: goldenrod
+color: yellow
 displayName: MongoDB Expert
 ---
 

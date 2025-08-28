@@ -178,10 +178,10 @@ program
     }
   });
 
-// Lint subagents command
+// Lint agents command
 program
-  .command('lint-subagents [directory]')
-  .description('Lint subagent markdown files for frontmatter issues')
+  .command('lint-agents [directory]')
+  .description('Lint agent markdown files for frontmatter issues')
   .action(async (directory = '.claude/agents', options) => {
     try {
       const mergedOptions = { ...globalOptions, ...options, root: directory };
@@ -189,7 +189,7 @@ program
       await lintSubagents(mergedOptions);
     } catch (error) {
       logger.error(
-        `Lint subagents failed: ${error instanceof Error ? error.message : String(error)}`
+        `Lint agents failed: ${error instanceof Error ? error.message : String(error)}`
       );
       process.exit(1);
     }

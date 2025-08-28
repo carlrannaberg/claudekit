@@ -563,7 +563,7 @@ export async function checkTypeScriptPrerequisite(): Promise<PrerequisiteCheck> 
         }
 
         // Check for global TypeScript
-        const { exec } = await import('child_process');
+        const { exec } = await import('node:child_process');
         return new Promise((resolve) => {
           exec('tsc --version', (error) => {
             resolve(!error);
@@ -591,7 +591,7 @@ export async function checkESLintPrerequisite(): Promise<PrerequisiteCheck> {
         const localESLint = path.join(process.cwd(), 'node_modules', '.bin', 'eslint');
         if (!(await pathExists(localESLint))) {
           // Check global ESLint
-          const { exec } = await import('child_process');
+          const { exec } = await import('node:child_process');
           const hasGlobalESLint = await new Promise<boolean>((resolve) => {
             exec('eslint --version', (error) => {
               resolve(!error);
@@ -651,7 +651,7 @@ export async function checkGitPrerequisite(requireRepository = false): Promise<P
     installHint: 'Install Git from https://git-scm.com/',
     check: async (): Promise<boolean> => {
       try {
-        const { exec } = await import('child_process');
+        const { exec } = await import('node:child_process');
 
         // Check if git is available
         const hasGit = await new Promise<boolean>((resolve) => {

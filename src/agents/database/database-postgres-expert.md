@@ -3,7 +3,7 @@ name: postgres-expert
 description: Use PROACTIVELY for PostgreSQL query optimization, JSONB operations, advanced indexing strategies, partitioning, connection management, and database administration with deep PostgreSQL-specific expertise
 category: database
 tools: Bash(psql:*), Bash(pg_dump:*), Bash(pg_restore:*), Bash(pg_basebackup:*), Read, Grep, Edit
-color: skyblue
+color: cyan
 displayName: PostgreSQL Expert
 ---
 
