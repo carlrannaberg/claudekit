@@ -1,343 +1,217 @@
-# Spec Command Documentation
-
-The spec command suite (`/spec:create`, `/spec:validate`, `/spec:decompose`, `/spec:execute`) provides a complete specification-driven development workflow for features and bugfixes.
+# Spec-Driven Development Workflow
 
 ## Overview
 
-This command generates detailed technical specifications that serve as blueprints for implementation. It ensures thorough planning before coding begins and creates a reference document for the development process.
+The spec workflow provides a complete specification-driven development process through four integrated commands. This systematic approach ensures thorough planning, validation, decomposition, and quality-assured implementation of features and bugfixes.
 
-## Dependencies
-
-### Recommended: STM (Simple Task Master)
-For enhanced task management, install STM:
-```bash
-# Install STM globally
-npm install -g simple-task-master
-
-# Initialize in your project (creates .simple-task-master directory)
-stm init
-```
-
-**STM Benefits:**
-- **Persistent tasks** across development sessions
-- **Rich task data** with description, details, validation, and dependencies  
-- **Status tracking** with `pending`, `in-progress`, `done` states
-- **Dependency management** for coordinated parallel work
-- **Query capabilities** for filtering and searching tasks
-
-**Fallback:** Commands fall back to TodoWrite if STM is not available, but with reduced functionality.
-
-### Optional: context7 MCP Server
-For enhanced library documentation integration, install the context7 MCP server:
-- Provides `mcp__context7__resolve-library-id` and `mcp__context7__get-library-docs` tools
-- Enables automatic retrieval of up-to-date library documentation
-- Includes official code examples and best practices
-
-Installation:
-```bash
-# Step 1: Install globally using your package manager
-# npm:
-npm install -g @upstash/context7-mcp
-
-# yarn:
-yarn global add @upstash/context7-mcp
-
-# pnpm:
-pnpm add -g @upstash/context7-mcp
-
-# Step 2: Add to Claude Code
-claude mcp add context7 context7-mcp
-```
-
-Without context7, the command still works but won't automatically fetch external library documentation.
-
-## Usage
+## Installation
 
 ```bash
-# For a new feature
-/spec:create add user authentication with OAuth2
+# Install all spec commands
+claudekit setup --yes --force --commands spec:create,spec:validate,spec:decompose,spec:execute
 
-# For a bugfix (include issue number)
-/spec:create fix-123 memory leak in data processor
-
-# Validate specification completeness
-/spec:validate specs/feat-user-authentication.md
-
-# Decompose spec into actionable tasks
-/spec:decompose specs/feat-user-authentication.md
-
-# Execute specification with task management
-/spec:execute specs/feat-user-authentication.md
+# Optional: Install STM for enhanced task management
+npm install -g simple-task-master && stm init
 ```
 
-## The spec:validate Command
+## Architecture
 
-The `/spec:validate` command analyzes existing specifications to determine if they contain sufficient detail for autonomous implementation, while also identifying overengineering and non-essential complexity that should be removed or deferred.
+```
+┌─────────────────────────────────────────────┐
+│            User Request                      │
+│         "Build feature X"                    │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│         spec:create                         │
+│  • Analyzes problem space                   │
+│  • Researches codebase                      │
+│  • Generates comprehensive spec             │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│         spec:validate                       │
+│  • Checks completeness                      │
+│  • Detects overengineering                  │
+│  • Identifies gaps                          │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│         spec:decompose                      │
+│  • Creates self-contained tasks             │
+│  • Identifies dependencies                  │
+│  • Organizes implementation phases          │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│         spec:execute                        │
+│  • Launches specialist agents               │
+│  • Coordinates parallel work                │
+│  • Ensures quality & testing                │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│       Completed Implementation              │
+│  • All requirements met                     │
+│  • Tests passing                            │
+│  • Documentation updated                    │
+└─────────────────────────────────────────────┘
+```
 
-### Domain Expert Consultation
+## How It Works
 
-When analyzing specifications that involve specific technical domains, the command uses specialized subagents:
-- Automatically matches specification domains to expert knowledge for thorough validation
-- Runs `claudekit list agents` to see available specialized experts
-- Uses general-purpose approach only when no specialized expert fits
+### 1. Create Specification
 
-### What It Checks
+`/spec:create <description>` generates a comprehensive technical specification:
 
-The analysis evaluates three fundamental aspects, each with specific criteria:
+- Analyzes the problem domain
+- Searches codebase for related code
+- Researches technical approaches
+- Creates structured spec document in `specs/`
 
-1. **WHY - Intent and Purpose**
-   - Background/Problem Statement clarity
-   - Goals and Non-Goals definition
-   - User value/benefit explanation
-   - Justification vs alternatives
-   - Success criteria
+**Output**: `specs/feat-[name].md` or `specs/fix-[issue]-[description].md`
 
-2. **WHAT - Scope and Requirements**
-   - Features and functionality definition
-   - Expected deliverables
-   - API contracts and interfaces
-   - Data models and structures
-   - Integration requirements (external systems, authentication, protocols)
-   - Performance and security requirements
+### 2. Validate Specification
 
-3. **HOW - Implementation Details**
-   - Architecture and design patterns
-   - Implementation phases/roadmap
-   - Technical approach (core logic, algorithms, execution flow)
-   - Error handling (failure modes, recovery behavior, edge cases)
-   - Platform considerations (compatibility, dependencies)
-   - Resource management (performance constraints, limits, cleanup)
-   - Testing strategy (meaningful tests, edge coverage, project philosophy)
-   - Deployment considerations
+`/spec:validate <spec-file>` analyzes specifications for:
+
+- **Completeness**: All required sections present
+- **Clarity**: Unambiguous requirements
+- **Overengineering**: YAGNI principle enforcement
+- **Implementability**: Can actually be built
+
+**Output**: Validation report with gaps and recommendations
+
+### 3. Decompose into Tasks
+
+`/spec:decompose <spec-file>` transforms specs into actionable tasks:
+
+- Creates self-contained implementation units
+- Identifies task dependencies
+- Organizes into logical phases
+- Integrates with STM for persistence
+
+**Output**: Task list with full implementation details
+
+### 4. Execute Implementation
+
+`/spec:execute <spec-file>` orchestrates the actual building:
+
+- Launches appropriate specialist agents per task
+- Coordinates parallel development
+- Ensures testing and quality standards
+- Tracks progress through completion
+
+**Output**: Implemented feature with tests and documentation
+
+## Usage Examples
+
+### New Feature Development
+
+```bash
+# 1. Create specification
+/spec:create Add OAuth2 authentication with Google and GitHub
+
+# 2. Validate it's ready
+/spec:validate specs/feat-oauth2-authentication.md
+
+# 3. Break down into tasks
+/spec:decompose specs/feat-oauth2-authentication.md
+
+# 4. Execute implementation
+/spec:execute specs/feat-oauth2-authentication.md
+```
+
+### Bugfix Workflow
+
+```bash
+# Create spec for bug #123
+/spec:create fix-123 Memory leak in data processor
+
+# Validate and execute
+/spec:validate specs/fix-123-memory-leak.md
+/spec:execute specs/fix-123-memory-leak.md
+```
+
+## Key Design Decisions
+
+### Problem-First Approach
+Validates the actual problem before suggesting solutions, preventing "solutions looking for problems".
 
 ### Overengineering Detection
-
-A key feature of the command is aggressive overengineering detection using:
-
-**Core Value Alignment Analysis**
-- Does this feature solve a real, immediate problem?
-- Is it being used frequently enough to justify complexity?
-- Would a simpler solution work for 80% of use cases?
-
-**YAGNI Principle (You Aren't Gonna Need It)**
-- If unsure whether it's needed → Cut it
-- If it's for "future flexibility" → Cut it
-- If only 20% of users need it → Cut it
-- If it adds any complexity → Question it, probably cut it
-
-**Common Overengineering Patterns Detected:**
-1. **Premature Optimization** - Caching, performance optimizations without benchmarks
-2. **Feature Creep** - "Nice to have" features, unlikely edge cases
-3. **Over-abstraction** - Generic solutions for specific problems
-4. **Infrastructure Overhead** - Complex builds for simple tools
-5. **Testing Extremism** - 100% coverage requirements, mocking everything
-
-### Output Format
-
-The analysis provides:
-- **Summary**: Overall readiness assessment (Ready/Not Ready)
-- **Critical Gaps**: Must-fix issues blocking implementation
-- **Missing Details**: Specific areas needing clarification
-- **Risk Areas**: Potential implementation challenges
-- **Overengineering Analysis**: 
-  - Non-core features that should be removed entirely
-  - Complexity that doesn't align with usage patterns
-  - Suggested simplifications or complete removal
-- **Features to Cut**: Specific items to remove from the spec
-- **Essential Scope**: Absolute minimum needed to solve the core problem
-- **Recommendations**: Next steps to improve the spec
-
-### Example Analysis
-
-When analyzing a specification, the validator might identify patterns like:
-- **Unnecessary Caching**: "Cache user preferences with Redis" → Use localStorage for MVP
-- **Premature Edge Cases**: "Handle 10,000+ concurrent connections" → Expected usage is <100 users
-- **Over-abstracted Architecture**: "Plugin system for custom validators" → Only 3 validators needed, implement directly
-- **Feature Creep**: "Support 5 export formats" → 95% of users only need JSON, cut the rest
-
-## The spec:decompose Command
-
-Transforms specifications into implementation-ready tasks:
+Aggressively applies YAGNI (You Aren't Gonna Need It) principle to keep scope minimal and focused.
 
 ### Self-Contained Tasks
-- **No references**: Each task contains complete implementation details, not summaries
-- **Copy, don't link**: Full code examples and requirements included directly
-- **Ready to implement**: Developers can work from tasks without consulting the original spec
+Each decomposed task contains complete implementation details, enabling parallel work without context switching.
 
-### Smart Task Management
-- **STM Integration**: Uses Simple Task Master for persistent, rich task tracking
-- **Dependency tracking**: Identifies which tasks can run in parallel
-- **Quality validation**: Ensures tasks are complete and actionable
+### Quality Assurance Built-In
+Every component gets reviewed and tested before being marked complete - no shortcuts allowed.
 
-### Organized Implementation
-- **Foundation first**: Core infrastructure tasks identified and prioritized
-- **Vertical slices**: Complete features with all layers (database + API + frontend + tests)
-- **Clear phases**: Logical grouping for coordinated development
+### Specialist Agent Integration
+Automatically matches tasks to domain experts for optimal implementation quality.
 
-## The spec:execute Command
+## Specification Structure
 
-Orchestrates complete implementation with built-in quality assurance:
-
-### Quality-First Implementation
-- **Mandatory reviews**: Every component gets reviewed for both completeness and quality
-- **No shortcuts**: Tasks aren't marked complete until all requirements are fully implemented
-- **Built-in testing**: Comprehensive test coverage is part of every task
-- **Atomic commits**: Each feature is committed as a complete, working unit
-
-### Intelligent Orchestration
-- **Specialist matching**: Automatically launches the right expert agents for each task
-- **Parallel execution**: Coordinates multiple agents working on non-conflicting components
-- **Progress tracking**: Real-time visibility into implementation progress
-- **Error recovery**: Handles issues and blocks gracefully with appropriate specialists
-
-### Complete Implementation Assurance
-- **Nothing forgotten**: Systematic approach ensures no requirements are missed
-- **Quality standards**: All code meets project standards before being marked complete
-- **Test coverage**: >80% test coverage target with meaningful, failure-capable tests
-- **Documentation sync**: Keeps documentation updated as components are completed
-
-## The spec:create Command
-
-Creates comprehensive specifications that are immediately implementable:
-
-### Smart Problem Validation
-- **Prevents wrong solutions**: Validates the core problem before suggesting solutions
-- **Avoids assumptions**: Questions user needs and technical constraints upfront
-- **Finds simpler alternatives**: Explores if the problem can be solved without building anything
-
-### Intelligent Research
-- **Automatic codebase analysis**: Finds existing similar features and potential conflicts
-- **Domain expertise**: Uses specialized subagents for technical research
-- **Library integration**: Fetches up-to-date documentation when using external libraries
-
-### Quality Assurance
-- **Built-in validation**: Only creates specs that are actually implementable
-- **Comprehensive coverage**: Ensures all critical sections are meaningfully filled
-- **End-to-end thinking**: Maps complete system impact and user journeys
-
-## What spec:create Creates
-
-The command creates a comprehensive markdown file in the `specs/` folder with:
-
-### File Naming Convention
-- Features: `feat-{kebab-case-name}.md`
-- Bugfixes: `fix-{issue-number}-{brief-description}.md`
-
-### Document Structure
-
-1. **Title** - Clear, descriptive title
-2. **Status** - Draft/Under Review/Approved/Implemented
-3. **Authors** - Author name and date
-4. **Overview** - Brief description and purpose
-5. **Background/Problem Statement** - Why this is needed
-6. **Goals** - What to achieve
-7. **Non-Goals** - What's out of scope
-8. **Technical Dependencies** - Libraries, frameworks, versions
-9. **Detailed Design** - Architecture, implementation approach
-10. **User Experience** - How users interact with the feature
-11. **Testing Strategy** - Unit, integration, E2E tests
-12. **Performance Considerations** - Impact and mitigation
-13. **Security Considerations** - Security implications
-14. **Documentation** - What docs need updating
-15. **Implementation Phases** - MVP, enhanced features, polish
-16. **Open Questions** - Unresolved decisions
-17. **References** - Related issues, PRs, docs
-
-## Features
-
-### External Library Integration
-
-When your feature uses external libraries, the command:
-- Searches for the library using context7 MCP server tools
-- Retrieves up-to-date documentation
-- Includes accurate code examples
-- References best practices
-
-**Note**: This feature requires the context7 MCP server to be configured in your Claude Code settings. If not available, the command will still generate specs but without automatic library documentation retrieval.
-
-### Codebase Analysis
-
-Before writing the spec, it:
-- Searches for related existing features
-- Identifies similar patterns
-- Checks for potential conflicts
-- Verifies current library versions
-
-### Comprehensive Coverage
-
-The spec addresses:
-- Edge cases and error scenarios
-- Performance implications
-- Security considerations
-- Testing strategies
-- Documentation needs
-
-## Best Practices
-
-1. **Be Specific** - Include concrete details about implementation
-2. **Consider Edge Cases** - Think about error scenarios
-3. **Reference Patterns** - Use existing project conventions
-4. **Include Examples** - Add code snippets where helpful
-5. **Plan Phases** - Break complex features into phases
-
-## Example Spec
+Generated specifications follow this structure:
 
 ```markdown
-# Add User Authentication with OAuth2
+# [Title]
 
-**Status**: Draft
-**Authors**: Claude, 2024-01-15
+**Status**: Draft/Approved/Implemented
+**Authors**: [Name], [Date]
 
 ## Overview
-Implement OAuth2-based authentication to allow users to sign in with Google and GitHub...
+Brief description and purpose
+
+## Background/Problem Statement
+Why this is needed
 
 ## Goals
-- Enable OAuth2 authentication
-- Support Google and GitHub providers
-- Secure session management
-...
+What to achieve
+
+## Non-Goals  
+What's explicitly out of scope
+
+## Technical Design
+Architecture and implementation approach
+
+## Testing Strategy
+How to verify it works
+
+## Implementation Phases
+1. MVP - Core functionality
+2. Enhanced - Additional features
+3. Polish - Optimizations
 ```
 
-## When to Use
+## STM Integration
 
-Use `/spec:create` when:
-- Starting a new feature
-- Planning a complex bugfix
-- Need stakeholder review before implementation
-- Want to document architectural decisions
-- Working with external libraries/APIs
+When Simple Task Master is installed, the workflow gains:
 
-## Complete Development Workflow
+- **Persistent tasks** across development sessions
+- **Dependency tracking** for parallel coordination  
+- **Rich metadata** including validation criteria
+- **Query capabilities** for task filtering
 
-### Smart Planning
-```bash
-# Plan with problem validation and overengineering detection
-/spec:create "your feature description"
-/spec:validate specs/your-spec.md
-```
+Without STM, commands fall back to TodoWrite with reduced functionality.
 
-**What you get:**
-- **Right problems solved**: First principles analysis prevents building the wrong thing
-- **Lean specifications**: Aggressive overengineering detection cuts unnecessary complexity
-- **Implementable specs**: Quality gates ensure specs are actually buildable
+## Limitations
 
-### Quality Implementation  
-```bash
-# Transform into self-contained tasks and execute with quality assurance
-/spec:decompose specs/your-spec.md
-/spec:execute specs/your-spec.md
-```
+- Requires disciplined adherence to spec-first approach
+- STM provides best experience but is optional
+- Quality gates may feel slow but prevent technical debt
+- Not suitable for trivial changes
 
-**What you get:**
-- **Nothing forgotten**: Every requirement gets implemented and reviewed
-- **Parallel development**: Clear task dependencies enable concurrent work
-- **Quality assured**: Built-in reviews and testing for every component
-- **Persistent progress**: Work continues across development sessions
+## Benefits
 
-### Key Benefits
+The spec-driven workflow ensures:
 
-- **Prevents overengineering**: YAGNI principles built into the validation process
-- **Ensures completeness**: Mandatory reviews catch incomplete implementations  
-- **Enables parallelization**: Smart task breakdown allows concurrent development
-- **Maintains quality**: Every component is tested and reviewed before completion
-- **Provides visibility**: Clear progress tracking and audit trail throughout development
+1. **Right thing built** - Problem validation prevents wrong solutions
+2. **Minimal scope** - Overengineering detection keeps things simple
+3. **Complete implementation** - Nothing forgotten or half-done
+4. **Quality assured** - Testing and review built into process
+5. **Parallel development** - Clear dependencies enable concurrent work
+
+## Architecture Note
+
+This workflow embodies best practices from formal software engineering processes, adapted for AI-assisted development. The key insight is that thorough planning and validation before implementation reduces rework and ensures quality outcomes.

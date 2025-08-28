@@ -10,7 +10,6 @@ Claudekit's git workflow commands provide intelligent, safe, and convention-awar
 - **Intelligent insights** - Enhanced status with actionable recommendations
 - **Clean setup** - Initialize proper .gitignore for Claude Code projects
 - **Convention-aware** - Respects and follows existing project patterns
-- **AI-optimized** - Commands designed for Claude's workflow
 
 ## Quick Start
 
@@ -527,11 +526,11 @@ The `/git:checkout` command uses intelligent base selection:
 
 Claudekit's git workflow commands provide:
 
-✅ **Smart branch management** - `/git:checkout` with conventional naming  
-✅ **Intelligent commits** - `/git:commit` follows project conventions  
-✅ **Safe push operations** - `/git:push` with pre-flight checks  
-✅ **Enhanced status** - `/git:status` with actionable insights  
-✅ **Clean .gitignore** - `/git:ignore-init` for Claude Code projects  
+✅ **Smart branch management** - `/git:checkout` with conventional naming
+✅ **Intelligent commits** - `/git:commit` follows project conventions
+✅ **Safe push operations** - `/git:push` with pre-flight checks
+✅ **Enhanced status** - `/git:status` with actionable insights
+✅ **Clean .gitignore** - `/git:ignore-init` for Claude Code projects
 
 These commands work together to create a seamless, safe, and intelligent git workflow optimized for AI-assisted development with Claude Code.
 
