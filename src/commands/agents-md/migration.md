@@ -1,6 +1,6 @@
 ---
 description: Migrate AI assistant configuration to AGENTS.md standard with universal compatibility
-category: ai-assistant
+category: claude-setup
 allowed-tools: Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Bash(grep:*), Bash(echo:*), Read
 ---
 

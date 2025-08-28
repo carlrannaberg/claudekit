@@ -48,7 +48,7 @@ export const ComponentCategorySchema = z.enum([
   'validation',
   'development',
   'testing',
-  'ai-assistant',
+  'claude-setup',
   'workflow',
   'project-management',
   'debugging',

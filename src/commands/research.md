@@ -2,7 +2,7 @@
 description: Deep research with parallel subagents and automatic citations
 argument-hint: "<question to investigate>"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
-category: ai-assistant
+category: workflow
 model: opus
 ---
 

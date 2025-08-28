@@ -1,6 +1,6 @@
 ---
 description: Create a specialized AI subagent following domain expert principles
-category: ai-assistant
+category: claude-setup
 allowed-tools: Write, Bash(mkdir:*), Read
 ---
 

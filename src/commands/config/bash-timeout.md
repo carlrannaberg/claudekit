@@ -1,6 +1,6 @@
 ---
 description: Configure bash timeout values in Claude Code settings
-category: ai-assistant
+category: claude-setup
 allowed-tools: Read, Edit, Write
 argument-hint: "<duration> [scope]"
 ---

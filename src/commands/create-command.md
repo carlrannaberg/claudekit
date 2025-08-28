@@ -1,6 +1,6 @@
 ---
 description: Create a new Claude Code slash command with full feature support
-category: ai-assistant
+category: claude-setup
 allowed-tools: Write, Read, Bash(mkdir:*)
 argument-hint: "[command-name] [description]"
 ---

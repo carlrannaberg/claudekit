@@ -128,7 +128,7 @@ describe('Component Recommendation Engine', () => {
             id: 'agent-init',
             name: 'Agent Init',
             description: 'Initialize AI assistant configuration',
-            category: 'ai-assistant' as const,
+            category: 'claude-setup' as const,
             dependencies: [],
             platforms: ['all'] as Platform[],
             enabled: true,
@@ -289,7 +289,7 @@ describe('Component Recommendation Engine', () => {
       expect(result.optional.some((r) => r.component.metadata.category === 'development')).toBe(
         true
       );
-      expect(result.optional.some((r) => r.component.metadata.category === 'ai-assistant')).toBe(
+      expect(result.optional.some((r) => r.component.metadata.category === 'claude-setup')).toBe(
         true
       );
     });
@@ -322,10 +322,10 @@ describe('Component Recommendation Engine', () => {
       };
 
       const result = await recommendComponents(projectInfo, mockRegistry, {
-        excludeCategories: ['ai-assistant', 'development'],
+        excludeCategories: ['claude-setup', 'development'],
       });
 
-      expect(result.optional.some((r) => r.component.metadata.category === 'ai-assistant')).toBe(
+      expect(result.optional.some((r) => r.component.metadata.category === 'claude-setup')).toBe(
         false
       );
       expect(result.optional.some((r) => r.component.metadata.category === 'development')).toBe(

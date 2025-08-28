@@ -142,7 +142,7 @@ argument-hint: Expected arguments (e.g., "<feature-name>")
 model: sonnet  # Optional: opus, sonnet, haiku, or specific model
 
 # Claudekit extension (optional):
-category: workflow  # Optional: workflow, ai-assistant, validation
+category: workflow  # Optional: workflow, claude-setup, validation
 ---
 ```
 
@@ -171,7 +171,7 @@ allowed-tools: Read, Write, Bash(npm:*, git:*), Task
 
 ### Claudekit Extensions
 
-- **category**: Optional organization field (`workflow`, `ai-assistant`, `validation`)
+- **category**: Optional organization field (`workflow`, `claude-setup`, `validation`)
 
 ## Using Specialized Subagents in Commands
 
@@ -183,7 +183,7 @@ For commands that involve domain-specific work, leverage specialized subagents f
 ---
 description: Complex task with domain expertise needed
 allowed-tools: Task, Read, Bash
-category: ai-assistant
+category: claude-setup
 ---
 
 ## Task Analysis
@@ -325,7 +325,7 @@ model: sonnet  # Options: opus, sonnet, haiku, or specific model string
 
 # === CLAUDEKIT EXTENSIONS ===
 # Optional - Organizational category for command grouping
-category: workflow  # Options: workflow, ai-assistant, validation
+category: workflow  # Options: workflow, claude-setup, validation
 ---
 
 # Command Title
@@ -386,7 +386,7 @@ Based on the above information, [specific task directive].
 
 | Field | Required | Type | Description |
 |-------|----------|------|-------------|
-| `category` | No | String | Organization category: `workflow`, `ai-assistant`, `validation` |
+| `category` | No | String | Organization category: `workflow`, `claude-setup`, `validation` |
 
 ### Security Patterns for allowed-tools
 

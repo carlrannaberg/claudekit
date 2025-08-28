@@ -25,7 +25,7 @@ export type ComponentCategory =
   | 'validation'
   | 'development'
   | 'testing'
-  | 'ai-assistant'
+  | 'claude-setup'
   | 'workflow'
   | 'project-management'
   | 'debugging'

@@ -1,6 +1,6 @@
 ---
 description: Initialize project with AGENTS.md and create symlinks for all AI assistants
-category: ai-assistant
+category: claude-setup
 allowed-tools: Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Bash(echo:*), Read, Glob, Task
 ---
 

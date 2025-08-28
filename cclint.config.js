@@ -44,7 +44,7 @@ export default {
       category: z
         .enum([
           'workflow',
-          'ai-assistant',
+          'claude-setup',
           'validation',
           'testing', // Added for claudekit test commands
           'development', // Added for dev tools

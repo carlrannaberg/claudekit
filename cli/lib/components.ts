@@ -437,7 +437,7 @@ function inferCategory(
       'validation',
       'development',
       'testing',
-      'ai-assistant',
+      'claude-setup',
       'workflow',
       'project-management',
       'debugging',
@@ -465,7 +465,7 @@ function inferCategory(
     return 'git';
   }
   if (pathSegments.includes('agent')) {
-    return 'ai-assistant';
+    return 'claude-setup';
   }
   if (pathSegments.includes('dev') || pathSegments.includes('cleanup')) {
     return 'development';
@@ -491,7 +491,7 @@ function inferCategory(
     return 'testing';
   }
   if (contentLower.includes('claude') || contentLower.includes('agent')) {
-    return 'ai-assistant';
+    return 'claude-setup';
   }
   if (contentLower.includes('todo') || contentLower.includes('task')) {
     return 'project-management';
@@ -1672,8 +1672,8 @@ function calculateRecommendationScore(component: ComponentFile, projectInfo: Pro
     score += RECOMMENDATION_WEIGHTS.optional;
   }
 
-  // AI assistant tools are optional but useful
-  if (component.metadata.category === 'ai-assistant') {
+  // Claude setup tools are optional but useful
+  if (component.metadata.category === 'claude-setup') {
     score += RECOMMENDATION_WEIGHTS.optional;
   }
 
@@ -1758,8 +1758,8 @@ function generateRecommendationReasons(
       reasons.push('Development workflow enhancement');
     } else if (component.metadata.category === 'project-management') {
       reasons.push('Project organization and tracking');
-    } else if (component.metadata.category === 'ai-assistant') {
-      reasons.push('AI-powered development assistance');
+    } else if (component.metadata.category === 'claude-setup') {
+      reasons.push('Claude Code configuration and setup');
     } else {
       reasons.push('General development utility');
     }

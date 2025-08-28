@@ -1,6 +1,6 @@
 ---
 description: Initialize .gitignore with Claude Code specific patterns
-allowed-tools: Read, Edit, Write
+allowed-tools: Read, Edit, Write, Bash(echo:*), Bash(cat:*), Bash(test:*)
 category: workflow
 ---
 
