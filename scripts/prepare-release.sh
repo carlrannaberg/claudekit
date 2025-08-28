@@ -226,6 +226,26 @@ run_tests() {
         exit 1
     fi
 
+    # Run claudekit linting checks
+    print_info "Running claudekit linting checks..."
+    
+    # Run cclint with JSON output and check for errors
+    CCLINT_OUTPUT=$(npx @carlrannaberg/cclint --format json 2>&1 || true)
+    CCLINT_EXIT_CODE=$?
+    
+    if [ $CCLINT_EXIT_CODE -ne 0 ]; then
+        print_error "claudekit linting failed. Please fix all linting errors before preparing a release."
+        # Parse JSON output to show errors in a readable format
+        if echo "$CCLINT_OUTPUT" | jq -e '.errors > 0' >/dev/null 2>&1; then
+            echo "$CCLINT_OUTPUT" | jq -r '.results[] | select(.errors > 0) | "\(.filePath): \(.messages[].message)"'
+        else
+            echo "$CCLINT_OUTPUT"
+        fi
+        exit 1
+    fi
+    
+    print_info "All claudekit linting checks passed."
+
     # Check all markdown links in documentation
     print_info "Checking markdown links in documentation..."
     

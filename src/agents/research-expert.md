@@ -3,7 +3,7 @@ name: research-expert
 description: Specialized research expert for parallel information gathering. Use for focused research tasks with clear objectives and structured output requirements.
 tools: WebSearch, WebFetch, Read, Write, Edit, Grep, Glob
 model: sonnet
-category: ai-assistant
+category: general
 color: purple
 displayName: Research Expert
 ---
