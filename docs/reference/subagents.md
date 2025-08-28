@@ -178,4 +178,4 @@ Each agent markdown file includes:
 
 ## Contributing
 
-See [Creating Subagents Guide](../guides/creating-subagents.md) for detailed instructions on creating custom agents.
+See [Creating Subagents Guide](../internals/creating-subagents.md) for detailed instructions on creating custom agents.

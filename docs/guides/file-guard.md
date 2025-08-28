@@ -241,4 +241,3 @@ If legitimate files are blocked, add exceptions:
 
 - [Sensitive Patterns Source](../../cli/hooks/sensitive-patterns.ts) - Complete default pattern list
 - [Hook Configuration](../reference/hooks.md) - Advanced hook setup
-- [Security Best Practices](../security/README.md) - Comprehensive security guidelines

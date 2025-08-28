@@ -223,4 +223,4 @@ Potential improvements for even better package manager support:
 
 - [Hooks Documentation](../reference/hooks.md) - Embedded hooks guide
 - [Commands Reference](../reference/commands.md) - Available commands
-- [Creating Subagents](../guides/creating-subagents.md) - Creating custom AI agents
+- [Creating Subagents](creating-subagents.md) - Creating custom AI agents

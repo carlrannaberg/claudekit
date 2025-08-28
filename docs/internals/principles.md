@@ -4,8 +4,8 @@
 
 - [Official Subagents Documentation](../official/subagents.md) - Claude Code's subagent system and configuration
 - [Official Commands Documentation](../official/commands.md) - Claude Code's slash command features
-- [Prompting Guide](../guides/prompting-guide.md) - Template patterns and implementation details
-- [Creating Subagents Guide](../guides/creating-subagents.md) - Research-driven development methodology
+- [Prompting Guide](prompting-guide.md) - Template patterns and implementation details
+- [Creating Subagents Guide](creating-subagents.md) - Research-driven development methodology
 
 ## Core Principle: Domain Experts Over Task Specialists
 

@@ -503,4 +503,4 @@ If you encounter issues:
 
 - [Hooks Documentation](../reference/hooks.md) - Detailed hook implementation guide
 - [Commands Reference](../reference/commands.md) - Available commands
-- [Creating Subagents](../guides/creating-subagents.md) - Creating custom AI agents
+- [Creating Subagents](creating-subagents.md) - Creating custom AI agents

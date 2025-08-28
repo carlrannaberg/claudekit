@@ -279,6 +279,6 @@ claudekit list hooks | grep codebase-map-update
 
 ## Learn More
 
-- [Codebase Map CLI Documentation](https://github.com/claudetools/codebase-map) - Full CLI reference
+- [Codebase Map CLI Documentation](https://github.com/carlrannaberg/codebase-map) - Full CLI reference
 - [Hook Configuration](../reference/hooks.md) - Advanced hook setup
 - [Project Organization Guide](project-organization.md) - Structuring projects for better mapping
