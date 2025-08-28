@@ -98,8 +98,10 @@ tsconfig.tsbuildinfo
 # MCP
 .mcp.json
 
-# Claude settings
+# Claude Code local files
+CLAUDE.local.md
 .claude/settings.local.json
+.mcp.local.json
 
 logs
 dev-debug.log

@@ -224,6 +224,336 @@ test_ssh_key_protection() {
     else
         assert_fail "Should block SSH keys, got: $output"
     fi
+    
+    # Test SSH keys outside .ssh directory
+    echo "-----BEGIN RSA PRIVATE KEY-----" > id_rsa
+    output=$(run_file_guard "Read" "id_rsa" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "SSH key outside .ssh directory blocked"
+    else
+        assert_fail "Should block id_rsa* anywhere, got: $output"
+    fi
+    
+    # Test PuTTY keys
+    echo "PuTTY-Private-Key" > test.ppk
+    output=$(run_file_guard "Read" "test.ppk" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "PuTTY private key blocked"
+    else
+        assert_fail "Should block .ppk files, got: $output"
+    fi
+}
+
+test_cloud_credentials_protection() {
+    # Purpose: Test protection of cloud provider credentials
+    # This ensures AWS, Azure, GCP, Docker, and Kubernetes configs are protected
+    
+    # Test AWS credentials
+    mkdir -p .aws && echo "aws_access_key_id = XXX" > .aws/credentials
+    local output=$(run_file_guard "Read" ".aws/credentials" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "AWS credentials blocked"
+    else
+        assert_fail "Should block AWS credentials, got: $output"
+    fi
+    
+    # Test Azure configs
+    mkdir -p .azure && echo "client_secret = XXX" > .azure/config
+    output=$(run_file_guard "Read" ".azure/config" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Azure configuration blocked"
+    else
+        assert_fail "Should block Azure configs, got: $output"
+    fi
+    
+    # Test GCP credentials
+    mkdir -p .gcloud && echo "private_key = XXX" > .gcloud/key.json
+    output=$(run_file_guard "Read" ".gcloud/key.json" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "GCP credentials blocked"
+    else
+        assert_fail "Should block GCP credentials, got: $output"
+    fi
+    
+    # Test Kubernetes config
+    mkdir -p .kube && echo "token: XXX" > .kube/config
+    output=$(run_file_guard "Read" ".kube/config" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Kubernetes config blocked"
+    else
+        assert_fail "Should block Kubernetes config, got: $output"
+    fi
+    
+    # Test Docker config
+    mkdir -p .docker && echo '{"auths": {}}' > .docker/config.json
+    output=$(run_file_guard "Read" ".docker/config.json" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Docker config blocked"
+    else
+        assert_fail "Should block Docker config, got: $output"
+    fi
+}
+
+test_package_manager_protection() {
+    # Purpose: Test protection of package manager credentials
+    # This ensures npm, pip, cargo, and gem credentials are protected
+    
+    # Test npm config
+    echo "//registry.npmjs.org/:_authToken=XXX" > .npmrc
+    local output=$(run_file_guard "Read" ".npmrc" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "npm credentials blocked"
+    else
+        assert_fail "Should block .npmrc, got: $output"
+    fi
+    
+    # Test PyPI config
+    echo "[pypi]\npassword = XXX" > .pypirc
+    output=$(run_file_guard "Read" ".pypirc" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "PyPI credentials blocked"
+    else
+        assert_fail "Should block .pypirc, got: $output"
+    fi
+    
+    # Test Cargo credentials
+    mkdir -p .cargo && echo "token = XXX" > .cargo/credentials
+    output=$(run_file_guard "Read" ".cargo/credentials" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Cargo credentials blocked"
+    else
+        assert_fail "Should block cargo credentials, got: $output"
+    fi
+}
+
+test_auth_files_protection() {
+    # Purpose: Test protection of authentication files
+    # This ensures .netrc, .authinfo, and similar files are protected
+    
+    # Test .netrc
+    echo "machine api.example.com login user password XXX" > .netrc
+    local output=$(run_file_guard "Read" ".netrc" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass ".netrc file blocked"
+    else
+        assert_fail "Should block .netrc, got: $output"
+    fi
+    
+    # Test .authinfo
+    echo "machine example.com login user password XXX" > .authinfo
+    output=$(run_file_guard "Read" ".authinfo" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass ".authinfo file blocked"
+    else
+        assert_fail "Should block .authinfo, got: $output"
+    fi
+}
+
+test_crypto_files_protection() {
+    # Purpose: Test protection of cryptographic files
+    # This ensures GPG keys and other crypto materials are protected
+    
+    # Test GPG directory
+    mkdir -p .gnupg && echo "secret key" > .gnupg/secring.gpg
+    local output=$(run_file_guard "Read" ".gnupg/secring.gpg" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "GPG directory blocked"
+    else
+        assert_fail "Should block .gnupg directory, got: $output"
+    fi
+    
+    # Test GPG files
+    echo "-----BEGIN PGP PRIVATE KEY BLOCK-----" > private.gpg
+    output=$(run_file_guard "Read" "private.gpg" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "GPG file blocked"
+    else
+        assert_fail "Should block .gpg files, got: $output"
+    fi
+    
+    # Test certificates
+    echo "-----BEGIN CERTIFICATE-----" > cert.crt
+    output=$(run_file_guard "Read" "cert.crt" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Certificate file blocked"
+    else
+        assert_fail "Should block .crt files, got: $output"
+    fi
+}
+
+test_database_credentials_protection() {
+    # Purpose: Test protection of database credential files
+    # This ensures database passwords and configs are protected
+    
+    # Test PostgreSQL password file
+    echo "localhost:5432:*:user:password" > .pgpass
+    local output=$(run_file_guard "Read" ".pgpass" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "PostgreSQL password file blocked"
+    else
+        assert_fail "Should block .pgpass, got: $output"
+    fi
+    
+    # Test MySQL config
+    echo "[client]\npassword = XXX" > .my.cnf
+    output=$(run_file_guard "Read" ".my.cnf" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "MySQL config blocked"
+    else
+        assert_fail "Should block .my.cnf, got: $output"
+    fi
+    
+    # Test database history files
+    echo "SELECT * FROM users;" > .mysql_history
+    output=$(run_file_guard "Read" ".mysql_history" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "MySQL history blocked"
+    else
+        assert_fail "Should block .mysql_history, got: $output"
+    fi
+}
+
+test_token_and_secrets_protection() {
+    # Purpose: Test protection of token and secret files with specific patterns
+    # This ensures tokens and secrets are protected while avoiding false positives
+    
+    # Test specific token files
+    echo "auth_token_value" > api_token.txt
+    local output=$(run_file_guard "Read" "api_token.txt" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Token text file blocked"
+    else
+        assert_fail "Should block *_token.txt files, got: $output"
+    fi
+    
+    # Test token.* pattern
+    echo '{"token": "XXX"}' > token.json
+    output=$(run_file_guard "Read" "token.json" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "token.json blocked"
+    else
+        assert_fail "Should block token.* files, got: $output"
+    fi
+    
+    # Test secrets.* pattern
+    echo "api_key: XXX" > secrets.yaml
+    output=$(run_file_guard "Read" "secrets.yaml" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "secrets.yaml blocked"
+    else
+        assert_fail "Should block secrets.* files, got: $output"
+    fi
+    
+    # Test that code files with _token in name are NOT blocked (false positive fix)
+    echo "const auth_token = 'test';" > auth_token.js
+    output=$(run_file_guard "Read" "auth_token.js" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "allow"; then
+        assert_pass "Code file with _token in name correctly allowed"
+    else
+        assert_fail "Should allow auth_token.js (not matching *_token.txt pattern), got: $output"
+    fi
+}
+
+test_wallet_protection() {
+    # Purpose: Test protection of cryptocurrency wallets
+    # This ensures wallet files are protected
+    
+    # Test Bitcoin wallet
+    echo "wallet_data" > wallet.dat
+    local output=$(run_file_guard "Read" "wallet.dat" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Bitcoin wallet blocked"
+    else
+        assert_fail "Should block wallet.dat, got: $output"
+    fi
+    
+    # Test Ethereum wallet
+    echo '{"crypto": {}}' > wallet.json
+    output=$(run_file_guard "Read" "wallet.json" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Ethereum wallet blocked"
+    else
+        assert_fail "Should block wallet.json, got: $output"
+    fi
+    
+    # Test generic wallet files
+    echo "wallet_content" > mykeys.wallet
+    output=$(run_file_guard "Read" "mykeys.wallet" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "Generic wallet file blocked"
+    else
+        assert_fail "Should block *.wallet files, got: $output"
+    fi
+}
+
+test_production_database_protection() {
+    # Purpose: Test protection of production databases with specific patterns
+    # This ensures production DBs are protected while allowing test DBs
+    
+    # Test production.db
+    echo "SQLite format 3" > production.db
+    local output=$(run_file_guard "Read" "production.db" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "production.db blocked"
+    else
+        assert_fail "Should block production.db, got: $output"
+    fi
+    
+    # Test prod prefixed databases
+    mkdir -p data && echo "data" > data/prod_users.db
+    output=$(run_file_guard "Read" "data/prod_users.db" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "prod prefixed database blocked"
+    else
+        assert_fail "Should block prod*.db files, got: $output"
+    fi
+    
+    # Test SQLite3 format
+    echo "SQLite format 3" > data.sqlite3
+    output=$(run_file_guard "Read" "data.sqlite3" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "deny"; then
+        assert_pass "SQLite3 database blocked"
+    else
+        assert_fail "Should block *.sqlite3 files, got: $output"
+    fi
+    
+    # Test that test.db is allowed (not matching production patterns)
+    echo "test data" > test.db
+    output=$(run_file_guard "Read" "test.db" 2>/dev/null || true)
+    
+    if check_permission_decision "$output" "allow"; then
+        assert_pass "Test database correctly allowed"
+    else
+        assert_fail "Should allow test.db (not production), got: $output"
+    fi
 }
 
 ################################################################################

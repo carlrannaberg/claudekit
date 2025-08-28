@@ -700,6 +700,43 @@ AGENTS.md should remain focused on guidance for AI assistants, not become a log 
 Documentation for CLI tools used in this project.
 
 
+### markdown-link-check - Validate links in markdown files
+
+```
+Usage: npx --yes markdown-link-check [options] <files>
+
+Validates all hyperlinks in markdown files to ensure they are accessible.
+
+Options:
+  --config <file>     Configuration file path (.markdown-link-check.json)
+  --quiet             Display errors only
+  --verbose           Display detailed HTTP information
+  --retry             Retry broken links (useful for rate-limited servers)
+  --progress          Show progress bar
+  
+Examples:
+  # Check all documentation files
+  npx --yes markdown-link-check README.md CHANGELOG.md docs/**/*.md
+  
+  # Check with custom config
+  npx --yes markdown-link-check --config .markdown-link-check.json docs/**/*.md
+  
+  # Check specific file with verbose output
+  npx --yes markdown-link-check --verbose README.md
+```
+
+**Common usage in this project:**
+```bash
+# Validate all documentation links
+npx --yes markdown-link-check --config .markdown-link-check.json README.md CHANGELOG.md CONTRIBUTING.md docs/**/*.md
+```
+
+**Features:**
+- Validates both internal relative links and external URLs
+- Supports glob patterns for checking multiple files
+- Can be configured to ignore specific patterns or domains
+- Returns non-zero exit code if broken links are found (useful in CI)
+
 ### stm - A simple command-line task management tool
 
 ```

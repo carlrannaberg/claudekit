@@ -3,23 +3,10 @@ import type { HookContext, HookResult } from './base.js';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import picomatch from 'picomatch';
+import { DEFAULT_PATTERNS } from './sensitive-patterns.js';
 
-// Default patterns for essential sensitive files
-const DEFAULT_PATTERNS = [
-  // Environment files
-  '.env',
-  '.env.*',
-  
-  // Keys and certificates  
-  '*.pem',
-  '*.key',
-  
-  // Cloud credentials
-  '.aws/credentials',
-  
-  // SSH keys
-  '.ssh/*',
-];
+// Re-export for backward compatibility
+export { DEFAULT_PATTERNS } from './sensitive-patterns.js';
 
 export class FileGuardHook extends BaseHook {
   name = 'file-guard';

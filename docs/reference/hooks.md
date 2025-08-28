@@ -378,7 +378,7 @@ These hooks run before file access operations:
 
 #### file-guard
 
-**Purpose:** Protects sensitive files like .env, API keys, and credentials from being accessed by AI assistants.
+**Purpose:** Protects sensitive files like .env, API keys, and credentials from being accessed by AI assistants. See [`cli/hooks/sensitive-patterns.ts`](../../cli/hooks/sensitive-patterns.ts) for default protection patterns.
 
 **Triggers on:** Read, Edit, MultiEdit, Write tools
 
@@ -403,8 +403,12 @@ These hooks run before file access operations:
 **Default Patterns** (when no ignore files exist):
 - `.env`, `.env.*` - Environment files
 - `*.pem`, `*.key` - Keys and certificates
-- `.aws/credentials` - Cloud credentials
-- `.ssh/*` - SSH keys
+- `.aws/credentials`, `.azure/**`, `.gcloud/**` - Cloud credentials
+- `.ssh/**`, `**/id_rsa*`, `**/id_ed25519*` - SSH keys
+- `.npmrc`, `.pypirc` - Package manager credentials
+- And many more...
+
+See [`cli/hooks/sensitive-patterns.ts`](../../cli/hooks/sensitive-patterns.ts) for the complete list of default patterns organized by category.
 
 **Example .agentignore:**
 ```

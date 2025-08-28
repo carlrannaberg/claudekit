@@ -247,6 +247,24 @@ azure-credentials.json
 *.db
 ```
 
+## Default Protection Patterns
+
+When no project-specific ignore files (`.agentignore`, `.aiignore`, etc.) are found, claudekit applies comprehensive default protection patterns to safeguard sensitive files. These defaults cover:
+
+- **Environment files** - `.env`, `.env.*`
+- **SSH & cryptographic keys** - `*.key`, `*.pem`, `.ssh/**`, `id_rsa*`, `id_ed25519*`
+- **Cloud credentials** - `.aws/**`, `.azure/**`, `.gcloud/**`, `.kube/**`, `.docker/config.json`
+- **Package manager configs** - `.npmrc`, `.pypirc`, `.cargo/credentials`
+- **Authentication files** - `.netrc`, `.authinfo`, `.git-credentials`
+- **Database credentials** - `.pgpass`, `.my.cnf`, database history files
+- **Tokens & secrets** - `*.token`, `token.*`, `secrets.*`, specific token file patterns
+- **Wallets** - `wallet.dat`, `wallet.json`, `*.wallet`
+- **Production databases** - `production.db`, `prod*.db`, `*.sqlite3`
+
+For the complete list of default patterns organized by category, see [`cli/hooks/sensitive-patterns.ts`](../../cli/hooks/sensitive-patterns.ts).
+
+**Important**: These default patterns are automatically applied when no ignore files exist in your project. Once you create any supported ignore file (e.g., `.agentignore`), only the patterns in those files will be used.
+
 ## Essential Protection Patterns
 
 ### Environment Variables
