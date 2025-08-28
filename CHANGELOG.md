@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.5] - 2025-08-28
+
+### Changed
+- **Linting Architecture**: Refactored internal linting system to use external SDK for better maintainability
+  - Replaced internal command linting implementation with `@carlrannaberg/cclint` SDK (v0.2.7)
+  - Replaced internal agent linting implementation with `@carlrannaberg/cclint` SDK
+  - Removed 720+ lines of internal linting code (`cli/lib/linters/commands.ts`, `cli/lib/linters/subagents.ts`)
+  - Updated `lint-commands` and `lint-subagents` (now `lint-agents`) commands to use SDK-based approach
+  - Enhanced linting with `followSymlinks: true` option for better symlink handling
+  - Improved error counting and statistics reporting through SDK integration
+- **Command Naming**: Renamed `lint-subagents` command to `lint-agents` for consistency with current terminology
+- **Node.js Import Standards**: Fixed validation utilities to use `node:` prefix for built-in modules (child_process)
+
+### Removed
+- **Internal Linting Code**: Removed internal command and agent linting implementations in favor of external SDK
+  - Deleted `cli/lib/linters/commands.ts` (266 lines) - functionality moved to `@carlrannaberg/cclint`
+  - Deleted `cli/lib/linters/subagents.ts` (454 lines) - functionality moved to `@carlrannaberg/cclint`
+  - Deleted associated test files (`tests/lib/linters/subagents.test.ts`)
+  - Reduced codebase complexity while maintaining all linting functionality
+
+### Fixed
+- **Shebang Standardization**: Updated `scripts/prepare-release.sh` to use standard `#!/usr/bin/env bash` shebang
+
 ## [0.8.4] - 2025-08-27
 
 ### Fixed
