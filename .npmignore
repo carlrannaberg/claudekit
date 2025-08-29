@@ -1,0 +1,110 @@
+# Package includes by default:
+# - dist/ (compiled JavaScript and TypeScript definitions)
+# - bin/ (CLI executables)
+# - src/agents/ (agent markdown files, excluding test artifacts)
+# - src/commands/ (command markdown files, excluding test artifacts)
+# - README.md, LICENSE, CHANGELOG.md (documentation)
+
+# Test files and directories
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+**/test-*.md
+**/test-*.js
+**/test-*.ts
+tests/
+test/
+__tests__/
+
+# Temporary directories anywhere
+**/tmp/
+**/tmp-*/
+**/temp/
+**/temp-*/
+
+# Test artifacts in src directories
+src/**/test-*
+src/**/*-test.*
+
+# Development files
+.claude/
+examples/
+scripts/
+docs/
+.github/
+.vscode/
+*.log
+.env*
+.DS_Store
+
+# Config files
+vitest.config.ts
+tsconfig.json
+.eslintrc.json
+.prettierrc
+.markdown-link-check.json
+tsconfig.build.json
+
+# TypeScript source files (if we want to exclude them)
+# Note: Currently keeping TypeScript sources for debugging
+# cli/**/*.ts
+# !cli/**/*.d.ts
+
+# Package manager lock files (debatable - some projects include these)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Build configuration
+build.config.ts
+cclint.config.js
+
+# Build artifacts that shouldn't be published
+*.map
+coverage/
+.nyc_output/
+
+# Other development artifacts
+.eslintcache
+*.tsbuildinfo
+.codebasemap
+.mcp.json
+.mcp.local.json
+CLAUDE.local.md
+.simple-task-master/
+tasks.json
+tasks/
+
+# Temporary/debug files
+debug-*.js
+debug-*.ts
+analyze-*.js
+analyze-*.ts
+research-*.js
+research-*.ts
+*-debug.*
+*.debug
+quick-test.*
+experiment-*.*
+prototype-*.*
+
+# Temporary documentation
+*_SUMMARY.md
+*_REPORT.md
+*_CHECKLIST.md
+*_COMPLETE.md
+*_GUIDE.md
+*_ANALYSIS.md
+*-analysis.md
+verify-*.md
+
+# Git files
+.gitignore
+.gitattributes
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/

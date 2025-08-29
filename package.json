@@ -19,12 +19,6 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "bin",
-    "src",
-    "README.md"
-  ],
   "scripts": {
     "build": "npm run clean && npm run build:main && npm run build:hooks && npm run build:esm && npm run build:types",
     "validate:deps": "node scripts/validate-dependencies.js",
