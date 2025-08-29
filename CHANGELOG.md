@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2025-08-29
+
+### Fixed
+- **Build System**: Fixed broken symlink causing CI failures
+  - Removed broken `.claude/commands/tmp` symlink that was pointing to deleted test directory
+  - Resolves build and deployment pipeline failures
+- **Documentation**: Fixed thinking-level hook configuration examples
+  - Removed non-existent `enabled` flag from all configuration examples in documentation
+  - Changed "superthink" to "ultrathink" to match actual implementation
+  - Added level 0 documentation for properly disabling the hook
+  - Updated all configuration examples to reflect actual schema and available options
+
 ## [0.8.7] - 2025-08-29
 
 ### Fixed
