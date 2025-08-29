@@ -67,25 +67,26 @@ Configure in `.claudekit/config.json`:
 {
   "hooks": {
     "thinking-level": {
-      "level": 2,
-      "enabled": true
+      "level": 2
     }
   }
 }
 ```
 
 **Available Levels:**
+- **Level 0**: Disabled (no thinking prompt added)
 - **Level 1** (`"think"`): Basic step-by-step reasoning
 - **Level 2** (`"megathink"`): Balanced depth and performance (default)
-- **Level 3** (`"superthink"`): Maximum reasoning depth
+- **Level 3** (`"ultrathink"`): Maximum reasoning depth
 
 ### Level Comparison
 
 | Level | Prompt | Reasoning Depth | Performance Impact |
 |-------|--------|----------------|-------------------|
+| 0 | (none) | None | None |
 | 1 | `"think"` | Basic | Minimal |
 | 2 | `"megathink"` | Moderate | ~2.5x tokens |  
-| 3 | `"superthink"` | Maximum | ~8x tokens |
+| 3 | `"ultrathink"` | Maximum | ~8x tokens |
 
 **Recommendation**: Level 2 provides the best balance of improved reasoning with reasonable performance.
 
@@ -106,8 +107,7 @@ claudekit setup --yes --force --hooks thinking-level
 echo '{
   "hooks": {
     "thinking-level": {
-      "level": 3,
-      "enabled": true
+      "level": 3
     }
   }
 }' > .claudekit/config.json
@@ -115,12 +115,11 @@ echo '{
 
 ### Temporary Disable
 ```bash
-# Disable without removing hook
+# Disable without removing hook (level 0 = disabled)
 echo '{
   "hooks": {
     "thinking-level": {
-      "level": 2,
-      "enabled": false
+      "level": 0
     }
   }
 }' > .claudekit/config.json
@@ -167,8 +166,7 @@ If responses are too slow, reduce thinking level:
 {
   "hooks": {
     "thinking-level": {
-      "level": 1,
-      "enabled": true  
+      "level": 1
     }
   }
 }
@@ -180,8 +178,7 @@ Disable temporarily to test if hook is causing issues:
 {
   "hooks": {
     "thinking-level": {
-      "level": 2,
-      "enabled": false
+      "level": 0
     }
   }
 }
