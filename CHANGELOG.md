@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2025-08-29
+
+### Fixed
+- **NPM Package**: Fixed test files being included in published npm package
+  - Removed explicit `files` array from package.json that was including test directories
+  - Added comprehensive .npmignore file with 110+ exclusion patterns
+  - Ensures only production code (dist/, bin/, src/, README.md) is published to npm
+  - Significantly reduces package size by excluding development and test artifacts
+
 ## [0.8.6] - 2025-08-29
 
 ### Added
