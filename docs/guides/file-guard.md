@@ -32,12 +32,14 @@ This will:
 ```
 ┌─────────────────────────────────────────────┐
 │          File Access Request               │
-│    Read, Edit, Write, MultiEdit            │
+│   Read, Edit, Write, MultiEdit, Bash       │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
 │         file-guard Hook (PreToolUse)       │
-│  • Checks file path against patterns       │
+│  • Checks file paths against patterns      │
+│  • Parses Bash commands for file access    │
+│  • Handles shell variable expansion        │
 │  • Loads .agentignore or uses defaults     │
 │  • Returns permit/deny decision            │
 └─────────────────────────────────────────────┘
@@ -54,6 +56,31 @@ This will:
 1. **Project .agentignore** - Custom patterns for your project
 2. **Global .aiignore** - Patterns for all projects
 3. **Default patterns** - Built-in protection for common sensitive files
+
+### Bash Command Protection
+
+File-guard analyzes Bash commands for file access patterns, including:
+
+**Direct file access:**
+```bash
+cat .env                    # ❌ Blocked
+head -5 config/secrets.yml  # ❌ Blocked
+```
+
+**Variable-based bypass attempts:**
+```bash
+FILE=.env; cat $FILE                    # ❌ Blocked
+FILENAME=".env" && cat "$FILENAME"      # ❌ Blocked
+E="env"; cat ".$E"                      # ❌ Blocked
+```
+
+**Legitimate files allowed:**
+```bash
+FILE=README.md; cat $FILE               # ✅ Allowed
+head package.json                       # ✅ Allowed
+```
+
+The hook parses shell variable assignments and expansions to prevent sophisticated bypass attempts while allowing normal file operations.
 
 ## Configuration
 
@@ -216,7 +243,7 @@ If legitimate files are blocked, add exceptions:
 
 ### Why PreToolUse Hook?
 - **Prevention over reaction** - Blocks access before it happens
-- **Universal coverage** - Works with Read, Edit, Write, MultiEdit tools
+- **Universal coverage** - Works with Read, Edit, Write, MultiEdit, and Bash tools
 - **Transparent operation** - Clear feedback when files are blocked
 
 ### Why .agentignore Format?
@@ -231,8 +258,9 @@ If legitimate files are blocked, add exceptions:
 
 ## Limitations
 
-- **Pattern-based only** - Can't detect sensitive content in arbitrary files
+- **Pattern-based protection** - Can't detect sensitive content in arbitrary files
 - **Path matching** - Doesn't scan file contents for secrets
+- **Complex shell constructs** - Advanced bash features may bypass detection
 - **Project-scoped** - Each project needs separate .agentignore configuration
 - **No encryption** - Blocked files remain on disk, just not accessible to AI
 - **Claude Code only** - Protection only applies when using claudekit hooks
