@@ -228,7 +228,7 @@ run_tests() {
 
     # Run bash hook tests (for local validation before release)
     print_info "Running bash hook tests for release validation..."
-    if ! npm run test:bash; then
+    if ! ./tests/run-tests.sh --silent --no-integration; then
         print_error "Bash hook tests are failing. Please fix the failing tests before preparing a release."
         exit 1
     fi
