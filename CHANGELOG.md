@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.10] - 2025-08-31
+
+### Fixed
+- **File-Guard Security**: Improved git command recognition in bash command parser
+  - Fixed false positives where legitimate git revision syntax (e.g., `@{u}..HEAD`, `origin/main..HEAD`, `HEAD~5..HEAD`) was incorrectly flagged as file access
+  - Added `isGitRevisionSyntax()` method to properly detect and skip git revision patterns in command analysis
+  - Enhanced pattern matching to distinguish between git refs and actual file paths
+  - Improved security analysis accuracy while maintaining protection against actual file access attempts
+
 ## [0.8.9] - 2025-08-31
 
 ### Changed
