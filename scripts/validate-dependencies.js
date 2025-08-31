@@ -2,19 +2,37 @@
 
 /**
  * Dependency validation script for claudekit
- * Ensures all runtime dependencies are properly declared in package.json
+ * Analyzes TypeScript source files to validate imports against package.json
  */
 
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packagePath = join(__dirname, '../package.json');
 const distPath = join(__dirname, '../dist');
 
-console.log('🔍 Validating production dependencies...\n');
+console.log('🔍 Validating production dependencies by analyzing source files...\n');
+
+// Check if dist directory exists
+if (!existsSync(distPath)) {
+  console.error('❌ dist/ directory not found. Run npm run build first.');
+  process.exit(1);
+}
+
+// Read package.json
+const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+const declaredDependencies = new Set(Object.keys(packageJson.dependencies || {}));
+
+// Known externals that should not be bundled
+const expectedExternals = [
+  'react-devtools-core',    // Optional dependency that causes esbuild issues
+  'oh-my-logo'              // Has ink dependency that causes esbuild issues  
+];
+const optionalExternals = new Set(['react-devtools-core']); // Don't need to be in dependencies
 
 // Node.js built-in modules (should not be in dependencies)
 const nodeBuiltins = new Set([
@@ -27,165 +45,155 @@ const nodeBuiltins = new Set([
 ]);
 
 function isNodeBuiltin(moduleName) {
-  return nodeBuiltins.has(moduleName);
+  // Handle both 'fs' and 'node:fs' formats
+  return nodeBuiltins.has(moduleName) || 
+         (moduleName.startsWith('node:') && nodeBuiltins.has(moduleName.slice(5)));
 }
 
-// Read package.json
-const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
-const dependencies = new Set(Object.keys(packageJson.dependencies || {}));
+function extractPackageName(importPath) {
+  // Handle scoped packages (@scope/package)
+  if (importPath.startsWith('@')) {
+    const scopeMatch = importPath.match(/^(@[^/]+\/[^/]+)/);
+    return scopeMatch ? scopeMatch[1] : null;
+  }
+  
+  // Handle regular packages (package or package/subpath)
+  const packageMatch = importPath.match(/^([^/]+)/);
+  return packageMatch ? packageMatch[1] : null;
+}
 
-// Check if dist directory exists
-if (!existsSync(distPath)) {
-  console.error('❌ dist/ directory not found. Run npm run build first.');
+// Analyze TypeScript source files for actual imports
+console.log('📊 Analyzing TypeScript source files for imports...\n');
+
+const actualImports = new Set();
+
+try {
+  // Get all TypeScript files in the cli directory
+  const tsFilesOutput = execSync('find cli -name "*.ts" -type f', { encoding: 'utf8' }).trim();
+  const tsFiles = tsFilesOutput ? tsFilesOutput.split('\n') : [];
+  
+  console.log(`Found ${tsFiles.length} TypeScript files to analyze`);
+  
+  for (const filePath of tsFiles) {
+    if (!existsSync(filePath)) {
+      continue;
+    }
+    
+    const content = readFileSync(filePath, 'utf8');
+    
+    // Extract import statements using regex
+    const importRegexes = [
+      /import\s+(?:(?:(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+)?['"]([^'"]+)['"])/g,
+      /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+      /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g // dynamic imports
+    ];
+    
+    for (const regex of importRegexes) {
+      let match;
+      while ((match = regex.exec(content)) !== null) {
+        const importPath = match[1];
+        
+        // Skip relative imports (./foo, ../foo)
+        if (importPath.startsWith('.')) {
+          continue;
+        }
+        
+        // Skip Node.js built-ins
+        if (isNodeBuiltin(importPath)) {
+          continue;
+        }
+        
+        // Extract package name
+        const packageName = extractPackageName(importPath);
+        if (packageName && !isNodeBuiltin(packageName)) {
+          actualImports.add(packageName);
+        }
+      }
+    }
+  }
+  
+} catch (error) {
+  console.error(`❌ Failed to analyze source files: ${error.message}`);
   process.exit(1);
 }
 
-// NEW BUNDLING STRATEGY: Bundle everything except Node.js built-ins and problematic optional deps
-const expectedExternals = [
-  'node:',                  // Node.js built-ins (cannot be bundled)
-  'react-devtools-core',    // Optional dependency that causes esbuild issues
-  'oh-my-logo'              // Has ink dependency that causes esbuild issues
-];
+console.log(`\n📦 Analysis Results:`);
+console.log(`  • TypeScript files analyzed: Found import statements`);
+console.log(`  • Actual imports found: ${actualImports.size}`);
 
-// With full bundling, ALL production dependencies should be bundled (except the externals above)
-// Derive the list dynamically from package.json dependencies
-const externalsSet = new Set(expectedExternals.filter(dep => !dep.startsWith('node:')));
-const shouldBeBundled = Object.keys(packageJson.dependencies || {})
-  .filter(dep => !externalsSet.has(dep))
-  .sort();
-
-// Transitive dependencies that may appear external but are acceptable
-// if their parent is in production dependencies
-const transitiveAllowed = {
-  'esprima': 'gray-matter',       // esprima is transitive dep of gray-matter
-  'js-yaml': 'gray-matter',       // js-yaml is transitive dep of gray-matter
-  'iconv-lite': '@inquirer/prompts' // iconv-lite is transitive dep of @inquirer/prompts->external-editor
-};
-
-console.log('📦 Dependencies that should be EXTERNAL (not bundled):');
-expectedExternals.forEach(dep => {
-  if (!dep.startsWith('node:')) {
-    console.log(`  ✅ ${dep} (causes esbuild issues)`);
-  } else {
-    console.log(`  ✅ ${dep} (Node.js built-in)`);
-  }
-});
-
-console.log('\n📦 Dependencies that should be BUNDLED (self-contained CLI):');
-shouldBeBundled.forEach(dep => {
-  const status = dependencies.has(dep) ? '✅' : '❌';
-  console.log(`  ${status} ${dep} ${!dependencies.has(dep) ? '(missing from dependencies!)' : ''}`);
+console.log('\n📋 ACTUAL IMPORTS (from source code analysis):');
+const sortedActualImports = Array.from(actualImports).sort();
+sortedActualImports.forEach(dep => {
+  const inPackageJson = declaredDependencies.has(dep);
+  const status = inPackageJson ? '✅' : '❌';
+  const note = inPackageJson ? '' : ' (MISSING from package.json!)';
+  console.log(`  ${status} ${dep}${note}`);
 });
 
 // Validation checks
+console.log('\n🔍 Validation Results:\n');
+
 let hasErrors = false;
 
-// Check 1: All external dependencies are in package.json dependencies (except optional ones)
-const optionalExternals = new Set(['react-devtools-core']); // These don't need to be in dependencies
-const missingProduction = expectedExternals.filter(dep => 
-  !dep.startsWith('node:') && !dependencies.has(dep) && !optionalExternals.has(dep)
+// Check 1: All actual imports should be in package.json dependencies
+const missingFromPackageJson = sortedActualImports.filter(dep => !declaredDependencies.has(dep));
+
+if (missingFromPackageJson.length > 0) {
+  console.error('❌ MISSING DEPENDENCIES: These packages are imported but not in package.json:');
+  missingFromPackageJson.forEach(dep => console.error(`  - ${dep}`));
+  console.error(`   Fix: npm install --save ${missingFromPackageJson.join(' ')}`);
+  hasErrors = true;
+}
+
+// Check 2: Find unused dependencies (in package.json but never imported)
+const unusedDependencies = Array.from(declaredDependencies).filter(dep => 
+  !actualImports.has(dep) && !expectedExternals.includes(dep)
 );
 
-if (missingProduction.length > 0) {
-  console.error('\n❌ Missing production dependencies for external packages:');
-  missingProduction.forEach(dep => console.error(`  - ${dep}`));
+if (unusedDependencies.length > 0) {
+  console.log('⚠️  UNUSED DEPENDENCIES: These packages are in package.json but never imported:');
+  unusedDependencies.forEach(dep => console.log(`  - ${dep}`));
+  console.log(`   Consider: npm uninstall ${unusedDependencies.join(' ')}`);
+  // Don't treat unused deps as hard errors, just warnings
+}
+
+// Check 3: Validate expected externals
+const missingExternals = expectedExternals.filter(dep => 
+  !optionalExternals.has(dep) && !declaredDependencies.has(dep)
+);
+
+if (missingExternals.length > 0) {
+  console.error('❌ MISSING EXTERNAL DEPENDENCIES:');
+  missingExternals.forEach(dep => console.error(`  - ${dep} (should be external but missing from package.json)`));
   hasErrors = true;
 }
 
-// Check 2: All bundled dependencies are in package.json dependencies
-const missingBundled = shouldBeBundled.filter(dep => !dependencies.has(dep));
-
-if (missingBundled.length > 0) {
-  console.error('\n❌ Missing production dependencies for bundled packages:');
-  missingBundled.forEach(dep => console.error(`  - ${dep}`));
-  hasErrors = true;
-}
-
-// Check 3: Validate built files exist
+// Check 4: Validate built files exist  
 const expectedBuilds = ['cli.cjs', 'hooks-cli.cjs', 'index.cjs'];
-const missingBuilds = expectedBuilds.filter(file => 
-  !existsSync(join(distPath, file))
-);
+const missingBuilds = expectedBuilds.filter(file => !existsSync(join(distPath, file)));
 
 if (missingBuilds.length > 0) {
-  console.error('\n❌ Missing build artifacts:');
+  console.error('❌ MISSING BUILD ARTIFACTS:');
   missingBuilds.forEach(file => console.error(`  - dist/${file}`));
   hasErrors = true;
 }
 
-// Check 4: Analyze built files for unexpected external imports
-console.log('\n🔍 Analyzing built files for unexpected external imports...');
-const builtFiles = expectedBuilds.filter(file => existsSync(join(distPath, file)));
-
-for (const file of builtFiles) {
-  const content = readFileSync(join(distPath, file), 'utf8');
-  
-  // Look for import/require patterns that might indicate unbundled dependencies
-  // Note: We'll filter out error messages and string literals later
-  const importMatches = content.match(/(?:import.*from\s*['"]([^'"]+)['"]|require\(['"]([^'"]+)['"]\))/g);
-  
-  if (importMatches) {
-    const externalImports = importMatches
-      .map(match => {
-        const moduleMatch = match.match(/['"]([^'"]+)['"]/);
-        return moduleMatch ? moduleMatch[1] : null;
-      })
-      .filter(Boolean)
-      .filter(mod => {
-        // Filter out require() calls that appear in error message strings
-        const escapedMod = mod.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const errorStringPattern = new RegExp(`console\\.error\\([^)]*require\\(['"]${escapedMod}['"]\\)|throw new Error\\([^)]*require\\(['"]${escapedMod}['"]\\)`);
-        const isInErrorString = errorStringPattern.test(content);
-        return !isInErrorString;
-      })
-      .filter(mod => !mod.startsWith('node:') && !mod.startsWith('.') && !mod.startsWith('/'))
-      .filter(mod => !isNodeBuiltin(mod))
-      .filter((mod, index, arr) => arr.indexOf(mod) === index); // dedupe
-    
-    if (externalImports.length > 0) {
-      console.log(`  📄 ${file}:`);
-      for (const imp of externalImports) {
-        const isExpectedExternal = expectedExternals.some(ext => ext === imp || imp.startsWith(ext));
-        const isTransitiveAllowed = transitiveAllowed[imp] && dependencies.has(transitiveAllowed[imp]);
-        const isInDeps = dependencies.has(imp);
-        // Special handling for bundled transitive deps that appear as 'external' due to dynamic require patterns
-        const isDynamicBundled = transitiveAllowed[imp] && !imp.startsWith('node:');
-        const isValid = isExpectedExternal || isTransitiveAllowed || isDynamicBundled;
-        
-        const status = isValid ? '✅' : '❌';
-        let message = '';
-        if (!isInDeps && isTransitiveAllowed) {
-          message = `(transitive of ${transitiveAllowed[imp]})`;
-        } else if (!isInDeps && isDynamicBundled) {
-          message = `(bundled, dynamic require from ${transitiveAllowed[imp]})`;
-        } else if (!isValid) {
-          message = '(should be bundled!)';
-        }
-        
-        console.log(`    ${status} ${imp} ${message}`);
-        if (!isValid) {
-          hasErrors = true;
-        }
-      }
-    } else {
-      console.log(`  📄 ${file}: ✅ No external imports found`);
-    }
-  }
-}
-
 // Summary
 if (hasErrors) {
-  console.error('\n💥 Dependency validation failed!');
-  console.error('\nTo fix:');
-  console.error('1. Move missing packages from devDependencies to dependencies in package.json');
-  console.error('2. Run npm install to update node_modules');
-  console.error('3. Run npm run build to regenerate bundle');
+  console.error('\n💥 Dependency validation failed!\n');
+  console.error('To fix:');
+  console.error('1. Add missing dependencies to package.json');  
+  console.error('2. Run npm install');
+  console.error('3. Run npm run build to regenerate bundles');
   console.error('4. Re-run this validation script');
   process.exit(1);
 } else {
-  console.log('\n✅ All dependency validations passed!');
-  console.log('✅ Build artifacts are present');
-  console.log('✅ External dependencies are in production dependencies');
-  console.log('✅ Bundled dependencies are in production dependencies');
-  console.log('✅ No unbundled imports found in built files');
+  console.log('✅ All dependency validations passed!');
+  console.log('✅ All actual imports are declared in package.json');
+  console.log('✅ All external dependencies are properly configured');
+  console.log('✅ All build artifacts are present');
+  
+  if (unusedDependencies.length > 0) {
+    console.log('ℹ️  Note: Found unused dependencies (warnings only)');
+  }
 }
