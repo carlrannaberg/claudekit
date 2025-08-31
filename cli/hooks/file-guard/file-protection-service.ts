@@ -2,16 +2,9 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import ignore from 'ignore';
 import { DEFAULT_PATTERNS } from '../sensitive-patterns.js';
+import { globToRegExp } from './utils.js';
 
 type IgnoreEngine = { add: (patterns: string[]) => void; ignores: (path: string) => boolean };
-
-// Fallback implementations for optional functionality
-const globToRegExp = (glob: string, options?: Record<string, unknown>): RegExp => {
-  // Simple fallback implementation
-  const flags = (options?.['flags'] as string) || '';
-  const escaped = glob.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
-  return new RegExp(escaped, flags);
-};
 
 // Project boundary check
 const isInside = (p: string, root: string): boolean => {

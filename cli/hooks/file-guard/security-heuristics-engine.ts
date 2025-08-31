@@ -1,10 +1,4 @@
-// Fallback implementations for optional functionality
-const globToRegExp = (glob: string, options?: Record<string, unknown>): RegExp => {
-  // Simple fallback implementation
-  const flags = (options?.['flags'] as string) || '';
-  const escaped = glob.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
-  return new RegExp(escaped, flags);
-};
+import { globToRegExp } from './utils.js';
 
 export class SecurityHeuristicsEngine {
   // Pre-compile sensitive patterns at class level for zero-cost access

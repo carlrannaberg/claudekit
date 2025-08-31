@@ -1,13 +1,6 @@
 import * as path from 'node:path';
 import fastGlob from 'fast-glob';
-
-const untildify = (str: string): string => {
-  if (str.startsWith('~')) {
-    const home = process.env['HOME'];
-    return (home !== null && home !== undefined && home !== '') ? path.join(home, str.slice(1)) : str;
-  }
-  return str;
-};
+import { untildify } from './utils.js';
 
 type Tok = { text: string; quote: 'none' | 'single' | 'double' };
 
