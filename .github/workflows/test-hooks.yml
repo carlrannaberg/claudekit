@@ -14,28 +14,24 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
     - name: Install dependencies
       run: |
+        npm install
         sudo apt-get update
         sudo apt-get install -y jq
-        
-    - name: Setup test environment
-      run: |
-        chmod +x tests/run-tests.sh
-        chmod +x tests/unit/*.sh
-        chmod +x tests/integration/*.sh || true
     
     - name: Run unit tests
-      run: |
-        cd tests
-        ./run-tests.sh --no-integration
+      run: npm test
       continue-on-error: true
     
     - name: Run all tests with verbose output
-      run: |
-        cd tests
-        ./run-tests.sh --verbose
+      run: npm run test:verbose
     
     - name: Upload test results
       if: always()
@@ -53,28 +49,24 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
     
     - name: Install dependencies
       run: |
+        npm install
         # jq is usually pre-installed on macOS runners
         which jq || brew install jq
-        
-    - name: Setup test environment
-      run: |
-        chmod +x tests/run-tests.sh
-        chmod +x tests/unit/*.sh
-        chmod +x tests/integration/*.sh || true
     
     - name: Run unit tests
-      run: |
-        cd tests
-        ./run-tests.sh --no-integration
+      run: npm test
       continue-on-error: true
     
     - name: Run all tests
-      run: |
-        cd tests
-        ./run-tests.sh
+      run: npm run test:verbose
     
     - name: Upload test results
       if: always()
