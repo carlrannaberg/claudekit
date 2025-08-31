@@ -106,16 +106,30 @@ Include diagrams when they clarify complex flows:
 
 ### 6. Installation Instructions
 
+**REQUIRED: Include both claudekit installation AND feature setup:**
+
+All feature guides must include both commands because:
+- New users need claudekit installed globally first
+- Existing users need the specific feature/hook configured in their project
+- One-liner format ensures proper execution order and prevents missed steps
+
 **Good:**
 ```bash
-# Single command with consistent flags
-claudekit setup --yes --force --commands feature --agents helper
+# Single command that handles both requirements
+npm install -g claudekit && claudekit setup --yes --force --hooks feature
 ```
 
 **Bad:**
 ```bash
+# Missing claudekit installation step
+claudekit setup --yes --force --hooks feature
+
 # Don't reference files that don't exist in npm package
 cp $(npm root -g)/claudekit/src/new-feature.md .claude/
+
+# Requires multiple copy-paste operations
+npm install -g claudekit
+claudekit setup --yes --force --hooks feature
 ```
 
 #### Installation Command Consistency
@@ -124,14 +138,10 @@ cp $(npm root -g)/claudekit/src/new-feature.md .claude/
 - `--yes` skips interactive prompts (enables copy-paste)
 - `--force` overwrites existing config without asking (prevents failures)
 
-**Use one-liners when possible:**
+**Always include both steps in one command:**
 ```bash
-# Good - single copyable command
-npm install -g claudekit && claudekit setup --yes --force --hooks feature
-
-# Bad - requires multiple copy-paste operations
-npm install -g claudekit
-claudekit setup --yes --force --hooks feature
+# Template for all feature installation instructions
+npm install -g claudekit && claudekit setup --yes --force --hooks FEATURE_NAME
 ```
 
 **Troubleshooting commands should also be consistent:**
