@@ -53,7 +53,7 @@ const shouldBeBundled = [
   'chalk',              // Color utilities
   'commander',          // CLI framework
   'fs-extra',           // Enhanced filesystem operations
-  'glob',               // File globbing
+  'fast-glob',          // File globbing
   'gray-matter',        // YAML frontmatter parser
   'ora',                // Progress spinners
   'picocolors',         // Minimal color library
