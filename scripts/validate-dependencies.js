@@ -48,18 +48,11 @@ const expectedExternals = [
 ];
 
 // With full bundling, ALL production dependencies should be bundled (except the externals above)
-const shouldBeBundled = [
-  '@inquirer/prompts',  // Interactive CLI prompts
-  'chalk',              // Color utilities
-  'commander',          // CLI framework
-  'fs-extra',           // Enhanced filesystem operations
-  'fast-glob',          // File globbing
-  'gray-matter',        // YAML frontmatter parser
-  'ora',                // Progress spinners
-  'picocolors',         // Minimal color library
-  'picomatch',          // Pattern matching
-  'zod'                 // Schema validation
-];
+// Derive the list dynamically from package.json dependencies
+const externalsSet = new Set(expectedExternals.filter(dep => !dep.startsWith('node:')));
+const shouldBeBundled = Object.keys(packageJson.dependencies || {})
+  .filter(dep => !externalsSet.has(dep))
+  .sort();
 
 // Transitive dependencies that may appear external but are acceptable
 // if their parent is in production dependencies
