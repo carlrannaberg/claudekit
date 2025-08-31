@@ -79,6 +79,11 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 [Spec workflow guide →](docs/guides/spec-workflow.md)
 
 ### 🛡️ Real-time Error Prevention
+- **🔒 Advanced Bash Security Analysis**: Comprehensive protection against sensitive file access via shell commands
+  - **Intelligent Command Parsing**: Analyzes complex bash pipelines, variable assignments, and shell constructs
+  - **Pattern Detection**: Identifies sensitive file access via `xargs`, `find`, pipes, and command substitution
+  - **Path Extraction**: Safely processes globs, variables, and @file references in curl/httpie uploads
+  - **Security Heuristics**: Detects risky patterns like `find -name '*.env' | xargs cat` before execution
 - **🔒 Enhanced Sensitive File Protection**: Comprehensive security with 195+ patterns across 12 categories including cloud credentials, cryptocurrencies, databases, tokens, and production data
 - **Multi-category Protection**: Environment files, SSH keys, cloud provider credentials (AWS/Azure/GCP), package manager auth, crypto wallets, production databases
 - **TypeScript Guard**: Blocks `any` types and type errors as Claude edits
@@ -339,6 +344,10 @@ Or manually create a `.agentignore` file:
 The `file-guard` hook supports multiple ignore file formats (`.agentignore`, `.aiignore`, `.cursorignore`, `.geminiignore`, `.codeiumignore`, `.aiexclude`) and merges patterns from all of them - a unique feature that provides comprehensive protection regardless of which AI tools your team uses.
 
 **Key features:**
+- **Advanced Bash Command Analysis**: Parses complex shell commands to detect sensitive file access patterns
+- **Pipeline Security**: Detects risky constructs like `find -name '*.env' | xargs cat` and `echo '.env' | xargs cat`
+- **Variable Expansion**: Safely handles bash variables, command substitution, and parameter expansion
+- **Upload Protection**: Blocks file uploads via curl, httpie, scp, rsync, and cloud CLI tools (aws, gcloud, az)
 - Merges patterns from ALL ignore files (unlike other tools)
 - Supports gitignore-style syntax including negation (!)
 - Resolves symlinks to prevent bypasses

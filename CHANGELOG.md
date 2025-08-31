@@ -7,7 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.8] - 2025-08-29
+## [0.8.8] - 2025-08-31
+
+### Added
+- **Comprehensive Bash Security Analysis**: Enhanced file-guard hook with advanced bash command parsing
+  - Added `BashCommandParser` class with comprehensive command analysis and path extraction
+  - Added `SecurityHeuristicsEngine` for detecting sensitive file access patterns in pipelines
+  - Added `FileProtectionService` with support for multiple AI ignore file formats
+  - Added extensive bash command validation with 590+ lines of test coverage
+  - Supports detection of sensitive file access via complex shell constructs (pipes, variables, xargs, etc.)
+- **Enhanced Test Infrastructure**: Expanded testing capabilities
+  - Added comprehensive bash-specific test suite with 47 test cases
+  - Added parallel test execution with both Vitest and bash test framework
+  - Enhanced test scripts configuration for better CI/CD integration
+
+### Changed  
+- **File-guard Architecture**: Refactored file-guard hook into service-oriented architecture
+  - Restructured monolithic file-guard hook into specialized service classes
+  - Improved separation of concerns with dedicated parsing, security, and protection services
+  - Enhanced maintainability and testability of security-critical code
+- **Bash Tool Integration**: Extended file-guard protection to cover Bash tool usage
+  - Updated hook matcher pattern to include `Bash` tool in addition to file operations
+  - Enhanced security coverage for AI assistant bash command execution
+- **Dependency Management**: Added new production dependencies for enhanced functionality
+  - Added `fast-glob` for high-performance file pattern matching
+  - Added `ignore` for gitignore-style pattern processing
+  - Added `is-path-inside` for secure path boundary validation
+  - Added `untildify` for safe home directory path expansion
+  - Replaced `glob` with `fast-glob` for better performance
 
 ### Fixed
 - **Build System**: Fixed broken symlink causing CI failures
