@@ -31,7 +31,9 @@ CLEANUP_FUNCTIONS=()
 pass() {
     local message="$1"
     ((TESTS_PASSED++))
-    echo -e "  ${GREEN}✓${NC} $message"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "  ${GREEN}✓${NC} $message"
+    fi
 }
 
 fail() {
@@ -170,7 +172,9 @@ assert_file_contains() {
 init_test() {
     local test_name="$1"
     CURRENT_TEST="$test_name"
-    echo -e "\n${YELLOW}Running: $test_name${NC}"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "\n${YELLOW}Running: $test_name${NC}"
+    fi
     TEST_DIR=$(mktemp -d)
     cd "$TEST_DIR"
     ORIGINAL_PATH="$PATH"
@@ -206,7 +210,9 @@ run_all_tests_in_file() {
     local test_file="$1"
     local test_functions=$(discover_tests "$test_file")
     
-    echo -e "\n${BLUE}Test Suite: $(basename "$test_file")${NC}"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "\n${BLUE}Test Suite: $(basename "$test_file")${NC}"
+    fi
     
     for test_func in $test_functions; do
         run_test "$test_func" "$test_func" || true
@@ -237,11 +243,13 @@ run_test_suite() {
     local suite_name="$1"
     local exit_code=0
     
-    echo -e "\n${BLUE}📋 Unit Tests${NC}"
-    echo "================"
-    echo ""
-    echo -e "${BLUE}Test Suite: $suite_name${NC}"
-    echo ""
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "\n${BLUE}📋 Unit Tests${NC}"
+        echo "================"
+        echo ""
+        echo -e "${BLUE}Test Suite: $suite_name${NC}"
+        echo ""
+    fi
     
     # Reset counters for this suite
     TESTS_RUN=0
@@ -281,18 +289,26 @@ run_test_suite() {
     fi
     
     # Print summary
-    echo ""
-    echo "==============================================="
-    echo -e "Tests run: ${YELLOW}$TESTS_RUN${NC}"
-    echo -e "Passed:    ${GREEN}$TESTS_PASSED${NC}"
-    echo -e "Failed:    ${RED}$TESTS_FAILED${NC}"
-    echo "==============================================="
-    
-    if [[ $TESTS_FAILED -eq 0 ]]; then
-        echo -e "${GREEN}All tests passed!${NC}"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo ""
+        echo "==============================================="
+        echo -e "Tests run: ${YELLOW}$TESTS_RUN${NC}"
+        echo -e "Passed:    ${GREEN}$TESTS_PASSED${NC}"
+        echo -e "Failed:    ${RED}$TESTS_FAILED${NC}"
+        echo "==============================================="
+        
+        if [[ $TESTS_FAILED -eq 0 ]]; then
+            echo -e "${GREEN}All tests passed!${NC}"
+        else
+            echo -e "${RED}Some tests failed.${NC}"
+            exit_code=1
+        fi
     else
-        echo -e "${RED}Some tests failed.${NC}"
-        exit_code=1
+        # In silent mode, only show failures
+        if [[ $TESTS_FAILED -gt 0 ]]; then
+            echo -e "${RED}Tests failed: $TESTS_FAILED${NC}"
+            exit_code=1
+        fi
     fi
     
     exit $exit_code

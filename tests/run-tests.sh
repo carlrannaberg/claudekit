@@ -12,6 +12,7 @@ source "$SCRIPT_DIR/test-framework.sh"
 # Configuration
 HOOK_DIR="$SCRIPT_DIR/../.claude/hooks"
 VERBOSE=false
+SILENT=false
 RUN_INTEGRATION=true
 SPECIFIC_TEST=""
 
@@ -28,6 +29,7 @@ Usage: $0 [options]
 Options:
     -h, --help          Show this help message
     -v, --verbose       Enable verbose output
+    -s, --silent        Silent mode - only show failures and summary
     --no-integration    Skip integration tests
     --test NAME         Run only tests matching NAME
     
@@ -36,6 +38,7 @@ Examples:
     $0 --no-integration     # Run only unit tests
     $0 --test typecheck     # Run only typecheck tests
     $0 -v                   # Run with verbose output
+    $0 -s                   # Run in silent mode
 EOF
 }
 
@@ -47,6 +50,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -v|--verbose)
             VERBOSE=true
+            shift
+            ;;
+        -s|--silent)
+            SILENT=true
             shift
             ;;
         --no-integration)
@@ -70,19 +77,26 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Export SILENT flag so test framework can access it
+export SILENT
+
 ################################################################################
 # Main Test Execution                                                          #
 ################################################################################
 
-echo "🧪 Running claudekit hook tests..."
-echo "================================"
+if [[ "${SILENT:-false}" != "true" ]]; then
+    echo "🧪 Running claudekit hook tests..."
+    echo "================================"
+fi
 
 # Create unit test directory if it doesn't exist
 mkdir -p "$SCRIPT_DIR/unit"
 
 # Run unit tests
-echo -e "\n${BLUE}📋 Unit Tests${NC}"
-echo "---------------"
+if [[ "${SILENT:-false}" != "true" ]]; then
+    echo -e "\n${BLUE}📋 Unit Tests${NC}"
+    echo "---------------"
+fi
 
 unit_test_files=()
 if [[ -d "$SCRIPT_DIR/unit" ]]; then
@@ -114,8 +128,10 @@ fi
 
 # Run integration tests if enabled
 if [[ "$RUN_INTEGRATION" == "true" ]]; then
-    echo -e "\n${BLUE}🔄 Integration Tests${NC}"
-    echo "--------------------"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "\n${BLUE}🔄 Integration Tests${NC}"
+        echo "--------------------"
+    fi
     
     integration_test_files=()
     if [[ -d "$SCRIPT_DIR/integration" ]]; then
@@ -145,8 +161,10 @@ fi
 
 # Run e2e tests if enabled
 if [[ "$RUN_INTEGRATION" == "true" ]]; then
-    echo -e "\n${BLUE}🌐 End-to-End Tests${NC}"
-    echo "--------------------"
+    if [[ "${SILENT:-false}" != "true" ]]; then
+        echo -e "\n${BLUE}🌐 End-to-End Tests${NC}"
+        echo "--------------------"
+    fi
     
     e2e_test_files=()
     if [[ -d "$SCRIPT_DIR/e2e" ]]; then
@@ -188,20 +206,22 @@ if [[ "${COUNTING_RUN:-}" != "true" ]]; then
     COUNTING_RUN=true "$0" "$@" 2>&1 | tee "$TEMP_OUTPUT"
     
     # Now process the output for summary
-    if [[ -f "$SCRIPT_DIR/unit/test-reporter.sh" ]]; then
-        chmod +x "$SCRIPT_DIR/unit/test-reporter.sh"
-        cat "$TEMP_OUTPUT" | "$SCRIPT_DIR/unit/test-reporter.sh"
+    if [[ -f "$SCRIPT_DIR/test-reporter.sh" ]]; then
+        chmod +x "$SCRIPT_DIR/test-reporter.sh"
+        cat "$TEMP_OUTPUT" | "$SCRIPT_DIR/test-reporter.sh"
     else
         # Simple fallback summary
-        echo ""
-        echo "================================"
-        echo "Test Summary:"
-        PASSES=$(grep -c "✓" "$TEMP_OUTPUT" || echo 0)
-        FAILS=$(grep -c "✗" "$TEMP_OUTPUT" || echo 0)
-        echo "  Passed: $PASSES"
-        echo "  Failed: $FAILS"
-        echo "  Total:  $((PASSES + FAILS))"
-        echo "================================"
+        if [[ "${SILENT:-false}" != "true" ]]; then
+            echo ""
+            echo "================================"
+            echo "Test Summary:"
+            PASSES=$(grep -c "✓" "$TEMP_OUTPUT" || echo 0)
+            FAILS=$(grep -c "✗" "$TEMP_OUTPUT" || echo 0)
+            echo "  Passed: $PASSES"
+            echo "  Failed: $FAILS"
+            echo "  Total:  $((PASSES + FAILS))"
+            echo "================================"
+        fi
     fi
     exit $?
 fi

@@ -39,7 +39,21 @@ process_output() {
     local failed=$(echo "$output" | count_pattern "✗")
     local total=$((passed + failed))
     
-    # Output summary
+    # Check if we're in silent mode
+    if [[ "${SILENT:-false}" == "true" ]]; then
+        # In silent mode, only output if there are failures or errors
+        if [[ $total -eq 0 ]]; then
+            echo -e "${YELLOW}⚠️  No tests were run${NC}"
+            return 1
+        elif [[ $failed -gt 0 ]]; then
+            echo -e "${RED}❌ Tests failed: $failed${NC}"
+            return 1
+        fi
+        # If all tests passed, return silently
+        return 0
+    fi
+    
+    # Normal (non-silent) output summary
     echo -e "\n================================"
     echo "📊 Test Summary"
     echo "================================"
