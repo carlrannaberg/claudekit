@@ -58,12 +58,33 @@ export class BashCommandParser {
       while ((match = pattern.exec(command)) !== null) {
         const candidate = match[1];
         if (candidate !== undefined && candidate !== null && candidate !== '') {
+          // Skip git revision syntax patterns
+          if (this.isGitRevisionSyntax(candidate)) {
+            continue;
+          }
           candidates.push(path.isAbsolute(candidate) ? candidate : path.join(projectRoot, candidate));
         }
       }
     }
     
     return Array.from(new Set(candidates));
+  }
+
+  /**
+   * Check if a string is git revision syntax rather than a file path
+   */
+  private isGitRevisionSyntax(candidate: string): boolean {
+    // Git revision patterns that should not be treated as file paths
+    return (
+      // Range syntax: ..HEAD, origin/main..HEAD, HEAD~5..HEAD, etc.
+      /^[^/\s]*\.\.(?:HEAD|[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*|@\{[^}]*\}|HEAD~\d+)$/.test(candidate) ||
+      // Single revisions: HEAD, HEAD~1, @{u}, origin/main, etc.
+      /^(?:HEAD(?:~\d+)?|@\{[^}]*\}|[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*~?\d*)$/.test(candidate) ||
+      // Range with tilde: HEAD~1..HEAD~3
+      /^HEAD~\d+\.\.HEAD~\d+$/.test(candidate) ||
+      // Git ref patterns
+      /^refs\/[^/\s]+\//.test(candidate)
+    );
   }
 
   /**
@@ -187,6 +208,10 @@ export class BashCommandParser {
       }
 
       for (const item of expanded) {
+        // Skip git revision syntax patterns
+        if (this.isGitRevisionSyntax(item)) {
+          continue;
+        }
         let abs = untildify(item);
         if (!path.isAbsolute(abs)) {
           abs = path.join(projectRoot, abs);

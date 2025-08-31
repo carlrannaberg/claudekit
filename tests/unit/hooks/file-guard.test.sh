@@ -738,6 +738,32 @@ test_missing_file_path_handling() {
     fi
 }
 
+test_git_revision_syntax_allowed() {
+    # Purpose: Test that legitimate git revision syntax like @{u}..HEAD is not blocked
+    # This prevents false positives where git commands are incorrectly flagged as file access
+    
+    local git_commands=(
+        "git log --oneline @{u}..HEAD"
+        "git diff origin/main..HEAD"
+        "git log --stat HEAD~5..HEAD"
+        "git show HEAD~1..HEAD~3"
+    )
+    
+    for cmd in "${git_commands[@]}"; do
+        local payload="{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"$cmd\"}}"
+        local output
+        output=$(echo "$payload" | node "$CLI_PATH" run file-guard 2>/dev/null || true)
+        
+        # Git revision syntax should be allowed (no permissionDecision means pass-through)
+        if ! echo "$output" | grep -q '"permissionDecision":"deny"'; then
+            assert_pass "Git revision syntax allowed: $cmd"
+        else
+            assert_fail "Git command should be allowed, got: $output for command: $cmd"
+            return
+        fi
+    done
+}
+
 ################################################################################
 # Response Format Tests                                                        #
 ################################################################################
