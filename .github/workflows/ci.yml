@@ -170,32 +170,27 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install dependencies
+      run: npm install
+      
     - name: Run test suite
       run: |
         echo "🧪 Running claudekit test suite..."
-        ./tests/run-tests.sh
+        npm test
         
     - name: Validate test coverage
       run: |
         echo "📊 Validating test coverage..."
         
-        # Count total tests (capture output once, strip ANSI codes)
-        test_output=$(./tests/run-tests.sh | sed 's/\x1b\[[0-9;]*m//g')
-        total_tests=$(echo "$test_output" | grep -E "Tests run:" | tail -1 | grep -oE "[0-9]+" | head -1)
-        passed_tests=$(echo "$test_output" | grep -E "Passed:" | tail -1 | grep -oE "[0-9]+")
-        
-        echo "Total tests: $total_tests"
-        echo "Passed tests: $passed_tests"
-        
-        # Require at least 90% pass rate
-        if [[ $total_tests -gt 0 ]]; then
-          pass_rate=$((passed_tests * 100 / total_tests))
-          echo "Pass rate: $pass_rate%"
-          
-          if [[ $pass_rate -lt 90 ]]; then
-            echo "❌ Test pass rate below 90%"
-            exit 1
-          fi
-        fi
+        # Run vitest with coverage to check coverage thresholds
+        npm run test:coverage || {
+          echo "❌ Test coverage validation failed"
+          exit 1
+        }
         
         echo "✅ Test coverage validation passed"
