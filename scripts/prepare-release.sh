@@ -226,6 +226,13 @@ run_tests() {
         exit 1
     fi
 
+    # Run bash hook tests (for local validation before release)
+    print_info "Running bash hook tests for release validation..."
+    if ! npm run test:bash; then
+        print_error "Bash hook tests are failing. Please fix the failing tests before preparing a release."
+        exit 1
+    fi
+
     # Run claudekit linting checks
     print_info "Running claudekit linting checks..."
     
