@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2025-08-31
+
+### Changed
+- **Dependency Management**: Standardized file globbing library for consistency
+  - Migrated from `glob` to `fast-glob` across all file operations for better performance
+  - Updated `subagent-detector.ts` and `migrate-node-imports.js` to use consistent globbing
+  - Improved build tool compatibility and faster file discovery operations
+- **Build Validation**: Enhanced dependency validation with source-based analysis
+  - Completely rewrote `validate-dependencies.js` to analyze actual TypeScript imports
+  - Improved accuracy in detecting missing and unused dependencies
+  - Better handling of Node.js built-in modules with `node:` prefix
+  - Validates imports directly from source files instead of built artifacts
+- **Test Infrastructure**: Enhanced test runner with silent mode for cleaner CI output
+  - Added `--silent` flag to bash test runner for streamlined release preparation
+  - Updated CI workflows to use npm scripts instead of direct bash test calls
+  - Enhanced test framework and reporter with silent mode support
+  - Improved release validation workflow with cleaner test output
+
+### Fixed
+- **CI/CD Pipeline**: Resolved test execution issues in continuous integration
+  - Fixed GitHub Actions workflows to properly execute tests via npm scripts
+  - Improved test-hooks workflow reliability and consistency
+  - Resolved bash test integration issues in automated builds
+- **Code Organization**: Eliminated code duplication in file-guard service classes
+  - Extracted shared utility functions (`globToRegExp`, `untildify`) into dedicated module
+  - Updated file-guard services to use shared utilities instead of duplicate implementations
+  - Improved maintainability and consistency across file protection components
+
 ## [0.8.8] - 2025-08-31
 
 ### Added
