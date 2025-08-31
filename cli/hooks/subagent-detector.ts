@@ -4,7 +4,7 @@
  */
 
 import fs from 'fs-extra';
-import { glob } from 'glob';
+import fastGlob from 'fast-glob';
 
 interface SubagentMetadata {
   name: string;
@@ -87,7 +87,7 @@ export async function loadSubagentMetadata(agentName: string): Promise<SubagentM
     ];
     
     for (const pattern of patterns) {
-      const files = await glob(pattern, { cwd: process.cwd() });
+      const files = await fastGlob(pattern, { cwd: process.cwd() });
       if (files.length > 0 && files[0] !== undefined) {
         const content = await fs.readFile(files[0], 'utf-8');
         return parseAgentFrontmatter(content, agentName);

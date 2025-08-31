@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { glob } from 'glob';
+import fastGlob from 'fast-glob';
 
 const NODE_BUILTINS = [
   'fs', 'fs/promises', 'path', 'crypto', 'child_process', 
@@ -53,7 +53,7 @@ async function migrateFile(filePath) {
 async function main() {
   console.log('🔍 Scanning for files to migrate...\n');
   
-  const files = await glob('**/*.{ts,js,mjs,cjs}', {
+  const files = await fastGlob('**/*.{ts,js,mjs,cjs}', {
     ignore: ['node_modules/**', 'dist/**', 'temp/**', '.claude/**', 'scripts/migrate-node-imports.js']
   });
   
