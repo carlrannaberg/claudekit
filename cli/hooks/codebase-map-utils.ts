@@ -65,6 +65,11 @@ export async function generateCodebaseMap(options: CodebaseMapOptions): Promise<
       formatCommand += ` ${excludeArgs}`;
     }
     
+    // Debug output to show exact command being run
+    if (process.env['DEBUG'] === 'true') {
+      console.error('Running codebase-map command:', formatCommand);
+    }
+    
     const { stdout } = await execAsync(formatCommand, {
       cwd: options.projectRoot,
       maxBuffer: 10 * 1024 * 1024,

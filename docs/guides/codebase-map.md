@@ -56,15 +56,68 @@ This will:
 
 ### Two Hook Strategy
 
-1. **codebase-map** (UserFeedback event)
+1. **codebase-map** (UserPromptSubmit or SessionStart event)
    - Runs once per session when Claude Code starts
-   - Subject to 9,000 character limit
+   - Two configuration options available (see Event Types below)
    - Provides comprehensive project overview
    
 2. **codebase-map-update** (PostToolUse event)  
    - Runs silently after file modifications
    - Updates the `.codebasemap` index file without any output
    - Keeps AI assistant's understanding current without interrupting workflow
+
+### Event Types
+
+The `codebase-map` hook supports two trigger events with different tradeoffs:
+
+#### UserPromptSubmit (Default - Recommended)
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run codebase-map"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Advantages:**
+- Hidden from user (clean interface)
+- Runs automatically on first user prompt
+- Subject to 9,000 character limit (forces focus on essentials)
+
+**Disadvantages:**
+- Character limit may truncate large projects
+
+#### SessionStart (Alternative)
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "claudekit-hooks run codebase-map"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Advantages:**
+- No character limit (full project overview)
+- Immediate availability at session start
+
+**Disadvantages:**
+- Visible output to user (clutters interface)
+- Large output can be overwhelming
+- May impact session startup time
 
 ## Usage Examples
 
@@ -97,16 +150,18 @@ Default configuration in `.claudekit/config.json`:
 
 ```json
 {
-  "codebaseMap": {
-    "format": "dsl",
-    "include": ["**/*"],
-    "exclude": [
-      "node_modules/**",
-      ".git/**",
-      "dist/**", 
-      "build/**",
-      "*.log"
-    ]
+  "hooks": {
+    "codebase-map": {
+      "format": "dsl",
+      "include": ["**/*"],
+      "exclude": [
+        "node_modules/**",
+        ".git/**",
+        "dist/**", 
+        "build/**",
+        "*.log"
+      ]
+    }
   }
 }
 ```
@@ -189,9 +244,11 @@ This gives Claude immediate understanding of:
 - Code patterns and naming conventions
 - Real-time awareness of changes as you work
 
-## Staying Under 9,000 Character Limit
+## Managing Output Size
 
-The codebase-map hook has a 9,000 character limit. Strategies to stay within it:
+### UserPromptSubmit Event (9,000 Character Limit)
+
+When using `UserPromptSubmit` event, the codebase-map hook has a 9,000 character limit. Strategies to stay within it:
 
 ### Smart Filtering
 ```json
@@ -222,6 +279,14 @@ Exclude directories with large files:
   ]
 }
 ```
+
+### SessionStart Event (No Character Limit)
+
+When using `SessionStart` event, there's no character limit, but consider:
+
+- **User Experience**: Large output will be visible and may clutter the interface
+- **Performance**: Very large outputs may slow down session initialization
+- **Relevance**: Focus filtering on relevant files rather than avoiding size limits
 
 ## Troubleshooting
 
@@ -258,10 +323,16 @@ claudekit list hooks | grep codebase-map-update
 - **Session hook**: Comprehensive project overview once per session
 - **Update hook**: Incremental updates maintain accuracy without spam
 
-### Why 9,000 Character Limit?
-- UserFeedback event limitation in Claude Code
+### Why UserPromptSubmit vs SessionStart?
+- **UserPromptSubmit (default)**: Hidden context, 9,000 char limit, cleaner UI
+- **SessionStart (alternative)**: Visible output, no limit, immediate availability
+- Choose based on project size and user preference
+
+### Why 9,000 Character Limit for UserPromptSubmit?
+- UserPromptSubmit event limitation in Claude Code
 - Forces focus on essential project structure
 - Prevents overwhelming AI with excessive detail
+- SessionStart event has no such limitation
 
 ### Why DSL Format Default?
 - More information density than tree format
@@ -270,9 +341,10 @@ claudekit list hooks | grep codebase-map-update
 
 ## Limitations
 
-- **Character limit**: Session context capped at 9,000 characters
+- **Character limit**: UserPromptSubmit event capped at 9,000 characters (SessionStart has no limit)
+- **Interface visibility**: SessionStart event output is visible to user (may clutter interface)
 - **File type support**: Best with common programming languages  
-- **Large projects**: May require aggressive filtering to fit limit
+- **Large projects**: UserPromptSubmit may require aggressive filtering to fit limit
 - **Large files**: No automatic size limits - must exclude manually via patterns
 - **Binary files**: Excluded automatically (no useful context)
 - **Real-time updates**: Only updates when files are modified via Claude Code

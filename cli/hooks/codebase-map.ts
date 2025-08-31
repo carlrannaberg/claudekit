@@ -31,12 +31,25 @@ export class CodebaseMapHook extends BaseHook {
 
   private async hasProvidedContext(context: HookContext): Promise<boolean> {
     const sessionId = String(context.payload['session_id'] ?? 'unknown');
+    // For manual runs or profile testing (with timestamps), always generate new output
+    if (sessionId === 'unknown' || this.isProfileTestSession(sessionId)) {
+      return false;
+    }
     return await this.sessionTracker.hasSessionFlag(sessionId, 'contextProvided');
   }
 
   private async markContextProvided(context: HookContext): Promise<void> {
     const sessionId = String(context.payload['session_id'] ?? 'unknown');
-    await this.sessionTracker.setSessionFlag(sessionId, 'contextProvided', true);
+    // Only mark as provided for real sessions and unit test sessions, not manual runs or profile testing
+    if (sessionId !== 'unknown' && !this.isProfileTestSession(sessionId)) {
+      await this.sessionTracker.setSessionFlag(sessionId, 'contextProvided', true);
+    }
+  }
+
+  private isProfileTestSession(sessionId: string): boolean {
+    // Profile test sessions use timestamp-based IDs like 'test-session-1234567890'
+    // Unit test sessions use static IDs like 'test-session-123'
+    return sessionId.match(/^test-session-\d{10,}$/) !== null;
   }
 
   private cleanOldSessions(): void {
@@ -55,6 +68,12 @@ export class CodebaseMapHook extends BaseHook {
     }
 
     const config = this.loadConfig();
+
+    // Debug output to help diagnose configuration issues
+    if (process.env['DEBUG'] === 'true') {
+      console.error('Codebase-map hook config:', JSON.stringify(config, null, 2));
+      console.error('Project root:', projectRoot);
+    }
 
     try {
       // Generate the codebase map using shared utility

@@ -398,10 +398,9 @@ describe('CodebaseMapHook', () => {
       const result = await hook.execute(contextWithoutSessionId);
 
       expect(result.exitCode).toBe(0);
-      expect(mockFsWriteFile).toHaveBeenCalledWith(
-        expect.stringContaining('session-unknown.json'),
-        expect.any(String)
-      );
+      // For manual runs (session_id 'unknown'), session tracking should be skipped
+      // to ensure fresh output is always generated
+      expect(mockFsWriteFile).not.toHaveBeenCalled();
     });
   });
 
