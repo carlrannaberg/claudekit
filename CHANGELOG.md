@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.11] - 2025-08-31
+
+### Fixed
+- **Codebase Map Hook**: Resolved session handling and debugging issues
+  - Fixed profile test session detection to prevent caching during performance testing
+  - Enhanced manual run handling to always generate fresh output when session_id is 'unknown'
+  - Added debug logging capabilities via `DEBUG=true` environment variable for troubleshooting
+  - Improved session tracking logic to skip persistent flags for manual and profile test runs
+  - Updated unit tests to reflect corrected behavior for manual execution scenarios
+
 ## [0.8.10] - 2025-08-31
 
 ### Fixed
