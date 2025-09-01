@@ -1,7 +1,7 @@
 ---
 description: Break down a validated specification into actionable implementation tasks
 category: validation
-allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir:*), Bash(cat:*), Bash(grep:*), Bash(echo:*), Bash(basename:*), Bash(date:*), Bash(command:*), Bash(stm:*), Bash(which:*), Bash(test:*)
+allowed-tools: Read, Task, Write, TodoWrite, Bash(mkdir:*), Bash(cat:*), Bash(grep:*), Bash(echo:*), Bash(basename:*), Bash(date:*), Bash(claudekit:status stm), Bash(stm:*)
 argument-hint: "<path-to-spec-file>"
 ---
 
@@ -17,7 +17,7 @@ This command takes a validated specification and breaks it down into:
 3. Testing and validation requirements
 4. Documentation needs
 
-!which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")
+!claudekit status stm
 
 ## ⚠️ CRITICAL: Content Preservation Requirements
 

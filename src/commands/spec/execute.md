@@ -1,7 +1,7 @@
 ---
 description: Implement a validated specification by orchestrating concurrent agents
 category: validation
-allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(command:*), Bash(stm:*), Bash(jq:*), Bash(which:*), Bash(test:*), Bash(echo:*)
+allowed-tools: Task, Read, TodoWrite, Grep, Glob, Bash(claudekit:status stm), Bash(stm:*), Bash(jq:*)
 argument-hint: "<path-to-spec-file>"
 ---
 
@@ -9,7 +9,7 @@ argument-hint: "<path-to-spec-file>"
 
 Implement the specification at: $ARGUMENTS
 
-!`which stm &> /dev/null && test -d .simple-task-master && echo "STM_STATUS: Available and initialized" || (which stm &> /dev/null && echo "STM_STATUS: Available but not initialized" || echo "STM_STATUS: Not installed")`
+!claudekit status stm
 
 ## Pre-Execution Checks
 

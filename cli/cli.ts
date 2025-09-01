@@ -178,6 +178,23 @@ program
     }
   });
 
+// Status command - check status of various tools and integrations
+program
+  .command('status <subcommand>')
+  .description('Check status of tools (stm)')
+  .option('-v, --verbose', 'verbose output')
+  .option('-q, --quiet', 'quiet output')
+  .action(async (subcommand, options) => {
+    try {
+      const mergedOptions = { ...globalOptions, ...options };
+      const { status } = await import('./commands/status.js');
+      await status(subcommand, mergedOptions);
+    } catch (error) {
+      logger.error(`Status check failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exit(1);
+    }
+  });
+
 // Lint agents command
 program
   .command('lint-agents [directory]')
