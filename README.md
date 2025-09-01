@@ -162,6 +162,9 @@ claudekit show agent <id> -f json    # Output agent metadata and content as JSON
 claudekit show command <id> -f json  # Output command metadata and content as JSON
 claudekit doctor             # Check your installation and validate documentation links
 
+# Tool status checking
+claudekit status stm         # Check Simple Task Master (STM) installation and initialization status
+
 # Linting and validation
 claudekit lint-commands      # Lint slash command markdown files
 claudekit lint-agents        # Lint agent markdown files (formerly lint-subagents)

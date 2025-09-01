@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.12] - 2025-09-01
+
+### Added
+- **Status Command**: Added new CLI status checking functionality for tool integrations
+  - Added `claudekit status` command with subcommand support for checking tool availability
+  - Added `claudekit status stm` subcommand to check Simple Task Master (STM) installation and initialization status
+  - Added status command with `--verbose` and `--quiet` options for flexible output control
+  - Returns structured status messages: "Not installed", "Available but not initialized", or "Available and initialized"
+
+### Fixed
+- **Specification Commands**: Resolved Claude Code permission errors for STM status checks
+  - Fixed permission issues in spec decompose and execute commands when checking STM availability
+  - Updated allowed-tools configuration to include necessary Bash commands for STM integration
+  - Enhanced specification workflow reliability when STM tool is not available or not initialized
+
 ## [0.8.11] - 2025-08-31
 
 ### Fixed
