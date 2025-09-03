@@ -73,14 +73,14 @@ export class FileProtectionService {
         return true; // Block access outside project
       }
       // Use ignore engine (if available) to determine if protected
-      if (this.ignoreEngine !== null && this.ignoreEngine.ignores(relativePath) === true) {
-        return true;
+      if (this.ignoreEngine !== null) {
+        return this.ignoreEngine.ignores(relativePath);
       }
     }
     
-    // Fallback: basic check against default patterns via glob regex
+    // Fallback: basic check against default patterns via glob regex (only when no ignore engine)
     const fallbackUnion = DEFAULT_PATTERNS.map((g: string) => globToRegExp(g, { flags: 'i', extended: true, globstar: true }).test(filePath)).some(Boolean);
-    return fallbackUnion === true ? true : false; // File is not protected if no matches
+    return fallbackUnion;
   }
 
   private async parseIgnoreFile(filePath: string): Promise<string[]> {

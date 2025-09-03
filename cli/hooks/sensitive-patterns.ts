@@ -6,8 +6,11 @@
 
 // === ENVIRONMENT & CONFIG ===
 export const ENVIRONMENT_PATTERNS = [
-  '.env',
-  '.env.*',
+  '.env',          // Block the base .env file
+  '.env.*',        // Block all .env variants  
+  '!.env.example', // Then allow template files
+  '!.env.template',
+  '!.env.sample',
 ];
 
 // === CRYPTOGRAPHIC MATERIALS ===

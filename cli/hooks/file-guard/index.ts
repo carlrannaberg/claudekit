@@ -27,7 +27,7 @@ export class FileGuardHook extends BaseHook {
   private isInitialized = false;
 
   async execute(context: HookContext): Promise<HookResult> {
-    const { payload, projectRoot } = context;
+    const { payload } = context;
     
     // Only process relevant tools
     const toolName = payload.tool_name;
@@ -36,9 +36,13 @@ export class FileGuardHook extends BaseHook {
       return { exitCode: 0 };
     }
     
+    // For file protection, use current working directory instead of Git repository root
+    // This ensures ignore files are found in the user's working directory
+    const fileProtectionRoot = process.cwd();
+    
     // Initialize services if not already done
     if (!this.isInitialized) {
-      await this.fileProtectionService.initialize(projectRoot);
+      await this.fileProtectionService.initialize(fileProtectionRoot);
       this.isInitialized = true;
     }
     
@@ -60,7 +64,7 @@ export class FileGuardHook extends BaseHook {
         return this.deny("Access denied: pipeline locates '.env' and passes to 'cat'.");
       }
 
-      const candidates = await this.extractPathsFromCommand(command, projectRoot);
+      const candidates = await this.extractPathsFromCommand(command, fileProtectionRoot);
       
       // If the command is composed only of echo/printf operations (optionally with var assignments)
       // and does not pipe to xargs+cat, allow to avoid false positives like: echo '.env'

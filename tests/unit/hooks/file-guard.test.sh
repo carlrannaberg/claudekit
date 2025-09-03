@@ -641,6 +641,33 @@ test_default_patterns_fallback() {
     fi
 }
 
+test_env_example_allowed_by_default() {
+    # Purpose: Test that .env.example files are allowed by default patterns
+    # This ensures template files are not blocked while actual env files are blocked
+    
+    # Remove any existing ignore files to test default patterns
+    rm -f .agentignore .cursorignore .aiignore .aiexclude .geminiignore .codeiumignore
+    
+    # Create additional template files
+    echo "EXAMPLE_API_KEY=your-api-key-here" > .env.template
+    echo "SAMPLE_DATABASE_URL=your-db-url-here" > .env.sample
+    
+    local env_output example_output template_output sample_output
+    env_output=$(run_file_guard "Read" ".env" 2>/dev/null || true)
+    example_output=$(run_file_guard "Read" ".env.example" 2>/dev/null || true)
+    template_output=$(run_file_guard "Read" ".env.template" 2>/dev/null || true)
+    sample_output=$(run_file_guard "Read" ".env.sample" 2>/dev/null || true)
+    
+    if check_permission_decision "$env_output" "deny" && \
+       check_permission_decision "$example_output" "allow" && \
+       check_permission_decision "$template_output" "allow" && \
+       check_permission_decision "$sample_output" "allow"; then
+        assert_pass "Default patterns allow .env.example, .env.template, .env.sample but block .env"
+    else
+        assert_fail "Template file handling failed. .env: $env_output, .env.example: $example_output, .env.template: $template_output, .env.sample: $sample_output"
+    fi
+}
+
 ################################################################################
 # Edge Cases and Error Handling                                               #
 ################################################################################
