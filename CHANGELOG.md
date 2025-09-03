@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.13] - 2025-09-03
+
+### Fixed
+- **File-Guard Security**: Enhanced .env template file handling to allow common template patterns
+  - Fixed issue where `.env.example`, `.env.template`, and `.env.sample` files were incorrectly blocked
+  - Updated default sensitive patterns to include negation rules for template files (`!.env.example`, `!.env.template`, `!.env.sample`)
+  - Improved ignore engine logic to properly handle negation patterns from custom ignore files
+  - Enhanced file protection service to use current working directory for ignore file detection
+  - Added comprehensive test coverage for ignore file parsing and negation pattern processing
+
 ## [0.8.12] - 2025-09-01
 
 ### Added
