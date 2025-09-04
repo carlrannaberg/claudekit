@@ -1,8 +1,9 @@
-import * as path from 'node:path';
+import { getHookConfig } from '../utils/claudekit-config.js';
+import { detectBiome, detectESLint } from '../lib/project-detection.js';
+import { checkToolAvailable, formatBiomeErrors, formatESLintErrors } from './utils.js';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import type { ExecResult, PackageManager } from './utils.js';
-import { getHookConfig } from '../utils/claudekit-config.js';
 
 interface LintChangedConfig {
   command?: string | undefined;
@@ -16,12 +17,12 @@ export class LintChangedHook extends BaseHook {
 
   static metadata = {
     id: 'lint-changed',
-    displayName: 'ESLint Validation (Changed Files)',
-    description: 'Run ESLint validation on changed files',
+    displayName: 'Lint Validation (Changed Files)',
+    description: 'Run linting validation on changed files (Biome, ESLint, etc)',
     category: 'validation' as const,
     triggerEvent: 'PostToolUse' as const,
     matcher: 'Write|Edit|MultiEdit',
-    dependencies: ['eslint'],
+    dependencies: ['linter'],
   };
 
   async execute(context: HookContext): Promise<HookResult> {
@@ -32,23 +33,54 @@ export class LintChangedHook extends BaseHook {
       return { exitCode: 0 };
     }
 
-    // Check if ESLint is configured
-    if (!(await this.hasEslint(projectRoot))) {
-      this.progress('ESLint not configured, skipping lint check');
+    const results: Array<{ tool: string; result: ExecResult }> = [];
+    const errors: string[] = [];
+
+    // Run Biome if configured
+    if ((await detectBiome(projectRoot)) === true) {
+      if (await checkToolAvailable('biome', 'biome.json', projectRoot)) {
+        this.progress(`🔍 Running Biome on ${filePath}...`);
+        const biomeResult = await this.runBiome(filePath, projectRoot, packageManager);
+        results.push({ tool: 'Biome', result: biomeResult });
+        
+        if (biomeResult.exitCode === 0) {
+          this.success('Biome check passed!');
+        } else {
+          const errorMessage = formatBiomeErrors(biomeResult);
+          errors.push(`Biome check failed:\n${errorMessage}`);
+        }
+      }
+    }
+
+    // Run ESLint if configured
+    if ((await detectESLint(projectRoot)) === true) {
+      if (await checkToolAvailable('eslint', '.eslintrc.json', projectRoot)) {
+        this.progress(`🔍 Running ESLint on ${filePath}...`);
+        const eslintResult = await this.runEslint(filePath, projectRoot, packageManager);
+        results.push({ tool: 'ESLint', result: eslintResult });
+        
+        if (eslintResult.exitCode === 0 && !this.hasEslintErrors(eslintResult.stdout)) {
+          this.success('ESLint check passed!');
+        } else {
+          const errorMessage = formatESLintErrors(eslintResult);
+          errors.push(`ESLint check failed:\n${errorMessage}`);
+        }
+      }
+    }
+
+    // If no linters configured, skip
+    if (results.length === 0) {
+      this.progress('No linters configured, skipping lint check');
       return { exitCode: 0 };
     }
 
-    this.progress(`🔍 Running ESLint on ${filePath}...`);
-
-    // Run ESLint
-    const eslintResult = await this.runEslint(filePath, projectRoot, packageManager);
-    if (eslintResult.exitCode !== 0 || this.hasEslintErrors(eslintResult.stdout)) {
-      const errorMessage = this.formatEslintErrors(eslintResult.stdout || eslintResult.stderr);
-      this.error('ESLint check failed', errorMessage, []);
+    // Report all errors at the end
+    if (errors.length > 0) {
+      const combinedErrors = errors.join(`\n\n${'='.repeat(80)}\n\n`);
+      this.error('Linting failed', combinedErrors, []);
       return { exitCode: 2 };
     }
 
-    this.success('ESLint check passed!');
     return { exitCode: 0 };
   }
 
@@ -56,24 +88,27 @@ export class LintChangedHook extends BaseHook {
     return getHookConfig<LintChangedConfig>('lint-changed') || {};
   }
 
-  private async hasEslint(projectRoot: string): Promise<boolean> {
-    // Check for ESLint config files
-    const configFiles = [
-      '.eslintrc.json',
-      '.eslintrc.js',
-      '.eslintrc.yml',
-      '.eslintrc.yaml',
-      'eslint.config.js',
-      'eslint.config.mjs',
-    ];
 
-    for (const configFile of configFiles) {
-      if (await this.fileExists(path.join(projectRoot, configFile))) {
-        return true;
-      }
+  private async runBiome(
+    filePath: string,
+    projectRoot: string,
+    packageManager: PackageManager
+  ): Promise<ExecResult> {
+    const config = this.loadConfig();
+    const biomeCommand = config.command ?? `${packageManager.exec} biome`;
+
+    // Build Biome arguments
+    const biomeArgs = ['check', `"${filePath}"`];
+
+    // Add fix flag if configured
+    if (config.fix === true) {
+      biomeArgs.push('--write');
     }
 
-    return false;
+    return await this.execCommand(biomeCommand, biomeArgs, {
+      cwd: projectRoot,
+      timeout: config.timeout ?? 30000,
+    });
   }
 
   private async runEslint(
@@ -110,21 +145,5 @@ export class LintChangedHook extends BaseHook {
     return output.includes('error') || output.includes('warning');
   }
 
-  private formatEslintErrors(output: string): string {
-    const instructions = [
-      'You MUST fix ALL lint errors and warnings shown above.',
-      '',
-      'REQUIRED ACTIONS:',
-      '1. Fix all errors shown above',
-      "2. Run the project's lint command to verify all issues are resolved",
-      '   (Check AGENTS.md/CLAUDE.md or package.json scripts for the exact command)',
-      '3. Common fixes:',
-      '   - Missing semicolons or trailing commas',
-      '   - Unused variables (remove or use them)',
-      '   - Console.log statements (remove from production code)',
-      '   - Improper indentation or spacing',
-    ];
 
-    return `${output}\n\nMANDATORY INSTRUCTIONS:\n${instructions.join('\n')}`;
-  }
 }

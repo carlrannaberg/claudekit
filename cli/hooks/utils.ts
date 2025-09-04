@@ -490,6 +490,32 @@ export function formatESLintErrors(result: ExecResult): string {
 }
 
 /**
+ * Format Biome errors with proper indentation
+ */
+export function formatBiomeErrors(result: ExecResult): string {
+  const header = '████ Biome Validation Failed ████\n\n';
+  const message = 'Biome errors must be fixed:\n\n';
+  const output = result.stdout || result.stderr;
+  const indentedOutput = output
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+
+  const actions =
+    '\n\nREQUIRED ACTIONS:\n' +
+    '1. Fix all Biome errors shown above\n' +
+    "2. Run 'npx biome check --write' to apply fixes and verify issues are resolved\n" +
+    '3. Common Biome fixes:\n' +
+    '   - Import organization issues\n' +
+    '   - Formatting inconsistencies\n' +
+    '   - Code style violations\n' +
+    '   - Suspicious patterns\n' +
+    '4. The validation will run again automatically';
+
+  return header + message + indentedOutput + actions;
+}
+
+/**
  * Format test errors with proper indentation
  */
 export function formatTestErrors(result: ExecResult): string {

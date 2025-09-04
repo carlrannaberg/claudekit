@@ -29,6 +29,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
   const [
     hasTypeScript,
     hasESLint,
+    hasBiome,
     hasPrettier,
     hasJest,
     hasVitest,
@@ -41,6 +42,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
   ] = await Promise.all([
     detectTypeScript(resolvedPath),
     detectESLint(resolvedPath),
+    detectBiome(resolvedPath),
     detectPrettier(resolvedPath),
     detectJest(resolvedPath),
     detectVitest(resolvedPath),
@@ -55,6 +57,7 @@ export async function detectProjectContext(projectPath: string): Promise<Project
   return {
     hasTypeScript,
     hasESLint,
+    hasBiome,
     hasPrettier,
     hasJest,
     hasVitest,
@@ -174,6 +177,61 @@ export async function detectESLint(projectPath: string): Promise<boolean> {
         unknown
       >;
       if (packageJson['eslintConfig'] !== undefined) {
+        return true;
+      }
+    }
+  } catch {
+    // Error reading package.json, continue
+  }
+
+  return false;
+}
+
+// ============================================================================
+// Biome Detection
+// ============================================================================
+
+/**
+ * Detects Biome configuration in various formats
+ *
+ * @param projectPath - Absolute path to project
+ * @returns true if Biome is configured
+ */
+export async function detectBiome(projectPath: string): Promise<boolean> {
+  const biomeConfigFiles = [
+    'biome.json',
+    'biome.jsonc',
+  ];
+
+  for (const configFile of biomeConfigFiles) {
+    if (await pathExists(path.join(projectPath, configFile))) {
+      return true;
+    }
+  }
+
+  // Check package.json for Biome dependencies
+  try {
+    const packageJsonPath = path.join(projectPath, 'package.json');
+    if (await pathExists(packageJsonPath)) {
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8')) as Record<
+        string,
+        unknown
+      >;
+
+      // Check dependencies
+      const dependencies = packageJson['dependencies'] as Record<string, unknown> | undefined;
+      const devDependencies = packageJson['devDependencies'] as Record<string, unknown> | undefined;
+      const peerDependencies = packageJson['peerDependencies'] as
+        | Record<string, unknown>
+        | undefined;
+
+      const allDeps = {
+        ...(dependencies || {}),
+        ...(devDependencies || {}),
+        ...(peerDependencies || {}),
+      };
+
+      if (allDeps['@biomejs/biome'] !== undefined || allDeps['rome'] !== undefined) {
         return true;
       }
     }

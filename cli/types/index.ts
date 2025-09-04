@@ -125,6 +125,9 @@ export interface ProjectInfo {
   /** Whether ESLint is configured in the project */
   hasESLint: boolean;
 
+  /** Whether Biome is configured in the project */
+  hasBiome?: boolean;
+
   /** Whether Prettier is configured in the project */
   hasPrettier?: boolean;
 

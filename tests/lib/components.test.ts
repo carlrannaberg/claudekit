@@ -89,7 +89,7 @@ This is a test command that validates functionality.
       // Test another embedded hook
       const eslint = getComponent('lint-changed', registry);
       expect(eslint).toBeDefined();
-      expect(eslint?.metadata.name).toBe('ESLint Validation (Changed Files)');
+      expect(eslint?.metadata.name).toBe('Lint Validation (Changed Files)');
       expect(eslint?.metadata.category).toBe('validation');
 
       // Verify all embedded hooks are present
@@ -150,7 +150,7 @@ This command uses multiple tools:
 
       // Test that embedded hooks have correct dependencies
       const eslintHook = getComponent('lint-changed', registry);
-      expect(eslintHook?.metadata.dependencies).toContain('eslint');
+      expect(eslintHook?.metadata.dependencies).toContain('linter');
 
       const typecheckHook = getComponent('typecheck-changed', registry);
       expect(typecheckHook?.metadata.dependencies).toContain('typescript');
