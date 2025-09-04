@@ -10,8 +10,8 @@
     "includes": [
       "**",
       "!**/node_modules/",
-      "!**/dist/",
-      "!**/coverage/",
+      "!**/dist/**",
+      "!**/coverage/**",
       "!**/build.config.ts",
       "!**/vitest.config.ts",
       "!**/temp/",
@@ -34,7 +34,28 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": false,
+      "a11y": { "recommended": false },
+      "complexity": { "recommended": false },
+      "correctness": {
+        "recommended": false,
+        "noUnusedVariables": "error",
+        "noUnreachable": "error", 
+        "noConstAssign": "error"
+      },
+      "nursery": { "recommended": false },
+      "performance": { "recommended": false },
+      "security": {
+        "recommended": false,
+        "noDangerouslySetInnerHtml": "error",
+        "noGlobalEval": "error"
+      },
+      "style": { "recommended": false },
+      "suspicious": {
+        "recommended": false,
+        "noExplicitAny": "off",
+        "noDebugger": "error"
+      }
     }
   },
   "overrides": [

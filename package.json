@@ -51,6 +51,7 @@
     "coverage:check": "VERBOSE_TESTS=true vitest run --coverage",
     "coverage:threshold": "vitest run --coverage --reporter=json --outputFile.json=./coverage/coverage-summary.json",
     "lint": "eslint . --ext .ts",
+    "lint:biome": "biome lint .",
     "lint:subagents": "./bin/claudekit lint-subagents src/agents",
     "lint:commands": "./bin/claudekit lint-commands src/commands",
     "format": "prettier --write \"cli/**/*.ts\" \"tests/**/*.ts\"",
