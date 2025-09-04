@@ -231,7 +231,7 @@ Hooks automatically enforce quality as Claude works:
 
 **File Change Hooks** (PostToolUse - run on edit)
 - `typecheck-changed` - Run TypeScript type checking on file changes
-- `lint-changed` - Run ESLint validation on changed files
+- `lint-changed` - Run linting validation on changed files (Biome, ESLint, etc)
 - `test-changed` - Run tests for changed files
 - `check-any-changed` - Forbid any types in changed TypeScript files
 - `check-comment-replacement` - Detect when code is replaced with comments
@@ -246,7 +246,7 @@ Hooks automatically enforce quality as Claude works:
 
 **Project-Wide Hooks** (typically for Stop/SubagentStop events)
 - `typecheck-project` - TypeScript validation on entire project
-- `lint-project` - ESLint validation on entire project
+- `lint-project` - Linting validation on entire project (Biome, ESLint, etc)
 - `test-project` - Run full test suite
 - `create-checkpoint` - Git auto-checkpoint on stop
 - `check-todos` - Validate todo completions

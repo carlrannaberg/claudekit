@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.14] - 2025-09-04
+
+### Added
+- **Biome Linting Support**: Added comprehensive Biome integration for modern JavaScript/TypeScript linting
+  - Added `detectBiome()` function to detect Biome configuration files (`biome.json`, `biome.jsonc`) and dependencies (`@biomejs/biome`, `rome`)
+  - Added `formatBiomeErrors()` utility function for consistent error formatting and actionable fix instructions
+  - Added Biome configuration file with selective linting rules focusing on correctness and security issues
+  - Added `lint:biome` npm script for project-wide Biome linting
+  - Added `@biomejs/biome` as development dependency for linting capabilities
+
+### Changed
+- **Tool-Agnostic Linting Architecture**: Refactored linting hooks to support multiple linting tools simultaneously
+  - Updated `LintChangedHook` and `LintProjectHook` to run both Biome and ESLint when configured
+  - Changed hook display names from "ESLint" to generic "Lint" to reflect multi-tool support
+  - Updated hook dependencies from specific "eslint" to generic "linter" category
+  - Enhanced project detection system to identify multiple linting tool configurations
+  - Improved error reporting to show results from all configured linters with clear separation
+
+### Fixed
+- **Biome Configuration**: Refined Biome setup to prevent conflicts with existing tooling
+  - Fixed Biome formatter conflicts by disabling formatter and enabling only linter functionality  
+  - Fixed import organization conflicts by disabling Biome's import sorting to avoid ESLint/Prettier conflicts
+  - Fixed test environment configuration with proper rule overrides for test files
+  - Updated test expectations to reflect new hook naming and multi-tool architecture
+
 ## [0.8.13] - 2025-09-03
 
 ### Fixed
