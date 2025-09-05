@@ -15,20 +15,20 @@ import { loadConfig, configExists } from './utils/config.js';
 
 // Helper types for fuzzy matching
 interface MatchResult {
-  type: 'exact' | 'multiple' | 'none';
+  type: 'exact' | 'multiple' | 'none' | 'not-configured';
   hook?: string;
   hooks?: string[];
   suggestions?: string[];
 }
 
 // Helper function to resolve hook names with fuzzy matching
-function resolveHookName(input: string, projectHooks: string[]): MatchResult {
-  // 1. Exact match
+async function resolveHookName(input: string, projectHooks: string[]): Promise<MatchResult> {
+  // 1. Exact match in configured hooks
   if (projectHooks.includes(input)) {
     return { type: 'exact', hook: input };
   }
   
-  // 2. Partial match  
+  // 2. Partial match in configured hooks
   const partial = projectHooks.filter(name => 
     name.includes(input) || name.startsWith(input)
   );
@@ -39,7 +39,22 @@ function resolveHookName(input: string, projectHooks: string[]): MatchResult {
     return { type: 'multiple', hooks: partial };
   }
   
-  // 3. No match
+  // 3. Check if hook exists in registry but not configured
+  const { HOOK_REGISTRY } = await import('./hooks/registry.js');
+  const registryHooks = Object.keys(HOOK_REGISTRY);
+  
+  if (registryHooks.includes(input)) {
+    return { type: 'not-configured', hook: input };
+  }
+  
+  const registryPartial = registryHooks.filter(name => 
+    name.includes(input) || name.startsWith(input)
+  );
+  if (registryPartial.length === 1 && registryPartial[0] !== undefined) {
+    return { type: 'not-configured', hook: registryPartial[0] };
+  }
+  
+  // 4. No match anywhere
   return { type: 'none', suggestions: projectHooks };
 }
 
@@ -69,12 +84,12 @@ async function getProjectHooks(): Promise<string[]> {
       return Array.from(hooks).sort();
     }
   } catch {
-    // Fallback to registry
+    // If config fails to load, return empty array - don't fall back to registry
   }
   
-  // Fallback to all available hooks from registry
-  const { HOOK_REGISTRY } = await import('./hooks/registry.js');
-  return Object.keys(HOOK_REGISTRY).sort();
+  // Return empty array if no config or config is invalid
+  // We only allow disabling hooks that are actually configured to run
+  return [];
 }
 
 // Helper function to discover transcript files in a directory and return most recent UUID
@@ -274,7 +289,7 @@ export function createHooksCLI(): Command {
         return;
       }
 
-      const matchResult = resolveHookName(hookName, projectHooks);
+      const matchResult = await resolveHookName(hookName, projectHooks);
       
       switch (matchResult.type) {
         case 'exact':
@@ -291,19 +306,30 @@ export function createHooksCLI(): Command {
           
         case 'multiple':
           console.log(`🤔 Multiple hooks match '${hookName}':`);
-          for (const hook of matchResult.hooks || []) {
+          for (const hook of matchResult.hooks ?? []) {
             console.log(`  ${hook}`);
           }
           console.log(`Be more specific: claudekit-hooks disable [exact-name]`);
           break;
           
+        case 'not-configured':
+          if (matchResult.hook !== undefined) {
+            console.log(`⚪ Hook '${matchResult.hook}' is not configured for this project`);
+            console.log('This hook exists but is not configured in .claude/settings.json');
+          }
+          break;
+          
         case 'none':
           console.log(`❌ No hook found matching '${hookName}'`);
-          console.log('Available hooks for this project:');
-          for (const hook of matchResult.suggestions || []) {
-            console.log(`  ${hook}`);
+          if (projectHooks.length === 0) {
+            console.log('No hooks are configured for this project in .claude/settings.json');
+          } else {
+            console.log('Available hooks configured for this project:');
+            for (const hook of matchResult.suggestions ?? []) {
+              console.log(`  ${hook}`);
+            }
+            console.log('Try: claudekit-hooks disable [exact-name]');
           }
-          console.log('Try: claudekit-hooks disable [exact-name]');
           break;
       }
     });
@@ -335,7 +361,7 @@ export function createHooksCLI(): Command {
         return;
       }
 
-      const matchResult = resolveHookName(hookName, projectHooks);
+      const matchResult = await resolveHookName(hookName, projectHooks);
       
       switch (matchResult.type) {
         case 'exact':
@@ -352,19 +378,99 @@ export function createHooksCLI(): Command {
           
         case 'multiple':
           console.log(`🤔 Multiple hooks match '${hookName}':`);
-          for (const hook of matchResult.hooks || []) {
+          for (const hook of matchResult.hooks ?? []) {
             console.log(`  ${hook}`);
           }
           console.log(`Be more specific: claudekit-hooks enable [exact-name]`);
           break;
           
+        case 'not-configured':
+          if (matchResult.hook !== undefined) {
+            console.log(`⚪ Hook '${matchResult.hook}' is not configured for this project`);
+            console.log('This hook exists but is not configured in .claude/settings.json');
+          }
+          break;
+          
         case 'none':
           console.log(`❌ No hook found matching '${hookName}'`);
-          console.log('Available hooks for this project:');
-          for (const hook of matchResult.suggestions || []) {
-            console.log(`  ${hook}`);
+          if (projectHooks.length === 0) {
+            console.log('No hooks are configured for this project in .claude/settings.json');
+          } else {
+            console.log('Available hooks configured for this project:');
+            for (const hook of matchResult.suggestions ?? []) {
+              console.log(`  ${hook}`);
+            }
+            console.log('Try: claudekit-hooks enable [exact-name]');
           }
-          console.log('Try: claudekit-hooks enable [exact-name]');
+          break;
+      }
+    });
+
+  // Add status command
+  program
+    .command('status [hook-name]')
+    .description('Show status of a hook for this session')
+    .action(async (hookName?: string) => {
+      const sessionManager = new SessionHookManager();
+      const sessionId = await getSessionIdentifier();
+      
+      if (sessionId === null) {
+        console.error('❌ Cannot determine current Claude Code session.');
+        console.error('This command must be run from within an active Claude Code session.');
+        process.exit(1);
+      }
+
+      const projectHooks = await getProjectHooks();
+      
+      if (hookName === undefined) {
+        console.log('Hook status for this project:');
+        for (const hook of projectHooks) {
+          const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
+          const status = isDisabled ? '🔒 disabled' : '✅ enabled';
+          console.log(`  ${hook}: ${status}`);
+        }
+        console.log('\nUsage: claudekit-hooks status [hook-name]');
+        return;
+      }
+
+      const matchResult = await resolveHookName(hookName, projectHooks);
+      
+      switch (matchResult.type) {
+        case 'exact':
+          if (matchResult.hook !== undefined) {
+            const isDisabled = await sessionManager.isHookDisabled(sessionId, matchResult.hook);
+            const status = isDisabled ? '🔒 disabled' : '✅ enabled';
+            console.log(`${matchResult.hook}: ${status}`);
+          }
+          break;
+          
+        case 'multiple':
+          console.log(`🤔 Multiple hooks match '${hookName}':`);
+          for (const hook of matchResult.hooks ?? []) {
+            const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
+            const status = isDisabled ? '🔒 disabled' : '✅ enabled';
+            console.log(`  ${hook}: ${status}`);
+          }
+          break;
+          
+        case 'not-configured':
+          if (matchResult.hook !== undefined) {
+            console.log(`${matchResult.hook}: ⚪ not configured`);
+            console.log('This hook exists but is not configured in .claude/settings.json');
+          }
+          break;
+          
+        case 'none':
+          console.log(`❌ No hook found matching '${hookName}'`);
+          if (projectHooks.length === 0) {
+            console.log('No hooks are configured for this project in .claude/settings.json');
+          } else {
+            console.log('Available hooks configured for this project:');
+            for (const hook of matchResult.suggestions ?? []) {
+              console.log(`  ${hook}`);
+            }
+            console.log('Try: claudekit-hooks status [exact-name]');
+          }
           break;
       }
     });
