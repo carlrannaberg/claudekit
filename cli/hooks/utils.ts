@@ -536,3 +536,52 @@ export function formatTestErrors(result: ExecResult): string {
 
   return header + message + indentedOutput + actions;
 }
+
+/**
+ * Extension Configuration Utilities
+ * Common utilities for handling file extension configuration in hooks
+ */
+
+export interface ExtensionConfigurable {
+  extensions?: string[] | undefined;
+}
+
+/**
+ * Normalize extension format - removes leading/trailing dots and whitespace
+ */
+function normalizeExtension(ext: string): string {
+  return ext.trim().replace(/^\.+|\.+$/g, '');
+}
+
+/**
+ * Escape special regex characters in extension strings
+ */
+function escapeRegexChars(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Create regex pattern for matching file extensions
+ */
+export function createExtensionPattern(extensions: string[]): RegExp {
+  const normalized = extensions.map(normalizeExtension).filter(Boolean);
+  const escaped = normalized.map(escapeRegexChars);
+  return new RegExp(`\\.(${escaped.join('|')})$`);
+}
+
+/**
+ * Check if a file should be processed based on extension configuration
+ */
+export function shouldProcessFileByExtension(
+  filePath: string | undefined,
+  config: ExtensionConfigurable,
+  defaultExtensions: string[] = ['js', 'jsx', 'ts', 'tsx']
+): boolean {
+  if (filePath === undefined || filePath === '') {
+    return false;
+  }
+
+  const allowedExtensions = config.extensions || defaultExtensions;
+  const pattern = createExtensionPattern(allowedExtensions);
+  return pattern.test(filePath);
+}

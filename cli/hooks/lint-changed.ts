@@ -1,13 +1,12 @@
 import { getHookConfig } from '../utils/claudekit-config.js';
 import { detectBiome, detectESLint } from '../lib/project-detection.js';
-import { checkToolAvailable, formatBiomeErrors, formatESLintErrors } from './utils.js';
+import { checkToolAvailable, formatBiomeErrors, formatESLintErrors, shouldProcessFileByExtension, type ExtensionConfigurable } from './utils.js';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import type { ExecResult, PackageManager } from './utils.js';
 
-interface LintChangedConfig {
+interface LintChangedConfig extends ExtensionConfigurable {
   command?: string | undefined;
-  extensions?: string[] | undefined;
   fix?: boolean | undefined;
   timeout?: number | undefined;
 }
@@ -27,11 +26,15 @@ export class LintChangedHook extends BaseHook {
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;
+    const config = this.loadConfig();
 
-    // Skip if no file path or not JavaScript/TypeScript file
-    if (filePath === undefined || filePath === '' || !filePath.match(/\.(js|jsx|ts|tsx)$/)) {
+    // Check if file should be processed based on extensions
+    if (!shouldProcessFileByExtension(filePath, config)) {
       return { exitCode: 0 };
     }
+
+    // filePath is guaranteed to be defined here due to shouldProcessFileByExtension check
+    const validFilePath = filePath as string;
 
     const results: Array<{ tool: string; result: ExecResult }> = [];
     const errors: string[] = [];
@@ -39,8 +42,8 @@ export class LintChangedHook extends BaseHook {
     // Run Biome if configured
     if ((await detectBiome(projectRoot)) === true) {
       if (await checkToolAvailable('biome', 'biome.json', projectRoot)) {
-        this.progress(`🔍 Running Biome on ${filePath}...`);
-        const biomeResult = await this.runBiome(filePath, projectRoot, packageManager);
+        this.progress(`🔍 Running Biome on ${validFilePath}...`);
+        const biomeResult = await this.runBiome(validFilePath, projectRoot, packageManager);
         results.push({ tool: 'Biome', result: biomeResult });
         
         if (biomeResult.exitCode === 0) {
@@ -55,8 +58,8 @@ export class LintChangedHook extends BaseHook {
     // Run ESLint if configured
     if ((await detectESLint(projectRoot)) === true) {
       if (await checkToolAvailable('eslint', '.eslintrc.json', projectRoot)) {
-        this.progress(`🔍 Running ESLint on ${filePath}...`);
-        const eslintResult = await this.runEslint(filePath, projectRoot, packageManager);
+        this.progress(`🔍 Running ESLint on ${validFilePath}...`);
+        const eslintResult = await this.runEslint(validFilePath, projectRoot, packageManager);
         results.push({ tool: 'ESLint', result: eslintResult });
         
         if (eslintResult.exitCode === 0 && !this.hasEslintErrors(eslintResult.stdout)) {

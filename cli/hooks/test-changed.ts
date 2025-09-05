@@ -2,8 +2,9 @@ import * as path from 'node:path';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
+import { shouldProcessFileByExtension, createExtensionPattern, type ExtensionConfigurable } from './utils.js';
 
-interface TestChangedConfig {
+interface TestChangedConfig extends ExtensionConfigurable {
   command?: string | undefined;
   timeout?: number | undefined;
 }
@@ -26,32 +27,33 @@ export class TestChangedHook extends BaseHook {
 
   async execute(context: HookContext): Promise<HookResult> {
     const { filePath, projectRoot, packageManager } = context;
+    const config = this.loadConfig();
 
-    // Skip if no file path
-    if (filePath === undefined || filePath === '') {
+    // Check if file should be processed based on extensions
+    if (!shouldProcessFileByExtension(filePath, config)) {
       return { exitCode: 0 };
     }
 
-    // Only run tests for source files
-    if (!filePath.match(/\.(js|jsx|ts|tsx)$/)) {
+    // filePath is guaranteed to be defined here due to shouldProcessFileByExtension check
+    const validFilePath = filePath as string;
+
+    // Skip test files themselves using the same extensions pattern
+    const allowedExtensions = config.extensions || ['js', 'jsx', 'ts', 'tsx'];
+    const testPattern = createExtensionPattern(allowedExtensions.map(ext => `test.${ext}`).concat(allowedExtensions.map(ext => `spec.${ext}`)));
+    if (testPattern.test(validFilePath)) {
       return { exitCode: 0 };
     }
 
-    // Skip test files themselves
-    if (filePath.match(/\.(test|spec)\.(js|jsx|ts|tsx)$/)) {
-      return { exitCode: 0 };
-    }
-
-    this.progress(`🧪 Running tests related to: ${filePath}...`);
+    this.progress(`🧪 Running tests related to: ${validFilePath}...`);
 
     // Find related test files
-    const testFiles = await this.findRelatedTestFiles(filePath);
+    const testFiles = await this.findRelatedTestFiles(validFilePath);
 
     if (testFiles.length === 0) {
-      this.warning(`No test files found for ${path.basename(filePath)}`);
-      const baseName = path.basename(filePath, path.extname(filePath));
-      const dirName = path.dirname(filePath);
-      const ext = path.extname(filePath);
+      this.warning(`No test files found for ${path.basename(validFilePath)}`);
+      const baseName = path.basename(validFilePath, path.extname(validFilePath));
+      const dirName = path.dirname(validFilePath);
+      const ext = path.extname(validFilePath);
       this.warning(`Consider creating tests in: ${dirName}/${baseName}.test${ext}`);
       return { exitCode: 0 };
     }
@@ -59,14 +61,13 @@ export class TestChangedHook extends BaseHook {
     this.progress(`Found related test files: ${testFiles.join(', ')}`);
 
     // Run tests
-    const config = this.loadConfig();
     const testCommand = config.command ?? packageManager.test;
     const result = await this.execCommand(testCommand, ['--', ...testFiles], {
       cwd: projectRoot,
     });
 
     if (result.exitCode !== 0) {
-      this.error(`Tests failed for ${filePath}`, result.stdout + result.stderr, [
+      this.error(`Tests failed for ${validFilePath}`, result.stdout + result.stderr, [
         'You MUST fix ALL test failures, regardless of whether they seem related to your recent changes',
         "First, examine the failing test output above to understand what's broken",
         `Run the failing tests individually for detailed output: ${testCommand} -- ${testFiles.join(
