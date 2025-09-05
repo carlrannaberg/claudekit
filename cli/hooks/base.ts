@@ -97,7 +97,7 @@ export abstract class BaseHook {
     if (payload.hook_event_name === 'SubagentStop') {
       const isDisabled = await isHookDisabledForSubagent(this.name, transcriptPath);
       if (isDisabled) {
-        if (process.env['DEBUG'] === 'true') {
+        if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
           console.error(`${this.name}: Skipping - disabled for subagent`);
         }
         return { exitCode: 0, suppressOutput: true };

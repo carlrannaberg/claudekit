@@ -195,6 +195,72 @@ async function getSessionIdentifier(): Promise<string | null> {
   }
 }
 
+// Helper function to require valid session identifier
+async function requireSessionIdentifier(): Promise<string> {
+  const sessionId = await getSessionIdentifier();
+  if (sessionId === null) {
+    console.error('❌ Cannot determine current Claude Code session.');
+    console.error('This command must be run from within an active Claude Code session.');
+    process.exit(1);
+  }
+  return sessionId;
+}
+
+// Helper function to format hook status consistently
+function formatHookStatus(hook: string, isDisabled: boolean): string {
+  const emoji = isDisabled ? '🔒' : '✅';
+  return `  ${emoji} ${hook}`;
+}
+
+// Helper function to format detailed hook status (for status command)
+function formatDetailedHookStatus(hook: string, isDisabled: boolean): string {
+  const status = isDisabled ? '🔒 disabled' : '✅ enabled';
+  return `  ${hook}: ${status}`;
+}
+
+// Helper function to handle match results with command-specific actions
+async function handleMatchResult(
+  matchResult: MatchResult,
+  hookName: string,
+  sessionManager: SessionHookManager,
+  sessionId: string,
+  actions: {
+    onExactMatch: (hook: string, isDisabled: boolean) => Promise<void>;
+    onMultipleMatches: (hooks: string[]) => Promise<void>;
+    onNotConfigured: (hook: string) => void;
+    onNotFound: (projectHooks: string[]) => void;
+  }
+): Promise<void> {
+  switch (matchResult.type) {
+    case 'exact':
+      if (matchResult.hook !== undefined) {
+        const isDisabled = await sessionManager.isHookDisabled(sessionId, matchResult.hook);
+        await actions.onExactMatch(matchResult.hook, isDisabled);
+      }
+      break;
+      
+    case 'multiple':
+      console.log(`🤔 Multiple hooks match '${hookName}':`);
+      if (matchResult.hooks !== undefined) {
+        await actions.onMultipleMatches(matchResult.hooks);
+      }
+      break;
+      
+    case 'not-configured':
+      if (matchResult.hook !== undefined) {
+        actions.onNotConfigured(matchResult.hook);
+      }
+      break;
+      
+    case 'none': {
+      console.log(`❌ No hook found matching '${hookName}'`);
+      const projectHooks = matchResult.suggestions ?? [];
+      actions.onNotFound(projectHooks);
+      break;
+    }
+  }
+}
+
 export function createHooksCLI(): Command {
   const program = new Command('claudekit-hooks')
     .description('Claude Code hooks execution system')
@@ -268,13 +334,7 @@ export function createHooksCLI(): Command {
     .description('Disable a hook for this session')
     .action(async (hookName?: string) => {
       const sessionManager = new SessionHookManager();
-      const sessionId = await getSessionIdentifier();
-      
-      if (sessionId === null) {
-        console.error('❌ Cannot determine current Claude Code session.');
-        console.error('This command must be run from within an active Claude Code session.');
-        process.exit(1);
-      }
+      const sessionId = await requireSessionIdentifier();
 
       const projectHooks = await getProjectHooks();
       
@@ -282,8 +342,7 @@ export function createHooksCLI(): Command {
         console.log('Available hooks for this project:');
         for (const hook of projectHooks) {
           const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
-          const status = isDisabled ? '🔒' : '✅';
-          console.log(`  ${status} ${hook}`);
+          console.log(formatHookStatus(hook, isDisabled));
         }
         console.log('\nUsage: claudekit-hooks disable [hook-name]');
         return;
@@ -291,47 +350,37 @@ export function createHooksCLI(): Command {
 
       const matchResult = await resolveHookName(hookName, projectHooks);
       
-      switch (matchResult.type) {
-        case 'exact':
-          if (matchResult.hook !== undefined) {
-            const isAlreadyDisabled = await sessionManager.isHookDisabled(sessionId, matchResult.hook);
-            if (isAlreadyDisabled) {
-              console.log(`⚠️ Hook '${matchResult.hook}' is already disabled for this session`);
-            } else {
-              await sessionManager.disableHook(sessionId, matchResult.hook);
-              console.log(`🔒 Disabled ${matchResult.hook} for this session`);
-            }
+      await handleMatchResult(matchResult, hookName, sessionManager, sessionId, {
+        onExactMatch: async (hook: string, isDisabled: boolean) => {
+          if (isDisabled) {
+            console.log(`⚠️ Hook '${hook}' is already disabled for this session`);
+          } else {
+            await sessionManager.disableHook(sessionId, hook);
+            console.log(`🔒 Disabled ${hook} for this session`);
           }
-          break;
-          
-        case 'multiple':
-          console.log(`🤔 Multiple hooks match '${hookName}':`);
-          for (const hook of matchResult.hooks ?? []) {
+        },
+        onMultipleMatches: async (hooks: string[]) => {
+          for (const hook of hooks) {
             console.log(`  ${hook}`);
           }
           console.log(`Be more specific: claudekit-hooks disable [exact-name]`);
-          break;
-          
-        case 'not-configured':
-          if (matchResult.hook !== undefined) {
-            console.log(`⚪ Hook '${matchResult.hook}' is not configured for this project`);
-            console.log('This hook exists but is not configured in .claude/settings.json');
-          }
-          break;
-          
-        case 'none':
-          console.log(`❌ No hook found matching '${hookName}'`);
+        },
+        onNotConfigured: (hook: string) => {
+          console.log(`⚪ Hook '${hook}' is not configured for this project`);
+          console.log('This hook exists but is not configured in .claude/settings.json');
+        },
+        onNotFound: (projectHooks: string[]) => {
           if (projectHooks.length === 0) {
             console.log('No hooks are configured for this project in .claude/settings.json');
           } else {
             console.log('Available hooks configured for this project:');
-            for (const hook of matchResult.suggestions ?? []) {
+            for (const hook of projectHooks) {
               console.log(`  ${hook}`);
             }
             console.log('Try: claudekit-hooks disable [exact-name]');
           }
-          break;
-      }
+        }
+      });
     });
 
   // Add enable command  
@@ -340,13 +389,7 @@ export function createHooksCLI(): Command {
     .description('Enable a hook for this session')
     .action(async (hookName?: string) => {
       const sessionManager = new SessionHookManager();
-      const sessionId = await getSessionIdentifier();
-      
-      if (sessionId === null) {
-        console.error('❌ Cannot determine current Claude Code session.');
-        console.error('This command must be run from within an active Claude Code session.');
-        process.exit(1);
-      }
+      const sessionId = await requireSessionIdentifier();
 
       const projectHooks = await getProjectHooks();
       
@@ -354,8 +397,7 @@ export function createHooksCLI(): Command {
         console.log('Available hooks for this project:');
         for (const hook of projectHooks) {
           const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
-          const status = isDisabled ? '🔒' : '✅';
-          console.log(`  ${status} ${hook}`);
+          console.log(formatHookStatus(hook, isDisabled));
         }
         console.log('\nUsage: claudekit-hooks enable [hook-name]');
         return;
@@ -363,47 +405,37 @@ export function createHooksCLI(): Command {
 
       const matchResult = await resolveHookName(hookName, projectHooks);
       
-      switch (matchResult.type) {
-        case 'exact':
-          if (matchResult.hook !== undefined) {
-            const isDisabled = await sessionManager.isHookDisabled(sessionId, matchResult.hook);
-            if (!isDisabled) {
-              console.log(`ℹ️ Hook '${matchResult.hook}' is not currently disabled for this session`);
-            } else {
-              await sessionManager.enableHook(sessionId, matchResult.hook);
-              console.log(`✅ Re-enabled ${matchResult.hook} for this session`);
-            }
+      await handleMatchResult(matchResult, hookName, sessionManager, sessionId, {
+        onExactMatch: async (hook: string, isDisabled: boolean) => {
+          if (!isDisabled) {
+            console.log(`ℹ️ Hook '${hook}' is not currently disabled for this session`);
+          } else {
+            await sessionManager.enableHook(sessionId, hook);
+            console.log(`✅ Re-enabled ${hook} for this session`);
           }
-          break;
-          
-        case 'multiple':
-          console.log(`🤔 Multiple hooks match '${hookName}':`);
-          for (const hook of matchResult.hooks ?? []) {
+        },
+        onMultipleMatches: async (hooks: string[]) => {
+          for (const hook of hooks) {
             console.log(`  ${hook}`);
           }
           console.log(`Be more specific: claudekit-hooks enable [exact-name]`);
-          break;
-          
-        case 'not-configured':
-          if (matchResult.hook !== undefined) {
-            console.log(`⚪ Hook '${matchResult.hook}' is not configured for this project`);
-            console.log('This hook exists but is not configured in .claude/settings.json');
-          }
-          break;
-          
-        case 'none':
-          console.log(`❌ No hook found matching '${hookName}'`);
+        },
+        onNotConfigured: (hook: string) => {
+          console.log(`⚪ Hook '${hook}' is not configured for this project`);
+          console.log('This hook exists but is not configured in .claude/settings.json');
+        },
+        onNotFound: (projectHooks: string[]) => {
           if (projectHooks.length === 0) {
             console.log('No hooks are configured for this project in .claude/settings.json');
           } else {
             console.log('Available hooks configured for this project:');
-            for (const hook of matchResult.suggestions ?? []) {
+            for (const hook of projectHooks) {
               console.log(`  ${hook}`);
             }
             console.log('Try: claudekit-hooks enable [exact-name]');
           }
-          break;
-      }
+        }
+      });
     });
 
   // Add status command
@@ -412,13 +444,7 @@ export function createHooksCLI(): Command {
     .description('Show status of a hook for this session')
     .action(async (hookName?: string) => {
       const sessionManager = new SessionHookManager();
-      const sessionId = await getSessionIdentifier();
-      
-      if (sessionId === null) {
-        console.error('❌ Cannot determine current Claude Code session.');
-        console.error('This command must be run from within an active Claude Code session.');
-        process.exit(1);
-      }
+      const sessionId = await requireSessionIdentifier();
 
       const projectHooks = await getProjectHooks();
       
@@ -426,8 +452,7 @@ export function createHooksCLI(): Command {
         console.log('Hook status for this project:');
         for (const hook of projectHooks) {
           const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
-          const status = isDisabled ? '🔒 disabled' : '✅ enabled';
-          console.log(`  ${hook}: ${status}`);
+          console.log(formatDetailedHookStatus(hook, isDisabled));
         }
         console.log('\nUsage: claudekit-hooks status [hook-name]');
         return;
@@ -435,44 +460,32 @@ export function createHooksCLI(): Command {
 
       const matchResult = await resolveHookName(hookName, projectHooks);
       
-      switch (matchResult.type) {
-        case 'exact':
-          if (matchResult.hook !== undefined) {
-            const isDisabled = await sessionManager.isHookDisabled(sessionId, matchResult.hook);
-            const status = isDisabled ? '🔒 disabled' : '✅ enabled';
-            console.log(`${matchResult.hook}: ${status}`);
-          }
-          break;
-          
-        case 'multiple':
-          console.log(`🤔 Multiple hooks match '${hookName}':`);
-          for (const hook of matchResult.hooks ?? []) {
+      await handleMatchResult(matchResult, hookName, sessionManager, sessionId, {
+        onExactMatch: async (hook: string, isDisabled: boolean) => {
+          console.log(formatDetailedHookStatus(hook, isDisabled).trimStart());
+        },
+        onMultipleMatches: async (hooks: string[]) => {
+          for (const hook of hooks) {
             const isDisabled = await sessionManager.isHookDisabled(sessionId, hook);
-            const status = isDisabled ? '🔒 disabled' : '✅ enabled';
-            console.log(`  ${hook}: ${status}`);
+            console.log(formatDetailedHookStatus(hook, isDisabled));
           }
-          break;
-          
-        case 'not-configured':
-          if (matchResult.hook !== undefined) {
-            console.log(`${matchResult.hook}: ⚪ not configured`);
-            console.log('This hook exists but is not configured in .claude/settings.json');
-          }
-          break;
-          
-        case 'none':
-          console.log(`❌ No hook found matching '${hookName}'`);
+        },
+        onNotConfigured: (hook: string) => {
+          console.log(`${hook}: ⚪ not configured`);
+          console.log('This hook exists but is not configured in .claude/settings.json');
+        },
+        onNotFound: (projectHooks: string[]) => {
           if (projectHooks.length === 0) {
             console.log('No hooks are configured for this project in .claude/settings.json');
           } else {
             console.log('Available hooks configured for this project:');
-            for (const hook of matchResult.suggestions ?? []) {
+            for (const hook of projectHooks) {
               console.log(`  ${hook}`);
             }
             console.log('Try: claudekit-hooks status [exact-name]');
           }
-          break;
-      }
+        }
+      });
     });
 
   // Add run command (default)
