@@ -692,7 +692,7 @@ This prevents malicious hook modifications from affecting your current session.
 
 ## Session Control
 
-Claude Code provides session-based hook control commands that allow you to temporarily disable and enable hooks for individual sessions without modifying configuration files.
+claudekit provides session-based hook control commands that allow you to temporarily disable and enable hooks for individual sessions without modifying configuration files.
 
 ### Commands
 
