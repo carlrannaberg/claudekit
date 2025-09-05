@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { execCommand, detectPackageManager, formatError, findProjectRoot } from './utils.js';
 import type { ExecResult, PackageManager } from './utils.js';
 import { isHookDisabledForSubagent } from './subagent-detector.js';
+import { SessionHookManager } from './session-utils.js';
 
 export interface ClaudePayload {
   tool_name?: string;
@@ -76,9 +77,24 @@ export abstract class BaseHook {
       return { exitCode: 0 };
     }
 
+    // Check for session-based hook disable
+    const transcriptPath = payload.transcript_path;
+    if (transcriptPath !== undefined && transcriptPath !== '') {
+      const sessionManager = new SessionHookManager();
+      const transcriptUuid = sessionManager.extractTranscriptUuid(transcriptPath);
+      if (transcriptUuid !== null) {
+        const isDisabled = await sessionManager.isHookDisabled(transcriptUuid, this.name);
+        if (isDisabled) {
+          if (this.debug) {
+            console.error(`${this.name}: Skipped - disabled for session ${transcriptUuid}`);
+          }
+          return { exitCode: 0, suppressOutput: true };
+        }
+      }
+    }
+
     // Check for subagent context on SubagentStop events
     if (payload.hook_event_name === 'SubagentStop') {
-      const transcriptPath = payload.transcript_path as string | undefined;
       const isDisabled = await isHookDisabledForSubagent(this.name, transcriptPath);
       if (isDisabled) {
         if (process.env['DEBUG'] === 'true') {
