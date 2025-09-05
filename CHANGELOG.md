@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2025-09-05
+
+### Changed
+- **Hook Extension Configuration**: Refactored hook utilities to eliminate code duplication and provide consistent file extension handling
+  - Extracted shared extension configuration utilities into `cli/hooks/utils.ts` with `ExtensionConfigurable` interface
+  - Added `shouldProcessFileByExtension()` function for standardized file filtering across hooks
+  - Added `createExtensionPattern()` function for robust regex-based extension matching with proper escaping
+  - Updated `LintChangedHook` and `TestChangedHook` to use shared extension utilities instead of duplicated logic
+  - Enhanced type safety with guaranteed non-undefined file paths after extension validation
+
 ## [0.9.0] - 2025-09-05
 
 ### Added
