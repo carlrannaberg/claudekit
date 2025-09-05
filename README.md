@@ -185,6 +185,11 @@ claudekit lint-agents        # Lint agent markdown files (formerly lint-subagent
 claudekit-hooks run <hook>   # Execute a specific hook manually
 claudekit-hooks profile      # Profile all configured hooks performance
 claudekit-hooks profile <hook> --iterations 5  # Profile specific hook with averaging
+
+# Session-based hook control (within Claude Code sessions)
+claudekit-hooks disable <hook>  # Disable hook for current session
+claudekit-hooks enable <hook>   # Re-enable hook for current session  
+claudekit-hooks status <hook>   # Show hook status (enabled/disabled)
 ```
 
 ### Using Prompts with External LLMs
@@ -284,12 +289,24 @@ claudekit-hooks list
 claudekit-hooks profile                   # Profile all hooks
 claudekit-hooks profile typecheck-changed  # Profile specific hook
 claudekit-hooks profile --iterations 5    # Multiple runs for averages
+
+# Session-based hook control (requires active Claude Code session)
+claudekit-hooks disable typecheck-changed  # Disable specific hook for current session
+claudekit-hooks enable typecheck          # Re-enable hook (supports partial matching)
+claudekit-hooks status                     # Show status of all hooks
+claudekit-hooks status lint                # Show status of specific hook
 ```
 
 The profile command helps identify:
 - Slow hooks (>5s) that delay your workflow
 - High-output hooks that consume context window
 - UserPromptSubmit hooks approaching the 10k character limit
+
+Session-based hook control allows you to temporarily disable hooks within specific Claude Code sessions without modifying configuration files. Features include:
+- Fuzzy matching for hook names (partial matches work)
+- Visual status indicators (🔒 disabled, ✅ enabled)
+- Session-isolated state (changes only affect current session)
+- Automatic session detection via transcript UUID
 
 [Hook configuration →](docs/reference/hooks.md) | [Profiling guide →](docs/guides/hook-profiling.md)
 

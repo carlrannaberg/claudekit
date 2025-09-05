@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-09-05
+
+### Added
+- **Session-Based Hook Control**: Added comprehensive hook management system for granular control within Claude Code sessions
+  - Added `claudekit-hooks disable [hook-name]` CLI command to disable hooks for current session
+  - Added `claudekit-hooks enable [hook-name]` CLI command to re-enable disabled hooks for current session  
+  - Added `claudekit-hooks status [hook-name]` CLI command to show hook status with visual indicators
+  - Added `/hook:disable`, `/hook:enable`, and `/hook:status` slash commands for use within Claude Code
+  - Added `SessionTracker` and `SessionHookManager` classes for reliable session state management
+  - Added fuzzy matching for hook names with partial matching and helpful suggestions
+  - Added session state persistence in `~/.claudekit/sessions/` with atomic file operations
+  - Added automatic transcript UUID extraction from Claude Code environment for session identification
+
+### Changed
+- **Hook Architecture**: Enhanced base hook system to support session-based disable/enable functionality
+  - Updated `BaseHook` class to automatically check session state before execution
+  - Enhanced hook execution flow to skip disabled hooks silently without user notification
+  - Improved session identification logic with fallback mechanisms for development scenarios
+  - Standardized hook status reporting with emoji indicators (🔒 disabled, ✅ enabled)
+
 ## [0.8.14] - 2025-09-04
 
 ### Added
