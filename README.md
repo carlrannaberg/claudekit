@@ -129,6 +129,15 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 
 [Thinking level guide →](docs/guides/thinking-level.md)
 
+### 🎛️ Session-Based Hook Control
+- **Temporary control**: Disable/enable hooks for individual Claude Code sessions
+- **Session isolation**: Changes only affect your current session, not other developers
+- **Smart state management**: 4-state system (enabled/disabled/not-configured/not-found)
+- **Fuzzy matching**: Partial hook names with intelligent suggestions
+- **Zero permanent changes**: No configuration files modified
+
+[Session hook control guide →](docs/guides/session-hook-control.md)
+
 ### 🔬 Multi-Agent Research System
 - **Parallel Information Gathering**: Launch 5-10 research agents simultaneously for 90% faster investigation
 - **Intelligent Query Classification**: Automatically determines research strategy (breadth-first, depth-first, or simple factual)
@@ -146,6 +155,9 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 - `/spec:create` - Generates comprehensive specifications
 - `/spec:execute` - Implements specifications with iterative quality assurance workflow
 - `/create-subagent` - Build custom AI assistants
+- `/hook:disable [hook-name]` - Temporarily disable hooks for current session
+- `/hook:enable [hook-name]` - Re-enable disabled hooks for current session
+- `/hook:status [hook-name]` - Show hook status (enabled/disabled/not-configured)
 
 ## CLI Commands
 

@@ -690,6 +690,72 @@ This prevents malicious hook modifications from affecting your current session.
   * PreToolUse/PostToolUse/Stop: Progress shown in transcript (Ctrl-R)
   * Notification: Logged to debug only (`--debug`)
 
+## Session Control
+
+Claude Code provides session-based hook control commands that allow you to temporarily disable and enable hooks for individual sessions without modifying configuration files.
+
+### Commands
+
+#### `/hook:disable [hook-name]`
+Temporarily disable a hook for the current Claude Code session only.
+
+```bash
+/hook:disable typecheck-changed    # Disable specific hook
+/hook:disable                      # List all hooks with status
+```
+
+#### `/hook:enable [hook-name]`  
+Re-enable a previously disabled hook for the current session.
+
+```bash
+/hook:enable typecheck-changed     # Re-enable specific hook
+/hook:enable                       # List all hooks with status
+```
+
+#### `/hook:status [hook-name]`
+Show the current status of hooks for this session.
+
+```bash
+/hook:status typecheck-changed     # Check specific hook status
+/hook:status                       # Show all hook statuses
+```
+
+### Hook States
+
+The session control system recognizes four distinct states:
+
+* **✅ Enabled** - Hook is configured and active for this session
+* **🔒 Disabled** - Hook is configured but temporarily disabled for this session  
+* **⚪ Not Configured** - Hook exists in registry but not configured in `.claude/settings.json`
+* **❌ Not Found** - Hook doesn't exist in the registry
+
+### Fuzzy Matching
+
+Hook names support intelligent partial matching:
+
+```bash
+/hook:disable type                 # May match "typecheck-changed"
+/hook:disable self                 # May match "self-review"
+```
+
+If multiple hooks match, you'll be prompted to be more specific:
+
+```
+🤔 Multiple hooks match 'type':
+  typecheck-changed
+  typecheck-project
+Be more specific: claudekit-hooks disable [exact-name]
+```
+
+### Session Isolation
+
+- **Scope**: Changes only affect your current Claude Code session
+- **Persistence**: Settings persist until session ends or explicitly changed
+- **Independence**: Other sessions and team members are unaffected
+- **Storage**: Session state stored in `~/.claudekit/sessions/[uuid].json`
+
+For detailed usage examples and best practices, see the [Session Hook Control Guide](../guides/session-hook-control.md).
+
 ## Debugging
 
 ### Basic Troubleshooting
