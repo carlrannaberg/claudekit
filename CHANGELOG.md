@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2025-09-10
+
+### Fixed
+- **User-Scope Hook Configuration**: Fixed user-level installations to properly configure hooks in settings.json
+  - Fixed issue where user-scope installations (`claudekit setup --user`) were not creating hook configurations in `~/.claude/settings.json`
+  - Unified hook configuration logic by renaming `createProjectSettings` to `createSettings` and making it work for both user and project installations
+  - Ensured both user-scope and project-scope installations now properly generate embedded hook commands (`claudekit-hooks run <hook-name>`)
+  - Updated user installation workflow to create `~/.claude/settings.json` with proper hook trigger configurations
+  - Enhanced installation consistency so hooks work correctly regardless of installation scope
+
 ## [0.9.1] - 2025-09-05
 
 ### Changed

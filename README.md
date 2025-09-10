@@ -165,6 +165,7 @@ After:  Use /code-review → ✅ 6 specialized agents analyze in parallel, dynam
 claudekit setup              # Interactive setup wizard
 claudekit setup --yes        # Quick setup with defaults
 claudekit setup --all        # Install everything (all agents)
+claudekit setup --user       # Install in user directory (~/.claude) instead of project
 claudekit list               # Show all components (hooks, commands, agents, config)
 claudekit list agents        # List available agents with token counts
 claudekit list commands      # List available commands with token counts
