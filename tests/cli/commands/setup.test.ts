@@ -45,7 +45,7 @@ vi.mock('../../../cli/utils/colors', () => ({
 import { pathExists } from '../../../cli/lib/filesystem';
 import { confirm } from '@inquirer/prompts';
 
-// Extract and export the createProjectSettings function from setup.ts
+// Extract and export the createSettings function from setup.ts
 // Since it's not exported, we need to test it through the setup function
 // For this test, we'll create a test-only version that matches the implementation
 
@@ -66,7 +66,7 @@ interface HookSettings {
   };
 }
 
-async function createProjectSettings(
+async function createSettings(
   claudeDir: string,
   components: Component[],
   options: InstallOptions
@@ -283,7 +283,7 @@ async function createProjectSettings(
   return backupPath;
 }
 
-describe('createProjectSettings - Embedded Hook Settings Generation', () => {
+describe('createSettings - Embedded Hook Settings Generation', () => {
   const mockClaudeDir = '/test/project/.claude';
   const mockSettingsPath = '/test/project/.claude/settings.json';
 
@@ -331,7 +331,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         createMockComponent('lint-changed'),
       ];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         mockSettingsPath,
@@ -349,7 +349,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         createMockComponent('lint-changed'),
       ];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writeFileMock = fs.writeFile as ReturnType<typeof vi.fn>;
       const writtenContent = writeFileMock.mock.calls[0]?.[1] ?? '';
@@ -362,7 +362,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle typecheck-changed hook with correct matcher', async () => {
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -384,7 +384,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle lint-changed hook with correct matcher', async () => {
       const components = [createMockComponent('lint-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -406,7 +406,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle check-any-changed hook with correct matcher', async () => {
       const components = [createMockComponent('check-any-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -428,7 +428,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle test-changed hook with correct matcher', async () => {
       const components = [createMockComponent('test-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -450,7 +450,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle create-checkpoint hook in Stop event', async () => {
       const components = [createMockComponent('create-checkpoint')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -472,7 +472,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle check-todos hook in Stop event', async () => {
       const components = [createMockComponent('check-todos')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -494,7 +494,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle typecheck-project hook in Stop event', async () => {
       const components = [createMockComponent('typecheck-project')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -536,7 +536,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       // Should not write anything since content is identical
       expect(fs.writeFile).not.toHaveBeenCalled();
@@ -560,7 +560,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       // Should not add the hook again since it's already configured (old format)
       const writtenContent = getWrittenContent() as HookSettings;
@@ -584,7 +584,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         createMockComponent('typecheck-project'),
       ];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -633,7 +633,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -664,7 +664,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings & { someOtherProperty?: string };
       expect(writtenContent).not.toBeNull();
@@ -683,7 +683,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should create new settings file when none exists', async () => {
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       expect(fs.writeFile).toHaveBeenCalledWith(mockSettingsPath, expect.any(String));
 
@@ -701,7 +701,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
       const components = [createMockComponent('typecheck-changed')];
 
       await expect(
-        createProjectSettings(mockClaudeDir, components, { interactive: false })
+        createSettings(mockClaudeDir, components, { interactive: false })
       ).rejects.toThrow('File conflict detected');
     });
 
@@ -712,7 +712,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, { force: true });
+      await createSettings(mockClaudeDir, components, { force: true });
 
       expect(fs.writeFile).toHaveBeenCalled();
     });
@@ -725,7 +725,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      const backupPath = await createProjectSettings(mockClaudeDir, components, {
+      const backupPath = await createSettings(mockClaudeDir, components, {
         interactive: true,
       });
 
@@ -753,7 +753,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      const result = await createProjectSettings(mockClaudeDir, components, {});
+      const result = await createSettings(mockClaudeDir, components, {});
 
       expect(result).toBeNull();
       expect(fs.writeFile).not.toHaveBeenCalled();
@@ -768,7 +768,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
         createMockComponent('validate-and-fix', 'command'),
       ];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -798,7 +798,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty component list', async () => {
-      await createProjectSettings(mockClaudeDir, [], {});
+      await createSettings(mockClaudeDir, [], {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -809,7 +809,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
     it('should handle unknown hook types gracefully', async () => {
       const components = [createMockComponent('unknown-hook-type')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       const writtenContent = getWrittenContent() as HookSettings;
       expect(writtenContent).not.toBeNull();
@@ -824,7 +824,7 @@ describe('createProjectSettings - Embedded Hook Settings Generation', () => {
 
       const components = [createMockComponent('typecheck-changed')];
 
-      await createProjectSettings(mockClaudeDir, components, {});
+      await createSettings(mockClaudeDir, components, {});
 
       // Should still create valid settings
       expect(fs.writeFile).toHaveBeenCalled();

@@ -895,7 +895,8 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
       if (config.installationType === 'user') {
         progressReporter.update('Installing user-level components...');
-        const userInstallOptions = { ...installOptions, customPath: expandHomePath('~/.claude') };
+        const userClaudeDir = expandHomePath('~/.claude');
+        const userInstallOptions = { ...installOptions, customPath: userClaudeDir };
         const userResult = await installComponents(finalComponents, 'user', userInstallOptions);
 
         if (!userResult.success) {
@@ -907,6 +908,15 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
               : 'User installation failed'
           );
         }
+
+        // Create/update user settings.json with hook configurations
+        progressReporter.update('Creating user settings.json...');
+        settingsBackupPath = await createSettings(
+          userClaudeDir,
+          finalComponents,
+          installOptions,
+          hookTriggerEvents
+        );
       }
 
       if (config.installationType === 'project') {
@@ -939,7 +949,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 
         // Create settings.json with hook configurations
         progressReporter.update('Creating settings.json...');
-        settingsBackupPath = await createProjectSettings(
+        settingsBackupPath = await createSettings(
           claudeDir,
           finalComponents,
           installOptions,
@@ -1023,7 +1033,7 @@ export async function setup(options: SetupOptions = {}): Promise<void> {
 }
 
 /**
- * Create project settings.json with hook configurations
+ * Create settings.json with hook configurations
  */
 interface HookSettings {
   hooks: {
@@ -1036,7 +1046,7 @@ interface HookSettings {
   };
 }
 
-async function createProjectSettings(
+async function createSettings(
   claudeDir: string,
   components: Component[],
   options: InstallOptions,

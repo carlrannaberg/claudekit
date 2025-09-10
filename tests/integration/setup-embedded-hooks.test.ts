@@ -677,11 +677,12 @@ describe('Setup Command - Embedded Hooks Integration', () => {
         })
       );
 
-      // Should not write settings.json
+      // Should write user settings.json
       const settingsWrites = mockFS.writeFile.mock.calls.filter(
         (call: unknown[]) => typeof call[0] === 'string' && call[0].endsWith('settings.json')
       );
-      expect(settingsWrites).toHaveLength(0);
+      expect(settingsWrites).toHaveLength(1);
+      expect(settingsWrites[0]?.[0]).toBe('/home/testuser/.claude/settings.json');
     });
 
     it('should handle project-only installation', async () => {
