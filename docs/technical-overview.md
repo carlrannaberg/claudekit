@@ -66,13 +66,13 @@ Automated workflow that publishes releases when version changes are detected. Va
 
 ### Commands
 
-/validate-and-fix
+[/validate-and-fix](../src/commands/validate-and-fix.md)
 
 ## Temporary file cleanup
 
 ### Commands
 
-/dev:cleanup
+[/dev:cleanup](../src/commands/dev/cleanup.md)
 
 ## Thinking level
 
@@ -84,173 +84,173 @@ thinking-level
 
 ### Commands
 
-/agents-md:init
+[/agents-md:init](../src/commands/agents-md/init.md)
 
-/agents-md:migration
+[/agents-md:migration](../src/commands/agents-md/migration.md)
 
-/agents-md:cli
+[/agents-md:cli](../src/commands/agents-md/cli.md)
 
 ## Create commands and agents
 
 ### Commands
 
-/create-command
+[/create-command](../src/commands/create-command.md)
 
-/create-subagent
+[/create-subagent](../src/commands/create-subagent.md)
 
 ## Session-based hook control
 
 ### Commands
 
-/hook:disable
+[/hook:disable](../src/commands/hook/disable.md)
 
-/hook:enable
+[/hook:enable](../src/commands/hook/enable.md)
 
-/hook:status
+[/hook:status](../src/commands/hook/status.md)
 
 ## Bash tool timeout config
 
 ### Commands
 
-/config:bash-timeout
+[/config:bash-timeout](../src/commands/config/bash-timeout.md)
 
 # Expert subagents
 
 ## Generic
 
-triage-expert
+[triage-expert](../src/agents/triage-expert.md)
 
-refactoring-expert
+[refactoring-expert](../src/agents/refactoring/refactoring-expert.md)
 
-documentation-expert
+[documentation-expert](../src/agents/documentation/documentation-expert.md)
 
-cli-expert
+[cli-expert](../src/agents/cli-expert.md)
 
 ## Technology focused
 
 ### Build tools
 
-vite-expert
+[vite-expert](../src/agents/build-tools/build-tools-vite-expert.md)
 
-webpack-expert
+[webpack-expert](../src/agents/build-tools/build-tools-webpack-expert.md)
 
 ### Code quality
 
-linting-expert
+[linting-expert](../src/agents/code-quality/code-quality-linting-expert.md)
 
 ### Database
 
-database-expert
+[database-expert](../src/agents/database/database-expert.md)
 
-mongodb-expert
+[mongodb-expert](../src/agents/database/database-mongodb-expert.md)
 
-postgres-expert
+[postgres-expert](../src/agents/database/database-postgres-expert.md)
 
 ### Devops
 
-devops-expert
+[devops-expert](../src/agents/devops/devops-expert.md)
 
-docker-expert
+[docker-expert](../src/agents/infrastructure/infrastructure-docker-expert.md)
 
-github-actions-expert
+[github-actions-expert](../src/agents/infrastructure/infrastructure-github-actions-expert.md)
 
 ### E2E testing
 
-playwright-expert
+[playwright-expert](../src/agents/e2e/e2e-playwright-expert.md)
 
 ### Framework
 
-ai-sdk-expert
+[ai-sdk-expert](../src/agents/ai-sdk-expert.md)
 
-nestjs-expert
+[nestjs-expert](../src/agents/nestjs-expert.md)
 
-nextjs-expert
+[nextjs-expert](../src/agents/framework/framework-nextjs-expert.md)
 
 ### Frontend
 
-accessibility-expert
+[accessibility-expert](../src/agents/frontend/frontend-accessibility-expert.md)
 
-css-styling-expert
+[css-styling-expert](../src/agents/frontend/frontend-css-styling-expert.md)
 
 ### Git
 
-git-expert
+[git-expert](../src/agents/git/git-expert.md)
 
 ### Node.js
 
-nodejs-expert
+[nodejs-expert](../src/agents/nodejs/nodejs-expert.md)
 
 ### React
 
-react-expert
+[react-expert](../src/agents/react/react-expert.md)
 
-react-performance-expert
+[react-performance-expert](../src/agents/react/react-performance-expert.md)
 
 ### Testing
 
-testing-expert
+[testing-expert](../src/agents/testing/testing-expert.md)
 
-jest-expert
+[jest-expert](../src/agents/testing/jest-testing-expert.md)
 
-vitest-expert
+[vitest-expert](../src/agents/testing/vitest-testing-expert.md)
 
 ### Typescript
 
-typescript-expert
+[typescript-expert](../src/agents/typescript/typescript-expert.md)
 
-typescript-build-expert
+[typescript-build-expert](../src/agents/typescript/typescript-build-expert.md)
 
-typescript-type-expert
+[typescript-type-expert](../src/agents/typescript/typescript-type-expert.md)
 
 # Workflows
 
 ## Git
 
-/git:ignore-init
+[/git:ignore-init](../src/commands/git/ignore-init.md)
 
-/git:status
+[/git:status](../src/commands/git/status.md)
 
-/git:checkout
+[/git:checkout](../src/commands/git/checkout.md)
 
-/git:commit
+[/git:commit](../src/commands/git/commit.md)
 
-/git:push
+[/git:push](../src/commands/git/push.md)
 
 ## GitHub
 
-/gh:repo-init
+[/gh:repo-init](../src/commands/gh/repo-init.md)
 
 ## Code search
 
 ### Commands
 
-/code-review
+[/code-review](../src/commands/code-review.md)
 
 ### Subagents
 
-code-review-expert
+[code-review-expert](../src/agents/code-review-expert.md)
 
 ## Research
 
 ### Commands
 
-/research
+[/research](../src/commands/research.md)
 
 ### Subagents
 
-research
+[research](../src/agents/research-expert.md)
 
 ## Spec-driven development
 
 ### Commands
 
-/spec:create
+[/spec:create](../src/commands/spec/create.md)
 
-/spec:validate
+[/spec:validate](../src/commands/spec/validate.md)
 
-/spec:decompose
+[/spec:decompose](../src/commands/spec/decompose.md)
 
-/spec:execute
+[/spec:execute](../src/commands/spec/execute.md)
 
 ## Checkpointing
 
@@ -260,11 +260,11 @@ create-checkpoint
 
 ### Commands
 
-/checkpoint:create
+[/checkpoint:create](../src/commands/checkpoint/create.md)
 
-/checkpoint:restore
+[/checkpoint:restore](../src/commands/checkpoint/restore.md)
 
-/checkpoint:list
+[/checkpoint:list](../src/commands/checkpoint/list.md)
 
 ## Codebase map
 
@@ -322,7 +322,7 @@ self-review
 
 ### Subagents
 
-code-review-expert
+[code-review-expert](../src/agents/code-review-expert.md)
 
 # Advanced utilities
 
