@@ -2,11 +2,13 @@
 
 # Prerequisites
 
-Claude Code docs:
+To understand claudekit's architecture, you should first be familiar with these Claude Code concepts:
 
-- Commands
-- Subagents
-- Hooks
+- **[Commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands)** - Slash commands in markdown format that Claude interprets as instructions. Claudekit extends Claude Code with custom commands for git workflows, checkpointing, spec-driven development, and more.
+
+- **[Subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents)** - Specialized experts that handle specific technical domains. Claudekit provides 30+ expert subagents for TypeScript, React, databases, testing, and other specialized areas.
+
+- **[Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks)** - Event-triggered scripts that run automatically during Claude Code sessions. Claudekit's core automation comes from hooks that validate code, run tests, create checkpoints, and maintain code quality.
 
 # Architecture
 
