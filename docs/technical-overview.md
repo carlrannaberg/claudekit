@@ -14,15 +14,15 @@ To understand claudekit's architecture, you should first be familiar with these 
 
 ## Commands
 
-Claude slash commands in markdown format.
+Slash commands for common development tasks are organized into namespaces like `git:*`, `spec:*`, and `checkpoint:*`. Using the "!" prefix, they execute bash commands automatically to provide Claude context for task execution.
 
 ## Subagents
 
-Claude subagents in markdown format.
+Claudekit offers 30+ domain-specific expert subagents, categorized across areas like TypeScript, React, databases, and testing. Each subagent contains specialized instructions along with solutions to frequently encountered problems.
 
 ## Hooks
 
-Hook scripts, which are configured to run on specific Claude Code events
+Claudekit hooks include code quality, testing, checkpointing, codebase mapping, and more. Triggering is determined by project state and transcript history, with per-session controls.
 
 ## CLI
 
