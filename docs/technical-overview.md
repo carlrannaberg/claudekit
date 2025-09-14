@@ -78,7 +78,7 @@ Automated workflow that publishes releases when version changes are detected. Va
 
 ### Hooks
 
-thinking-level
+[thinking-level](guides/thinking-level.md)
 
 ## Agents.md
 
@@ -256,7 +256,7 @@ thinking-level
 
 ### Hooks
 
-create-checkpoint
+[create-checkpoint](guides/checkpoint.md)
 
 ### Commands
 
@@ -270,13 +270,13 @@ create-checkpoint
 
 ### Hooks
 
-codebase-map
+[codebase-map](guides/codebase-map.md)
 
 codebase-map-update
 
 ## File guard
 
-file-guard
+[file-guard](guides/file-guard.md)
 
 ## Quality checks
 
@@ -284,7 +284,7 @@ file-guard
 
 check-unused-parameters
 
-check-comment-replacement
+[check-comment-replacement](guides/check-comment-replacement.md)
 
 check-todos
 
@@ -292,9 +292,9 @@ check-todos
 
 ### Hooks
 
-check-any-changed
+[check-any-changed](guides/check-any-changed.md)
 
-typecheck-changed
+[typecheck-changed](guides/typescript-hooks.md)
 
 type-check-project
 
@@ -302,23 +302,23 @@ type-check-project
 
 ### Hooks
 
-lint-changed
+[lint-changed](guides/eslint-hooks.md)
 
-lint-project
+[lint-project](guides/eslint-hooks.md)
 
 ## Test running
 
 ### Hooks
 
-test-changed
+[test-changed](guides/test-hooks.md)
 
-test-project
+[test-project](guides/test-hooks.md)
 
 ## Self-review
 
 ### Hooks
 
-self-review
+[self-review](guides/self-review.md)
 
 ### Subagents
 
