@@ -54,7 +54,11 @@ Hook execution CLI with session management and profiling capabilities.
 
 ### Prepare release script
 
+Bash script that automates version bumping, testing, and release commits. Uses Claude Code in non-interactive mode to analyze code changes and update README.md and CHANGELOG.md with accurate documentation.
+
 ### Release GitHub action
+
+Automated workflow that publishes releases when version changes are detected. Validates builds, creates git tags, publishes to npm, and generates GitHub releases with extracted changelog content.
 
 # Basic utilities
 
