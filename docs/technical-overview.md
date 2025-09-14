@@ -28,11 +28,11 @@ Claudekit hooks include code quality, testing, checkpointing, codebase mapping, 
 
 ### claudekit
 
-Interactive setup
+Project setup and component management CLI with interactive configuration.
 
 ### claudekit-hooks
 
-Used for running hooks
+Hook execution CLI with session management and profiling capabilities.
 
 ## Configuration
 
