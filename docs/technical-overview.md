@@ -36,25 +36,19 @@ Hook execution CLI with session management and profiling capabilities.
 
 ## Configuration
 
-.claude/settings.json - project hook configuration
+### Project Configuration
+- `.claude/settings.json` - Hook configuration for this project
+- `.claude/commands/` - Project-specific slash commands
+- `.claude/agents/` - Project-specific subagents
+- `.claudekit/config.json` - Claudekit settings (codebase map, etc.)
 
-.claude/commands/ - project commands
-
-.claude/agents/ - project subagents
-
-.claudekit/config.json - project claudekit config
-
-~/.claude/settings.json - user hooks configuration
-
-~/.claude/commands/ - user commands
-
-~/.claude/agents/ - user subagents
-
-~/.claudekit/config.json - user claudekit config
-
-~/.claudekit/logs - hook executions
-
-~/.claudekit/sessions - session id and context identifier mappings
+### User Configuration
+- `~/.claude/settings.json` - User-level hook configuration
+- `~/.claude/commands/` - User's personal commands
+- `~/.claude/agents/` - User's personal subagents
+- `~/.claudekit/config.json` - User-level claudekit settings
+- `~/.claudekit/logs` - Hook execution logs
+- `~/.claudekit/sessions` - Session tracking and context mappings
 
 ## Release pipeline
 
