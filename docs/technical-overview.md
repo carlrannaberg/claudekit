@@ -118,7 +118,7 @@ Automatic keyword injection that replaces the need to manually prompt Claude wit
 
 ### Hooks
 
-#### [thinking-level](../cli/hooks/thinking-level.ts)
+#### [thinking-level](../docs/guides/thinking-level.md)
 
 Automatically and invisibly adds thinking keywords to user prompts.
 
@@ -672,17 +672,73 @@ Implements validated specifications by orchestrating concurrent specialist agent
 
 ## Checkpointing
 
+Git-based state preservation system using stash create/store pattern for non-destructive working directory snapshots.
+
 ### Hooks
 
-[create-checkpoint](guides/checkpoint.md)
+#### [create-checkpoint](../docs/guides/checkpoint.md)
+
+Automatic backup system for Claude Code sessions using git stash create/store pattern to preserve work without disrupting workflow.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+**Implementation**: Git status detection, temporary staging, stash object creation, index reset, and automatic cleanup of aged checkpoints
+**Behavior**: Silent execution without workflow interruption, provides backup safety net without modifying working directory
 
 ### Commands
 
-[/checkpoint:create](../src/commands/checkpoint/create.md)
+#### [/checkpoint:create](../src/commands/checkpoint/create.md)
 
-[/checkpoint:restore](../src/commands/checkpoint/restore.md)
+Manual checkpoint creation using git stash create/store pattern with working directory preservation and descriptive messaging.
 
-[/checkpoint:list](../src/commands/checkpoint/list.md)
+**Tools**: `Bash(git stash:*), Bash(git add:*), Bash(git status:*)`
+
+**Context collection**: Current working directory status and uncommitted changes analysis
+
+**Processing flow**:
+1. Analyzes current git status to determine if checkpoint is needed
+2. Generates descriptive checkpoint message from arguments or timestamp
+3. Temporarily stages all files using git add for snapshot creation
+4. Creates stash object without affecting working directory using git stash create
+5. Stores stash in stash list with descriptive message using git stash store
+6. Resets index to restore original working directory state
+7. Confirms checkpoint creation and displays saved content summary
+
+**Output**: Checkpoint confirmation with descriptive message and preserved working directory state
+
+#### [/checkpoint:restore](../src/commands/checkpoint/restore.md)
+
+Checkpoint restoration system with automatic backup of current changes and conflict resolution.
+
+**Tools**: `Bash(git stash:*), Bash(git status:*), Bash(git reset:*), Bash(grep:*), Bash(head:*)`
+
+**Context collection**: Available claude-checkpoint stashes, current working directory status, and target checkpoint specification from arguments
+
+**Processing flow**:
+1. Parses argument to determine target checkpoint (latest, specific number, or validation error)
+2. Checks for uncommitted changes and creates automatic backup stash if needed
+3. Applies target checkpoint using git stash apply while preserving checkpoint in stash list
+4. Handles merge conflicts gracefully with informative error reporting
+5. Provides recovery instructions for backed-up changes if restoration conflicts occur
+6. Displays restoration confirmation with checkpoint details and backup information
+
+**Output**: Restoration confirmation with checkpoint details, backup stash references for recovery, and conflict resolution guidance
+
+#### [/checkpoint:list](../src/commands/checkpoint/list.md)
+
+Checkpoint inventory system that displays formatted list of all Claude Code checkpoints with metadata.
+
+**Tools**: `Bash(git stash:*)`
+
+**Context collection**: Git stash list analysis for claude-checkpoint entries and timestamp extraction
+
+**Processing flow**:
+1. Retrieves complete git stash list and filters for claude-checkpoint entries
+2. Parses stash entries to extract stash index, branch name, and checkpoint descriptions
+3. Queries git log for accurate timestamp information for each checkpoint stash
+4. Formats checkpoint data into readable table with index numbers, timestamps, descriptions, and branch context
+5. Handles empty checkpoint list with helpful guidance for creating first checkpoint
+
+**Output**: Formatted checkpoint list with stash indices, timestamps, descriptions, and branch information, or guidance for creating first checkpoint
 
 ## Codebase map
 
