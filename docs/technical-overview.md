@@ -393,15 +393,99 @@ Configures bash command timeout values in Claude Code settings.json files with d
 
 ## Git
 
-[/git:ignore-init](../src/commands/git/ignore-init.md)
+Git operations: branches, commits, status, and .gitignore management.
 
-[/git:status](../src/commands/git/status.md)
+### Commands
 
-[/git:checkout](../src/commands/git/checkout.md)
+#### [/git:ignore-init](../src/commands/git/ignore-init.md)
 
-[/git:commit](../src/commands/git/commit.md)
+Initializes or updates .gitignore with Claude Code specific patterns and common development artifact exclusions.
 
-[/git:push](../src/commands/git/push.md)
+**Tools**: `Read, Edit, Write, Bash(echo:*), Bash(cat:*), Bash(test:*)`
+
+**Context collection**: Current .gitignore file contents, existing patterns, and Claude Code configuration patterns
+
+**Processing flow**:
+1. Checks for existing .gitignore file and analyzes current patterns
+2. Identifies missing Claude Code specific patterns (local settings, temporary files)
+3. Adds development artifact patterns (debug scripts, test directories, temporary folders)
+4. Preserves existing entries and comments while adding new sections
+5. Organizes patterns by category with descriptive comments
+
+**Output**: Updated .gitignore file with Claude Code patterns and development artifacts, report of added patterns
+
+#### [/git:status](../src/commands/git/status.md)
+
+Analyzes git repository state with intelligent insights about changes, branch status, and suggested actions.
+
+**Tools**: `Bash(git:*), Task`
+
+**Context collection**: Git status output, diff statistics, branch tracking information, recent commit history, and cached changes
+
+**Processing flow**:
+1. Executes combined git commands for comprehensive status analysis
+2. Parses output sections separated by markers for different git information
+3. Groups modified files by type (documentation, code, tests, configuration)
+4. Analyzes branch relationship to remote and tracking status
+5. Evaluates change patterns and suggests appropriate actions
+6. Provides insights about commit grouping and critical file modifications
+
+**Output**: Concise status summary with grouped file changes, branch status, uncommitted changes analysis, and actionable suggestions
+
+#### [/git:checkout](../src/commands/git/checkout.md)
+
+Creates or switches branches with conventional naming patterns, intelligent base selection, and branch type-specific configuration.
+
+**Tools**: `Bash(git:*), Read`
+
+**Context collection**: Current branch status, available local and remote branches, branch argument specification, and working directory state
+
+**Processing flow**:
+1. Parses branch argument to determine type and name following conventional patterns
+2. Validates branch name against git conventions and suggests corrections
+3. Checks branch existence locally and on remote with appropriate checkout strategy
+4. Applies branch type-specific configuration (hotfix from main, feature from develop)
+5. Sets up upstream tracking and provides setup guidance
+6. Handles special cases for different branch types with appropriate base selection
+
+**Output**: Branch creation or switch confirmation, upstream tracking status, and next step suggestions
+
+#### [/git:commit](../src/commands/git/commit.md)
+
+Creates commits following project conventions with change validation, documentation updates, and quality checks.
+
+**Tools**: `Bash(git:*), Bash(echo:*), Bash(head:*), Bash(wc:*), Bash(test:*), Bash([:[*), Bash(grep:*), Read, Edit, Task`
+
+**Context collection**: Git status and changes, commit history for convention analysis, project documentation files, and previous git:status results for efficiency
+
+**Processing flow**:
+1. Reuses recent git:status results or executes combined git analysis commands
+2. Reviews changes for sensitive information, debugging code, and temporary files
+3. Analyzes existing commit history to determine or apply project conventions
+4. Identifies documentation update requirements based on changes
+5. Executes quality checks (tests, linting) if available and needed
+6. Stages relevant files and creates commit with conventional message format
+7. Verifies commit success and considers post-commit actions
+
+**Output**: Created commit with conventional message, quality check results, documentation update confirmations, and post-commit guidance
+
+#### [/git:push](../src/commands/git/push.md)
+
+Pushes commits to remote with safety checks, branch tracking setup, and intelligent conflict resolution suggestions.
+
+**Tools**: `Bash(git:*), Task`
+
+**Context collection**: Working directory status, branch tracking information, remote repository details, and commits pending push
+
+**Processing flow**:
+1. Executes safety check commands to assess repository state
+2. Validates uncommitted changes and branch tracking status
+3. Determines appropriate push strategy (tracked branch vs new branch with upstream)
+4. Handles special cases (diverged branches, force push requirements, protected branches)
+5. Executes push with appropriate flags and upstream configuration
+6. Provides error handling and resolution suggestions for failed pushes
+
+**Output**: Push operation results with success confirmation, error details with resolution suggestions, or safety warnings with required actions
 
 ## GitHub
 

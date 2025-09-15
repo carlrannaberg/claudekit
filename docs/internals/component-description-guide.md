@@ -1,10 +1,12 @@
 # Component Description Guide
 
+Guide for writing technical command descriptions in the claudekit technical overview.
+
+## Kevin's Principle
+
 > "Why waste time say lot word when few word do trick." - Kevin Malone
 
 This is the core principle for all technical descriptions: say exactly what things do, nothing more.
-
-Guide for writing technical command descriptions in the claudekit technical overview.
 
 ## Purpose
 
