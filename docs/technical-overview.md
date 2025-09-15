@@ -489,7 +489,28 @@ Pushes commits to remote with safety checks, branch tracking setup, and intellig
 
 ## GitHub
 
-[/gh:repo-init](../src/commands/gh/repo-init.md)
+GitHub repository creation and setup.
+
+### Commands
+
+#### [/gh:repo-init](../src/commands/gh/repo-init.md)
+
+Creates new GitHub repository with directory setup, git initialization, and remote configuration using GitHub CLI.
+
+**Tools**: `Bash, Write, TodoWrite`
+
+**Context collection**: Repository name from user arguments, GitHub user information for remote URL construction, and directory creation requirements
+
+**Processing flow**:
+1. Creates local directory with specified repository name
+2. Initializes git repository in the new directory
+3. Creates private GitHub repository using gh CLI with provided name
+4. Generates basic README.md with repository title and description
+5. Makes initial commit with README file
+6. Configures remote origin using SSH URL with authenticated user context
+7. Sets main branch and pushes initial commit to GitHub
+
+**Output**: Created GitHub repository with local directory, initialized git repository, initial README commit, configured remote, and successful push confirmation
 
 ## Code search
 
