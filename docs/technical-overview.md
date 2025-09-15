@@ -126,7 +126,7 @@ AGENTS.md management: creation, migration from existing configs, and enhancement
 
 #### [/agents-md:init](../src/commands/agents-md/init.md)
 
-Analyzes codebase structure and creates comprehensive AGENTS.md file with universal AI assistant compatibility through symlink management and directory scaffolding.
+Analyzes codebase structure and creates AGENTS.md file with universal AI assistant compatibility through symlink management and directory scaffolding.
 
 **Tools**: `Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Bash(echo:*), Read, Glob, Task`
 
@@ -136,7 +136,7 @@ Analyzes codebase structure and creates comprehensive AGENTS.md file with univer
 1. Gathers repository information using parallel Glob patterns across multiple project types and frameworks
 2. Analyzes existing AI configuration files (.cursorrules, copilot-instructions.md) for content integration
 3. Examines codebase patterns to infer coding conventions, testing frameworks, and build processes
-4. Creates comprehensive AGENTS.md with project overview, build commands, code style guidelines, and testing philosophy
+4. Creates AGENTS.md with project overview, build commands, code style guidelines, and testing philosophy
 5. Establishes reports directory structure with organized naming conventions
 6. Creates symlinks for all major AI assistants (Claude, Cursor, Windsurf, Copilot, etc.)
 7. Validates symlink creation and documents compatibility notes
@@ -223,7 +223,7 @@ Creates domain expert subagents following concentrated expertise principles with
 6. Creates structured markdown content with delegation-first architecture and progressive solution approaches
 7. Validates expert criteria through quality checks including domain boundary tests and naming conventions
 
-**Output**: Domain expert subagent with concentrated expertise, delegation architecture, environmental adaptation capabilities, proactive usage triggers, and comprehensive problem-solving framework
+**Output**: Domain expert subagent with concentrated expertise, delegation architecture, environmental adaptation capabilities, proactive usage triggers, and problem-solving framework
 
 ## Session-based hook control
 
@@ -423,7 +423,7 @@ Analyzes git repository state with intelligent insights about changes, branch st
 **Context collection**: Git status output, diff statistics, branch tracking information, recent commit history, and cached changes
 
 **Processing flow**:
-1. Executes combined git commands for comprehensive status analysis
+1. Executes combined git commands for status analysis
 2. Parses output sections separated by markers for different git information
 3. Groups modified files by type (documentation, code, tests, configuration)
 4. Analyzes branch relationship to remote and tracking status
@@ -514,9 +514,28 @@ Creates new GitHub repository with directory setup, git initialization, and remo
 
 ## Code search
 
+Reviews code for quality issues and generates report.
+
 ### Commands
 
-[/code-review](../src/commands/code-review.md)
+#### [/code-review](../src/commands/code-review.md)
+
+Performs code review across six aspects (architecture, code quality, security, performance, testing, documentation) using parallel code-review-expert agents with impact assessment and strategic scope determination.
+
+**Tools**: `Task, Bash(git status:*), Bash(git diff:*), Bash(git log:*)`
+
+**Context collection**: Current repository state including git status, diff statistics, recent commit history, review target specification from arguments, and impact assessment for system dependencies
+
+**Processing flow**:
+1. Analyzes repository state and performs pre-review impact assessment for system implications
+2. Determines review strategy based on file types and scope (documentation, tests, config, source code)
+3. Launches appropriate subset of six parallel review agents (Architecture, Code Quality, Security, Performance, Testing, Documentation)
+4. Applies enhanced thinking triggers with alternative hypothesis analysis for security and architecture reviews
+5. Consolidates findings across multiple review aspects into structured priority-based report
+6. Performs cross-pattern analysis to identify competing solutions and intentional trade-offs
+7. Generates report with critical issues, quality metrics, and actionable recommendations
+
+**Output**: Consolidated code review report with prioritized issues by severity, quality metrics table, strengths identification, systemic issue patterns, and specific file locations with code examples
 
 ### Subagents
 

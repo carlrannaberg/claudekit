@@ -221,6 +221,59 @@ Before adding a command description:
 - [ ] Links to correct source file
 - [ ] Reveals engineering complexity appropriately
 
+## Subagent Descriptions
+
+Subagents fall into two categories requiring different description approaches:
+
+### Non-Domain Expert Subagents
+For subagents with unique architectures (like code-review-expert, research-expert), use the full format:
+
+```markdown
+#### [subagent-name](../src/agents/path.md)
+
+Brief description of the subagent's unique technical approach and architecture.
+
+**Tools**: `allowed-tools` from frontmatter
+**Architecture**: How this agent's approach differs from standard domain experts
+**Specialization**: Specific capabilities and problem-solving methods
+```
+
+### Domain Expert Subagents
+Since most subagents are domain experts with similar architectures, use a generic description for the group followed by brief individual descriptions.
+
+### Group Description Format
+```markdown
+### Subagents
+
+Domain expert subagents with concentrated expertise in specific technical areas. Each agent uses environmental detection, delegation patterns, and progressive solution approaches within their domain.
+
+[individual-expert](../src/agents/path.md) - Brief domain description.
+[another-expert](../src/agents/path.md) - Brief domain description.
+```
+
+### Individual Subagent Format
+```markdown
+[subagent-name](../src/agents/path.md) - One sentence describing specific domain expertise.
+```
+
+### Guidelines
+- **Generic description**: Explains the common architecture once
+- **Individual descriptions**: One sentence per subagent about their specific domain
+- **Focus on domain scope**: What technical area they cover
+- **Avoid repetition**: Don't repeat the same architectural patterns
+- **Follow Kevin's principle**: Minimal words for maximum information
+
+### Example
+```markdown
+### Subagents
+
+Domain expert subagents with concentrated expertise in specific technical areas. Each agent uses environmental detection, delegation patterns, and progressive solution approaches within their domain.
+
+[typescript-type-expert](../src/agents/typescript/typescript-type-expert.md) - Advanced type system, generics, and conditional types.
+[react-performance-expert](../src/agents/react/react-performance-expert.md) - React optimization, profiling, and Core Web Vitals.
+[database-expert](../src/agents/database/database-expert.md) - Query optimization, schema design, and performance tuning.
+```
+
 ## Integration
 
-Add command descriptions to the technical overview under appropriate sections. Use the `####` heading level for individual commands within command sections.
+Add command descriptions to the technical overview under appropriate sections. Use the `####` heading level for individual commands within command sections. Use the same heading level for subagents within subagent sections.
