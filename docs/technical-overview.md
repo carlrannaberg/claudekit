@@ -584,15 +584,85 @@ Specialized research subagent with mode-sensitive search depth and source qualit
 
 ## Spec-driven development
 
+Specification creation, validation, decomposition, and execution with task management integration.
+
 ### Commands
 
-[/spec:create](../src/commands/spec/create.md)
+#### [/spec:create](../src/commands/spec/create.md)
 
-[/spec:validate](../src/commands/spec/validate.md)
+Generates comprehensive specification documents with first-principles problem analysis, library documentation integration, and progressive validation checkpoints.
 
-[/spec:decompose](../src/commands/spec/decompose.md)
+**Tools**: `Read, Write, Grep, Glob, TodoWrite, Task, mcp__context7__resolve-library-id, mcp__context7__get-library-docs, Bash(ls:*), Bash(echo:*), Bash(command:*), Bash(npm:*), Bash(claude:*)`
 
-[/spec:execute](../src/commands/spec/execute.md)
+**Context collection**: Feature or bugfix requirements from arguments, existing specs directory analysis, Context7 availability for library documentation, codebase patterns via specialized subagents, and technical feasibility assessment
+
+**Processing flow**:
+1. Validates core problem from first principles with assumption auditing and goal decomposition
+2. Performs mandatory pre-creation verification including context discovery via specialized subagents
+3. Analyzes request scope and technical dependencies with library documentation integration
+4. Maps complete system integration including data flow tracing and cross-system impact analysis
+5. Generates 17-section specification document with progressive validation checkpoints
+6. Applies final quality validation requiring 8+ out of 10 implementability score
+7. Saves spec file with descriptive naming convention based on feature type
+
+**Output**: Comprehensive specification document with technical dependencies, implementation phases, testing strategy, and library integration examples
+
+#### [/spec:validate](../src/commands/spec/validate.md)
+
+Analyzes specification completeness for autonomous implementation readiness while detecting overengineering and unnecessary complexity.
+
+**Tools**: `Task, Read, Grep`
+
+**Context collection**: Specification document analysis for WHY (intent/purpose), WHAT (scope/requirements), and HOW (implementation details), specialized subagent consultation for domain-specific validation, and overengineering pattern detection
+
+**Processing flow**:
+1. Evaluates specification across three fundamental aspects: intent clarity, scope definition, and implementation completeness
+2. Consults specialized subagents for domain-specific technical validation and pattern analysis
+3. Applies overengineering detection using YAGNI principles and core value alignment analysis
+4. Identifies premature optimization, feature creep, over-abstraction, infrastructure overhead, and testing extremism
+5. Generates completeness assessment with critical gaps and missing implementation details
+6. Provides simplification recommendations and features to cut entirely
+7. Delivers ready/not-ready assessment with specific improvement actions
+
+**Output**: Implementation readiness assessment with critical gaps identification, overengineering analysis, features to cut, essential scope definition, and specific improvement recommendations
+
+#### [/spec:decompose](../src/commands/spec/decompose.md)
+
+Breaks down validated specifications into actionable STM tasks with complete implementation details preserved and dependency tracking.
+
+**Tools**: `Read, Task, Write, TodoWrite, Bash(mkdir:*), Bash(cat:*), Bash(grep:*), Bash(echo:*), Bash(basename:*), Bash(date:*), Bash(claudekit:status stm), Bash(stm:*)`
+
+**Context collection**: Validated specification analysis for major components and dependencies, STM availability assessment, task breakdown requirements with content preservation mandates, and implementation phase organization
+
+**Processing flow**:
+1. Reads and validates specification extracting major features, technical requirements, and component dependencies
+2. Creates comprehensive task breakdown document preserving all implementation details, code examples, and acceptance criteria
+3. Generates foundation tasks for core infrastructure followed by feature tasks for vertical slices
+4. Copies complete technical requirements and code blocks into STM tasks using temporary files for large content
+5. Establishes task dependencies and parallel execution opportunities with clear success criteria
+6. Validates task completeness ensuring no summary phrases or spec references
+7. Saves task breakdown document and creates STM entries with preserved implementation details
+
+**Output**: Detailed task breakdown document, populated STM task list with complete implementation details, dependency mapping, and execution strategy with parallel work identification
+
+#### [/spec:execute](../src/commands/spec/execute.md)
+
+Implements validated specifications by orchestrating concurrent specialist agents with task management integration and mandatory quality reviews.
+
+**Tools**: `Task, Read, TodoWrite, Grep, Glob, Bash(claudekit:status stm), Bash(stm:*), Bash(jq:*)`
+
+**Context collection**: Specification components and dependencies analysis, STM task availability, specialist agent capabilities from claudekit list, and implementation workflow requirements
+
+**Processing flow**:
+1. Analyzes specification to understand components, dependencies, testing requirements, and success criteria
+2. Loads STM tasks or creates TodoWrite tasks for component tracking and progress management
+3. Implements each task using specialist agents with STM task detail integration
+4. Executes mandatory code review for both completeness verification and quality assessment
+5. Applies fix cycles for incomplete implementations or critical issues until standards met
+6. Creates atomic commits following project conventions after successful completion
+7. Tracks implementation progress with task status updates and completion verification
+
+**Output**: Complete implementation with passing tests, quality-reviewed code, updated documentation, and atomic commits following project conventions
 
 ## Checkpointing
 
