@@ -66,13 +66,47 @@ Automated workflow that publishes releases when version changes are detected. Va
 
 ### Commands
 
-[/validate-and-fix](../src/commands/validate-and-fix.md)
+#### [/validate-and-fix](../src/commands/validate-and-fix.md)
+
+Runs quality checks and automatically fixes discovered issues using parallel execution with specialized subagents, organized into risk-based phases.
+
+**Tools**: `Bash, Task, TodoWrite, Read, Edit, MultiEdit`
+
+**Context collection**: Available validation commands from AGENTS.md, package.json scripts, README.md, and common project patterns (lint, typecheck, test, build commands)
+
+**Processing flow**:
+1. Discovers and categorizes available quality checks by priority (Critical → High → Medium → Low)
+2. Executes parallel validation using Bash to capture full output with file paths and error details
+3. Assesses risks and maps issue dependencies before fixing
+4. Applies fixes in phases: safe quick wins → functionality fixes → critical issues with confirmation
+5. Creates git stash checkpoints between phases and verifies each fix immediately
+6. Routes specialized tasks to domain expert subagents
+7. Re-runs all checks for final verification and provides fix/remaining issue summary
+
+**Output**: Real-time progress updates, confirmation of each successful fix, summary report of resolved issues vs. remaining manual tasks, and rollback instructions if fixes cause problems
 
 ## Temporary file cleanup
 
 ### Commands
 
-[/dev:cleanup](../src/commands/dev/cleanup.md)
+#### [/dev:cleanup](../src/commands/dev/cleanup.md)
+
+Analyzes project workspace for debug files, test artifacts, and status reports created during development sessions, then proposes organized cleanup with .gitignore improvements.
+
+**Tools**: `Task, Bash(git:*), Bash(echo:*), Bash(grep:*), Bash(ls:*), Bash(pwd:*), Bash(head:*), Bash(wc:*), Bash(test:*)`
+
+**Context collection**: Git status including ignored files, working directory contents, current path, and committed files matching cleanup patterns (debug-*, test-*, *_SUMMARY.md, temp-*, etc.)
+
+**Processing flow**:
+1. Launches subagent to analyze git status output
+2. Checks working directory state to determine cleanup scope (untracked/ignored only vs. including committed files)
+3. Applies safety rules to identify cleanup candidates without touching core project files
+4. Categorizes findings into untracked files, committed files, and temporary directories
+5. Generates deletion proposals with appropriate commands (rm vs git rm)
+6. Analyzes cleanup patterns to suggest .gitignore improvements
+7. Requests explicit user approval before any file operations
+
+**Output**: Categorized cleanup proposal with file lists, specific deletion commands, suggested .gitignore patterns to prevent future accumulation, and confirmation request before proceeding
 
 ## Thinking level
 
