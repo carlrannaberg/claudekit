@@ -1,5 +1,9 @@
 # Component Description Guide
 
+> "Why use more word, when less word do trick." - Kevin Malone
+
+This is the core principle for all technical descriptions: say exactly what things do, nothing more.
+
 Guide for writing technical command descriptions in the claudekit technical overview.
 
 ## Purpose
@@ -81,6 +85,47 @@ Brief description of what the command does and its technical approach.
 - **Processing flow**: Third-person present tense ("Discovers", "Executes", "Analyzes")
 - **Context collection**: Simple present ("Git status and file changes")
 - **Output**: Noun phrases ("Progress updates", "Summary report")
+
+## Command Group Descriptions
+
+For command groups that contain multiple commands with detailed descriptions, add a brief group description before the `### Commands` heading:
+
+### Guidelines
+- **Purpose**: Describe what unites the commands in the group, not individual commands
+- **Length**: One sentence, maximum two if needed for clarity
+- **Focus**: Shared functionality, common approach, or unified purpose
+- **Tone**: Technical and direct, avoid marketing language
+- **Avoid**: Business buzzwords like "comprehensive", "seamless", "optimal", "universal"
+- **Avoid**: Technical implementation details (parallel execution, risk assessment, safety mechanisms)
+- **Focus on domain**: Describe the problem domain or purpose, not the solution method
+- **Use concrete terms**: Simple nouns and verbs rather than abstract concepts or compound technical terms
+- **Be precise**: Look at what the commands actually operate on and describe that directly (files, repositories, configurations) rather than abstract processes or methodologies
+
+### Format
+```markdown
+## Command Group Name
+
+Brief technical description of what unites these commands and their shared approach.
+
+### Commands
+
+#### [/command:name](../src/commands/...)
+```
+
+### Examples
+
+**Good group descriptions:**
+- "AGENTS.md management: creation, migration from existing configs, and enhancement with CLI tool documentation."
+- "Project validation and automated issue resolution."
+- "Repository cleanup of temporary files and debug artifacts."
+- "Interactive tools for generating Claude Code slash commands and domain expert subagents with template construction and validation."
+
+**Bad group descriptions:**
+- "Universal AI assistant configuration management following the AGENTS.md standard for cross-platform compatibility." (business jargon)
+- "Creates AGENTS.md files by analyzing codebases and consolidating existing AI assistant configurations." (describes single command, not group)
+- "Comprehensive solution for optimizing workflow efficiency." (marketing language)
+- "Automated quality assurance with parallel execution, risk assessment, and specialized subagent routing for comprehensive project validation." (too many technical implementation details)
+- "Workspace organization through intelligent detection and removal of debug artifacts, test files, and development cruft with safety mechanisms." (overly verbose, implementation details)
 
 ## Examples
 

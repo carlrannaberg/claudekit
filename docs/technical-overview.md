@@ -64,6 +64,8 @@ Automated workflow that publishes releases when version changes are detected. Va
 
 ## Validate and fix issues
 
+Project validation and automated issue resolution.
+
 ### Commands
 
 #### [/validate-and-fix](../src/commands/validate-and-fix.md)
@@ -86,6 +88,8 @@ Runs quality checks and automatically fixes discovered issues using parallel exe
 **Output**: Real-time progress updates, confirmation of each successful fix, summary report of resolved issues vs. remaining manual tasks, and rollback instructions if fixes cause problems
 
 ## Temporary file cleanup
+
+Repository cleanup of temporary files and debug artifacts.
 
 ### Commands
 
@@ -115,6 +119,8 @@ Analyzes project workspace for debug files, test artifacts, and status reports c
 [thinking-level](guides/thinking-level.md)
 
 ## Agents.md
+
+AGENTS.md management: creation, migration from existing configs, and enhancement with CLI tool documentation.
 
 ### Commands
 
@@ -176,6 +182,8 @@ Captures CLI tool help documentation through multiple flag attempts and integrat
 **Output**: Updated AGENTS.md with formatted CLI tool documentation, integration location confirmation, and captured content summary
 
 ## Create commands and agents
+
+Creating Claude Code slash commands and subagents.
 
 ### Commands
 
