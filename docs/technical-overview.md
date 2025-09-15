@@ -539,17 +539,48 @@ Performs code review across six aspects (architecture, code quality, security, p
 
 ### Subagents
 
-[code-review-expert](../src/agents/code-review-expert.md)
+#### [code-review-expert](../src/agents/code-review-expert.md)
+
+Specialized code review subagent designed to focus on any single review aspect when invoked by the `/code-review` command with context-aware pattern detection and impact-based prioritization.
+
+**Tools**: `Read, Grep, Glob, Bash`
+**Architecture**: Single-focus reviewer that gets launched multiple times concurrently by `/code-review` command, with each instance specializing in one aspect (architecture, code quality, security, performance, testing, or documentation) rather than handling all aspects simultaneously
+**Specialization**: Cross-file intelligence analysis, evolutionary pattern tracking, solution-oriented feedback with working code examples, and dynamic integration with domain experts for deep technical insights within its assigned focus area
 
 ## Research
 
+Parallel information gathering using multiple specialized subagents.
+
 ### Commands
 
-[/research](../src/commands/research.md)
+#### [/research](../src/commands/research.md)
+
+Orchestrates parallel research across multiple subagents with query classification, concurrent execution, and filesystem artifact synthesis.
+
+**Tools**: `Task, Read, Write, Edit, Grep, Glob`
+
+**Context collection**: Research query analysis for breadth-first, depth-first, or factual classification, available subagent capacity, and synthesis requirements
+
+**Processing flow**:
+1. Classifies query type to determine research strategy (breadth-first, depth-first, or simple factual)
+2. Spawns appropriate number of research-expert subagents concurrently with mode indicators (quick verification, focused investigation, or deep research)
+3. Assigns specific research angles to each subagent with overlapping perspectives for depth-first or independent aspects for breadth-first queries
+4. Collects filesystem artifact references from each subagent rather than full reports
+5. Reads and synthesizes findings from all research artifact files
+6. Consolidates sources, deduplicates information, and identifies cross-report themes
+7. Generates final comprehensive report with merged insights and consolidated bibliography
+
+**Output**: Executive summary with synthesized findings, path to comprehensive final report file, key insights, and consolidated source references
 
 ### Subagents
 
-[research](../src/agents/research-expert.md)
+#### [research-expert](../src/agents/research-expert.md)
+
+Specialized research subagent with mode-sensitive search depth and source quality evaluation.
+
+**Tools**: `WebSearch, WebFetch, Read, Write, Edit, Grep, Glob`
+**Architecture**: Mode-driven search execution (3-5, 5-10, or 10-15 tool calls) with progressive search refinement, source quality hierarchy evaluation, and full report output to markdown files rather than direct return
+**Specialization**: Parallel search execution, authoritative source prioritization, cross-reference verification, research gap identification, and lightweight summary generation while preserving full reports in temporary files
 
 ## Spec-driven development
 
