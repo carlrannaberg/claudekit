@@ -541,11 +541,10 @@ Performs code review across six aspects (architecture, code quality, security, p
 
 #### [code-review-expert](../src/agents/code-review-expert.md)
 
-Specialized code review subagent designed to focus on any single review aspect when invoked by the `/code-review` command with context-aware pattern detection and impact-based prioritization.
+Single-focus code review subagent that gets launched multiple times concurrently by `/code-review` command, with each instance specializing in one review aspect rather than handling all aspects simultaneously.
 
 **Tools**: `Read, Grep, Glob, Bash`
-**Architecture**: Single-focus reviewer that gets launched multiple times concurrently by `/code-review` command, with each instance specializing in one aspect (architecture, code quality, security, performance, testing, or documentation) rather than handling all aspects simultaneously
-**Specialization**: Cross-file intelligence analysis, evolutionary pattern tracking, solution-oriented feedback with working code examples, and dynamic integration with domain experts for deep technical insights within its assigned focus area
+**Specialization**: Cross-file intelligence analysis, evolutionary pattern tracking, solution-oriented feedback with working code examples, dynamic integration with domain experts, and context-aware pattern detection with impact-based prioritization within assigned focus area
 
 ## Research
 
@@ -576,11 +575,10 @@ Orchestrates parallel research across multiple subagents with query classificati
 
 #### [research-expert](../src/agents/research-expert.md)
 
-Specialized research subagent with mode-sensitive search depth and source quality evaluation.
+Mode-driven research subagent with progressive search refinement that outputs full reports to markdown files rather than direct return.
 
 **Tools**: `WebSearch, WebFetch, Read, Write, Edit, Grep, Glob`
-**Architecture**: Mode-driven search execution (3-5, 5-10, or 10-15 tool calls) with progressive search refinement, source quality hierarchy evaluation, and full report output to markdown files rather than direct return
-**Specialization**: Parallel search execution, authoritative source prioritization, cross-reference verification, research gap identification, and lightweight summary generation while preserving full reports in temporary files
+**Specialization**: Parallel search execution with mode-sensitive depth (3-5, 5-10, or 10-15 tool calls), authoritative source prioritization, cross-reference verification, research gap identification, source quality hierarchy evaluation, and lightweight summary generation while preserving detailed reports in temporary files
 
 ## Spec-driven development
 

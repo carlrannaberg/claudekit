@@ -223,57 +223,91 @@ Before adding a command description:
 
 ## Subagent Descriptions
 
-Subagents fall into two categories requiring different description approaches:
+Subagents are specialized AI assistants that handle specific technical domains or unique architectural approaches. Use a unified template that works for both domain experts and non-domain expert subagents.
 
-### Non-Domain Expert Subagents
-For subagents with unique architectures (like code-review-expert, research-expert), use the full format:
-
+### Subagent Template Format
 ```markdown
 #### [subagent-name](../src/agents/path.md)
 
-Brief description of the subagent's unique technical approach and architecture.
+Brief technical description of specialized approach and domain focus (1-2 sentences max).
 
-**Tools**: `allowed-tools` from frontmatter
-**Architecture**: How this agent's approach differs from standard domain experts
-**Specialization**: Specific capabilities and problem-solving methods
+**Tools**: Available tools and capabilities
+**Specialization**: Unique expertise and problem-solving methods
 ```
 
-### Domain Expert Subagents
-Since most subagents are domain experts with similar architectures, use a generic description for the group followed by brief individual descriptions.
+### Subagent Description Guidelines
+- **Purpose and approach**: Clearly state what the subagent specializes in and its technical approach
+- **Domain focus**: For domain experts, specify the technical area; for non-domain experts, highlight unique architecture
+- **Tools**: Copy exact `allowed-tools` list from frontmatter with backticks
+- **Specialization**: Focus on unique capabilities, methodologies, and problem-solving approaches
+- **Follow Kevin's principle**: Minimal words for maximum technical information
 
-### Group Description Format
+### Example - Domain Expert Subagent
 ```markdown
-### Subagents
+#### [typescript-type-expert](../src/agents/typescript/typescript-type-expert.md)
 
-Domain expert subagents with concentrated expertise in specific technical areas. Each agent uses environmental detection, delegation patterns, and progressive solution approaches within their domain.
+Advanced TypeScript type system specialist for complex generics, conditional types, and type-level programming challenges.
 
-[individual-expert](../src/agents/path.md) - Brief domain description.
-[another-expert](../src/agents/path.md) - Brief domain description.
+**Tools**: `Read, Edit, MultiEdit, Bash, Grep, Glob`
+**Specialization**: Recursive types, brand types, utility type authoring, template literal types, and type performance optimization with comprehensive coverage of 18 advanced type system error patterns
 ```
 
-### Individual Subagent Format
+### Example - Non-Domain Expert Subagent
 ```markdown
-[subagent-name](../src/agents/path.md) - One sentence describing specific domain expertise.
+#### [code-review-expert](../src/agents/code-review-expert.md)
+
+Single-focus code review subagent that gets launched multiple times concurrently by `/code-review` command, with each instance specializing in one review aspect rather than handling all aspects simultaneously.
+
+**Tools**: `Read, Grep, Glob, Bash`
+**Specialization**: Cross-file intelligence analysis, evolutionary pattern tracking, solution-oriented feedback with working code examples, dynamic integration with domain experts, and context-aware pattern detection with impact-based prioritization within assigned focus area
 ```
 
-### Guidelines
-- **Generic description**: Explains the common architecture once
-- **Individual descriptions**: One sentence per subagent about their specific domain
-- **Focus on domain scope**: What technical area they cover
-- **Avoid repetition**: Don't repeat the same architectural patterns
-- **Follow Kevin's principle**: Minimal words for maximum information
+### Subagent-Specific Guidelines
+- **Unified approach**: Same template works for all subagent types - content naturally distinguishes domain vs non-domain experts
+- **Technical sophistication**: Highlight engineering patterns, unique methodologies, and problem-solving approaches
+- **Domain scope**: For domain experts, clearly define technical boundaries and expertise areas
+- **Architectural uniqueness**: For non-domain experts, emphasize unique approaches that differ from standard domain patterns
 
-### Example
+## Hook Descriptions
+
+Hooks are event-driven components that integrate with Claude Code's execution lifecycle. Unlike commands (user-invoked) and subagents (task-focused), hooks respond automatically to system events.
+
+### Hook Template Format
 ```markdown
-### Subagents
+#### [hook-name](../cli/hooks/hook-file.ts)
 
-Domain expert subagents with concentrated expertise in specific technical areas. Each agent uses environmental detection, delegation patterns, and progressive solution approaches within their domain.
+Brief technical description including purpose and approach (1-2 sentences max).
 
-[typescript-type-expert](../src/agents/typescript/typescript-type-expert.md) - Advanced type system, generics, and conditional types.
-[react-performance-expert](../src/agents/react/react-performance-expert.md) - React optimization, profiling, and Core Web Vitals.
-[database-expert](../src/agents/database/database-expert.md) - Query optimization, schema design, and performance tuning.
+**Triggers**: Event conditions and matcher patterns
+**Implementation**: Key technical mechanisms
+**Behavior**: System integration and output characteristics
 ```
+
+### Hook Description Guidelines
+- **Purpose**: Clearly state what the hook accomplishes and why it exists
+- **Technical approach**: Mention key patterns or engineering solutions used
+- **Triggers**: List specific events and matcher patterns with backticks for event names
+- **Implementation**: Focus on core technical mechanisms and tool orchestration
+- **Behavior**: Describe system integration patterns and output characteristics
+
+### Example Hook Description
+```markdown
+#### [create-checkpoint](../cli/hooks/create-checkpoint.ts)
+
+Automatic backup system for Claude Code sessions using git stash create/store pattern to preserve work without disrupting workflow.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+**Implementation**: Git status detection, temporary staging, stash object creation, index reset, and automatic cleanup of aged checkpoints
+**Behavior**: Silent execution without workflow interruption, provides backup safety net without modifying working directory
+```
+
+### Hook-Specific Guidelines
+- **Event names**: Use backticks for event names like `PostToolUse`, `Stop`, `SessionStart`
+- **Matcher patterns**: Include matcher specifics like `Write|Edit|MultiEdit` or `universal matcher`
+- **Integration focus**: Emphasize how the hook fits into Claude Code's event system
+- **Output behavior**: Describe silent execution, context injection, blocking behavior, etc.
+- **Technical sophistication**: Highlight engineering patterns like debouncing, session management, state preservation
 
 ## Integration
 
-Add command descriptions to the technical overview under appropriate sections. Use the `####` heading level for individual commands within command sections. Use the same heading level for subagents within subagent sections.
+Add command descriptions to the technical overview under appropriate sections. Use the `####` heading level for individual commands within command sections. Use the same heading level for subagents within subagent sections and hooks within hook sections.
