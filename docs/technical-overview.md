@@ -14,15 +14,15 @@ To understand claudekit's architecture, you should first be familiar with these 
 
 ## Commands
 
-Slash commands for common development tasks are organized into namespaces like `git:*`, `spec:*`, and `checkpoint:*`. Using the "!" prefix, they execute bash commands automatically to provide Claude context for task execution.
+Slash commands for common development tasks are organized into namespaces like `git:*`, `spec:*`, and `checkpoint:*`. Using the "!" prefix, they execute bash commands automatically to provide Claude context for task execution. See [command creation guide](internals/creating-commands.md) for implementation details.
 
 ## Subagents
 
-Claudekit offers 30+ domain-specific expert subagents, categorized across areas like TypeScript, React, databases, and testing. Each subagent contains specialized instructions along with solutions to frequently encountered problems.
+Claudekit offers 30+ domain-specific expert subagents, categorized across areas like TypeScript, React, databases, and testing. Each subagent contains specialized instructions along with solutions to frequently encountered problems. See [subagent creation guide](internals/creating-subagents.md) for implementation details.
 
 ## Hooks
 
-Claudekit hooks include code quality, testing, checkpointing, codebase mapping, and more. Triggering is determined by project state and transcript history, with per-session controls.
+Claudekit hooks include code quality, testing, checkpointing, codebase mapping, and more. Triggering is determined by project state and transcript history, with per-session controls. See [hook creation guide](internals/creating-hooks.md) for implementation details.
 
 ## CLI
 
@@ -118,19 +118,104 @@ Analyzes project workspace for debug files, test artifacts, and status reports c
 
 ### Commands
 
-[/agents-md:init](../src/commands/agents-md/init.md)
+#### [/agents-md:init](../src/commands/agents-md/init.md)
 
-[/agents-md:migration](../src/commands/agents-md/migration.md)
+Analyzes codebase structure and creates comprehensive AGENTS.md file with universal AI assistant compatibility through symlink management and directory scaffolding.
 
-[/agents-md:cli](../src/commands/agents-md/cli.md)
+**Tools**: `Write, Bash(ln:*), Bash(mkdir:*), Bash(test:*), Bash(echo:*), Read, Glob, Task`
+
+**Context collection**: Repository metadata (package.json, documentation, GitHub workflows, code style configs), existing AI configuration files, source code patterns, test conventions, and project structure
+
+**Processing flow**:
+1. Gathers repository information using parallel Glob patterns across multiple project types and frameworks
+2. Analyzes existing AI configuration files (.cursorrules, copilot-instructions.md) for content integration
+3. Examines codebase patterns to infer coding conventions, testing frameworks, and build processes
+4. Creates comprehensive AGENTS.md with project overview, build commands, code style guidelines, and testing philosophy
+5. Establishes reports directory structure with organized naming conventions
+6. Creates symlinks for all major AI assistants (Claude, Cursor, Windsurf, Copilot, etc.)
+7. Validates symlink creation and documents compatibility notes
+
+**Output**: Complete AGENTS.md file, reports directory structure with README documentation, symlinks for universal AI assistant compatibility, and setup confirmation summary
+
+#### [/agents-md:migration](../src/commands/agents-md/migration.md)
+
+Performs intelligent migration from existing AI configuration files to AGENTS.md standard with conflict detection, content merging, and backup preservation strategies.
+
+**Tools**: `Bash(mv:*), Bash(ln:*), Bash(ls:*), Bash(test:*), Bash(grep:*), Bash(echo:*), Read`
+
+**Context collection**: All existing AI configuration files (CLAUDE.md, .cursorrules, .clinerules, copilot-instructions.md, etc.), file sizes, content analysis, and conflict identification
+
+**Processing flow**:
+1. Discovers and catalogs all AI configuration files across different assistant ecosystems
+2. Analyzes content differences to detect identical files, mergeable sections, and genuine conflicts
+3. Applies smart migration strategy based on content analysis (simple move, auto-merge, or user-guided resolution)
+4. Handles conflicts through multiple resolution approaches (automatic merging, selective migration, or manual guidance)
+5. Creates AGENTS.md as single source of truth with preserved content integrity
+6. Establishes universal symlink structure for all AI assistants
+7. Generates backup files for conflicting content and provides git workflow guidance
+
+**Output**: Migrated AGENTS.md with consolidated content, complete symlink ecosystem, backup files for conflicted content, and migration status report with cleanup recommendations
+
+#### [/agents-md:cli](../src/commands/agents-md/cli.md)
+
+Captures CLI tool help documentation through multiple flag attempts and integrates formatted output into AGENTS.md reference section with ANSI code cleanup.
+
+**Tools**: `Bash(*:--help), Bash(*:-h), Bash(*:help), Bash(which:*), Bash(echo:*), Bash(sed:*), Edit, Read`
+
+**Context collection**: CLI tool availability verification, help documentation output from multiple flag variations, and existing CLAUDE.md/AGENTS.md structure
+
+**Processing flow**:
+1. Verifies CLI tool installation and PATH availability
+2. Attempts help documentation capture using progressive flag strategy (--help, -h, help)
+3. Processes captured output to remove ANSI escape codes while preserving structure
+4. Locates or creates CLI Tools Reference section in CLAUDE.md/AGENTS.md
+5. Formats documentation as collapsible section with extracted key information
+6. Updates file content with alphabetically ordered tool documentation
+7. Provides integration summary and formatting verification guidance
+
+**Output**: Updated AGENTS.md with formatted CLI tool documentation, integration location confirmation, and captured content summary
 
 ## Create commands and agents
 
 ### Commands
 
-[/create-command](../src/commands/create-command.md)
+#### [/create-command](../src/commands/create-command.md)
 
-[/create-subagent](../src/commands/create-subagent.md)
+Generates Claude Code slash commands with full feature support including security controls, dynamic arguments, bash execution, and file references through interactive template construction.
+
+**Tools**: `Write, Read, Bash(mkdir:*)`
+
+**Context collection**: User requirements for command functionality, target location (project vs personal), security requirements, and dynamic content needs (arguments, bash commands, file references)
+
+**Processing flow**:
+1. Determines command scope and installation target (project `.claude/commands/` vs user `~/.claude/commands/`)
+2. Gathers command specifications including name, description, required tools, and feature requirements
+3. Constructs YAML frontmatter with security controls via `allowed-tools` field and optional metadata
+4. Generates command content supporting Claude Code features (dynamic arguments with `$ARGUMENTS`, bash execution with `!` prefix, file inclusion with `@` prefix)
+5. Handles namespaced commands by creating subdirectory structures for colon-separated names
+6. Creates markdown file with proper formatting and validates frontmatter structure
+7. Provides usage examples and invocation guidance
+
+**Output**: Created command file with full Claude Code feature support, installation location confirmation, usage instructions, and example invocations
+
+#### [/create-subagent](../src/commands/create-subagent.md)
+
+Creates domain expert subagents following concentrated expertise principles with delegation patterns, environmental detection, and quality validation to ensure robust problem-solving capabilities.
+
+**Tools**: `Write, Bash(mkdir:*), Read`
+
+**Context collection**: Domain expertise requirements, problem scope assessment (5-15 related problems), tool permissions, environmental adaptation needs, and delegation hierarchy relationships
+
+**Processing flow**:
+1. Assesses domain boundaries and validates expert scope through problem enumeration and domain coverage analysis
+2. Determines installation location and tool permissions with security considerations for different expert types
+3. Designs environmental detection strategies using internal tools (Read, Grep, Glob) over shell commands for performance
+4. Constructs delegation patterns with clear escalation paths between broad domain experts and sub-domain specialists
+5. Generates YAML frontmatter with proactive trigger conditions and categorical metadata
+6. Creates structured markdown content with delegation-first architecture and progressive solution approaches
+7. Validates expert criteria through quality checks including domain boundary tests and naming conventions
+
+**Output**: Domain expert subagent with concentrated expertise, delegation architecture, environmental adaptation capabilities, proactive usage triggers, and comprehensive problem-solving framework
 
 ## Session-based hook control
 
