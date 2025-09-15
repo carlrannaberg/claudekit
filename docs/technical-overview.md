@@ -227,19 +227,79 @@ Creates domain expert subagents following concentrated expertise principles with
 
 ## Session-based hook control
 
+Hook execution control during Claude Code sessions.
+
 ### Commands
 
-[/hook:disable](../src/commands/hook/disable.md)
+#### [/hook:disable](../src/commands/hook/disable.md)
 
-[/hook:enable](../src/commands/hook/enable.md)
+Disables specified hook execution for the current Claude Code session without affecting global configuration.
 
-[/hook:status](../src/commands/hook/status.md)
+**Tools**: `Bash(claudekit-hooks:*)`
+
+**Context collection**: Hook name or partial name from user arguments
+
+**Processing flow**:
+1. Accepts hook name or partial name as argument
+2. Calls claudekit-hooks disable with provided hook identifier
+3. Updates session-level hook state to prevent execution
+
+**Output**: Confirmation of hook disabled status for current session
+
+#### [/hook:enable](../src/commands/hook/enable.md)
+
+Re-enables previously disabled hook execution for the current Claude Code session.
+
+**Tools**: `Bash(claudekit-hooks:*)`
+
+**Context collection**: Hook name or partial name from user arguments
+
+**Processing flow**:
+1. Accepts hook name or partial name as argument
+2. Calls claudekit-hooks enable with provided hook identifier
+3. Updates session-level hook state to restore execution
+
+**Output**: Confirmation of hook enabled status for current session
+
+#### [/hook:status](../src/commands/hook/status.md)
+
+Shows current execution status of hooks within the active Claude Code session.
+
+**Tools**: `Bash(claudekit-hooks:*)`
+
+**Context collection**: Optional hook name or partial name from user arguments for filtering
+
+**Processing flow**:
+1. Accepts optional hook name or partial name as argument
+2. Calls claudekit-hooks status with provided filter or shows all hooks
+3. Retrieves session-level hook execution states
+
+**Output**: Hook status report showing enabled/disabled state for current session
 
 ## Bash tool timeout config
 
+Bash command timeout configuration for Claude Code settings.
+
 ### Commands
 
-[/config:bash-timeout](../src/commands/config/bash-timeout.md)
+#### [/config:bash-timeout](../src/commands/config/bash-timeout.md)
+
+Configures bash command timeout values in Claude Code settings.json files with duration parsing and scope selection for user or project level.
+
+**Tools**: `Read, Edit, Write`
+
+**Context collection**: Current user and project settings files, timeout duration and scope arguments, existing configuration preservation requirements
+
+**Processing flow**:
+1. Parses duration argument (minutes, seconds) and optional scope (user/project)
+2. Converts duration specifications to milliseconds for Claude Code environment variables
+3. Determines target settings file path based on scope selection
+4. Reads existing settings to preserve hooks and other configuration
+5. Updates or adds env section with BASH_DEFAULT_TIMEOUT_MS and BASH_MAX_TIMEOUT_MS values
+6. Sets maximum timeout to double the default value with minimum 20-minute ceiling
+7. Writes updated settings maintaining JSON structure and existing configuration
+
+**Output**: Updated settings file with new timeout values, configuration confirmation, and scope-specific application details
 
 # Expert subagents
 

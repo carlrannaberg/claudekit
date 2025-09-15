@@ -1,6 +1,6 @@
 # Component Description Guide
 
-> "Why use more word, when less word do trick." - Kevin Malone
+> "Why waste time say lot word when few word do trick." - Kevin Malone
 
 This is the core principle for all technical descriptions: say exactly what things do, nothing more.
 
