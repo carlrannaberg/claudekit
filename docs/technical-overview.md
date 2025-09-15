@@ -118,12 +118,14 @@ Automatic keyword injection that replaces the need to manually prompt Claude wit
 
 ### Hooks
 
-#### [thinking-level](../docs/guides/thinking-level.md)
+#### [thinking-level](guides/thinking-level.md)
 
 Automatically and invisibly adds thinking keywords to user prompts.
 
 **Triggers**: `UserPromptSubmit` events with universal matcher
+
 **Implementation**: Maps configured level (0-3) to thinking keywords (none, think, megathink, ultrathink), prepends keyword with newline to user prompt, validates level bounds with fallback to default level 2
+
 **Behavior**: Pre-processing approach where users see normal interface but Claude receives enhanced prompts, configurable performance impact (level 2: ~2.5x tokens, level 3: ~8x tokens), invisible operation without workflow disruption
 
 ## Agents.md
@@ -676,12 +678,14 @@ Git-based state preservation system using stash create/store pattern for non-des
 
 ### Hooks
 
-#### [create-checkpoint](../docs/guides/checkpoint.md)
+#### [create-checkpoint](guides/checkpoint.md)
 
 Automatic backup system for Claude Code sessions using git stash create/store pattern to preserve work without disrupting workflow.
 
 **Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
 **Implementation**: Git status detection, temporary staging, stash object creation, index reset, and automatic cleanup of aged checkpoints
+
 **Behavior**: Silent execution without workflow interruption, provides backup safety net without modifying working directory
 
 ### Commands
@@ -707,7 +711,7 @@ Manual checkpoint creation using git stash create/store pattern with working dir
 
 #### [/checkpoint:restore](../src/commands/checkpoint/restore.md)
 
-Checkpoint restoration system with automatic backup of current changes and conflict resolution.
+Restores checkpoints with automatic backup of current changes and conflict resolution.
 
 **Tools**: `Bash(git stash:*), Bash(git status:*), Bash(git reset:*), Bash(grep:*), Bash(head:*)`
 
@@ -725,7 +729,7 @@ Checkpoint restoration system with automatic backup of current changes and confl
 
 #### [/checkpoint:list](../src/commands/checkpoint/list.md)
 
-Checkpoint inventory system that displays formatted list of all Claude Code checkpoints with metadata.
+Lists all Claude Code checkpoints with formatted metadata display.
 
 **Tools**: `Bash(git stash:*)`
 
@@ -742,25 +746,81 @@ Checkpoint inventory system that displays formatted list of all Claude Code chec
 
 ## Codebase map
 
+Context injection system that provides code structure overview at session start with incremental updates on file changes.
+
 ### Hooks
 
-[codebase-map](guides/codebase-map.md)
+#### [codebase-map](guides/codebase-map.md)
 
-codebase-map-update
+Session-based context provider that generates and injects codebase structure overview once per session with configurable filtering and format options.
+
+**Triggers**: `SessionStart` and `UserPromptSubmit` events with universal matcher
+
+**Implementation**: Generates codebase map using configurable include/exclude patterns and format options, implements session tracking to prevent duplicate context injection, includes performance limits and truncation for large codebases, supports both DSL and tree output formats
+
+**Behavior**: Provides context once per session with 9000 character limit for UserPromptSubmit events, sessions are tracked to avoid duplicate injection, graceful fallback on generation failures without blocking user workflow
+
+#### [codebase-map-update](guides/codebase-map.md)
+
+Incremental codebase map updater that maintains index freshness by updating specific files on modification with debouncing to prevent excessive regeneration.
+
+**Triggers**: `PostToolUse` events matching `Write|Edit|MultiEdit`
+
+**Implementation**: Debounces updates with 5-second delay, filters for code file extensions (ts, tsx, js, jsx, mjs, cjs), updates specific files in codebase-map index rather than full regeneration, silent failure handling to avoid workflow disruption
+
+**Behavior**: Updates index file incrementally without interrupting development workflow, skips updates if codebase-map tool unavailable or no index exists, maintains index accuracy for subsequent session starts
 
 ## File guard
 
-[file-guard](guides/file-guard.md)
-
-## Quality checks
+Sensitive file protection system that prevents AI access to protected files based on ignore patterns and security heuristics.
 
 ### Hooks
 
-check-unused-parameters
+#### [file-guard](guides/file-guard.md)
 
-[check-comment-replacement](guides/check-comment-replacement.md)
+Pre-execution security gate that blocks AI file access operations targeting sensitive files using ignore file patterns and command analysis.
 
-check-todos
+**Triggers**: `PreToolUse` events matching `Read|Edit|MultiEdit|Write|Bash`
+
+**Implementation**: Loads ignore file patterns for protection rules, parses bash commands to extract file path candidates, applies security heuristics to detect sensitive pipeline operations, validates file paths against protection patterns, provides detailed denial reasons with pattern sources
+
+**Behavior**: Blocks access before tool execution with informative error messages, allows non-sensitive file operations to proceed normally, special handling for bash commands with path extraction and pipeline analysis
+
+## Quality checks
+
+Code quality validation hooks that detect common anti-patterns and incomplete work during development.
+
+### Hooks
+
+#### check-unused-parameters
+
+Detects lazy refactoring patterns where function parameters are prefixed with underscores instead of being properly removed.
+
+**Triggers**: `PostToolUse` events matching `Edit|MultiEdit`
+
+**Implementation**: Scans edited code for underscore-prefixed parameters in function declarations, arrow functions, methods, and constructors using regex patterns for TypeScript and JavaScript syntax variations
+
+**Behavior**: Blocks commits when underscore-prefixed parameters are detected in code edits, encourages proper parameter removal over lazy underscore prefixing
+
+#### [check-comment-replacement](guides/check-comment-replacement.md)
+
+Detects incomplete development work where functional code has been replaced with placeholder comments.
+
+**Triggers**: `PostToolUse` events matching `Edit|MultiEdit`
+
+**Implementation**: Analyzes edit operations to identify when code is replaced with comment lines, supports multiple comment syntaxes (single-line, block, hash, SQL, HTML), validates edit patterns for comment replacement violations
+
+**Behavior**: Blocks operations when code-to-comment replacement is detected, prevents incomplete refactoring from being committed, provides specific feedback about violated lines
+
+#### check-todos
+
+Response completion validator that ensures all todo items are finished before Claude stops responding.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
+**Implementation**: Parses transcript to extract latest todo state, identifies incomplete tasks by status analysis, blocks Claude from stopping when unfinished todos exist
+
+**Behavior**: Prevents Claude from finishing responses when tasks remain incomplete, enforces task completion discipline with detailed list of incomplete items, allows Claude to stop only when all todos are completed
 
 ## Typescript type checking
 

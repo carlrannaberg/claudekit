@@ -279,7 +279,9 @@ Hooks are event-driven components that integrate with Claude Code's execution li
 Brief technical description including purpose and approach (1-2 sentences max).
 
 **Triggers**: Event conditions and matcher patterns
+
 **Implementation**: Key technical mechanisms
+
 **Behavior**: System integration and output characteristics
 ```
 
@@ -297,7 +299,9 @@ Brief technical description including purpose and approach (1-2 sentences max).
 Automatic backup system for Claude Code sessions using git stash create/store pattern to preserve work without disrupting workflow.
 
 **Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
 **Implementation**: Git status detection, temporary staging, stash object creation, index reset, and automatic cleanup of aged checkpoints
+
 **Behavior**: Silent execution without workflow interruption, provides backup safety net without modifying working directory
 ```
 
