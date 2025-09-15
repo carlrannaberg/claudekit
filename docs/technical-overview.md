@@ -114,9 +114,17 @@ Analyzes project workspace for debug files, test artifacts, and status reports c
 
 ## Thinking level
 
+Automatic keyword injection that replaces the need to manually prompt Claude with thinking keywords.
+
 ### Hooks
 
-[thinking-level](guides/thinking-level.md)
+#### [thinking-level](../cli/hooks/thinking-level.ts)
+
+Automatically and invisibly adds thinking keywords to user prompts.
+
+**Triggers**: `UserPromptSubmit` events with universal matcher
+**Implementation**: Maps configured level (0-3) to thinking keywords (none, think, megathink, ultrathink), prepends keyword with newline to user prompt, validates level bounds with fallback to default level 2
+**Behavior**: Pre-processing approach where users see normal interface but Claude receives enhanced prompts, configurable performance impact (level 2: ~2.5x tokens, level 3: ~8x tokens), invisible operation without workflow disruption
 
 ## Agents.md
 
