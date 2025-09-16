@@ -1,5 +1,46 @@
 # Technical overview
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Architecture](#architecture)
+  - [Commands](#commands)
+  - [Subagents](#subagents)
+  - [Hooks](#hooks)
+  - [CLI](#cli)
+  - [Configuration](#configuration)
+  - [Release pipeline](#release-pipeline)
+- [Basic utilities](#basic-utilities)
+  - [Validate and fix issues](#validate-and-fix-issues)
+  - [Temporary file cleanup](#temporary-file-cleanup)
+  - [Thinking level](#thinking-level)
+  - [Agents.md](#agentsmd)
+  - [Create commands and agents](#create-commands-and-agents)
+  - [Session-based hook control](#session-based-hook-control)
+  - [Bash tool timeout config](#bash-tool-timeout-config)
+- [Expert subagents](#expert-subagents)
+  - [Generic](#generic)
+  - [Technology focused](#technology-focused)
+- [Workflows](#workflows)
+  - [Git](#git-1)
+  - [GitHub](#github)
+  - [Code search](#code-search)
+  - [Research](#research)
+  - [Spec-driven development](#spec-driven-development)
+  - [Checkpointing](#checkpointing)
+  - [Codebase map](#codebase-map)
+  - [File guard](#file-guard)
+  - [Quality checks](#quality-checks)
+  - [Typescript type checking](#typescript-type-checking)
+  - [Linting](#linting)
+  - [Test running](#test-running)
+  - [Self-review](#self-review)
+- [Advanced utilities](#advanced-utilities)
+  - [Doctor](#doctor)
+  - [Claude files linter](#claude-files-linter)
+  - [Hook profiler](#hook-profiler)
+  - [Exposed prompts for external use](#exposed-prompts-for-external-use)
+
 # Prerequisites
 
 To understand claudekit's architecture, you should first be familiar with these Claude Code concepts:
