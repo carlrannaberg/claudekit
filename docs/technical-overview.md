@@ -116,17 +116,35 @@ Analyzes project workspace for debug files, test artifacts, and status reports c
 
 Automatic keyword injection that replaces the need to manually prompt Claude with thinking keywords.
 
+```
+User Input: "Help me fix this bug"
+     │
+     ▼
+[Check configured level: 2]
+     │
+     ▼
+[Map level to keyword: "megathink"]
+     │
+     ▼
+[Prepend to prompt: "megathink\nHelp me fix this bug"]
+     │
+     ▼
+[Send to Claude processing]
+```
+
+**Architecture**: Level configuration (0-3) maps to thinking keywords: 0=none, 1=think, 2=megathink, 3=ultrathink. Keywords are prepended with newline before Claude receives the prompt. Token usage increases with level: level 2 approximately 2.5x baseline, level 3 approximately 8x baseline.
+
 ### Hooks
 
 #### [thinking-level](guides/thinking-level.md)
 
-Automatically and invisibly adds thinking keywords to user prompts.
+Prepends thinking keywords to user prompts before processing.
 
 **Triggers**: `UserPromptSubmit` events with universal matcher
 
 **Implementation**: Maps configured level (0-3) to thinking keywords (none, think, megathink, ultrathink), prepends keyword with newline to user prompt, validates level bounds with fallback to default level 2
 
-**Behavior**: Pre-processing approach where users see normal interface but Claude receives enhanced prompts, configurable performance impact (level 2: ~2.5x tokens, level 3: ~8x tokens), invisible operation without workflow disruption
+**Behavior**: Modifies prompts before Claude processing without changing user interface, configurable performance impact (level 2: ~2.5x tokens, level 3: ~8x tokens), operates transparently during normal workflow
 
 ## Agents.md
 
@@ -237,13 +255,40 @@ Creates domain expert subagents following concentrated expertise principles with
 
 ## Session-based hook control
 
-Hook execution control during Claude Code sessions.
+Hook execution control during Claude Code sessions that preserves repository settings while allowing individual preferences.
+
+```
+Repository Config: .claude/settings.json
+     │        [hooks: enabled globally]
+     ▼
+[Claude Code Session Start]
+     │
+     ▼
+~/.claudekit/sessions/uuid.json
+     │  {
+     │    "disabledHooks": ["typecheck"],
+     │    "sessionId": "abc123"
+     │  }
+     ▼
+[Session-specific behavior]
+     │  • typecheck disabled for this user
+     │  • repository config unchanged
+     ▼
+[Session End] ──► [State cleared]
+                       │
+                       ▼
+                 [Back to repository defaults]
+```
+
+**Architecture**: Session state is tracked in `~/.claudekit/sessions/[uuid].json` files that override repository settings without modifying them. When Claude Code sessions end, the temporary state is cleared and behavior reverts to repository defaults.
 
 ### Commands
 
 #### [/hook:disable](../src/commands/hook/disable.md)
 
 Disables specified hook execution for the current Claude Code session without affecting global configuration.
+
+**Implementation**: Creates session-specific override in UUID-tracked file that claudekit-hooks consults before executing hooks.
 
 **Tools**: `Bash(claudekit-hooks:*)`
 
@@ -320,6 +365,7 @@ Configures bash command timeout values in Claude Code settings.json files with d
 Context gathering and initial problem diagnosis specialist for routing issues to appropriate domain experts.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit`
+
 **Specialization**: Root cause analysis, comprehensive context gathering, expert routing recommendations, and actionable problem assessment before specialized intervention
 
 #### [refactoring-expert](../src/agents/refactoring/refactoring-expert.md)
@@ -327,6 +373,7 @@ Context gathering and initial problem diagnosis specialist for routing issues to
 Systematic code refactoring and code smell detection specialist with structural optimization focus.
 
 **Tools**: `Read, Grep, Glob, Edit, MultiEdit, Bash`
+
 **Specialization**: Code smell detection, refactoring techniques without changing external behavior, structural optimization, and proven refactoring patterns application
 
 #### [documentation-expert](../src/agents/documentation/documentation-expert.md)
@@ -334,6 +381,7 @@ Systematic code refactoring and code smell detection specialist with structural 
 Documentation structure, cohesion, and information architecture specialist for developer experience optimization.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit`
+
 **Specialization**: Documentation anti-pattern detection, content organization, user experience optimization, navigation improvement, and readability enhancement
 
 #### [cli-expert](../src/agents/cli-expert.md)
@@ -341,6 +389,7 @@ Documentation structure, cohesion, and information architecture specialist for d
 Command-line interface and npm package development specialist with Unix philosophy and project root detection.
 
 **Tools**: All available tools
+
 **Specialization**: CLI tool development, npm package creation, argument parsing, interactive/non-interactive modes, automatic project root detection, and Unix-style tool implementation
 
 ## Technology focused
@@ -352,6 +401,7 @@ Command-line interface and npm package development specialist with Unix philosop
 Vite build optimization specialist with ESM-first development and HMR optimization expertise.
 
 **Tools**: `Read, Edit, MultiEdit, Bash, Grep, Glob`
+
 **Specialization**: ESM-first development patterns, HMR optimization, plugin ecosystem, production builds, library mode, SSR configuration, and modern ESM patterns
 
 #### [webpack-expert](../src/agents/build-tools/build-tools-webpack-expert.md)
@@ -359,6 +409,7 @@ Vite build optimization specialist with ESM-first development and HMR optimizati
 Webpack build optimization specialist with configuration patterns and bundle analysis expertise.
 
 **Tools**: `Read, Edit, MultiEdit, Bash, Grep, Glob`
+
 **Specialization**: Configuration patterns, bundle analysis, code splitting, module federation, performance optimization, custom plugins/loaders, and modern architecture patterns
 
 ### Code quality
@@ -368,6 +419,7 @@ Webpack build optimization specialist with configuration patterns and bundle ana
 Code linting, formatting, and static analysis specialist across multiple languages and tools.
 
 **Tools**: All available tools
+
 **Specialization**: Static analysis patterns, coding standards enforcement, linter configuration, formatting consistency, and cross-language quality validation
 
 ### Database
@@ -376,7 +428,8 @@ Code linting, formatting, and static analysis specialist across multiple languag
 
 Cross-database optimization and schema design specialist with performance analysis expertise.
 
-**Tools**: `Bash(psql:*), Bash(mysql:*), Bash(mongosh:*), Bash(sqlite3:*), Read, Grep, Edit`
+**Tools**: `Bash(psql:*), Bash(mysql:*), Bash(mongosh:*), Bash(sqlite3:*),
+Read, Grep, Edit`
 **Specialization**: Database performance optimization, schema design, query performance analysis, connection management, transaction handling across PostgreSQL, MySQL, MongoDB, and SQLite with ORM integration
 
 #### [mongodb-expert](../src/agents/database/database-mongodb-expert.md)
@@ -384,13 +437,15 @@ Cross-database optimization and schema design specialist with performance analys
 MongoDB specialist with document modeling and aggregation pipeline optimization expertise.
 
 **Tools**: `Bash(mongosh:*), Bash(mongo:*), Read, Grep, Edit`
+
 **Specialization**: Document modeling, aggregation pipeline optimization, sharding strategies, replica set configuration, connection pool management, indexing strategies, and NoSQL performance patterns
 
 #### [postgres-expert](../src/agents/database/database-postgres-expert.md)
 
 PostgreSQL specialist with advanced indexing and JSONB operations expertise.
 
-**Tools**: `Bash(psql:*), Bash(pg_dump:*), Bash(pg_restore:*), Bash(pg_basebackup:*), Read, Grep, Edit`
+**Tools**: `Bash(psql:*), Bash(pg_dump:*), Bash(pg_restore:*), Bash
+(pg_basebackup:*), Read, Grep, Edit`
 **Specialization**: Query optimization, JSONB operations, advanced indexing strategies, partitioning, connection management, and database administration with PostgreSQL-specific expertise
 
 ### Devops
@@ -400,6 +455,7 @@ PostgreSQL specialist with advanced indexing and JSONB operations expertise.
 DevOps and infrastructure specialist with comprehensive CI/CD and deployment expertise.
 
 **Tools**: All available tools
+
 **Specialization**: CI/CD pipelines, containerization, orchestration, infrastructure as code, monitoring, security, performance optimization, and operational excellence
 
 #### [docker-expert](../src/agents/infrastructure/infrastructure-docker-expert.md)
@@ -407,6 +463,7 @@ DevOps and infrastructure specialist with comprehensive CI/CD and deployment exp
 Docker containerization specialist with multi-stage builds and image optimization expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Multi-stage builds, image optimization, container security, Docker Compose orchestration, production deployment patterns, networking, and container architecture
 
 #### [github-actions-expert](../src/agents/infrastructure/infrastructure-github-actions-expert.md)
@@ -414,6 +471,7 @@ Docker containerization specialist with multi-stage builds and image optimizatio
 GitHub Actions specialist with workflow automation and custom actions development expertise.
 
 **Tools**: All available tools
+
 **Specialization**: CI/CD pipeline optimization, workflow automation, custom actions development, security best practices, and scalable software delivery
 
 ### E2E testing
@@ -423,6 +481,7 @@ GitHub Actions specialist with workflow automation and custom actions developmen
 Playwright end-to-end testing specialist with cross-browser automation and visual regression testing expertise.
 
 **Tools**: `Bash, Read, Write, Edit, MultiEdit, Grep, Glob`
+
 **Specialization**: Cross-browser automation, visual regression testing, CI/CD integration, test architecture, and reliable test patterns
 
 ### Framework
@@ -432,6 +491,7 @@ Playwright end-to-end testing specialist with cross-browser automation and visua
 Vercel AI SDK specialist with streaming and model integration expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Streaming implementation, model integration, tool calling, hooks, state management, edge runtime, prompt engineering, and production AI application patterns
 
 #### [nestjs-expert](../src/agents/nestjs-expert.md)
@@ -439,6 +499,7 @@ Vercel AI SDK specialist with streaming and model integration expertise.
 Nest.js framework specialist with module architecture and dependency injection expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Module architecture, dependency injection, middleware, guards, interceptors, testing with Jest/Supertest, TypeORM/Mongoose integration, and Passport.js authentication
 
 #### [nextjs-expert](../src/agents/framework/framework-nextjs-expert.md)
@@ -446,6 +507,7 @@ Nest.js framework specialist with module architecture and dependency injection e
 Next.js framework specialist with App Router and Server Components expertise.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+
 **Specialization**: App Router patterns, Server Components, performance optimization, full-stack patterns, routing architecture, hydration optimization, and deployment strategies
 
 ### Frontend
@@ -455,6 +517,7 @@ Next.js framework specialist with App Router and Server Components expertise.
 WCAG compliance and accessibility specialist with screen reader optimization expertise.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+
 **Specialization**: WCAG 2.1/2.2 compliance, WAI-ARIA implementation, screen reader optimization, keyboard navigation, accessibility testing automation, and inclusive design patterns
 
 #### [css-styling-expert](../src/agents/frontend/frontend-css-styling-expert.md)
@@ -462,6 +525,7 @@ WCAG compliance and accessibility specialist with screen reader optimization exp
 CSS architecture and modern styling specialist with responsive design expertise.
 
 **Tools**: `Read, Edit, MultiEdit, Grep, Glob, Bash, LS`
+
 **Specialization**: CSS architecture, responsive design, CSS-in-JS optimization, performance optimization, accessibility integration, design systems, and cross-browser compatibility
 
 ### Git
@@ -471,6 +535,7 @@ CSS architecture and modern styling specialist with responsive design expertise.
 Git workflow and repository management specialist with merge conflict resolution expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Merge conflict resolution, branching strategies, repository recovery, performance optimization, collaboration patterns, and repository management
 
 ### Node.js
@@ -480,6 +545,7 @@ Git workflow and repository management specialist with merge conflict resolution
 Node.js runtime and ecosystem specialist with async patterns and performance optimization expertise.
 
 **Tools**: `Read, Write, Edit, Bash, Grep, Glob`
+
 **Specialization**: Async patterns, module systems, performance optimization, filesystem operations, process management, networking, event loop debugging, memory leak detection, and stream processing
 
 ### React
@@ -489,6 +555,7 @@ Node.js runtime and ecosystem specialist with async patterns and performance opt
 React component patterns and hooks specialist with state management expertise.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+
 **Specialization**: Component patterns, hooks architecture, state management, React patterns, component design, and modern React development practices
 
 #### [react-performance-expert](../src/agents/react/react-performance-expert.md)
@@ -496,6 +563,7 @@ React component patterns and hooks specialist with state management expertise.
 React performance optimization specialist with DevTools Profiler and memoization expertise.
 
 **Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+
 **Specialization**: DevTools Profiler analysis, memoization strategies, Core Web Vitals optimization, bundle optimization, virtualization, performance bottleneck identification, and render optimization
 
 ### Testing
@@ -505,6 +573,7 @@ React performance optimization specialist with DevTools Profiler and memoization
 Cross-framework testing specialist with mocking strategies and coverage analysis expertise.
 
 **Tools**: `Read, Edit, Bash, Grep, Glob`
+
 **Specialization**: Test structure design, mocking strategies, async testing patterns, coverage analysis, framework migration, testing architecture, and cross-framework debugging
 
 #### [jest-expert](../src/agents/testing/jest-testing-expert.md)
@@ -512,6 +581,7 @@ Cross-framework testing specialist with mocking strategies and coverage analysis
 Jest testing framework specialist with advanced mocking and TypeScript integration expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Jest framework mastery, advanced mocking strategies, snapshot testing, async patterns, TypeScript integration, and performance optimization
 
 #### [vitest-expert](../src/agents/testing/vitest-testing-expert.md)
@@ -519,6 +589,7 @@ Jest testing framework specialist with advanced mocking and TypeScript integrati
 Vitest testing framework specialist with modern testing patterns and configuration expertise.
 
 **Tools**: All available tools
+
 **Specialization**: Vitest configuration, modern testing patterns, ESM integration, performance optimization, and TypeScript testing workflows
 
 ### Typescript
@@ -528,6 +599,7 @@ Vitest testing framework specialist with modern testing patterns and configurati
 General TypeScript and JavaScript development specialist with modern language features expertise.
 
 **Tools**: All available tools
+
 **Specialization**: TypeScript language features, JavaScript ecosystem integration, modern development patterns, type safety implementation, and full-stack TypeScript development
 
 #### [typescript-build-expert](../src/agents/typescript/typescript-build-expert.md)
@@ -535,6 +607,7 @@ General TypeScript and JavaScript development specialist with modern language fe
 TypeScript build system specialist with compiler configuration and module resolution expertise.
 
 **Tools**: `Read, Bash, Glob, Grep, Edit, MultiEdit, Write`
+
 **Specialization**: Compiler configuration, build optimization, module resolution, build tool integration, performance tuning, and TypeScript toolchain management
 
 #### [typescript-type-expert](../src/agents/typescript/typescript-type-expert.md)
@@ -542,6 +615,7 @@ TypeScript build system specialist with compiler configuration and module resolu
 Advanced TypeScript type system specialist for complex generics and type-level programming.
 
 **Tools**: All available tools
+
 **Specialization**: Complex generics, conditional types, template literals, type inference, performance optimization, recursive types, brand types, utility type authoring, and advanced type system error patterns
 
 # Workflows
@@ -675,9 +749,32 @@ Reviews code for quality issues and generates report.
 
 #### [/code-review](../src/commands/code-review.md)
 
-Performs code review across six aspects (architecture, code quality, security, performance, testing, documentation) using parallel code-review-expert agents with impact assessment and strategic scope determination.
+Coordinates multiple concurrent code-review-expert agents across six specialized aspects (architecture, code quality, security, performance, testing, documentation) using Claude Code's Task tool to enable simultaneous analysis without conflicts.
 
 **Tools**: `Task, Bash(git status:*), Bash(git diff:*), Bash(git log:*)`
+
+```
+                     [Code Review Command]
+                              │
+          ┌───────┬───────┬───┴───┬───────┬───────┐
+          │       │       │       │       │       │
+          ▼       ▼       ▼       ▼       ▼       ▼
+    [Security] [Perf] [Arch] [Test] [Docs] [Quality]
+     Expert   Expert  Expert Expert Expert  Expert
+          │       │       │       │       │       │
+          └───────┼───────┼───────┼───────┼───────┘
+                  │       │       │       │
+                  └───────┼───────┼───────┘
+                          │       │
+                          ▼       ▼
+                    [Main Coordinator]
+                          │
+                          ▼
+              [Consolidated Report with
+               Cross-Pattern Analysis]
+```
+
+**Architecture**: Each specialist agent runs in separate execution context via Claude Code's Task tool. Agents focus on single aspects (security expert analyzes only security, performance expert only performance) to enable deep expertise without conflicts. The coordinator synthesizes all findings into a unified report.
 
 **Context collection**: Current repository state including git status, diff statistics, recent commit history, review target specification from arguments, and impact assessment for system dependencies
 
@@ -703,7 +800,26 @@ Single-focus code review subagent that gets launched multiple times concurrently
 
 ## Research
 
-Parallel information gathering using multiple specialized subagents.
+Orchestrator-worker research coordination using query classification and artifact-based synthesis to enable complex parallel investigation.
+
+```
+Query Analysis:
+User Query → [Classify: breadth/depth/factual] → [Determine agent count]
+     │                   │                            │
+     ▼                   ▼                            ▼
+[Complex topic?]  [Research strategy]         [Spawn 3-10 agents]
+
+Parallel Execution:
+Lead Agent → [research-expert A: angle 1] → [artifact-A.md]
+     │       [research-expert B: angle 2] → [artifact-B.md]
+     │       [research-expert C: angle 3] → [artifact-C.md]
+     ▼
+[Read all artifacts] → [Synthesize findings] → [Final report]
+```
+
+**Architecture**: Uses orchestrator-worker pattern where lead agent analyzes query complexity and spawns specialized research-expert subagents with distinct investigation angles. Subagents write findings to filesystem artifacts rather than direct return, enabling larger research volumes and preserving individual agent reports for user inspection. Lead agent synthesizes all artifacts into final report.
+
+**Inspiration**: Based on Anthropic's [multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) architecture, adapted for Claude Code.
 
 ### Commands
 
@@ -730,14 +846,40 @@ Orchestrates parallel research across multiple subagents with query classificati
 
 #### [research-expert](../src/agents/research-expert.md)
 
-Mode-driven research subagent with progressive search refinement that outputs full reports to markdown files rather than direct return.
+Mode-driven research subagent with progressive search refinement that writes reports to filesystem artifacts.
+
+**Implementation**: Outputs detailed findings to markdown files rather than direct return to overcome size limitations and enable user access to individual agent research. Mode-sensitive depth determines tool call budget (quick: 3-5, focused: 5-10, deep: 10-15 calls).
 
 **Tools**: `WebSearch, WebFetch, Read, Write, Edit, Grep, Glob`
-**Specialization**: Parallel search execution with mode-sensitive depth (3-5, 5-10, or 10-15 tool calls), authoritative source prioritization, cross-reference verification, research gap identification, source quality hierarchy evaluation, and lightweight summary generation while preserving detailed reports in temporary files
+**Specialization**: Parallel search execution with progressive refinement, authoritative source prioritization, cross-reference verification, research gap identification, source quality hierarchy evaluation, and report generation while preserving findings in accessible artifact files
 
 ## Spec-driven development
 
 Specification creation, validation, decomposition, and execution with task management integration.
+
+```
+Spec Workflow:
+Feature Request → [/spec:create] → [17-section spec] → [/spec:validate]
+      │                │                │                    │
+      ▼                ▼                ▼                    ▼
+[First-principles] [Library docs]  [Overengineering    [Ready assessment]
+ [problem analysis] [integration]   detection]              │
+                                        │                    ▼
+                                        ▼              [/spec:decompose]
+                                   [YAGNI analysis]          │
+                                                            ▼
+                                                    [STM tasks with
+                                                     implementation details]
+                                                            │
+                                                            ▼
+                                                    [/spec:execute]
+                                                            │
+                                                            ▼
+                                                    [Concurrent specialists
+                                                     + quality reviews]
+```
+
+**Architecture**: Creates specifications with 17 standardized sections including technical dependencies, implementation phases, and testing strategy. Validation includes overengineering detection using YAGNI principles. Decomposition preserves complete implementation details in STM tasks. Execution coordinates specialist agents with mandatory quality reviews.
 
 ### Commands
 
@@ -819,7 +961,38 @@ Implements validated specifications by orchestrating concurrent specialist agent
 
 ## Checkpointing
 
-Git-based state preservation system using stash create/store pattern for non-destructive working directory snapshots.
+Git-based state preservation system that creates perfect snapshots without modifying working directory files, solving the workflow disruption problem of traditional git stash operations.
+
+```
+Traditional Stash (Disruptive):
+Working Directory: [your changes]
+        │
+        ▼
+[git stash push] ──► Working Directory: [clean, changes lost]
+        │                     │
+        ▼                     ▼
+Stash List: [saved]    [context disrupted]
+
+Claudekit Approach (Non-Destructive):
+Working Directory: [your changes] ──► [unchanged throughout]
+        │
+        ▼
+[git add -A] ──► Index: [staged temporarily]
+        │
+        ▼
+[git stash create] ──► Stash Object: [perfect snapshot]
+        │
+        ▼
+[git stash store] ──► Stash List: [checkpoint saved]
+        │
+        ▼
+[git reset] ──► Index: [restored to original]
+        │
+        ▼
+Working Directory: [still your changes, context preserved]
+```
+
+**Architecture**: The git stash create/store pattern creates stash objects without modifying the working directory. Files are temporarily staged to create a complete snapshot, then the index is reset while the stash object is preserved in the stash list. This enables fearless experimentation with perfect recovery points.
 
 ### Hooks
 
@@ -893,6 +1066,24 @@ Lists all Claude Code checkpoints with formatted metadata display.
 
 Context injection system that provides code structure overview at session start with incremental updates on file changes.
 
+```
+Session Start:
+[Generate codebase map] → [Session tracking] → [9000 char limit]
+        │                        │                     │
+        ▼                        ▼                     ▼
+[Include/exclude      [Prevent duplicate      [Truncate if
+ patterns]             injection]              needed]
+
+File Changes During Session:
+File Edit → [5-second debounce] → [Update specific file index]
+     │              │                        │
+     ▼              ▼                        ▼
+[Filter: code   [Prevent rapid         [Index maintained
+ files only]     regeneration]          for next session]
+```
+
+**Architecture**: Session tracking prevents duplicate context injection. Incremental updates modify index entries for changed files rather than full regeneration. 5-second debouncing prevents excessive updates during rapid editing. 9000 character limits with truncation ensure consistent performance.
+
 ### Hooks
 
 #### [codebase-map](guides/codebase-map.md)
@@ -917,13 +1108,41 @@ Incremental codebase map updater that maintains index freshness by updating spec
 
 ## File guard
 
-Sensitive file protection system that prevents AI access to protected files based on ignore patterns and security heuristics.
+Analyzes bash commands and extracts file paths before tool execution, preventing access to sensitive files through dynamic command parsing rather than static pattern matching.
+
+```
+Static Permissions (Claude Code built-in):
+User: "find . -name '*.env' | xargs cat"
+       │
+       ▼
+[Pattern Check: Read(./.env)] ──► ALLOWED (doesn't match exact pattern)
+       │
+       ▼
+[Tool executes, sensitive data exposed]
+
+Dynamic Analysis (Claudekit):
+User: "find . -name '*.env' | xargs cat"
+       │
+       ▼
+[Parse bash command] ──► [Extract: find, xargs cat]
+       │                        │
+       ▼                        ▼
+[Analyze pipeline] ──► [Predicted paths: .env files]
+       │
+       ▼
+[Check against patterns] ──► BLOCKED (.env matches protection)
+       │
+       ▼
+[Access denied before execution]
+```
+
+**Architecture**: Parses bash command syntax to extract file path operations before tool execution. Handles pipeline operations, glob expansion, and variable substitution that static deny patterns cannot catch. Uses ignore file patterns for protection rules while understanding command semantics.
 
 ### Hooks
 
 #### [file-guard](guides/file-guard.md)
 
-Pre-execution security gate that blocks AI file access operations targeting sensitive files using ignore file patterns and command analysis.
+Blocks AI file access operations before execution by analyzing bash commands and extracting target file paths.
 
 **Triggers**: `PreToolUse` events matching `Read|Edit|MultiEdit|Write|Bash`
 
@@ -1057,19 +1276,61 @@ Full test suite execution with timeout handling and comprehensive error reportin
 
 ## Self-review
 
-Critical self-assessment prompts to catch integration issues and incomplete implementations through structured questioning.
+Prompts Claude to check its own work against common pitfalls and best practices using conversation transcript as session state and fully customizable question rotation.
+
+```
+Stop Event Triggered:
+        │
+        ▼
+[Check transcript for last review marker]
+        │
+        ├─── No marker found ────┐
+        │                        ▼
+        │              [Check last 200 entries
+        │               for code file changes]
+        │                        │
+        ▼                        │
+[Marker found: check            │
+ changes since marker] ─────────┘
+        │
+        ▼
+[Code files changed?]
+        │
+   ┌────┼────┐
+   ▼         ▼
+[Yes]     [No: Skip]
+   │
+   ▼
+[Apply file patterns]
+   │
+┌──┼───────────────┐
+▼                  ▼
+[Default:         [Custom:
+*.ts,*.js,        user-defined
+*.py,*.go...]     patterns]
+   │                  │
+   └────┬─────────────┘
+        ▼
+[Select one random question
+ from each focus area]
+        │
+        ▼
+[Block Claude until answered]
+```
+
+**Architecture**: Parses conversation transcript to track review markers and file changes. Selects one random question from each focus area (default: Implementation Completeness, Code Quality, Integration & Refactoring, Codebase Consistency). Custom focus areas completely replace defaults. Fully configurable file patterns and question pools enable team-specific review workflows.
 
 ### Hooks
 
 #### [self-review](guides/self-review.md)
 
-Prompts Claude with randomized critical questions from configurable focus areas when file changes are detected since the last review.
+Prompts Claude with randomized critical questions from configurable focus areas when file changes are detected since the last review marker in conversation transcript.
 
 **Triggers**: `Stop` and `SubagentStop` events with universal matcher
 
-**Implementation**: Transcript parsing to detect file changes since last review marker, randomized question selection from configurable focus areas and custom questions, integration detection with code-review-expert subagent, stop hook loop prevention, target pattern filtering
+**Implementation**: Transcript parsing to detect file changes since last review marker, randomized question selection from built-in focus areas (integration issues, error handling, edge cases, performance, security, testing) plus user-defined custom topics and questions, integration detection with code-review-expert subagent, stop hook loop prevention, target pattern filtering
 
-**Behavior**: Blocks Claude from stopping until self-review questions are addressed, tracks review completion with unique transcript markers, suggests code-review-expert subagent when available, skips when no file changes detected, supports complete customization of focus areas and questions
+**Behavior**: Blocks Claude from stopping until self-review questions are addressed, tracks review completion with unique transcript markers, suggests code-review-expert subagent when available, skips when no file changes detected, fully customizable focus areas and question pools for team-specific review patterns
 
 ### Subagents
 
