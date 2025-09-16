@@ -315,89 +315,234 @@ Configures bash command timeout values in Claude Code settings.json files with d
 
 ## Generic
 
-[triage-expert](../src/agents/triage-expert.md)
+#### [triage-expert](../src/agents/triage-expert.md)
 
-[refactoring-expert](../src/agents/refactoring/refactoring-expert.md)
+Context gathering and initial problem diagnosis specialist for routing issues to appropriate domain experts.
 
-[documentation-expert](../src/agents/documentation/documentation-expert.md)
+**Tools**: `Read, Grep, Glob, Bash, Edit`
+**Specialization**: Root cause analysis, comprehensive context gathering, expert routing recommendations, and actionable problem assessment before specialized intervention
 
-[cli-expert](../src/agents/cli-expert.md)
+#### [refactoring-expert](../src/agents/refactoring/refactoring-expert.md)
+
+Systematic code refactoring and code smell detection specialist with structural optimization focus.
+
+**Tools**: `Read, Grep, Glob, Edit, MultiEdit, Bash`
+**Specialization**: Code smell detection, refactoring techniques without changing external behavior, structural optimization, and proven refactoring patterns application
+
+#### [documentation-expert](../src/agents/documentation/documentation-expert.md)
+
+Documentation structure, cohesion, and information architecture specialist for developer experience optimization.
+
+**Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit`
+**Specialization**: Documentation anti-pattern detection, content organization, user experience optimization, navigation improvement, and readability enhancement
+
+#### [cli-expert](../src/agents/cli-expert.md)
+
+Command-line interface and npm package development specialist with Unix philosophy and project root detection.
+
+**Tools**: All available tools
+**Specialization**: CLI tool development, npm package creation, argument parsing, interactive/non-interactive modes, automatic project root detection, and Unix-style tool implementation
 
 ## Technology focused
 
 ### Build tools
 
-[vite-expert](../src/agents/build-tools/build-tools-vite-expert.md)
+#### [vite-expert](../src/agents/build-tools/build-tools-vite-expert.md)
 
-[webpack-expert](../src/agents/build-tools/build-tools-webpack-expert.md)
+Vite build optimization specialist with ESM-first development and HMR optimization expertise.
+
+**Tools**: `Read, Edit, MultiEdit, Bash, Grep, Glob`
+**Specialization**: ESM-first development patterns, HMR optimization, plugin ecosystem, production builds, library mode, SSR configuration, and modern ESM patterns
+
+#### [webpack-expert](../src/agents/build-tools/build-tools-webpack-expert.md)
+
+Webpack build optimization specialist with configuration patterns and bundle analysis expertise.
+
+**Tools**: `Read, Edit, MultiEdit, Bash, Grep, Glob`
+**Specialization**: Configuration patterns, bundle analysis, code splitting, module federation, performance optimization, custom plugins/loaders, and modern architecture patterns
 
 ### Code quality
 
-[linting-expert](../src/agents/code-quality/code-quality-linting-expert.md)
+#### [linting-expert](../src/agents/code-quality/code-quality-linting-expert.md)
+
+Code linting, formatting, and static analysis specialist across multiple languages and tools.
+
+**Tools**: All available tools
+**Specialization**: Static analysis patterns, coding standards enforcement, linter configuration, formatting consistency, and cross-language quality validation
 
 ### Database
 
-[database-expert](../src/agents/database/database-expert.md)
+#### [database-expert](../src/agents/database/database-expert.md)
 
-[mongodb-expert](../src/agents/database/database-mongodb-expert.md)
+Cross-database optimization and schema design specialist with performance analysis expertise.
 
-[postgres-expert](../src/agents/database/database-postgres-expert.md)
+**Tools**: `Bash(psql:*), Bash(mysql:*), Bash(mongosh:*), Bash(sqlite3:*), Read, Grep, Edit`
+**Specialization**: Database performance optimization, schema design, query performance analysis, connection management, transaction handling across PostgreSQL, MySQL, MongoDB, and SQLite with ORM integration
+
+#### [mongodb-expert](../src/agents/database/database-mongodb-expert.md)
+
+MongoDB specialist with document modeling and aggregation pipeline optimization expertise.
+
+**Tools**: `Bash(mongosh:*), Bash(mongo:*), Read, Grep, Edit`
+**Specialization**: Document modeling, aggregation pipeline optimization, sharding strategies, replica set configuration, connection pool management, indexing strategies, and NoSQL performance patterns
+
+#### [postgres-expert](../src/agents/database/database-postgres-expert.md)
+
+PostgreSQL specialist with advanced indexing and JSONB operations expertise.
+
+**Tools**: `Bash(psql:*), Bash(pg_dump:*), Bash(pg_restore:*), Bash(pg_basebackup:*), Read, Grep, Edit`
+**Specialization**: Query optimization, JSONB operations, advanced indexing strategies, partitioning, connection management, and database administration with PostgreSQL-specific expertise
 
 ### Devops
 
-[devops-expert](../src/agents/devops/devops-expert.md)
+#### [devops-expert](../src/agents/devops/devops-expert.md)
 
-[docker-expert](../src/agents/infrastructure/infrastructure-docker-expert.md)
+DevOps and infrastructure specialist with comprehensive CI/CD and deployment expertise.
 
-[github-actions-expert](../src/agents/infrastructure/infrastructure-github-actions-expert.md)
+**Tools**: All available tools
+**Specialization**: CI/CD pipelines, containerization, orchestration, infrastructure as code, monitoring, security, performance optimization, and operational excellence
+
+#### [docker-expert](../src/agents/infrastructure/infrastructure-docker-expert.md)
+
+Docker containerization specialist with multi-stage builds and image optimization expertise.
+
+**Tools**: All available tools
+**Specialization**: Multi-stage builds, image optimization, container security, Docker Compose orchestration, production deployment patterns, networking, and container architecture
+
+#### [github-actions-expert](../src/agents/infrastructure/infrastructure-github-actions-expert.md)
+
+GitHub Actions specialist with workflow automation and custom actions development expertise.
+
+**Tools**: All available tools
+**Specialization**: CI/CD pipeline optimization, workflow automation, custom actions development, security best practices, and scalable software delivery
 
 ### E2E testing
 
-[playwright-expert](../src/agents/e2e/e2e-playwright-expert.md)
+#### [playwright-expert](../src/agents/e2e/e2e-playwright-expert.md)
+
+Playwright end-to-end testing specialist with cross-browser automation and visual regression testing expertise.
+
+**Tools**: `Bash, Read, Write, Edit, MultiEdit, Grep, Glob`
+**Specialization**: Cross-browser automation, visual regression testing, CI/CD integration, test architecture, and reliable test patterns
 
 ### Framework
 
-[ai-sdk-expert](../src/agents/ai-sdk-expert.md)
+#### [ai-sdk-expert](../src/agents/ai-sdk-expert.md)
 
-[nestjs-expert](../src/agents/nestjs-expert.md)
+Vercel AI SDK specialist with streaming and model integration expertise.
 
-[nextjs-expert](../src/agents/framework/framework-nextjs-expert.md)
+**Tools**: All available tools
+**Specialization**: Streaming implementation, model integration, tool calling, hooks, state management, edge runtime, prompt engineering, and production AI application patterns
+
+#### [nestjs-expert](../src/agents/nestjs-expert.md)
+
+Nest.js framework specialist with module architecture and dependency injection expertise.
+
+**Tools**: All available tools
+**Specialization**: Module architecture, dependency injection, middleware, guards, interceptors, testing with Jest/Supertest, TypeORM/Mongoose integration, and Passport.js authentication
+
+#### [nextjs-expert](../src/agents/framework/framework-nextjs-expert.md)
+
+Next.js framework specialist with App Router and Server Components expertise.
+
+**Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+**Specialization**: App Router patterns, Server Components, performance optimization, full-stack patterns, routing architecture, hydration optimization, and deployment strategies
 
 ### Frontend
 
-[accessibility-expert](../src/agents/frontend/frontend-accessibility-expert.md)
+#### [accessibility-expert](../src/agents/frontend/frontend-accessibility-expert.md)
 
-[css-styling-expert](../src/agents/frontend/frontend-css-styling-expert.md)
+WCAG compliance and accessibility specialist with screen reader optimization expertise.
+
+**Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+**Specialization**: WCAG 2.1/2.2 compliance, WAI-ARIA implementation, screen reader optimization, keyboard navigation, accessibility testing automation, and inclusive design patterns
+
+#### [css-styling-expert](../src/agents/frontend/frontend-css-styling-expert.md)
+
+CSS architecture and modern styling specialist with responsive design expertise.
+
+**Tools**: `Read, Edit, MultiEdit, Grep, Glob, Bash, LS`
+**Specialization**: CSS architecture, responsive design, CSS-in-JS optimization, performance optimization, accessibility integration, design systems, and cross-browser compatibility
 
 ### Git
 
-[git-expert](../src/agents/git/git-expert.md)
+#### [git-expert](../src/agents/git/git-expert.md)
+
+Git workflow and repository management specialist with merge conflict resolution expertise.
+
+**Tools**: All available tools
+**Specialization**: Merge conflict resolution, branching strategies, repository recovery, performance optimization, collaboration patterns, and repository management
 
 ### Node.js
 
-[nodejs-expert](../src/agents/nodejs/nodejs-expert.md)
+#### [nodejs-expert](../src/agents/nodejs/nodejs-expert.md)
+
+Node.js runtime and ecosystem specialist with async patterns and performance optimization expertise.
+
+**Tools**: `Read, Write, Edit, Bash, Grep, Glob`
+**Specialization**: Async patterns, module systems, performance optimization, filesystem operations, process management, networking, event loop debugging, memory leak detection, and stream processing
 
 ### React
 
-[react-expert](../src/agents/react/react-expert.md)
+#### [react-expert](../src/agents/react/react-expert.md)
 
-[react-performance-expert](../src/agents/react/react-performance-expert.md)
+React component patterns and hooks specialist with state management expertise.
+
+**Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+**Specialization**: Component patterns, hooks architecture, state management, React patterns, component design, and modern React development practices
+
+#### [react-performance-expert](../src/agents/react/react-performance-expert.md)
+
+React performance optimization specialist with DevTools Profiler and memoization expertise.
+
+**Tools**: `Read, Grep, Glob, Bash, Edit, MultiEdit, Write`
+**Specialization**: DevTools Profiler analysis, memoization strategies, Core Web Vitals optimization, bundle optimization, virtualization, performance bottleneck identification, and render optimization
 
 ### Testing
 
-[testing-expert](../src/agents/testing/testing-expert.md)
+#### [testing-expert](../src/agents/testing/testing-expert.md)
 
-[jest-expert](../src/agents/testing/jest-testing-expert.md)
+Cross-framework testing specialist with mocking strategies and coverage analysis expertise.
 
-[vitest-expert](../src/agents/testing/vitest-testing-expert.md)
+**Tools**: `Read, Edit, Bash, Grep, Glob`
+**Specialization**: Test structure design, mocking strategies, async testing patterns, coverage analysis, framework migration, testing architecture, and cross-framework debugging
+
+#### [jest-expert](../src/agents/testing/jest-testing-expert.md)
+
+Jest testing framework specialist with advanced mocking and TypeScript integration expertise.
+
+**Tools**: All available tools
+**Specialization**: Jest framework mastery, advanced mocking strategies, snapshot testing, async patterns, TypeScript integration, and performance optimization
+
+#### [vitest-expert](../src/agents/testing/vitest-testing-expert.md)
+
+Vitest testing framework specialist with modern testing patterns and configuration expertise.
+
+**Tools**: All available tools
+**Specialization**: Vitest configuration, modern testing patterns, ESM integration, performance optimization, and TypeScript testing workflows
 
 ### Typescript
 
-[typescript-expert](../src/agents/typescript/typescript-expert.md)
+#### [typescript-expert](../src/agents/typescript/typescript-expert.md)
 
-[typescript-build-expert](../src/agents/typescript/typescript-build-expert.md)
+General TypeScript and JavaScript development specialist with modern language features expertise.
 
-[typescript-type-expert](../src/agents/typescript/typescript-type-expert.md)
+**Tools**: All available tools
+**Specialization**: TypeScript language features, JavaScript ecosystem integration, modern development patterns, type safety implementation, and full-stack TypeScript development
+
+#### [typescript-build-expert](../src/agents/typescript/typescript-build-expert.md)
+
+TypeScript build system specialist with compiler configuration and module resolution expertise.
+
+**Tools**: `Read, Bash, Glob, Grep, Edit, MultiEdit, Write`
+**Specialization**: Compiler configuration, build optimization, module resolution, build tool integration, performance tuning, and TypeScript toolchain management
+
+#### [typescript-type-expert](../src/agents/typescript/typescript-type-expert.md)
+
+Advanced TypeScript type system specialist for complex generics and type-level programming.
+
+**Tools**: All available tools
+**Specialization**: Complex generics, conditional types, template literals, type inference, performance optimization, recursive types, brand types, utility type authoring, and advanced type system error patterns
 
 # Workflows
 
@@ -824,60 +969,150 @@ Response completion validator that ensures all todo items are finished before Cl
 
 ## Typescript type checking
 
-### Hooks
-
-[check-any-changed](guides/check-any-changed.md)
-
-[typecheck-changed](guides/typescript-hooks.md)
-
-type-check-project
-
-## Linter checking
+TypeScript type safety validation through compilation checks and 'any' type detection.
 
 ### Hooks
 
-[lint-changed](guides/eslint-hooks.md)
+#### [check-any-changed](../cli/hooks/check-any-changed.ts)
 
-[lint-project](guides/eslint-hooks.md)
+Forbids 'any' types in TypeScript files through content parsing and pattern detection.
+
+**Triggers**: `PostToolUse` events with `Write|Edit|MultiEdit` matcher
+
+**Implementation**: Content cleaning to remove strings and comments, regex pattern matching for forbidden 'any' type declarations, line-by-line analysis with test utility exclusions
+
+**Behavior**: Blocks execution when 'any' types detected, provides specific line numbers and replacement suggestions with proper type examples
+
+#### [typecheck-changed](../cli/hooks/typecheck-changed.ts)
+
+Runs TypeScript compiler validation on individual file changes using tsc --noEmit pattern.
+
+**Triggers**: `PostToolUse` events with `Write|Edit|MultiEdit` matcher
+
+**Implementation**: TypeScript availability detection via tsconfig.json, configurable tsc command execution, file extension filtering for .ts/.tsx files
+
+**Behavior**: Validates only on TypeScript file changes, blocks on compilation errors with full compiler output, skips gracefully when TypeScript not configured
+
+#### [typecheck-project](../cli/hooks/typecheck-project.ts)
+
+Project-wide TypeScript validation using compiler checks after Claude finishes responding.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
+**Implementation**: Full project tsc --noEmit execution, error formatting with file paths and line numbers, configurable timeout and command overrides
+
+**Behavior**: Comprehensive type checking after each response completion, formatted error output for easy navigation, blocks Claude from stopping on type errors
+
+## Linting
+
+Code quality validation through multiple linting tools with automatic detection and error formatting.
+
+### Hooks
+
+#### [lint-changed](../cli/hooks/lint-changed.ts)
+
+Runs linting validation on individual file changes using project-configured tools like Biome and ESLint.
+
+**Triggers**: `PostToolUse` events with `Write|Edit|MultiEdit` matcher
+
+**Implementation**: Tool detection via configuration files, parallel execution of multiple linters, file extension filtering with configurable patterns, automatic fix application when enabled
+
+**Behavior**: Validates only modified files, supports both Biome and ESLint simultaneously, formatted error output with file paths and line numbers, blocks on any linting violations
+
+#### [lint-project](../cli/hooks/lint-project.ts)
+
+Project-wide linting validation using full codebase scans after Claude finishes responding.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
+**Implementation**: Full project linting with configurable timeouts, tool availability detection, formatted error aggregation across multiple linters
+
+**Behavior**: Comprehensive code quality validation after response completion, combined error reporting for easy navigation, blocks Claude from stopping on lint violations
 
 ## Test running
 
+Automated test execution for changed files and full project validation with intelligent test discovery.
+
 ### Hooks
 
-[test-changed](guides/test-hooks.md)
+#### [test-changed](../cli/hooks/test-changed.ts)
 
-[test-project](guides/test-hooks.md)
+Runs tests related to modified files using pattern-based test discovery and execution.
+
+**Triggers**: `PostToolUse` events with `Write|Edit|MultiEdit` matcher
+
+**Implementation**: Related test file discovery through naming patterns, test file exclusion to prevent recursive execution, configurable file extensions and test commands
+
+**Behavior**: Targets only tests related to changed files, suggests test file creation when none found, provides detailed failure guidance with fix recommendations, blocks on any test failures
+
+#### [test-project](../cli/hooks/test-project.ts)
+
+Full test suite execution with timeout handling and comprehensive error reporting.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
+**Implementation**: Package.json script detection, configurable test commands and timeouts, robust timeout handling with actionable recommendations
+
+**Behavior**: Complete project test validation after response completion, timeout protection with configuration guidance, formatted test output for debugging, blocks Claude from stopping on test failures
 
 ## Self-review
 
+Critical self-assessment prompts to catch integration issues and incomplete implementations through structured questioning.
+
 ### Hooks
 
-[self-review](guides/self-review.md)
+#### [self-review](guides/self-review.md)
+
+Prompts Claude with randomized critical questions from configurable focus areas when file changes are detected since the last review.
+
+**Triggers**: `Stop` and `SubagentStop` events with universal matcher
+
+**Implementation**: Transcript parsing to detect file changes since last review marker, randomized question selection from configurable focus areas and custom questions, integration detection with code-review-expert subagent, stop hook loop prevention, target pattern filtering
+
+**Behavior**: Blocks Claude from stopping until self-review questions are addressed, tracks review completion with unique transcript markers, suggests code-review-expert subagent when available, skips when no file changes detected, supports complete customization of focus areas and questions
 
 ### Subagents
 
-[code-review-expert](../src/agents/code-review-expert.md)
+#### [code-review-expert](../src/agents/code-review-expert.md)
+
+Comprehensive code review specialist suggested by self-review hook for deeper analysis of identified concerns across six focus areas.
+
+**Tools**: `Read, Grep, Glob, Bash`
+**Specialization**: Root cause analysis for self-review concerns, cross-file intelligence to identify related issues, solution-oriented feedback with working code examples, pattern detection for implementation completeness and codebase consistency validation
 
 # Advanced utilities
 
 ## Doctor
 
+Validates project setup, configuration integrity, and claudekit installation health with detailed diagnostic reporting.
+
+```bash
 claudekit doctor
+```
 
 ## Claude files linter
 
-claudekit lint-commands
+Validates slash command and subagent markdown files against formatting standards and schema requirements.
 
+```bash
+claudekit lint-commands
 claudekit lint-agents
+```
 
 ## Hook profiler
 
-claudekit-hooks profile
+Measures hook execution performance, output token usage, and timing against Claude Code limits.
 
+```bash
+claudekit-hooks profile
 claudekit-hooks profile <hook>
+```
 
 ## Exposed prompts for external use
 
-claudekit show command <command>
+Displays raw command and subagent prompts for integration with external AI systems or debugging.
 
+```bash
+claudekit show command <command>
 claudekit show agent <subagent>
+```
