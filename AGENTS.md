@@ -438,7 +438,7 @@ examples/
 ### Installation Structure
 ```
 ~/.claude/                    # User-level installation
-├── settings.json            # User settings (env vars only, NO hooks)
+├── settings.json            # User settings (env vars and global hooks)
 └── commands/                # Copied commands from src/commands/
 
 <project>/.claude/            # Project-level
@@ -449,8 +449,8 @@ examples/
 **Key principles:**
 - Source code always goes in `src/`
 - `.claude/` contains only configuration and symlinks
-- User settings should contain environment variables only
-- Hook configurations belong in project settings, not user settings
+- User settings can contain environment variables and global hooks
+- Both user-level and project-level hooks are merged and executed
 
 ### File Organization & Best Practices
 
