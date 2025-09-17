@@ -686,6 +686,8 @@ Initializes or updates .gitignore with Claude Code specific patterns and common 
 
 #### [/git:status](../src/commands/git/status.md)
 
+https://github.com/user-attachments/assets/bcc330b6-0a99-4faa-b1b3-a26a0739630b
+
 Analyzes git repository state with intelligent insights about changes, branch status, and suggested actions.
 
 **Tools**: `Bash(git:*), Task`
