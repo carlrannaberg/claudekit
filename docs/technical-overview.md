@@ -1143,6 +1143,8 @@ File Edit → [5-second debounce] → [Update specific file index]
 
 #### [codebase-map](guides/codebase-map.md)
 
+https://github.com/user-attachments/assets/19a767d5-bc95-441c-9015-73d099391be0
+
 Session-based context provider that generates and injects codebase structure overview once per session with configurable filtering and format options.
 
 **Triggers**: `SessionStart` and `UserPromptSubmit` events with universal matcher
