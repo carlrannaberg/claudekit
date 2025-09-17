@@ -859,6 +859,8 @@ Single-focus code review subagent that gets launched multiple times concurrently
 
 ## Research
 
+https://github.com/user-attachments/assets/b188fabc-0d8f-4896-949c-04953057ee6c
+
 Orchestrator-worker research coordination using query classification and artifact-based synthesis to enable complex parallel investigation.
 
 ```
