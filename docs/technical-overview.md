@@ -792,6 +792,8 @@ Reviews code for quality issues and generates report.
 
 #### [/code-review](../src/commands/code-review.md)
 
+https://github.com/user-attachments/assets/ebbe3c95-7ce7-460f-9a74-b0ed97dad477
+
 Coordinates multiple concurrent code-review-expert agents across six specialized aspects (architecture, code quality, security, performance, testing, documentation) using Claude Code's Task tool to enable simultaneous analysis without conflicts.
 
 **Tools**: `Task, Bash(git status:*), Bash(git diff:*), Bash(git log:*)`
