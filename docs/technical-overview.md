@@ -1331,6 +1331,10 @@ Full test suite execution with timeout handling and comprehensive error reportin
 
 ## Self-review
 
+
+https://github.com/user-attachments/assets/f5ad0963-aeb0-4daf-bc61-acbae9d0a67c
+
+
 Prompts Claude to check its own work against common pitfalls and best practices using conversation transcript as session state and fully customizable question rotation.
 
 ```
