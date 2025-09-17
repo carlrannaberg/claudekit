@@ -1257,6 +1257,8 @@ TypeScript type safety validation through compilation checks and 'any' type dete
 
 #### [check-any-changed](../cli/hooks/check-any-changed.ts)
 
+https://github.com/user-attachments/assets/d270f706-c316-468a-9bb1-968726c3f6ae
+
 Forbids 'any' types in TypeScript files through content parsing and pattern detection.
 
 **Triggers**: `PostToolUse` events with `Write|Edit|MultiEdit` matcher
