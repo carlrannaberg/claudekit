@@ -722,6 +722,8 @@ Creates or switches branches with conventional naming patterns, intelligent base
 
 #### [/git:commit](../src/commands/git/commit.md)
 
+https://github.com/user-attachments/assets/9e1a2c15-e577-402c-a982-cd932117a77a
+
 Creates commits following project conventions with change validation, documentation updates, and quality checks.
 
 **Tools**: `Bash(git:*), Bash(echo:*), Bash(head:*), Bash(wc:*), Bash(test:*), Bash([:[*), Bash(grep:*), Read, Edit, Task`
