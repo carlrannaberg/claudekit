@@ -407,6 +407,10 @@ Configures bash command timeout values in Claude Code settings.json files with d
 
 #### [code-search](../src/agents/code-search.md)
 
+
+https://github.com/user-attachments/assets/90a3f8b1-8536-46df-839f-784f3cedec30
+
+
 Codebase search agent that uses parallel tool calls instead of the main agent's sequential searches. Responses are optimized for brevity by providing relative file paths instead of absolute paths.
 
 **Tools**: `Read, Grep, Glob, LS`
