@@ -11,8 +11,7 @@ import * as path from 'node:path';
 import { HookRunner } from './hooks/runner.js';
 import { profileHooks } from './hooks/profile.js';
 import { SessionHookManager } from './hooks/session-utils.js';
-import { loadConfig, configExists, loadUserConfig } from './utils/config.js';
-import type { Config } from './types/config.js';
+import { loadConfig, configExists } from './utils/config.js';
 
 // Helper types for fuzzy matching
 interface MatchResult {
@@ -61,57 +60,36 @@ async function resolveHookName(input: string, projectHooks: string[]): Promise<M
 
 // Helper function to get project-configured hooks
 async function getProjectHooks(): Promise<string[]> {
-  const hooks = new Set<string>();
-
-  // Helper function to extract hooks from a config with type safety
-  const extractHooksFromConfig = (config: Config): void => {
-    for (const [, matchers] of Object.entries(config.hooks)) {
-      if (!Array.isArray(matchers)) {
-        continue; // Skip non-array values
-      }
-
-      for (const matcher of matchers) {
-        if (!Array.isArray(matcher.hooks)) {
-          continue; // Skip invalid matcher structure
-        }
-
-        for (const hook of matcher.hooks) {
-          if (!hook?.command || typeof hook.command !== 'string') {
-            continue; // Skip invalid hook structure
-          }
-
-          // Extract hook name from command like "claudekit-hooks run typecheck-changed"
-          const match = hook.command.match(/claudekit-hooks\s+run\s+([^\s]+)/);
-          if (match !== null && match[1] !== undefined && match[1] !== '') {
-            hooks.add(match[1]);
-          }
-        }
-      }
-    }
-  };
-
   try {
-    // Load project-level hooks
     const projectRoot = process.cwd();
     if (await configExists(projectRoot)) {
-      const projectConfig = await loadConfig(projectRoot);
-      extractHooksFromConfig(projectConfig);
+      const config = await loadConfig(projectRoot);
+      const hooks = new Set<string>();
+      
+      // Extract hook commands from all events
+      for (const [, matchers] of Object.entries(config.hooks)) {
+        if (matchers) {
+          for (const matcher of matchers) {
+            for (const hook of matcher.hooks) {
+              // Extract hook name from command like "claudekit-hooks run typecheck-changed"
+              const match = hook.command.match(/claudekit-hooks\s+run\s+([^\s]+)/);
+              if (match && match[1] !== undefined) {
+                hooks.add(match[1]);
+              }
+            }
+          }
+        }
+      }
+      
+      return Array.from(hooks).sort();
     }
-
-    // Load user-level hooks
-    const userConfig = await loadUserConfig();
-    extractHooksFromConfig(userConfig);
-
-  } catch (error) {
-    // Log the error for debugging but continue with whatever hooks we found
-    if (process.env['CLAUDEKIT_DEBUG'] === 'true') {
-      console.error('[DEBUG] Failed to load hooks configuration:', error);
-    }
-    // Return what we have so far instead of an empty array
+  } catch {
+    // If config fails to load, return empty array - don't fall back to registry
   }
-
-  // Return sorted array of unique hooks from both project and user configurations
-  return Array.from(hooks).sort();
+  
+  // Return empty array if no config or config is invalid
+  // We only allow disabling hooks that are actually configured to run
+  return [];
 }
 
 // Helper function to discover transcript files in a directory and return most recent UUID

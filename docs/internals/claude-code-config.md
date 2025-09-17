@@ -115,7 +115,7 @@ Personal preferences and local overrides go in `settings.local.json`:
 
 ### User-Level Settings
 
-User-level settings (`~/.claude/settings.json`) can contain environment variables, global preferences, and hooks:
+User-level settings (`~/.claude/settings.json`) should contain only environment variables and global preferences:
 
 ```json
 {
@@ -123,23 +123,11 @@ User-level settings (`~/.claude/settings.json`) can contain environment variable
     "GITHUB_TOKEN": "ghp_xxxxxxxxxxxx",
     "EDITOR": "vim",
     "DEFAULT_BRANCH": "main"
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [{"type": "command", "command": "claudekit-hooks run security-check"}]
-      }
-    ]
   }
 }
 ```
 
-**Hook Configuration Precedence**: Hooks from both user-level and project-level configurations are merged:
-- User-level hooks apply globally across all projects
-- Project-level hooks add to or complement user-level hooks
-- All hooks from both sources are executed (they are additive, not overriding)
-- Use `claudekit-hooks status` to see the merged result for any project
+**Important**: Do NOT put hooks in user-level settings as they won't work reliably across different projects.
 
 ## Version Control Rules
 
@@ -192,17 +180,8 @@ Claude Code merges configurations in this order (later overrides earlier):
 ### Merging Behavior
 
 - **Environment variables**: Later values override earlier ones
-- **Hooks**: All hooks from both user-level and project-level configurations are combined (additive)
+- **Hooks**: All hooks are combined (not replaced)
 - **Tools**: Settings are deeply merged
-
-### Hook Merging Details
-
-When hooks are configured at both user and project levels:
-- All hooks from both sources are included
-- User-level hooks provide global functionality (e.g., security checks)
-- Project-level hooks provide project-specific functionality (e.g., TypeScript checking)
-- Hook execution order follows the configuration hierarchy
-- No hooks are replaced or overridden - they are cumulative
 
 ## Hook Configuration
 

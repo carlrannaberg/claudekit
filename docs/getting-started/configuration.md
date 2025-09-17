@@ -237,5 +237,5 @@ examples/
 **Key principles:**
 - Source code always goes in `src/`
 - `.claude/` contains only configuration and symlinks
-- User settings can contain environment variables and global hooks
-- Both user-level and project-level hooks are merged and executed
+- User settings should contain environment variables only
+- Hook configurations belong in project settings, not user settings
