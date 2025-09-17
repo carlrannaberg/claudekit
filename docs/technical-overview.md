@@ -327,6 +327,10 @@ Repository Config: .claude/settings.json
 
 #### [/hook:disable](../src/commands/hook/disable.md)
 
+
+https://github.com/user-attachments/assets/794fec2a-d952-4f37-ab91-55c730e8a47a
+
+
 Disables specified hook execution for the current Claude Code session without affecting global configuration.
 
 **Implementation**: Creates session-specific override in UUID-tracked file that claudekit-hooks consults before executing hooks.
