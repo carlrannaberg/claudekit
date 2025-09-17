@@ -24,7 +24,7 @@
 - [Workflows](#workflows)
   - [Git](#git-1)
   - [GitHub](#github)
-  - [Code search](#code-search)
+  - [Code review](#code-review)
   - [Research](#research)
   - [Spec-driven development](#spec-driven-development)
   - [Checkpointing](#checkpointing)
@@ -400,6 +400,14 @@ Configures bash command timeout values in Claude Code settings.json files with d
 # Expert subagents
 
 ## Generic
+
+#### [code-search](../src/agents/code-search.md)
+
+Codebase search agent that uses parallel tool calls instead of the main agent's sequential searches. Responses are optimized for brevity by providing relative file paths instead of absolute paths.
+
+**Tools**: `Read, Grep, Glob, LS`
+
+**Specialization**: Simultaneous pattern variations and naming convention searches, relative path output to reduce token generation, constrained response format returning only relevant paths with optional short descriptions, and tool-restricted focus preventing analysis distraction
 
 #### [triage-expert](../src/agents/triage-expert.md)
 
