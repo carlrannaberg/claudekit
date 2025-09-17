@@ -784,7 +784,7 @@ Creates new GitHub repository with directory setup, git initialization, and remo
 
 **Output**: Created GitHub repository with local directory, initialized git repository, initial README commit, configured remote, and successful push confirmation
 
-## Code search
+## Code review
 
 Reviews code for quality issues and generates report.
 
