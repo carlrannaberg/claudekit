@@ -1,394 +1,416 @@
 # Kafka Expert Research Report
 
-## Research Overview
-
-This document contains comprehensive research from official Apache Kafka documentation (kafka.apache.org) and Confluent documentation to create a Kafka domain expert agent. The research focuses on common configuration issues, performance problems, operational challenges, and diagnostic approaches based on Kafka 2.8+ and modern deployment patterns.
-
 ## 1. Scope and Boundaries
 
-**One-sentence scope**: "Kafka producer/consumer configuration, topic management, cluster operations, serialization, performance tuning, and operational troubleshooting"
+**One-sentence scope:** "Apache Kafka distributed streaming platform including brokers, producers, consumers, ecosystem tools (Connect, Streams, Schema Registry), monitoring, and performance optimization."
 
-**15 Recurring Problems** (frequency × complexity analysis):
-1. **Consumer lag and backpressure** (HIGH freq, HIGH complexity) - Consumers falling behind producers
-2. **Rebalancing storms** (MEDIUM freq, HIGH complexity) - Frequent consumer group rebalances
-3. **Message ordering violations** (MEDIUM freq, MEDIUM complexity) - Lost ordering guarantees
-4. **Serialization/deserialization errors** (HIGH freq, MEDIUM complexity) - Schema evolution issues
-5. **Producer timeout exceptions** (HIGH freq, MEDIUM complexity) - Network and broker issues
-6. **Partition skew and hotspots** (MEDIUM freq, HIGH complexity) - Uneven data distribution
-7. **Duplicate message processing** (HIGH freq, MEDIUM complexity) - At-least-once delivery issues
-8. **Consumer offset management** (MEDIUM freq, MEDIUM complexity) - Manual vs auto-commit issues
-9. **Topic configuration mistakes** (HIGH freq, LOW complexity) - Retention, partition, replication settings
-10. **Broker memory and disk issues** (MEDIUM freq, HIGH complexity) - Resource exhaustion
-11. **Network configuration problems** (MEDIUM freq, MEDIUM complexity) - Security, connectivity
-12. **Schema registry integration** (MEDIUM freq, MEDIUM complexity) - Schema evolution and compatibility
-13. **Transaction and exactly-once issues** (LOW freq, HIGH complexity) - EOS configuration
-14. **Monitoring and alerting gaps** (HIGH freq, LOW complexity) - Missing key metrics
-15. **Client configuration tuning** (HIGH freq, MEDIUM complexity) - Performance optimization
+### 20 Recurring Problems (with frequency × complexity ratings)
 
-**Sub-domain mapping**:
-- **Container deployment issues** → docker-expert or devops-expert
-- **Kubernetes orchestration** → devops-expert
-- **Database integration (Kafka Connect)** → database-expert
-- **Monitoring infrastructure** → devops-expert
-- **Client library bugs (language-specific)** → language-specific experts
+1. **Consumer Lag Buildup** - High Frequency × Medium Complexity = **High Priority**
+2. **Consumer Group Rebalancing Issues** - Very High Frequency × Medium-High Complexity = **Very High Priority**
+3. **Serialization/Deserialization Exceptions** - High Frequency × Medium Complexity = **High Priority**
+4. **Under-replicated Partitions** - Medium Frequency × High Complexity = **High Priority**
+5. **Broker Connection Failures** - High Frequency × Low-Medium Complexity = **Medium Priority**
+6. **Offset Management Problems** - High Frequency × Medium Complexity = **High Priority**
+7. **Configuration Errors** - High Frequency × Low-Medium Complexity = **Medium Priority**
+8. **Request Timeout Errors** - Medium Frequency × Medium-High Complexity = **Medium Priority**
+9. **Disk I/O Bottlenecks** - Medium Frequency × High Complexity = **High Priority**
+10. **Memory/GC Issues** - Medium Frequency × High Complexity = **High Priority**
+11. **SSL/SASL Authentication Failures** - Medium Frequency × Medium-High Complexity = **Medium Priority**
+12. **Poison Pill Messages** - Medium Frequency × Medium Complexity = **Medium Priority**
+13. **Schema Evolution Problems** - Medium Frequency × Medium Complexity = **Medium Priority**
+14. **Topic Auto-creation Issues** - High Frequency × Low Complexity = **Medium Priority**
+15. **Partition Count Misconfiguration** - High Frequency × Low-Medium Complexity = **Medium Priority**
+16. **Network Bandwidth Saturation** - Medium Frequency × High Complexity = **High Priority**
+17. **Thread Pool Exhaustion** - Medium Frequency × Medium-High Complexity = **Medium Priority**
+18. **Monitoring/Alerting Gaps** - Medium Frequency × High Complexity = **High Priority**
+19. **Cluster Scaling Challenges** - Medium Frequency × High Complexity = **High Priority**
+20. **ISR Shrinking Issues** - Medium Frequency × High Complexity = **High Priority**
+
+### Sub-domain mapping (when to delegate to specialists)
+
+- **Advanced Stream Processing** → kafka-streams-expert (if exists)
+- **Schema Registry Deep Issues** → schema-registry-expert (if exists)
+- **Kubernetes/Container Orchestration** → devops-expert or kubernetes-expert
+- **Database Integration** → database-expert
+- **Security/Authentication** → security-expert
+- **Cloud Provider Specifics** → aws-expert, gcp-expert, azure-expert
 
 ## 2. Topic Map (6 Categories)
 
-### Category 1: Producer Configuration & Performance
+### Category 1: Consumer Management & Performance
 
-**Common Error Messages:**
-- `"org.apache.kafka.common.errors.TimeoutException: Topic X not present in metadata after 60000 ms"`
-- `"org.apache.kafka.common.errors.NetworkException: Connection to node X could not be established"`
-- `"org.apache.kafka.common.errors.RecordTooLargeException: The message is X bytes when serialized"`
-- `"org.apache.kafka.clients.producer.BufferExhaustedException: Failed to allocate memory within timeout"`
-
-**Root Causes:**
-- Incorrect bootstrap servers configuration
-- Network connectivity or firewall issues
-- Message size exceeding broker limits
-- Producer buffer pool exhaustion
-- Insufficient acks configuration for durability
-
-**Fix Strategies:**
-1. **Minimal**: Increase timeout values and check network connectivity
-2. **Better**: Optimize producer configuration (batch.size, linger.ms, compression.type)
-3. **Complete**: Implement proper error handling, retry logic, and monitoring
-
-**Diagnostics:**
-```bash
-# Check producer metrics
-kafka-run-class.sh kafka.tools.JmxTool --object-name kafka.producer:type=producer-metrics,client-id=* --attributes record-send-rate
-
-# Test connectivity
-kafka-console-producer.sh --bootstrap-server localhost:9092 --topic test
-
-# Check broker logs
-tail -f /var/log/kafka/server.log | grep ERROR
-```
-
-**Validation:**
-- Producer successfully sends messages without timeouts
-- Metrics show healthy throughput and low error rates
-- No memory allocation exceptions
-
-**Resources:**
-- [Producer Configuration](https://kafka.apache.org/documentation/#producerconfigs)
-- [Producer Performance](https://kafka.apache.org/documentation/#producertuning)
-
-### Category 2: Consumer Configuration & Processing
-
-**Common Error Messages:**
-- `"org.apache.kafka.clients.consumer.CommitFailedException: Commit cannot be completed since the group has already rebalanced"`
-- `"org.apache.kafka.common.errors.WakeupException: Received wakeup which is used to break out of the consumer poll()"`
-- `"org.apache.kafka.common.errors.InvalidOffsetException: Fetch position FetchPosition{offset=X, offsetEpoch=Optional.empty} is out of range"`
-- `"java.util.concurrent.TimeoutException: Timeout of 30000ms expired before the position for partition X could be determined"`
+**Common Errors:**
+- "Consumer group rebalancing in progress"
+- "CommitFailedException: Commit cannot be completed since the group has already rebalanced"
+- "TimeoutException: Timeout of 60000ms expired before successfully committing offsets"
+- High consumer lag metrics (>1000 records lag)
 
 **Root Causes:**
-- Consumer group rebalancing due to processing time exceeding session timeout
-- Improper offset management and commit strategies
-- Consumer lag causing out-of-range offsets
-- Inadequate consumer configuration for workload
+- Session timeouts due to slow message processing
+- Frequent consumer crashes or network issues
+- Improper offset management configuration
+- Inefficient consumer fetch settings
 
 **Fix Strategies:**
-1. **Minimal**: Increase session.timeout.ms and max.poll.interval.ms
-2. **Better**: Implement proper offset management strategy and error handling
-3. **Complete**: Optimize consumer group sizing and implement monitoring
+1. **Minimal**: Increase `session.timeout.ms` to 30000ms, tune `heartbeat.interval.ms` to 10000ms
+2. **Better**: Implement manual commit strategies with proper error handling
+3. **Complete**: Redesign consumer architecture with pause-resume patterns, implement DLT strategies
 
 **Diagnostics:**
 ```bash
 # Check consumer lag
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group your-group
+kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group my-group
 
-# Monitor consumer metrics
-kafka-run-class.sh kafka.tools.JmxTool --object-name kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*
-
-# Check rebalancing frequency
+# Monitor rebalancing
 grep "rebalance" /var/log/kafka/server.log
+
+# Check JMX metrics
+curl -s http://localhost:8080/actuator/metrics/kafka.consumer.lag.sum
 ```
 
 **Validation:**
-- Consumer lag remains within acceptable bounds
-- No frequent rebalancing events
-- Successful message processing without timeouts
+- Consumer lag remains stable under load
+- No frequent rebalancing events in logs
+- Successful offset commits without timeouts
 
 **Resources:**
-- [Consumer Configuration](https://kafka.apache.org/documentation/#consumerconfigs)
-- [Consumer Group Management](https://kafka.apache.org/documentation/#consumergroup)
+- [Kafka Consumer Groups](https://kafka.apache.org/documentation/#consumerconfigs)
+- [Spring Kafka Consumer Configuration](https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages.html)
 
-### Category 3: Topic & Partition Management
+### Category 2: Producer Reliability & Idempotence
 
-**Common Error Messages:**
-- `"org.apache.kafka.common.errors.InvalidReplicationFactorException: Replication factor: X larger than available brokers: Y"`
-- `"org.apache.kafka.common.errors.PolicyViolationException: Topic creation policy violation"`
-- `"org.apache.kafka.common.errors.UnknownTopicOrPartitionException: This server does not host this topic-partition"`
-- `"kafka.common.NotEnoughReplicasException: Number of alive replicas for partition X is [Y] which is below min.insync.replicas of [Z]"`
+**Common Errors:**
+- "org.apache.kafka.common.errors.OutOfOrderSequenceException"
+- "ProducerFencedException: Producer has been fenced"
+- "TimeoutException: Batch containing X record(s) expired"
+- "NetworkException: The server disconnected before a response was received"
 
 **Root Causes:**
-- Insufficient brokers for desired replication factor
-- Topic creation policies preventing creation
-- Partition leadership issues after broker failures
-- ISR (In-Sync Replica) configuration problems
+- Idempotent producer misconfiguration
+- Network timeouts during high-volume sending
+- Batch size and compression optimization issues
+- Resource exhaustion (memory, connections)
 
 **Fix Strategies:**
-1. **Minimal**: Adjust replication factor or add more brokers
-2. **Better**: Implement proper topic configuration standards and policies
-3. **Complete**: Automate topic management with Infrastructure as Code
+1. **Minimal**: Enable idempotence with `enable.idempotence=true` and `acks=all`
+2. **Better**: Optimize batching with `batch.size=16384` and `linger.ms=5`
+3. **Complete**: Implement comprehensive error handling with retry logic and DLT publishing
 
 **Diagnostics:**
 ```bash
-# List topics and partitions
-kafka-topics.sh --bootstrap-server localhost:9092 --list --describe
+# Check producer metrics
+kafka-run-class kafka.tools.ConsumerPerformance --topic test --messages 1000
 
-# Check under-replicated partitions
-kafka-topics.sh --bootstrap-server localhost:9092 --describe --under-replicated-partitions
+# Monitor JMX producer metrics
+jconsole # Connect to Kafka process, check producer metrics
 
-# Monitor ISR status
-kafka-log-dirs.sh --bootstrap-server localhost:9092 --describe --json
+# Test idempotence
+# Send duplicate messages and verify no duplicates in topic
 ```
 
 **Validation:**
-- All partitions have sufficient replicas
-- No under-replicated partitions
-- Topic creation succeeds with proper configuration
+- No duplicate messages under network issues
+- Successful batch sending without timeouts
+- Producer metrics show healthy send rates
 
 **Resources:**
-- [Topic Configuration](https://kafka.apache.org/documentation/#topicconfigs)
-- [Partition Management](https://kafka.apache.org/documentation/#replication)
+- [Kafka Producer Configuration](https://kafka.apache.org/documentation/#producerconfigs)
+- [Idempotent Producer Documentation](https://kafka.apache.org/documentation/#idempotence)
 
-### Category 4: Cluster Operations & Performance
+### Category 3: Cluster Operations & Monitoring
 
-**Common Error Messages:**
-- `"kafka.network.RequestChannel$CloseConnectionException: Broker received an invalid request"`
-- `"java.io.IOException: Map failed at sun.nio.ch.FileChannelImpl.map"`
-- `"kafka.server.LogDirFailureHandler: Error while deleting log for X-Y in dir /var/kafka-logs"`
-- `"OutOfMemoryError: Java heap space"`
+**Common Errors:**
+- "Under-replicated partitions detected"
+- "ISR shrinking for partition"
+- "Controller failover detected"
+- "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions value > 0"
 
 **Root Causes:**
-- Broker resource exhaustion (memory, disk, file handles)
-- Disk failures or permission issues
-- JVM heap sizing problems
-- Network configuration issues
+- Broker failures or resource exhaustion
+- Network partitions between brokers
+- ZooKeeper/KRaft consensus issues
+- Insufficient replication factor configuration
 
 **Fix Strategies:**
-1. **Minimal**: Increase JVM heap size and clean up disk space
-2. **Better**: Implement proper resource monitoring and alerting
-3. **Complete**: Design proper capacity planning and auto-scaling
+1. **Minimal**: Restart affected brokers, check network connectivity
+2. **Better**: Run preferred leader election, tune `replica.lag.time.max.ms`
+3. **Complete**: Implement comprehensive monitoring with alerting, automated recovery procedures
 
 **Diagnostics:**
 ```bash
-# Check broker health
-kafka-broker-api-versions.sh --bootstrap-server localhost:9092
+# Check cluster status
+kafka-broker-api-versions --bootstrap-server localhost:9092
 
-# Monitor JVM metrics
-jstat -gc -t $(pgrep -f "kafka.Kafka") 5s
+# Monitor under-replicated partitions
+kafka-log-dirs --bootstrap-server localhost:9092 --describe
 
-# Check disk usage
-df -h /var/kafka-logs
-lsof | grep kafka | wc -l
+# Check controller status
+kafka-metadata-shell --snapshot /path/to/metadata
 
-# Monitor broker metrics
-kafka-run-class.sh kafka.tools.JmxTool --object-name kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec
+# JMX monitoring
+kafka-run-class kafka.tools.JmxTool --object-name kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions
 ```
 
 **Validation:**
-- Broker JVM metrics within healthy ranges
-- Sufficient disk space and file handles
-- No error messages in broker logs
+- Under-replicated partitions count = 0
+- All partitions have full ISR
+- Controller is stable and responsive
 
 **Resources:**
-- [Broker Configuration](https://kafka.apache.org/documentation/#brokerconfigs)
-- [Performance Tuning](https://kafka.apache.org/documentation/#hwandos)
+- [Kafka Operations Guide](https://kafka.apache.org/documentation/#operations)
+- [JMX Monitoring](https://kafka.apache.org/documentation/#monitoring)
 
-### Category 5: Serialization & Schema Management
+### Category 4: Serialization & Schema Management
 
-**Common Error Messages:**
-- `"org.apache.kafka.common.errors.SerializationException: Error deserializing key/value for partition X at offset Y"`
-- `"io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException: Schema not found"`
-- `"org.apache.avro.AvroTypeException: Expected field name not found"`
-- `"com.fasterxml.jackson.databind.JsonMappingException: Cannot deserialize value"`
+**Common Errors:**
+- "SerializationException: Error serializing Avro message"
+- "RecordDeserializationException: Error deserializing key/value"
+- "SchemaRegistryException: Subject not found"
+- "AvroTypeException: Expected start-union"
 
 **Root Causes:**
-- Schema evolution compatibility issues
-- Missing or incorrect schema registry configuration
-- Version mismatch between producer and consumer schemas
-- Invalid data format or encoding
+- Schema evolution without compatibility checks
+- Producer using different serializer than consumer deserializer
+- Missing schema registry configuration
+- Incompatible schema changes (removal of required fields)
 
 **Fix Strategies:**
-1. **Minimal**: Fix schema compatibility and version alignment
-2. **Better**: Implement proper schema evolution strategy
-3. **Complete**: Automate schema management and compatibility testing
+1. **Minimal**: Implement `ErrorHandlingDeserializer` wrapper for poison pills
+2. **Better**: Use Schema Registry with backward compatibility mode
+3. **Complete**: Implement comprehensive schema governance with CI/CD validation
 
 **Diagnostics:**
 ```bash
 # Check schema registry
-curl -X GET http://localhost:8081/subjects
+curl http://localhost:8081/subjects
 
-# List schema versions
-curl -X GET http://localhost:8081/subjects/your-topic-value/versions
-
-# Test schema compatibility
+# Validate schema compatibility
 curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-  --data '{"schema":"..."}' \
-  http://localhost:8081/compatibility/subjects/your-topic-value/versions/latest
+  --data '{"schema":"{...}"}' \
+  http://localhost:8081/compatibility/subjects/my-value/versions/latest
 
-# Check serialization errors in consumer logs
-grep "SerializationException" /var/log/your-app/consumer.log
+# Test deserialization with different schemas
+kafka-avro-console-consumer --topic test --from-beginning
 ```
 
 **Validation:**
 - Schema compatibility tests pass
-- No serialization/deserialization errors
-- Successful schema evolution without breaking consumers
+- No deserialization exceptions in consumer logs
+- Schema evolution works without breaking consumers
 
 **Resources:**
-- [Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html)
-- [Avro Schema Evolution](https://docs.confluent.io/platform/current/schema-registry/avro.html)
+- [Schema Registry Documentation](https://docs.confluent.io/platform/current/schema-registry/index.html)
+- [Avro Schema Evolution](https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html)
 
-### Category 6: Monitoring & Troubleshooting
+### Category 5: Performance Optimization
 
-**Common Error Messages:**
-- `"org.apache.kafka.common.errors.UnknownServerException: The server experienced an unexpected error"`
-- `"kafka.controller.ControllerEventManager: Error processing event"`
-- `"kafka.coordinator.group.GroupCoordinator: Group X does not exist"`
-- `"org.apache.kafka.common.errors.LeaderNotAvailableException: There is no leader for this topic-partition"`
+**Common Errors:**
+- "RequestTimeoutException: Request timed out"
+- "OutOfMemoryError: Java heap space"
+- "Too many open files" errors
+- Slow throughput and high latency metrics
 
 **Root Causes:**
-- Controller failover and election issues
-- Network partitions or connectivity problems
-- Group coordinator failures
-- Missing monitoring and alerting on key metrics
+- Inadequate JVM heap sizing for brokers
+- Disk I/O bottlenecks (HDD vs SSD)
+- Network bandwidth saturation
+- Improper thread pool configuration
 
 **Fix Strategies:**
-1. **Minimal**: Check cluster health and restart problematic brokers
-2. **Better**: Implement comprehensive monitoring dashboard
-3. **Complete**: Set up proactive alerting and automated remediation
+1. **Minimal**: Increase JVM heap to 6-8GB, tune GC settings
+2. **Better**: Migrate to SSD storage, optimize network configuration
+3. **Complete**: Implement performance monitoring, auto-scaling, resource optimization
 
 **Diagnostics:**
 ```bash
-# Check cluster metadata
-kafka-metadata-shell.sh --snapshot /var/kafka-logs/__cluster_metadata-0/00000000000000000000.log
+# Monitor JVM performance
+jstat -gc <kafka-pid> 1s
 
-# Controller status
-kafka-run-class.sh kafka.tools.JmxTool --object-name kafka.controller:type=KafkaController,name=ActiveControllerCount
+# Check disk I/O
+iostat -x 1
 
-# Group coordinator status
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
+# Monitor network usage
+iftop -i eth0
 
-# Network connectivity test
-telnet broker1 9092
-
-# Check Kafka logs for patterns
-tail -f /var/kafka-logs/server.log | grep -E "(ERROR|WARN|Controller|Leader)"
+# Kafka performance testing
+kafka-producer-perf-test --topic test --num-records 1000000 --record-size 1024 --throughput 10000
+kafka-consumer-perf-test --topic test --messages 1000000
 ```
 
 **Validation:**
-- All brokers are healthy and reachable
-- Controller election is stable
-- Consumer groups are active and processing
-- Monitoring dashboards show green status
+- JVM GC pauses < 100ms
+- Disk I/O utilization < 80%
+- Network bandwidth utilization < 70%
+- Request latency p99 < 500ms
 
 **Resources:**
-- [Monitoring](https://kafka.apache.org/documentation/#monitoring)
-- [Operations](https://kafka.apache.org/documentation/#operations)
+- [Kafka Performance Tuning](https://kafka.apache.org/documentation/#hwandos)
+- [JVM Tuning for Kafka](https://docs.confluent.io/platform/current/kafka/deployment.html#jvm)
 
-## 3. Environmental Detection Patterns
+### Category 6: Development & Testing
 
-### Framework Integration Detection
+**Common Errors:**
+- "MockitoException: EmbeddedKafka failed to start"
+- "KafkaException: Topic creation timeout"
+- "ClassCastException in Spring Kafka tests"
+- "Test containers failed to start Kafka"
+
+**Root Causes:**
+- Improper test environment setup
+- Conflicting Spring Boot auto-configurations
+- Port conflicts in CI environments
+- Missing test dependencies or configurations
+
+**Fix Strategies:**
+1. **Minimal**: Use TestContainers instead of EmbeddedKafka for reliability
+2. **Better**: Implement proper test lifecycle management with setup/teardown
+3. **Complete**: Create comprehensive test framework with topic templates and mock strategies
+
+**Diagnostics:**
 ```bash
-# Detect Spring Kafka
-test -f pom.xml && grep -q "spring-kafka" pom.xml
-test -f build.gradle && grep -q "spring-kafka" build.gradle
+# Validate test setup
+./gradlew test --debug
 
-# Detect Confluent Platform
-which confluent >/dev/null 2>&1
-test -f /etc/confluent/docker/configure
+# Check test container logs
+docker logs $(docker ps -q --filter ancestor=confluentinc/cp-kafka)
 
-# Detect Kafka Connect
-test -f connect-standalone.properties
-test -d /usr/share/confluent-hub-components
-
-# Detect Schema Registry
-curl -f http://localhost:8081/subjects >/dev/null 2>&1
-test -f schema-registry.properties
+# Test topic creation
+kafka-topics --bootstrap-server localhost:9092 --list
 ```
 
-### Configuration Detection
+**Validation:**
+- All integration tests pass consistently
+- Test environments start/stop cleanly
+- No port conflicts or resource leaks
+
+**Resources:**
+- [Kafka Testing Strategies](https://kafka.apache.org/21/documentation/streams/developer-guide/testing.html)
+- [Spring Kafka Testing](https://docs.spring.io/spring-kafka/reference/testing.html)
+
+## 3. Environment Detection Patterns
+
+### Kafka Installation Detection
 ```bash
-# Find Kafka installation
-KAFKA_HOME=${KAFKA_HOME:-$(find /opt /usr -name "kafka_*" 2>/dev/null | head -1)}
+# Check for Kafka installation
+if command -v kafka-topics.sh &> /dev/null; then
+    echo "Kafka CLI tools available"
+fi
 
-# Detect configuration files
-test -f server.properties
-test -f producer.properties
-test -f consumer.properties
+# Check for configuration files
+if [[ -f "/etc/kafka/server.properties" ]]; then
+    echo "Self-managed Kafka detected"
+elif [[ -f "/opt/bitnami/kafka/config/server.properties" ]]; then
+    echo "Containerized Kafka detected"
+fi
 
-# Check if Kafka is running
-pgrep -f "kafka.Kafka" >/dev/null
-ss -tlnp | grep :9092 >/dev/null
+# Check for KRaft vs ZooKeeper mode
+if grep -q "process.roles" /etc/kafka/server.properties 2>/dev/null; then
+    echo "KRaft mode detected"
+elif grep -q "zookeeper.connect" /etc/kafka/server.properties 2>/dev/null; then
+    echo "ZooKeeper mode detected"
+fi
 ```
 
-## 4. Tool Integration Patterns
-
-### Production Readiness Checklist
-- [ ] **Replication**: All topics have replication factor ≥ 3
-- [ ] **ISR**: min.insync.replicas properly configured
-- [ ] **Monitoring**: JMX metrics exported and monitored
-- [ ] **Alerting**: Consumer lag and broker health alerts
-- [ ] **Backup**: Topic configuration and offsets backed up
-- [ ] **Security**: Authentication and authorization enabled
-- [ ] **Network**: Proper security groups and encryption
-- [ ] **Capacity**: Disk, memory, and network properly sized
-
-### Common Command Sequences
+### Cloud Provider Detection
 ```bash
-# Health check sequence
-kafka-broker-api-versions.sh --bootstrap-server localhost:9092
-kafka-topics.sh --bootstrap-server localhost:9092 --list
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
-
-# Performance analysis sequence
-kafka-run-class.sh kafka.tools.JmxTool --object-name kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec
-kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --all-groups
-kafka-log-dirs.sh --bootstrap-server localhost:9092 --describe --json
-
-# Troubleshooting sequence
-tail -100 /var/kafka-logs/server.log
-ss -tlnp | grep kafka
-df -h /var/kafka-logs
+# Detect deployment type
+if [[ "$BOOTSTRAP_SERVERS" == *"amazonaws.com"* ]]; then
+    DEPLOYMENT_TYPE="MSK"
+elif [[ "$BOOTSTRAP_SERVERS" == *"confluent.cloud"* ]]; then
+    DEPLOYMENT_TYPE="CONFLUENT_CLOUD"
+elif [[ "$BOOTSTRAP_SERVERS" == *"azure"* ]]; then
+    DEPLOYMENT_TYPE="AZURE_EVENT_HUBS"
+else
+    DEPLOYMENT_TYPE="SELF_MANAGED"
+fi
 ```
 
-## 5. Performance Optimization Patterns
+### Framework Detection
+```bash
+# Spring Boot detection
+if [[ -f "pom.xml" ]] && grep -q "spring-kafka" pom.xml; then
+    echo "Spring Kafka detected"
+elif [[ -f "build.gradle" ]] && grep -q "spring-kafka" build.gradle; then
+    echo "Spring Kafka detected"
+fi
 
-### Producer Optimization
-- **Batching**: Increase batch.size (16KB-32KB) and linger.ms (5-10ms)
-- **Compression**: Enable compression.type=lz4 or snappy
-- **Acks**: Use acks=1 for performance, acks=all for durability
-- **Partitioning**: Implement proper partition key strategy
+# Node.js detection
+if [[ -f "package.json" ]] && grep -q "kafkajs\|node-rdkafka" package.json; then
+    echo "Node.js Kafka client detected"
+fi
+```
 
-### Consumer Optimization
-- **Fetch Size**: Increase fetch.min.bytes and max.partition.fetch.bytes
-- **Concurrency**: Scale consumer instances to match partition count
-- **Offset Management**: Use auto-commit for simplicity, manual for control
-- **Session Timeout**: Balance between failure detection and rebalancing
+## 4. Tool Integration Matrix
 
-### Broker Optimization
-- **JVM Tuning**: -Xmx6G -Xms6G for dedicated Kafka brokers
-- **OS Tuning**: vm.swappiness=1, increase file descriptor limits
-- **Disk**: Use fast SSDs for logs, separate disks for OS and logs
-- **Network**: Tune socket buffer sizes for high throughput
+| Tool | Purpose | Detection Method | Configuration Location |
+|------|---------|------------------|----------------------|
+| Kafka CLI | Topic/Consumer Management | `kafka-topics.sh --version` | `/bin/` in Kafka installation |
+| Schema Registry | Schema Management | `curl http://localhost:8081/subjects` | `schema-registry.properties` |
+| Kafka Connect | Data Integration | `curl http://localhost:8083/connectors` | `connect-distributed.properties` |
+| Confluent Control Center | Monitoring | Web UI on port 9021 | `control-center.properties` |
+| Prometheus/Grafana | Metrics | JMX exporter configuration | `jmx_prometheus_javaagent.jar` |
+| AKHQ | Web UI | Web interface on configured port | `application.yml` |
 
-## 6. Operational Patterns
+## 5. Common Integration Patterns
 
-### Capacity Planning
-- **Disk**: Plan for 3-7 days retention plus growth
-- **Memory**: Allocate heap based on partition count and message size
-- **Network**: Plan for peak throughput + replication overhead
-- **CPU**: Generally not the bottleneck for Kafka
+### Spring Boot Integration
+- **Dependencies**: `spring-kafka`, `kafka-avro-serializer`
+- **Configuration**: `application.yml` with `spring.kafka.*` properties
+- **Error Handling**: `@KafkaListener` with `DefaultErrorHandler`
+- **Testing**: `@EmbeddedKafka` or TestContainers
 
-### Disaster Recovery
-- **MirrorMaker**: For cross-cluster replication
-- **Backup**: Regular metadata and configuration backups
-- **Monitoring**: Continuous health monitoring and alerting
-- **Runbooks**: Documented procedures for common issues
+### Docker/Kubernetes Integration
+- **Networking**: Service discovery via DNS
+- **Configuration**: Environment variables and ConfigMaps
+- **Persistence**: StatefulSets with persistent volumes
+- **Monitoring**: Sidecar containers with metric exporters
 
-This research forms the foundation for creating a comprehensive Kafka domain expert that can handle the full spectrum of Kafka operational challenges from development through production deployment.
+### Microservices Patterns
+- **Event Sourcing**: Kafka as event store
+- **CQRS**: Separate read/write models
+- **Saga Pattern**: Distributed transaction coordination
+- **Outbox Pattern**: Reliable event publishing
+
+## 6. Validation Strategies
+
+### Health Checks
+```bash
+# Broker health
+kafka-broker-api-versions --bootstrap-server localhost:9092
+
+# Topic operations
+kafka-topics --bootstrap-server localhost:9092 --list
+
+# Consumer group status
+kafka-consumer-groups --bootstrap-server localhost:9092 --list
+```
+
+### Performance Validation
+```bash
+# Throughput testing
+kafka-producer-perf-test --topic test --num-records 100000 --record-size 1000 --throughput 10000
+
+# End-to-end latency
+kafka-run-class kafka.tools.EndToEndLatency localhost:9092 test 1000
+```
+
+### Monitoring Validation
+```bash
+# JMX metrics availability
+kafka-run-class kafka.tools.JmxTool --object-name kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec
+
+# Log analysis
+tail -f /var/log/kafka/server.log | grep -i error
+```
+
+## Sources and References
+
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
+- [Confluent Platform Documentation](https://docs.confluent.io/platform/current/overview.html)
+- [Spring Kafka Reference](https://docs.spring.io/spring-kafka/reference/)
+- [Kafka Performance Testing](https://kafka.apache.org/documentation/#hwandos)
+- [KRaft Mode Documentation](https://developer.confluent.io/learn/kraft/)
+- [Schema Registry Guide](https://docs.confluent.io/platform/current/schema-registry/index.html)
+- [Kafka Security Documentation](https://kafka.apache.org/documentation/#security)
+- [Monitoring Kafka](https://kafka.apache.org/documentation/#monitoring)
