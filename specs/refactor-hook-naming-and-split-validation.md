@@ -419,5 +419,5 @@ describe('Split project validation hooks', () => {
 
 - [Embedded Hooks System](feat-embedded-hooks-system.md)
 - [Embedded Hooks Implementation](feat-embedded-hooks-system.md)
-- [Claude Code Hooks Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Claude Code Hooks Documentation](https://docs.claude.com/en/docs/claude-code/hooks)
 - [Setup Command Modernization](feat-modernize-setup-installer.md)

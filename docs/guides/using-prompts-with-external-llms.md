@@ -228,6 +228,6 @@ echo "test" | claude -p --append-system-prompt "You are a helpful assistant" "Ec
 
 ## Learn More
 
-- [Claude Code CLI Documentation](https://docs.anthropic.com/en/docs/claude-code/cli) - Official non-interactive mode reference
+- [Claude Code CLI Documentation](https://docs.claude.com/en/docs/claude-code/cli) - Official non-interactive mode reference
 - [Agent Configurations](../reference/subagents.md) - Available specialized agents
 - [Command Reference](../reference/commands.md) - Extractable command prompts

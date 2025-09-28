@@ -3,9 +3,9 @@
 ## Required Reading
 
 Before writing or updating feature guides, read the official Claude Code documentation:
-- **[Commands Documentation](https://docs.anthropic.com/en/docs/claude-code/commands)** - How slash commands work
-- **[Subagents Documentation](https://docs.anthropic.com/en/docs/claude-code/subagents)** - Subagent configuration and behavior
-- **[Hooks Reference](https://docs.anthropic.com/en/docs/claude-code/hooks)** - Complete hook system documentation
+- **[Commands Documentation](https://docs.claude.com/en/docs/claude-code/slash-commands)** - How slash commands work
+- **[Subagents Documentation](https://docs.claude.com/en/docs/claude-code/sub-agents)** - Subagent configuration and behavior
+- **[Hooks Reference](https://docs.claude.com/en/docs/claude-code/hooks)** - Complete hook system documentation
 
 Understanding the official specs ensures accuracy and prevents documenting non-existent features or incorrect behavior.
 

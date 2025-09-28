@@ -125,5 +125,5 @@ claude mcp add -s project server-name /path/to/server
 ## Learn More
 
 - [MCP Documentation](https://modelcontextprotocol.io)
-- [Claude Code MCP Guide](https://docs.anthropic.com/en/docs/claude-code/mcp)
+- [Claude Code MCP Guide](https://docs.claude.com/en/docs/claude-code/mcp)
 - [Context7 MCP Server](https://www.npmjs.com/package/@upstash/context7-mcp)

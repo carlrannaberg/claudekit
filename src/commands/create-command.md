@@ -7,7 +7,7 @@ argument-hint: "[command-name] [description]"
 
 Create a new Claude Code slash command based on the user's requirements: $ARGUMENTS
 
-For complete slash command documentation, see: https://docs.anthropic.com/en/docs/claude-code/slash-commands
+For complete slash command documentation, see: https://docs.claude.com/en/docs/claude-code/slash-commands
 
 First, ask the user to specify the command type:
 - **project** - Add to current project's `.claude/commands/` directory (shared with team)

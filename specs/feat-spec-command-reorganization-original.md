@@ -460,4 +460,4 @@ Create manual test procedures documenting:
 - TaskMaster storage format: `.taskmaster/tasks/tasks.json`
 - Autoagent bootstrap pattern: Similar decomposition approach
 - Git commits: Recent reorganization of commands into namespaces
-- Claude Code slash commands documentation: https://docs.anthropic.com/en/docs/claude-code/slash-commands
+- Claude Code slash commands documentation: https://docs.claude.com/en/docs/claude-code/slash-commands

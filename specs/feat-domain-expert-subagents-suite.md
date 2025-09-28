@@ -564,11 +564,11 @@ test_recommend_and_stop() {
 - Setup command integration: cli/commands/setup.ts
 
 ### External Documentation
-- [Claude Code Subagents Documentation](https://docs.anthropic.com/en/docs/claude-code/subagents)
+- [Claude Code Subagents Documentation](https://docs.claude.com/en/docs/claude-code/sub-agents)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/)
 - [React Documentation](https://react.dev/)
 - [Node.js Documentation](https://nodejs.org/docs/)
-- [Jest Documentation](https://jestjs.io/docs/)
+- [Jest Documentation](https://jestjs.io/docs/getting-started)
 
 ### Design Patterns
 - Domain Expert Pattern (docs/subagents-principles.md)

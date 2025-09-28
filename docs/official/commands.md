@@ -21,7 +21,7 @@
 | `/mcp`                    | Manage MCP server connections and OAuth authentication                         |
 | `/memory`                 | Edit CLAUDE.md memory files                                                    |
 | `/model`                  | Select or change the AI model                                                  |
-| `/permissions`            | View or update [permissions](https://docs.anthropic.com/en/docs/claude-code/iam#configuring-permissions) |
+| `/permissions`            | View or update [permissions](https://docs.claude.com/en/docs/claude-code/iam#configuring-permissions) |
 | `/pr_comments`            | View pull request comments                                                     |
 | `/code-review`            | Request code review                                                            |
 | `/status`                 | View account and system statuses                                               |
@@ -129,7 +129,7 @@ Based on the above changes, create a single git commit.
 
 #### File references
 
-Include file contents in commands using the `@` prefix to [reference files](https://docs.anthropic.com/en/docs/claude-code/common-workflows#reference-files-and-directories).
+Include file contents in commands using the `@` prefix to [reference files](https://docs.claude.com/en/docs/claude-code/common-workflows#reference-files-and-directories).
 
 For example:
 
@@ -145,7 +145,7 @@ Compare @src/old-version.js with @src/new-version.js
 
 #### Thinking mode
 
-Slash commands can trigger extended thinking by including [extended thinking keywords](https://docs.anthropic.com/en/docs/claude-code/common-workflows#use-extended-thinking).
+Slash commands can trigger extended thinking by including [extended thinking keywords](https://docs.claude.com/en/docs/claude-code/common-workflows#use-extended-thinking).
 
 ### Frontmatter
 

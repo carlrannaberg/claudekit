@@ -240,6 +240,6 @@ it('should generate embedded hook commands in settings', () => {
 ## References
 
 - [Embedded Hooks System Implementation](feat-embedded-hooks-system.md)
-- [Claude Code Hooks Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [Claude Code Hooks Documentation](https://docs.claude.com/en/docs/claude-code/hooks)
 - [TypeScript Hooks PR](#embedded-hooks)
 - [Setup Command Modernization](feat-modernize-setup-installer.md)

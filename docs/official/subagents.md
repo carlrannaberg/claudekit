@@ -113,7 +113,7 @@ the subagent should follow.
 
 ### Available tools
 
-Subagents can be granted access to any of Claude Code's internal tools. See the [tools documentation](https://docs.anthropic.com/en/docs/claude-code/settings#tools-available-to-claude) for a complete list of available tools.
+Subagents can be granted access to any of Claude Code's internal tools. See the [tools documentation](https://docs.claude.com/en/docs/claude-code/settings#tools-available-to-claude) for a complete list of available tools.
 
 <Tip>
   **Recommended:** Use the `/agents` command to modify tool access - it provides an interactive interface that lists all available tools, including any connected MCP server tools, making it easier to select the ones you need.

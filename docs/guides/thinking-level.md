@@ -212,4 +212,4 @@ Disable temporarily to test if hook is causing issues:
 ## Learn More
 
 - [Hook Configuration](../reference/hooks.md) - Advanced hook setup options
-- [Claude Code Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks) - Official hook documentation
+- [Claude Code Hooks](https://docs.claude.com/en/docs/claude-code/hooks) - Official hook documentation

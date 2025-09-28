@@ -572,7 +572,7 @@ Not required - hook operates within claudekit's existing E2E test infrastructure
 - Hook architecture established in feat-embedded-hooks-system
 
 ### External Documentation
-- [Claude Code Hooks Documentation](https://docs.anthropic.com/en/docs/claude-code/hooks-reference)
+- [Claude Code Hooks Documentation](https://docs.claude.com/en/docs/claude-code/hooks)
 - [CommonMark Specification](https://spec.commonmark.org/) - For comment syntax
 - [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) - For language detection patterns
 
