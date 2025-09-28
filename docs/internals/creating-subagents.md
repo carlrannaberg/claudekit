@@ -197,7 +197,7 @@ With research complete, follow these steps to implement your subagent:
 
 Based on your research, clearly establish:
 - **Domain**: Specific expertise area (e.g., "React development")
-- **Tasks**: Concrete problems it solves (from research)
+- **Tasks**: Concrete problems it solves
 - **Triggers**: Patterns that invoke this agent
 - **Delegation**: When to recommend specialists
 
@@ -379,7 +379,7 @@ tools: Read, Grep, Bash
 #   Implementation agents: "Read, Edit, MultiEdit, Bash, Grep"
 #   System agents: "Read, Write, Edit, Bash, Grep, Glob"
 
-model: opus
+# model: sonnet
 # OPTIONAL: Preferred model for this agent
 # Valid values: opus, sonnet, haiku (or specific model versions)
 
@@ -419,7 +419,7 @@ disableHooks: ["hook-name-1", "hook-name-2"]
 
 You are a {domain} expert for Claude Code with deep knowledge of {specific-expertise-areas}.
 
-## Delegation First (Required Section)
+## Delegation First
 0. **If ultra-specific expertise needed, delegate immediately and stop**:
    - {Specific area 1} → {specialist-agent-1}
    - {Specific area 2} → {specialist-agent-2}
@@ -427,132 +427,131 @@ You are a {domain} expert for Claude Code with deep knowledge of {specific-exper
    
    Output: "This requires {specialty} expertise. Use the {expert-name} subagent. Stopping here."
 
-## Core Process (Research-Driven Approach)
+## Core Process
 1. **Environment Detection** (Use internal tools first):
    ```bash
    # Detect project setup using Read/Grep before shell commands
-   # {Framework/tool detection commands from research}
    test -f {config-file} && echo "{Framework} detected"
-   # {Additional detection patterns from research}
+   # Additional detection patterns
    ```
 
-2. **Problem Analysis** (Based on research categories):
-   - {Problem category 1 from research}
-   - {Problem category 2 from research}
-   - {Problem category 3-6 from research}
+2. **Problem Analysis**:
+   - {Problem category 1}
+   - {Problem category 2}
+   - {Problem category 3-6}
 
 3. **Solution Implementation**:
-   - Apply {domain} best practices from research
-   - Use proven patterns from research findings
+   - Apply {domain} best practices
+   - Use proven patterns
    - Validate using established workflows
 
-## {Domain} Expertise (Research Categories)
+## {Domain} Expertise
 
-### {Category 1}: {Problem Area from Research}
-**Common Issues** (from research findings):
-- Error: "{Specific error message from research}"
-- Symptom: {Observable behavior from research}
+### {Category 1}: {Problem Area}
+**Common Issues**:
+- Error: "{Specific error message}"
+- Symptom: {Observable behavior}
 - Pattern: {Common code pattern causing issues}
 
-**Root Causes & Progressive Solutions** (research-driven):
-1. **Quick Fix**: {Minimal change with working example from research}
+**Root Causes & Progressive Solutions**:
+1. **Quick Fix**: {Minimal change with working example}
    ```{language}
    // Before (problematic)
-   {problematic-code-from-research}
-   
+   {problematic-code}
+
    // After (quick fix)
-   {quick-fix-code-from-research}
+   {quick-fix-code}
    ```
 
-2. **Proper Fix**: {Better solution with explanation from research}
+2. **Proper Fix**: {Better solution with explanation}
    ```{language}
    // Proper approach
-   {proper-solution-from-research}
+   {proper-solution}
    ```
 
-3. **Best Practice**: {Architectural improvement from research}
+3. **Best Practice**: {Architectural improvement}
    ```{language}
    // Best practice implementation
-   {best-practice-code-from-research}
+   {best-practice-code}
    ```
 
 **Diagnostics & Validation**:
 ```bash
 # Detect the issue
-{diagnostic-command-from-research}
+{diagnostic-command}
 
 # Validate the fix
-{validation-command-from-research}
+{validation-command}
 ```
 
 **Resources**:
 - [Official documentation]
 - [Community resources]
 
-### {Category 2}: {Second Problem Area from Research}
+### {Category 2}: {Second Problem Area}
 **Common Issues**:
-- {Issue pattern 1 from research}
-- {Issue pattern 2 from research}
+- {Issue pattern 1}
+- {Issue pattern 2}
 
 **Root Causes & Solutions**:
 {Follow same progressive structure as Category 1}
 
 **Diagnostics & Validation**:
-{Domain-specific commands from research}
+{Domain-specific commands}
 
 ### {Categories 3-6}: {Additional Problem Areas}
-{Continue same pattern for all research categories}
-{Typically 4-6 categories total based on research findings}
+{Continue same pattern for all categories}
+{Typically 4-6 categories total}
 
-## Environmental Adaptation (Research-Based)
+## Environmental Adaptation
 
 ### Detection Patterns
-Based on research, adapt to:
-- {Framework/tool variation 1 from research}
-- {Configuration pattern 1 from research}
-- {Project structure pattern 1 from research}
+Adapt to:
+- {Framework/tool variation 1}
+- {Configuration pattern 1}
+- {Project structure pattern 1}
 
 ```bash
 # Environment detection (prefer internal tools)
-{detection-commands-from-research}
+{detection-commands}
 ```
 
 ### Adaptation Strategies
-- **{Framework 1}**: {Specific approach from research}
-- **{Framework 2}**: {Alternative approach from research}
-- **Legacy projects**: {Compatibility strategies from research}
+- **{Framework 1}**: {Specific approach}
+- **{Framework 2}**: {Alternative approach}
+- **Legacy projects**: {Compatibility strategies}
 
-## Code Review Checklist (Domain-Specific)
+## Code Review Checklist
 When reviewing {domain} code, check for:
 
-### {Technical Area 1} (from research)
-- [ ] {Specific check with rationale from research}
-- [ ] {Code quality pattern from research}
-- [ ] {Performance consideration from research}
+### {Technical Area 1}
+- [ ] {Specific check with rationale}
+- [ ] {Code quality pattern}
+- [ ] {Performance consideration}
 
-### {Technical Area 2} (from research)
-- [ ] {Security pattern from research}
-- [ ] {Maintainability check from research}
-- [ ] {Error handling pattern from research}
+### {Technical Area 2}
+- [ ] {Security pattern}
+- [ ] {Maintainability check}
+- [ ] {Error handling pattern}
 
-### {Technical Area 3} (from research)
-- [ ] {Domain-specific best practice from research}
-- [ ] {Integration pattern from research}
-- [ ] {Testing consideration from research}
+### {Technical Area 3}
+- [ ] {Domain-specific best practice}
+- [ ] {Integration pattern}
+- [ ] {Testing consideration}
 
 ### {Technical Areas 4-6}
-{Additional categories based on research scope}
+{Additional categories}
 {Typically 4-6 areas total matching problem categories}
 
-## Tool Integration (Research-Validated)
+## Tool Integration
 
 ### Diagnostic Commands
 ```bash
-# Primary analysis tools (from research)
-{primary-diagnostic-from-research}
+# Primary analysis tools
+{primary-diagnostic}
 
-# Secondary validation (from research)
-{secondary-diagnostic-from-research}
+# Secondary validation
+{secondary-diagnostic}
 ```
 
 ### Validation Workflow
@@ -563,28 +562,21 @@ When reviewing {domain} code, check for:
 {build-command}         # 3. Build only if output affects functionality
 ```
 
-## Quick Reference (Research Summary)
+## Quick Reference
 ```
-{Decision tree or flowchart from research}
-{Common command sequences from research}
-{Troubleshooting shortcuts from research}
+{Decision tree or flowchart}
+{Common command sequences}
+{Troubleshooting shortcuts}
 ```
 
-## Success Metrics
-- ✅ Problem correctly identified using research patterns
-- ✅ Solution matches project conventions
-- ✅ No regressions introduced (validated)
-- ✅ Performance maintained or improved
-- ✅ Knowledge transferred to developer
-
-## Resources (Authoritative Sources)
+## Resources
 ### Core Documentation
 - [Primary official documentation]
 - [Secondary official resources]
 
-### Tools & Utilities (Research-Validated)
-- {tool-1}: {purpose and usage from research}
-- {tool-2}: {purpose and usage from research}
+### Tools & Utilities
+- {tool-1}: {purpose and usage}
+- {tool-2}: {purpose and usage}
 
 ### Community Resources
 - [Expert blogs and guides]
@@ -598,18 +590,18 @@ When reviewing {domain} code, check for:
 2. **Populate 4-6 problem categories** based on your research findings
 3. **Include working code examples** from your research for each category
 4. **Add authoritative links** discovered during research phase
-5. **Customize tool permissions** based on agent's actual needs
+5. **Customize tool permissions** based on agent's actual needs (frontmatter comments are for reference only - don't copy them to the final subagent)
 
 #### Official vs Claudekit Fields
 - **Official Claude Code fields** (name, description, tools) are part of the core specification
 - **Claudekit extension fields** (category, color, displayName, bundle) enhance the setup experience
 - All extension fields are optional and safe to omit
 
-#### Research Integration Requirements
-- Every problem category MUST be based on research findings
-- Code examples MUST be working solutions from research
-- Diagnostic commands MUST be validated during research
-- Resources MUST link to authoritative sources from research
+#### Content Requirements
+- Every problem category should solve real developer problems
+- Code examples must be working solutions
+- Diagnostic commands must be validated and functional
+- Resources must link to authoritative sources
 
 #### Quality Standards
 - **15+ documented problems** across 4-6 categories
@@ -713,7 +705,7 @@ Use the my-agent subagent to analyze this code
 ```markdown
 0. If ultra-specific expertise needed, delegate and stop
 1. Analyze project setup comprehensively
-2. Identify problem category from research
+2. Identify problem category
 3. Apply appropriate solution
 4. Validate thoroughly
 ```

@@ -3,7 +3,7 @@ description: Deep research with parallel subagents and automatic citations
 argument-hint: "<question to investigate>"
 allowed-tools: Task, Read, Write, Edit, Grep, Glob
 category: workflow
-model: opus
+model: sonnet
 ---
 
 # 🔬 Research Command
@@ -55,7 +55,7 @@ Use multiple Task tool invocations in ONE message, ALL with subagent_type="resea
 You MUST begin each task prompt with one of these trigger phrases to control subagent behavior:
 
 - **Quick Verification (3-5 searches)**: Start with "Quick check:", "Verify:", or "Confirm:"
-- **Focused Investigation (5-10 searches)**: Start with "Investigate:", "Explore:", or "Find details about:"  
+- **Focused Investigation (5-10 searches)**: Start with "Investigate:", "Explore:", or "Find details about:"
 - **Deep Research (10-15 searches)**: Start with "Deep dive:", "Comprehensive:", "Thorough research:", or "Exhaustive:"
 
 Example Task invocations:
@@ -85,11 +85,11 @@ Each subagent will:
 Synthesis Process:
 1. **Collect File References**: Gather all `/tmp/research_*.md` paths from subagent responses
 2. **Read Reports**: Use Read tool to access each research artifact
-3. **Merge Findings**: 
+3. **Merge Findings**:
    - Identify common themes across reports
    - Deduplicate overlapping information
    - Preserve unique insights from each report
-4. **Consolidate Sources**: 
+4. **Consolidate Sources**:
    - Merge all cited sources
    - Remove duplicate URLs
    - Organize by relevance and credibility
@@ -136,7 +136,7 @@ The synthesized report (written to file) must include:
 
 ### Effort Scaling by Query Type
 - **Simple Factual**: 1-2 subagents, 3-5 searches each (verification focus)
-- **Depth-First**: 2-4 subagents, 10-15 searches each (deep understanding)  
+- **Depth-First**: 2-4 subagents, 10-15 searches each (deep understanding)
 - **Breadth-First**: 5-10 subagents, 5-10 searches each (wide coverage)
 - **Maximum Complexity**: 10 subagents (Claude Code limit)
 
@@ -155,7 +155,7 @@ The synthesized report (written to file) must include:
 ### Example Execution Patterns:
 
 **BREADTH-FIRST Example:** "Compare AI capabilities of Google, OpenAI, and Anthropic"
-- Classification: Breadth-first (multiple independent comparisons)  
+- Classification: Breadth-first (multiple independent comparisons)
 - Launch 6 subagents in ONE message with focused investigation mode:
   - Task 1: "Investigate: Google's current AI products, models, and capabilities"
   - Task 2: "Investigate: OpenAI's current AI products, models, and capabilities"
