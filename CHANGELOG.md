@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2025-09-29
+
+### Fixed
+- **Documentation URLs**: Updated broken Claude Code documentation URLs to use current domain structure
+  - Fixed SDK documentation URLs to include `/sdk/sdk-overview` path for accurate redirects
+  - Updated base domain from `docs.anthropic.com` to `docs.claude.com` across documentation files
+  - Ensures all Claude Code documentation links resolve correctly for users
+
+### Documentation
+- **Agent Formatting**: Improved formatting and structure of Kafka and LoopBack expert subagents
+  - Cleaned up verbose YAML frontmatter comments in LoopBack expert agent
+  - Enhanced code formatting consistency and documentation structure for better readability
+  - Streamlined agent definitions to focus on practical troubleshooting guidance
+
 ## [0.9.3] - 2025-09-28
 
 ### Added
