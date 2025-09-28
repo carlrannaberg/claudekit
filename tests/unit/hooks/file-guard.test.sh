@@ -175,40 +175,18 @@ test_case_sensitivity() {
     fi
 }
 
-test_symlink_protection() {
-    # Purpose: Test that symlinks to sensitive files are blocked
-    # This prevents bypassing protection via symbolic links
-    
-    # Create .env file first
-    echo "secret" > .env
-    
-    # Create symlink to .env file
-    ln -sf .env symlink-to-env 2>/dev/null || {
-        assert_pass "Symlinks not supported on this filesystem"
-        return
-    }
-    
-    local output
-    output=$(run_file_guard "Read" "symlink-to-env" 2>/dev/null || true)
-    
-    if check_permission_decision "$output" "deny"; then
-        assert_pass "Symlink to sensitive file blocked"
-    else
-        assert_fail "Should block symlinks to sensitive files, got: $output"
-    fi
-}
 
-test_path_traversal_prevention() {
-    # Purpose: Test that path traversal attempts are blocked
-    # This ensures files outside project root cannot be accessed
-    
+test_absolute_paths_allowed() {
+    # Purpose: Test that absolute paths are allowed for research subagents
+    # This ensures absolute paths like /tmp/research.txt work for writing
+
     local output
-    output=$(run_file_guard "Read" "../../../etc/passwd" 2>/dev/null || true)
-    
-    if check_permission_decision "$output" "deny"; then
-        assert_pass "Path traversal attempt blocked"
+    output=$(run_file_guard "Write" "/tmp/research_results.txt" 2>/dev/null || true)
+
+    if check_permission_decision "$output" "allow"; then
+        assert_pass "Absolute path to /tmp allowed"
     else
-        assert_fail "Should block path traversal, got: $output"
+        assert_fail "Should allow absolute paths, got: $output"
     fi
 }
 

@@ -6,11 +6,6 @@ import { globToRegExp } from './utils.js';
 
 type IgnoreEngine = { add: (patterns: string[]) => void; ignores: (path: string) => boolean };
 
-// Project boundary check
-const isInside = (p: string, root: string): boolean => {
-  const rel = path.relative(root, p);
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
-};
 
 export class FileProtectionService {
   private ignorePatterns: string[] = [];
@@ -67,12 +62,13 @@ export class FileProtectionService {
       if (relativePath === '') {
         continue; // do not test project root against ignore rules
       }
-      
-      // Don't allow access outside project root
-      if (!isInside(normalizedPath, this.projectRoot)) {
-        return true; // Block access outside project
+
+      // Skip protection for absolute paths (outside project root)
+      if (relativePath.startsWith('..')) {
+        continue; // Allow all absolute paths
       }
-      // Use ignore engine (if available) to determine if protected
+
+      // Use ignore engine for paths within project root only
       if (this.ignoreEngine !== null) {
         return this.ignoreEngine.ignores(relativePath);
       }
