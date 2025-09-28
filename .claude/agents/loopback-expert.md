@@ -1,0 +1,1 @@
+/Users/carl/Development/agents/claudekit/src/agents/loopback/loopback-expert.md
