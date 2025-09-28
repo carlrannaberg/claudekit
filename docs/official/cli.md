@@ -25,7 +25,7 @@ Customize Claude Code's behavior with these command-line flags:
 | `--add-dir`                      | Add additional working directories for Claude to access (validates each path exists as a directory)                                                      | `claude --add-dir ../apps ../lib`                           |
 | `--allowedTools`                 | A list of tools that should be allowed without prompting the user for permission, in addition to [settings.json files](https://docs.claude.com/en/docs/claude-code/settings)    | `"Bash(git log:*)" "Bash(git diff:*)" "Read"`               |
 | `--disallowedTools`              | A list of tools that should be disallowed without prompting the user for permission, in addition to [settings.json files](https://docs.claude.com/en/docs/claude-code/settings) | `"Bash(git log:*)" "Bash(git diff:*)" "Edit"`               |
-| `--print`, `-p`                  | Print response without interactive mode (see [SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk) for programmatic usage details)                               | `claude -p "query"`                                         |
+| `--print`, `-p`                  | Print response without interactive mode (see [SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk/sdk-overview) for programmatic usage details)                               | `claude -p "query"`                                         |
 | `--append-system-prompt`         | Append to system prompt (only with `--print`)                                                                                                            | `claude --append-system-prompt "Custom instruction"`        |
 | `--output-format`                | Specify output format for print mode (options: `text`, `json`, `stream-json`)                                                                            | `claude -p "query" --output-format json`                    |
 | `--input-format`                 | Specify input format for print mode (options: `text`, `stream-json`)                                                                                     | `claude -p --output-format json --input-format stream-json` |
@@ -45,7 +45,7 @@ Customize Claude Code's behavior with these command-line flags:
 
 For detailed information about print mode (`-p`) including output formats,
 streaming, verbose logging, and programmatic usage, see the
-[SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk).
+[SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk/sdk-overview).
 
 ## See also
 
@@ -54,4 +54,4 @@ streaming, verbose logging, and programmatic usage, see the
 - [Quickstart guide](https://docs.claude.com/en/docs/claude-code/quickstart) - Getting started with Claude Code
 - [Common workflows](https://docs.claude.com/en/docs/claude-code/common-workflows) - Advanced workflows and patterns
 - [Settings](https://docs.claude.com/en/docs/claude-code/settings) - Configuration options
-- [SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk) - Programmatic usage and integrations
+- [SDK documentation](https://docs.claude.com/en/docs/claude-code/sdk/sdk-overview) - Programmatic usage and integrations

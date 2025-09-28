@@ -516,7 +516,7 @@ claudekit-hooks list
 
 If you encounter issues:
 1. Check the [claudekit documentation](https://github.com/carlrannaberg/claudekit)
-2. Review the [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)
+2. Review the [Claude Code documentation](https://docs.claude.com/en/docs/claude-code/)
 3. Check hook logs in `~/.claude/hooks.log`
 4. Test hooks in isolation before using in Claude Code
 

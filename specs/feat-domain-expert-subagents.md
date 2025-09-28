@@ -484,7 +484,7 @@ describe('Subagent Format Validation', () => {
 - [Official Subagents Documentation](../docs/official-subagents-documentation.md)
 
 ### External Resources
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
+- [Claude Code Documentation](https://docs.claude.com/en/docs/claude-code/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
 ## Success Metrics
