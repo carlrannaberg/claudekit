@@ -327,6 +327,8 @@ Specialized AI assistants for different domains:
 - `database-expert` - Query optimization and schema design
 - `ai-sdk-expert` - Vercel AI SDK v5 streaming and model integration
 - `nestjs-expert` - Nest.js architecture and dependency injection
+- `kafka-expert` - Apache Kafka producer/consumer configuration, topic management, cluster operations, and performance tuning
+- `loopback-expert` - LoopBack 4 framework development, model relationships, authentication, and dependency injection
 
 **Usage**
 ```bash

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2025-09-28
+
+### Added
+- **Kafka Expert Subagent**: Added specialized subagent for Apache Kafka development and operations
+  - Added `kafka-expert.md` subagent with expertise in producer/consumer configuration, topic management, cluster operations, serialization, performance tuning, and operational troubleshooting
+  - Added symlink at `.claude/agents/kafka` for easy access
+  - Covers Kafka errors, performance issues, consumer lag, rebalancing problems, and configuration challenges
+- **LoopBack Expert Subagent**: Added specialized subagent for LoopBack 4 framework development
+  - Added `loopback-expert.md` subagent with expertise in model relationships, authentication, dependency injection, API architecture, database performance, and production deployment
+  - Added symlink at `.claude/agents/loopback` for easy access
+  - Handles JWT authentication errors, repository patterns, DI binding problems, and migration from LoopBack 3
+
+### Fixed
+- **File Guard Security**: Enhanced file protection service to allow absolute paths for research subagents
+  - Fixed issue where absolute paths (like `/tmp/research_results.txt`) were incorrectly blocked by file-guard hook
+  - Updated path protection logic in `FileProtectionService` to skip protection for absolute paths outside project root
+  - Allows research subagents to write to temporary directories and system paths as needed
+  - Updated tests to verify absolute paths are now allowed while maintaining protection for project files
+- **Link Validation**: Fixed markdown link checker configuration to handle npmjs.com URLs
+  - Added npmjs.com URL pattern to ignore list in `.markdown-link-check.json` to prevent false positives
+  - Added specific headers for npmjs.com requests to improve reliability when validation does occur
+  - Resolves issues with package documentation links being flagged as broken
+
+### Documentation
+- **Technical Overview**: Added comprehensive technical overview documentation with table of contents and architecture details
+- **Subagent Creation**: Streamlined subagent creation guide and updated model configurations
+- **Integration Guides**: Updated various documentation URLs to reflect current Claude Code documentation structure
+
 ## [0.9.2] - 2025-09-10
 
 ### Fixed
