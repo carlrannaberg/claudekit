@@ -30,6 +30,27 @@ The codebase map is automatically provided at the start of each session and can 
 
 **For complete setup and configuration details, see the [Codebase Map Guide](docs/guides/codebase-map.md).**
 
+## Quick Reference
+
+**Most Common Commands:**
+- `claudekit setup` - Initialize claudekit in your project
+- `claudekit doctor` - Validate system configuration and health
+- `claudekit status` - Show current claudekit status
+- `/git:commit` - Smart commit following conventions
+- `/git:status` - Intelligent git status analysis
+- `/checkpoint:create` - Create git stash checkpoint
+
+**Key Configuration Files:**
+- `.claude/settings.json` - Hook configuration
+- `.claudekit/config.json` - Hook-specific settings (codebase-map, thinking-level)
+- `package.json` - Node.js dependencies and scripts
+
+**Essential Hooks:**
+- `typecheck-changed` - TypeScript validation after edits
+- `lint-changed` - Multi-tool linting after edits
+- `create-checkpoint` - Auto-checkpoint on session stop
+- `file-guard` - Sensitive file protection
+
 ## Build & Commands
 
 This is a TypeScript-based toolkit. Key commands:
@@ -44,11 +65,30 @@ This is a TypeScript-based toolkit. Key commands:
 
 **Important**: After making any changes to TypeScript files (hooks, commands, or library code), you MUST run `npm run build` before testing. The project uses compiled JavaScript from the `dist/` directory, not the source TypeScript files.
 
+### CLI Commands
+
+The `claudekit` command-line tool provides several commands for managing your installation:
+
+- **`claudekit setup`** - Initialize claudekit in your project (creates `.claude/` structure and installs hooks)
+- **`claudekit doctor`** - Validate system configuration and check for issues
+- **`claudekit status`** - Show current claudekit installation status
+- **`claudekit add <component>`** - Add specific components (commands, hooks, or agents)
+- **`claudekit remove <component>`** - Remove specific components
+- **`claudekit list [type]`** - List available components (commands, hooks, agents)
+- **`claudekit show <component>`** - Show details about a specific component
+- **`claudekit update <component>`** - Update specific components
+- **`claudekit lint-commands`** - Validate command definitions for errors
+- **`claudekit lint-subagents`** - Validate subagent definitions for errors
+
+**Hook Management via `claudekit-hooks`:**
+- **`claudekit-hooks run <hook-name>`** - Execute a specific hook manually
+- **`claudekit-hooks list`** - List all available hooks
+
 ### Creating New Components
 
-- **Subagents**: See [Subagent Development Guide](docs/guides/creating-subagents.md) for creating AI assistant subagents
+- **Subagents**: See [Subagent Development Guide](docs/internals/creating-subagents.md) for creating AI assistant subagents
 - **Commands**: Use `/create-command` in Claude Code for guidance
-- **Hooks**: Follow self-contained patterns in `src/hooks/`
+- **Hooks**: Follow self-contained patterns in `cli/hooks/`
 
 ## Using Subagents
 
@@ -78,6 +118,9 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 - GitHub Actions CI/CD → Use `github-actions-expert`
 - Shell script problems → Use `devops-expert`
 - Node.js runtime issues → Use `nodejs-expert`
+- Apache Kafka operations → Use `kafka-expert`
+- LoopBack 4 framework → Use `loopback-expert`
+- NestJS framework → Use `nestjs-expert`
 
 **Never attempt to:**
 - Debug complex issues without specialist expertise
@@ -119,11 +162,23 @@ This project includes specialized subagents in `.claude/agents/` that provide de
 - `github-actions-expert` - CI/CD pipelines, workflow automation
 - `devops-expert` - Infrastructure as code, monitoring, security
 
+**Frameworks:**
+- `nextjs-expert` - Next.js App Router, Server Components, deployment
+- `nestjs-expert` - NestJS framework, dependency injection, modules
+
+**Messaging & Integration:**
+- `kafka-expert` - Apache Kafka operations, consumer management, performance
+- `loopback-expert` - LoopBack 4 framework, REST APIs, dependency injection
+
 **Other:**
 - `code-search` - Searches within file contents for specific implementations, patterns, or string literals (complements the codebase map which shows structure)
 - `git-expert` - Merge conflicts, branching, repository management
 - `nodejs-expert` - Node.js runtime, async patterns, streams
 - `linting-expert` - Code linting, formatting, static analysis
+- `refactoring-expert` - Code smell detection, refactoring patterns
+- `triage-expert` - Problem diagnosis and routing to specialists
+- `code-review-expert` - Comprehensive code review across multiple aspects
+- `research-expert` - Parallel research with structured output
 - `oracle` - General-purpose oracle for complex queries
 
 ### When to Use Subagents
@@ -149,23 +204,50 @@ When configuring Webpack or build tools:
 ```
 
 ### Slash Commands (in Claude Code)
+
+**Checkpoint Management:**
 - `/checkpoint:create [description]` - Create a git stash checkpoint
 - `/checkpoint:restore [n]` - Restore to a previous checkpoint
 - `/checkpoint:list` - List all claude checkpoints
-- `/spec:create [feature]` - Generate comprehensive specification
-- `/spec:validate [file]` - Analyze specification completeness
-- `/spec:decompose [file]` - Decompose spec into TaskMaster tasks
-- `/spec:execute [file]` - Execute specification with concurrent agents
-- `/validate-and-fix` - Run quality checks and auto-fix
+
+**Git Workflow:**
 - `/git:commit` - Smart commit following conventions
 - `/git:status` - Intelligent git status analysis with insights
 - `/git:push` - Safe push with pre-flight checks
-- `/gh:repo-init [name]` - Create GitHub repository
-- `/agents-md:init` - Initialize AGENTS.md file
-- `/agents-md:migration` - Migrate from other AI configs
-- `/create-command` - Guide for new commands
-- `/agents-md:cli [tool]` - Capture CLI tool help and add to AGENTS.md
+- `/git:checkout [branch]` - Smart branch creation and switching
+- `/git:ignore-init` - Initialize .gitignore with Claude Code patterns
+
+**Hook Management:**
+- `/hook:status` - Show hook status for current session
+- `/hook:enable [hook-name]` - Re-enable a hook for current session
+- `/hook:disable [hook-name]` - Disable a hook for current session
+
+**Specification Workflow:**
+- `/spec:create [feature]` - Generate comprehensive specification
+- `/spec:validate [file]` - Analyze specification completeness
+- `/spec:decompose [file]` - Decompose spec into actionable tasks
+- `/spec:execute [file]` - Execute specification with concurrent agents
+
+**Code Quality:**
+- `/validate-and-fix` - Run quality checks and auto-fix issues
+- `/code-review` - Multi-aspect code review using parallel agents
 - `/dev:cleanup` - Clean up debug files and development artifacts
+
+**AGENTS.md Management:**
+- `/agents-md:init` - Initialize AGENTS.md file with structure
+- `/agents-md:migration` - Migrate from other AI config formats
+- `/agents-md:cli [tool]` - Capture CLI tool help and add to AGENTS.md
+
+**Research & Development:**
+- `/research` - Deep research with parallel subagents and citations
+- `/create-command` - Guide for creating new commands
+- `/create-subagent` - Guide for creating new subagents
+
+**GitHub Integration:**
+- `/gh:repo-init [name]` - Create GitHub repository with proper setup
+
+**Configuration:**
+- `/config:bash-timeout` - Configure bash timeout values
 
 ## Code Style
 
@@ -376,11 +458,11 @@ Based on analysis of this project's git history:
 
 ### Environment Requirements
 - **OS**: macOS/Linux with bash 4.0+
+- **Node.js**: Version 20.0.0 or higher (required for TypeScript compilation and hooks)
 - **Required**: Git
 - **Optional**:
-  - Node.js/npm (for TypeScript/ESLint hooks)
-  - GitHub CLI (for gh-repo-setup)
-  - jq (for JSON parsing, with fallbacks)
+  - GitHub CLI (for `/gh:repo-init` command)
+  - jq (for JSON parsing - fallback methods available if not installed)
 
 ### Directory Structure
 
