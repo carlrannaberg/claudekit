@@ -116,6 +116,8 @@ claudekit/
 
 # TARGET STRUCTURE (Plugin Marketplace)
 # Repository: github.com/claudekit/plugins
+# Note: As of Claude Code v2.1.3, commands and skills are unified.
+# All are skills - use disable-model-invocation: true for explicit-only.
 claudekit-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json    # Marketplace catalog
@@ -123,62 +125,50 @@ claudekit-plugins/
 │   ├── ck-git/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── commands/
-│   │   │   ├── commit.md
-│   │   │   ├── push.md
-│   │   │   ├── status.md
-│   │   │   └── checkout.md
 │   │   ├── skills/
-│   │   │   └── git-commit/
-│   │   │       └── SKILL.md
+│   │   │   ├── commit.md           # Model-invocable
+│   │   │   ├── push.md             # disable-model-invocation: true
+│   │   │   ├── status.md           # disable-model-invocation: true
+│   │   │   └── checkout.md         # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
 │   ├── ck-checkpoint/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── commands/
-│   │   │   ├── create.md
-│   │   │   ├── list.md
-│   │   │   └── restore.md
 │   │   └── skills/
-│   │       └── checkpoint-management/
-│   │           └── SKILL.md
+│   │       ├── create.md           # Model-invocable
+│   │       ├── list.md             # disable-model-invocation: true
+│   │       └── restore.md          # disable-model-invocation: true
 │   ├── ck-spec/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── commands/
-│   │   │   ├── create.md
-│   │   │   ├── validate.md
-│   │   │   ├── decompose.md
-│   │   │   └── execute.md
 │   │   └── skills/
-│   │       └── spec-creation/
-│   │           └── SKILL.md
+│   │       ├── create.md           # Model-invocable
+│   │       ├── validate.md         # disable-model-invocation: true
+│   │       ├── decompose.md        # disable-model-invocation: true
+│   │       └── execute.md          # disable-model-invocation: true
 │   ├── ck-quality/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── commands/
-│   │   │   ├── validate-and-fix.md
-│   │   │   ├── code-review.md
-│   │   │   └── verify-setup.md
 │   │   ├── skills/
-│   │   │   └── code-review/
-│   │   │       └── SKILL.md
+│   │   │   ├── validate-and-fix.md # Model-invocable
+│   │   │   ├── code-review.md      # Model-invocable
+│   │   │   └── verify-setup.md     # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
 │   ├── ck-agents-md/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   └── commands/
-│   │       ├── init.md
-│   │       ├── migration.md
-│   │       └── cli.md
+│   │   └── skills/
+│   │       ├── init.md             # disable-model-invocation: true
+│   │       ├── migration.md        # disable-model-invocation: true
+│   │       └── cli.md              # disable-model-invocation: true
 │   ├── ck-dev/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── commands/
-│   │   │   ├── cleanup.md
-│   │   │   └── verify-setup.md
+│   │   ├── skills/
+│   │   │   ├── cleanup.md          # disable-model-invocation: true
+│   │   │   └── verify-setup.md     # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
 │   └── ck-experts/
@@ -193,6 +183,8 @@ claudekit-plugins/
 ```
 
 **Note**: No `shared/` directory. Each plugin is fully self-contained because plugins are copied to cache on installation - symlinks and external references won't survive packaging.
+
+**Note**: As of Claude Code v2.1.3, slash commands and skills are unified. All items in `skills/` can be invoked with `/skill-name`. Add `disable-model-invocation: true` to frontmatter to prevent automatic model invocation.
 
 ## Detailed Design
 
@@ -353,11 +345,36 @@ This helps train the model on expected invocation patterns.
 
 ### 4. Skills Architecture
 
-Skills are model-invoked, meaning Claude automatically decides when to use them based on context. This provides a more natural user experience than explicit command invocation.
+As of Claude Code v2.1.3, **commands and skills are unified**. Everything is a skill:
+- All skills can be invoked with `/skill-name`
+- By default, the model can also invoke skills automatically based on context
+- Add `disable-model-invocation: true` to frontmatter to require explicit `/skill-name` invocation
+
+This simplifies the mental model: one format, one directory, one concept.
+
+#### Model Invocation Control
+
+```yaml
+---
+name: commit
+description: Create commits following project conventions. Use when user wants to commit changes.
+allowed-tools: Bash, Read
+# Omit disable-model-invocation to allow automatic invocation
+---
+```
+
+```yaml
+---
+name: push
+description: Push commits to remote repository
+allowed-tools: Bash
+disable-model-invocation: true  # Explicit /push only - too dangerous for auto-invoke
+---
+```
 
 #### Safety: Consent Gates for Destructive Operations
 
-**Critical**: Skills that perform potentially destructive operations MUST include user confirmation steps. Since skills auto-invoke based on natural language, users may not realize what actions will be taken.
+**Critical**: Model-invocable skills that perform potentially destructive operations MUST include user confirmation steps. Since skills auto-invoke based on natural language, users may not realize what actions will be taken.
 
 Required consent gates:
 - **Staging files**: Confirm before `git add -A` (could stage unintended files)
@@ -565,28 +582,43 @@ Return structured findings with:
 The forked context returns a clean summary to the main conversation.
 ```
 
-#### Skills vs Commands Decision Matrix
+#### Model Invocation Decision Matrix
 
-| Scenario | Use Skill | Use Command |
-|----------|-----------|-------------|
-| Natural language trigger ("commit my work") | ✅ | |
-| Explicit invocation needed (`/ck-git:commit`) | | ✅ |
-| Context-dependent behavior | ✅ | |
-| Specific arguments required | | ✅ |
-| Discoverable in menu | | ✅ |
-| Background/automatic | ✅ | |
+With unified commands/skills, the decision is whether to allow model invocation:
 
-#### Commands to Convert to Skills
+| Scenario | Model Invocation | Frontmatter |
+|----------|------------------|-------------|
+| Natural language trigger useful ("commit my work") | ✅ Enabled | (default) |
+| Dangerous if auto-invoked (push, delete) | ❌ Disabled | `disable-model-invocation: true` |
+| Requires specific arguments | ❌ Disabled | `disable-model-invocation: true` |
+| One-time setup operations | ❌ Disabled | `disable-model-invocation: true` |
+| Context-dependent behavior helpful | ✅ Enabled | (default) |
 
-| Current Command | Plugin | Skill Name | Context Mode | Trigger Phrases |
-|-----------------|--------|------------|--------------|-----------------|
-| `/git:commit` | ck-git | `git-commit` | inline | "commit changes", "save work" |
-| `/checkpoint:create` | ck-checkpoint | `checkpoint-management` | inline | "create checkpoint", "save state" |
-| `/spec:create` | ck-spec | `spec-creation` | `fork` + Plan | "create spec", "write specification" |
-| `/code-review` | ck-quality | `code-review` | `fork` + Explore | "review code", "check my changes" |
-| `/validate-and-fix` | ck-quality | `quality-check` | `fork` + Explore | "check quality", "fix issues" |
+#### Skills by Model Invocation Setting
 
-Skills using `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
+| Skill | Plugin | Model Invocation | Context Mode | Trigger Phrases |
+|-------|--------|------------------|--------------|-----------------|
+| `commit` | ck-git | ✅ Enabled | inline | "commit changes", "save work" |
+| `push` | ck-git | ❌ Disabled | - | - |
+| `status` | ck-git | ❌ Disabled | - | - |
+| `checkout` | ck-git | ❌ Disabled | - | - |
+| `create` | ck-checkpoint | ✅ Enabled | inline | "create checkpoint", "save state" |
+| `list` | ck-checkpoint | ❌ Disabled | - | - |
+| `restore` | ck-checkpoint | ❌ Disabled | - | - |
+| `create` | ck-spec | ✅ Enabled | `fork` + Plan | "create spec", "write specification" |
+| `validate` | ck-spec | ❌ Disabled | - | - |
+| `decompose` | ck-spec | ❌ Disabled | - | - |
+| `execute` | ck-spec | ❌ Disabled | - | - |
+| `code-review` | ck-quality | ✅ Enabled | `fork` + Explore | "review code", "check my changes" |
+| `validate-and-fix` | ck-quality | ✅ Enabled | `fork` + Explore | "check quality", "fix issues" |
+| `verify-setup` | ck-quality | ❌ Disabled | - | - |
+| `init` | ck-agents-md | ❌ Disabled | - | - |
+| `migration` | ck-agents-md | ❌ Disabled | - | - |
+| `cli` | ck-agents-md | ❌ Disabled | - | - |
+| `cleanup` | ck-dev | ❌ Disabled | - | - |
+| `verify-setup` | ck-dev | ❌ Disabled | - | - |
+
+Skills with `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
 
 ### 5. Hooks in Plugins
 
@@ -728,9 +760,9 @@ You are a TypeScript expert specializing in:
 [Existing agent content...]
 ```
 
-### 7. Command Namespace Migration
+### 7. Skill Namespace Migration
 
-Commands move from flat structure to namespaced plugin structure. All plugins use `ck-` prefix to avoid conflicts:
+Skills move from flat structure to namespaced plugin structure. All plugins use `ck-` prefix to avoid conflicts. With the unified command/skill model, all invocations use `/plugin:skill` format:
 
 | Current | Plugin | Invocation |
 |---------|--------|------------|
@@ -773,16 +805,16 @@ npm install -g claudekit
 
 ### Usage Patterns
 
-**Explicit Command Invocation**:
+**Explicit Skill Invocation**:
 ```
 User: /ck-git:commit
-Claude: [Executes commit command with prompts]
+Claude: [Executes commit skill with prompts]
 ```
 
-**Natural Language (Skill Auto-Invocation)**:
+**Natural Language (Model Auto-Invocation)**:
 ```
 User: commit my changes with a good message
-Claude: I'll use the git-commit skill. Here are the changes that will be staged:
+Claude: I'll use the commit skill. Here are the changes that will be staged:
 - src/auth.ts (modified)
 - src/utils.ts (new file)
 
@@ -831,23 +863,20 @@ Teams can pre-configure plugins in `.claude/settings.json`:
 1. Create `claudekit/plugins` repository on GitHub
 2. Set up marketplace manifest with consistent naming
 3. Create plugin directory structure with `ck-` prefix
-4. Move commands to plugin structure (preserve content)
+4. Move existing commands to `skills/` directory (unified format)
 
-### Phase 2: Skill Development
+### Phase 2: Skill Configuration
 
-1. Identify high-value commands for skill conversion
-2. Create SKILL.md files with:
-   - Clear trigger descriptions
-   - **User confirmation steps for destructive operations**
-   - Step-by-step instructions
-   - Example invocations
-3. Test skill auto-invocation with confirmation gates
+1. Add `disable-model-invocation: true` to skills that should be explicit-only
+2. Add "Use when..." trigger descriptions to model-invocable skills
+3. Add confirmation gates to destructive model-invocable skills
+4. Test model auto-invocation and explicit `/skill` invocation
 
 ### Phase 3: Hook Integration
 
 1. Create hooks.json for relevant plugins
 2. Add fallback error messages for missing claudekit-hooks
-3. Create verify-setup commands for each plugin with hooks
+3. Create verify-setup skills for each plugin with hooks
 4. Document claudekit-hooks dependency prominently
 
 ### Phase 4: Agent Migration
@@ -871,7 +900,7 @@ The transformation maintains compatibility through:
 
 1. **Dual Distribution**: Both npm package and plugin marketplace
 2. **CLI Preservation**: `claudekit-hooks` CLI remains for hooks
-3. **Command Aliases**: Consider creating aliases for old command names
+3. **Skill Aliases**: Consider creating aliases for old skill names
 4. **Documentation**: Clear migration guide for existing users
 
 ### Hook Execution Requirements
@@ -880,7 +909,6 @@ The transformation maintains compatibility through:
 
 | Component | Plugin-Only Install | Plugin + CLI Install |
 |-----------|--------------------|--------------------|
-| Commands | ✅ Works | ✅ Works |
 | Skills | ✅ Works | ✅ Works |
 | Agents | ✅ Works | ✅ Works |
 | Hooks | ❌ Fails with error message | ✅ Works |
@@ -902,8 +930,8 @@ Run /ck-quality:verify-setup to check your installation.
 
 | Change | Impact | Mitigation |
 |--------|--------|------------|
-| Command namespacing | `/git:commit` → `/ck-git:commit` | Document mapping, consider aliases |
-| Skill invocation | New capability with confirmation gates | Skills supplement, don't replace commands |
+| Skill namespacing | `/git:commit` → `/ck-git:commit` | Document mapping, consider aliases |
+| Model invocation | Some skills auto-invoke by default | Add `disable-model-invocation: true` where needed |
 | Plugin installation | New workflow | Provide migration script |
 
 ## Testing Strategy
@@ -911,24 +939,26 @@ Run /ck-quality:verify-setup to check your installation.
 ### Plugin Validation
 
 1. Validate all plugin manifests with JSON schema
-2. Test command execution from plugin context
-3. Verify skill trigger matching
-4. Test hook execution with `${CLAUDE_PLUGIN_ROOT}` references
-5. Test hook failure messaging when claudekit-hooks not installed
+2. Test skill execution from plugin context (explicit `/skill`)
+3. Test model auto-invocation for enabled skills
+4. Verify `disable-model-invocation: true` prevents auto-invocation
+5. Test hook execution with `${CLAUDE_PLUGIN_ROOT}` references
+6. Test hook failure messaging when claudekit-hooks not installed
 
 ### Integration Testing
 
 1. Install marketplace from GitHub (`claudekit/plugins`)
 2. Install individual plugins
-3. Execute namespaced commands (`/ck-git:commit`)
-4. Trigger skills via natural language
-5. Verify hook execution
-6. Test confirmation gates in skills
+3. Execute skills explicitly (`/ck-git:commit`)
+4. Trigger model-invocable skills via natural language
+5. Verify `disable-model-invocation` skills don't auto-invoke
+6. Verify hook execution
+7. Test confirmation gates in model-invocable skills
 
 ### Regression Testing
 
-1. Compare command output: standalone vs plugin
-2. Verify skill behavior matches command behavior
+1. Compare skill output: standalone vs plugin
+2. Verify explicit invocation matches model invocation behavior
 3. Test hook execution in both modes
 
 ## Documentation Updates
@@ -966,20 +996,21 @@ Verify with: `/ck-quality:verify-setup`
 
 ## Available Plugins
 
-| Plugin | Description | Commands | Skills | Hooks |
-|--------|-------------|----------|--------|-------|
-| ck-git | Git automation | commit, push, status | git-commit | No |
-| ck-checkpoint | State management | create, list, restore | checkpoint-management | No |
-| ck-quality | Code quality | validate-and-fix, code-review | code-review, quality-check | **Yes** |
-| ck-dev | Development utilities | cleanup | - | **Yes** |
+| Plugin | Description | Skills | Model-Invocable | Hooks |
+|--------|-------------|--------|-----------------|-------|
+| ck-git | Git automation | commit, push, status, checkout | commit | No |
+| ck-checkpoint | State management | create, list, restore | create | No |
+| ck-quality | Code quality | validate-and-fix, code-review, verify-setup | validate-and-fix, code-review | **Yes** |
+| ck-dev | Development utilities | cleanup, verify-setup | - | **Yes** |
 | ...
 
-## Skills (Auto-Invoked)
+## Model-Invocable Skills
 
 Just describe what you want (confirmation required for changes):
-- "commit my changes" → git-commit skill (confirms before staging)
-- "create a checkpoint" → checkpoint-management skill
+- "commit my changes" → commit skill (confirms before staging)
+- "create a checkpoint" → create skill
 - "review my code" → code-review skill
+- "fix lint issues" → validate-and-fix skill
 ```
 
 ## Open Questions
