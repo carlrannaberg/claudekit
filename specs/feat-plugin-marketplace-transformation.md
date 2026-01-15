@@ -159,7 +159,8 @@ claudekit-plugins/
 │   │   │   └── plugin.json
 │   │   ├── commands/
 │   │   │   ├── validate-and-fix.md
-│   │   │   └── code-review.md
+│   │   │   ├── code-review.md
+│   │   │   └── verify-setup.md
 │   │   ├── skills/
 │   │   │   └── code-review/
 │   │   │       └── SKILL.md
@@ -176,7 +177,8 @@ claudekit-plugins/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── commands/
-│   │   │   └── cleanup.md
+│   │   │   ├── cleanup.md
+│   │   │   └── verify-setup.md
 │   │   └── hooks/
 │   │       └── hooks.json
 │   └── ck-experts/
@@ -661,6 +663,35 @@ else
 fi
 ```
 
+**File**: `plugins/ck-dev/commands/verify-setup.md`
+
+```yaml
+---
+description: Verify claudekit-hooks is installed for hook functionality
+allowed-tools: Bash
+---
+
+# Verify Claudekit Setup
+
+Check if claudekit-hooks is available for hook functionality:
+
+```bash
+if ! command -v claudekit-hooks &> /dev/null; then
+  echo "⚠️  claudekit-hooks not found!"
+  echo ""
+  echo "Hooks in this plugin require claudekit to be installed globally."
+  echo "Install with: npm install -g claudekit"
+  echo ""
+  echo "Without claudekit, the following features won't work:"
+  echo "  - Automatic checkpoint creation on stop"
+  echo "  - Codebase map generation"
+  exit 1
+else
+  echo "✅ claudekit-hooks is installed and ready"
+  claudekit-hooks --version
+fi
+```
+
 ### 6. Subagents as Plugin Agents
 
 **File**: `plugins/ck-experts/.claude-plugin/plugin.json`
@@ -852,7 +883,7 @@ The transformation maintains compatibility through:
 | Commands | ✅ Works | ✅ Works |
 | Skills | ✅ Works | ✅ Works |
 | Agents | ✅ Works | ✅ Works |
-| Hooks | ❌ Silent failure with error message | ✅ Works |
+| Hooks | ❌ Fails with error message | ✅ Works |
 
 **Installation guidance** (shown in README and plugin descriptions):
 
