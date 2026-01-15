@@ -98,9 +98,9 @@ The following claudekit components are **redundant** due to built-in Claude Code
 2. Ensure quality hooks are configured in ck-quality plugin
 3. Users get automatic validation without explicit commands
 
-### ck-experts - CONSOLIDATE & CONVERT TO SKILLS
+### ck-experts - DELETE ENTIRELY
 
-**Reason**: Current 30+ subagents create decision paralysis. Most are too niche or overlap. Subagents are better packaged as skills for model invocation.
+**Reason**: "Expert" agents are just role-playing prompts. They tell Claude to "act as an expert in X" - but Claude already knows TypeScript, React, testing, databases, git, and DevOps. They add no real value.
 
 **Current subagents** (30+):
 ```
@@ -114,43 +114,34 @@ ai-sdk-expert, research-expert, refactoring-expert, code-review-expert,
 nestjs-expert, loopback-expert, kafka-expert
 ```
 
-#### Consolidation Plan
+#### Why Delete All
 
-| Keep (Consolidated) | Absorbs | Reason |
-|---------------------|---------|--------|
-| **typescript-expert** | typescript-build-expert, typescript-type-expert, nodejs-expert | One expert for all TS/JS |
-| **react-expert** | react-performance-expert, nextjs-expert | One expert for React ecosystem |
-| **testing-expert** | jest-testing-expert, vitest-testing-expert, playwright-expert | One expert for all testing |
-| **database-expert** | postgres-expert, mongodb-expert | One expert for databases |
-| **devops-expert** | docker-expert, github-actions-expert, cli-expert | One expert for infrastructure |
-| **git-expert** | - | Git workflows are common need |
-| **refactoring-expert** | linting-expert | Code improvement |
+| Agent | Reality |
+|-------|---------|
+| typescript-expert | "Be really good at TypeScript" - Claude already is |
+| react-expert | "Be really good at React" - Claude already is |
+| testing-expert | "Be really good at testing" - Claude already is |
+| database-expert | "Be really good at SQL" - Claude already is |
+| devops-expert | "Be really good at Docker/CI" - Claude already is |
+| git-expert | "Be really good at git" - Claude already is |
+| All others | Same issue - just role-playing prompts |
 
-#### Delete (Too Niche or Low Value)
+#### Keep as Skills (in ck-quality)
 
-| Delete | Reason |
-|--------|--------|
-| webpack-expert | Niche, devops-expert covers |
-| vite-expert | Niche, devops-expert covers |
-| css-styling-expert | Too niche |
-| accessibility-expert | Too niche |
-| loopback-expert | Very niche framework |
-| nestjs-expert | Niche framework |
-| kafka-expert | Very niche |
-| ai-sdk-expert | Niche |
-| oracle | Unclear purpose |
-| triage-expert | Redundant |
-| research-expert | general-purpose does this |
-| code-search | Built-in Explore agent does this |
+Only skills with **actual workflows** are worth keeping:
 
-#### Convert to Skills (in ck-quality)
+| Skill | Why It's Different |
+|-------|-------------------|
+| `code-review` | Multi-step process: security → performance → maintainability → testing |
+| `refactor` | Systematic approach: identify smells → apply patterns → verify behavior |
 
-| Current Agent | Convert To | Model Invocation |
-|---------------|------------|------------------|
-| code-review-expert | `code-review` skill | ✅ Enabled |
-| refactoring-expert | `refactor` skill | ✅ Enabled |
+**Result**: 30+ agents → 0 agents, 2 skills moved to ck-quality
 
-**Result**: 30+ agents → 7 consolidated agents + 2 skills
+**Migration action**:
+1. Do NOT create ck-experts plugin
+2. Delete entire `src/agents/` directory
+3. Move code-review and refactor workflows to ck-quality skills
+4. Update CLAUDE.md to remove subagent references
 
 ### Components to Keep (Not Built-in)
 
@@ -158,10 +149,9 @@ nestjs-expert, loopback-expert, kafka-expert
 |-----------|----------------|
 | **ck-git** | No built-in git commands |
 | **ck-spec** | Plan Mode is exploration only, not formal specs |
-| **ck-quality** | Built-in `/review` is minimal |
+| **ck-quality** | Built-in `/review` is minimal; includes code-review & refactor skills |
 | **ck-agents-md** | AGENTS.md pattern not native |
 | **ck-dev** | Cleanup utilities not built-in |
-| **ck-experts** | 7 consolidated domain experts (down from 30+) |
 
 ## Technical Dependencies
 
@@ -252,7 +242,8 @@ claudekit-plugins/
 │   │   │   └── plugin.json
 │   │   ├── skills/
 │   │   │   # validate-and-fix DELETED - use built-in hooks instead
-│   │   │   ├── code-review.md      # Model-invocable
+│   │   │   ├── code-review.md      # Model-invocable (from code-review-expert)
+│   │   │   ├── refactor.md         # Model-invocable (from refactoring-expert)
 │   │   │   └── verify-setup.md     # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
@@ -271,17 +262,8 @@ claudekit-plugins/
 │   │   │   └── verify-setup.md     # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
-│   └── ck-experts/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       └── agents/                 # 7 consolidated experts (down from 30+)
-│           ├── typescript-expert.md  # Absorbs: typescript-build, typescript-type, nodejs
-│           ├── react-expert.md       # Absorbs: react-performance, nextjs
-│           ├── testing-expert.md     # Absorbs: jest, vitest, playwright
-│           ├── database-expert.md    # Absorbs: postgres, mongodb
-│           ├── devops-expert.md      # Absorbs: docker, github-actions, cli
-│           ├── git-expert.md
-│           └── refactoring-expert.md # Absorbs: linting
+│   │   # NOTE: ck-experts DELETED - "expert" agents are just role-playing prompts
+│   │   # code-review and refactor skills moved to ck-quality
 └── README.md
 ```
 
@@ -331,11 +313,6 @@ claudekit-plugins/
       "name": "ck-dev",
       "source": "./plugins/ck-dev",
       "description": "Development utilities and cleanup. Use when cleaning debug files or development artifacts. Note: hooks require npm install -g claudekit"
-    },
-    {
-      "name": "ck-experts",
-      "source": "./plugins/ck-experts",
-      "description": "Specialized AI subagents for technical domains. Use when needing deep expertise in TypeScript, React, testing, or DevOps."
     }
   ]
 }
@@ -893,7 +870,7 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 # Note: Checkpoints are built-in - use /rewind instead
 
 # Or install all plugins
-/plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-dev@claudekit ck-experts@claudekit
+/plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-dev@claudekit
 
 # For hooks functionality, also install claudekit CLI
 npm install -g claudekit
@@ -1097,8 +1074,8 @@ Verify with: `/ck-quality:verify-setup`
 | ck-git | Git automation | commit, push, status, checkout | commit | No |
 | ck-spec | Specifications | create, validate, decompose, execute | create | No |
 | ck-quality | Code quality | code-review, refactor, verify-setup | code-review, refactor | **Yes** |
+| ck-agents-md | AI config | init, migration, cli | - | No |
 | ck-dev | Development utilities | cleanup, verify-setup | - | **Yes** |
-| ck-experts | Domain experts | 7 consolidated agents | - | No |
 
 > **Note**: Checkpoints are built-in to Claude Code. Use `/rewind` or Esc+Esc.
 
