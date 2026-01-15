@@ -53,7 +53,7 @@ Transform claudekit into a plugin marketplace where:
 
 - **MCP Server Integration**: Not creating MCP servers (separate concern)
 - **LSP Server Integration**: Not creating language servers
-- **Breaking Changes**: Maintain command functionality during transition
+- **Preserving Redundant Features**: Components with built-in Claude Code equivalents will be deleted, not migrated
 - **CLI Deprecation**: The claudekit CLI continues for hook execution
 - **Enterprise Features**: Focus on open-source community distribution
 
@@ -199,7 +199,9 @@ All documentation, commands, and metadata use consistent identifiers:
 | Sharing | Manual setup | One-command install |
 | Versioning | npm version | Semantic in manifest |
 | Scope | Project-bound | User/Project/Managed |
-| Dependencies | Shared codebase | Self-contained |
+| Dependencies | Shared codebase | Self-contained (skills only)* |
+
+*Hooks require `npm install -g claudekit` for the `claudekit-hooks` CLI.
 
 ### Directory Structure Transformation
 
