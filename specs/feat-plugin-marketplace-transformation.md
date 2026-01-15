@@ -81,8 +81,17 @@ The following claudekit components are **redundant** due to built-in Claude Code
 **Migration action**:
 1. Do NOT create ck-checkpoint plugin
 2. Delete `src/commands/checkpoint/` directory
-3. Remove checkpoint hooks from `cli/hooks/`
+3. Delete `cli/hooks/create-checkpoint.ts`
 4. Update CLAUDE.md to reference built-in `/rewind` instead
+
+**Hooks to keep** (no built-in equivalents):
+- `check-any-changed`, `check-comment-replacement`, `check-todos`, `check-unused-parameters`
+- `codebase-map` (project exploration)
+- `lint-changed`, `lint-project`
+- `self-review`
+- `test-changed`, `test-project`
+- `thinking-level`
+- `typecheck-changed`, `typecheck-project`
 
 ### validate-and-fix - DELETE
 
