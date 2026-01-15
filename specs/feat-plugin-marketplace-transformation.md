@@ -213,51 +213,37 @@ claudekit-plugins/
     {
       "name": "ck-git",
       "source": "./plugins/ck-git",
-      "description": "Smart git commands with conventional commit support",
-      "version": "1.0.0",
-      "tags": ["git", "commit", "workflow"]
+      "description": "Smart git commands with conventional commit support. Use when committing, pushing, or managing git workflow."
     },
     {
       "name": "ck-checkpoint",
       "source": "./plugins/ck-checkpoint",
-      "description": "Git stash-based checkpointing for safe experimentation",
-      "version": "1.0.0",
-      "tags": ["checkpoint", "backup", "stash"]
+      "description": "Git stash-based checkpointing for safe experimentation. Use when creating save points or restoring state."
     },
     {
       "name": "ck-spec",
       "source": "./plugins/ck-spec",
-      "description": "Specification creation, validation, and execution",
-      "version": "1.0.0",
-      "tags": ["specification", "planning"]
+      "description": "Specification creation, validation, and execution. Use when planning features or documenting requirements."
     },
     {
       "name": "ck-quality",
       "source": "./plugins/ck-quality",
-      "description": "Code quality checks and fixes (hooks require: npm install -g claudekit)",
-      "version": "1.0.0",
-      "tags": ["lint", "typecheck", "quality"]
+      "description": "Code quality checks and fixes. Use when reviewing code or fixing lint/type issues. Note: hooks require npm install -g claudekit"
     },
     {
       "name": "ck-agents-md",
       "source": "./plugins/ck-agents-md",
-      "description": "AGENTS.md configuration management",
-      "version": "1.0.0",
-      "tags": ["agents", "configuration"]
+      "description": "AGENTS.md configuration management. Use when setting up AI assistant configuration."
     },
     {
       "name": "ck-dev",
       "source": "./plugins/ck-dev",
-      "description": "Development utilities and cleanup (hooks require: npm install -g claudekit)",
-      "version": "1.0.0",
-      "tags": ["development", "cleanup"]
+      "description": "Development utilities and cleanup. Use when cleaning debug files or development artifacts. Note: hooks require npm install -g claudekit"
     },
     {
       "name": "ck-experts",
       "source": "./plugins/ck-experts",
-      "description": "Specialized AI subagents for technical domains",
-      "version": "1.0.0",
-      "tags": ["typescript", "react", "testing", "devops"]
+      "description": "Specialized AI subagents for technical domains. Use when needing deep expertise in TypeScript, React, testing, or DevOps."
     }
   ]
 }
@@ -265,26 +251,105 @@ claudekit-plugins/
 
 ### 2. Plugin Manifest Structure
 
+Official Anthropic plugins use **minimal manifests**. Based on analysis of `claude-plugins-official`, most plugins only include `name` and `description`. Additional fields are optional.
+
 **File**: `plugins/ck-git/.claude-plugin/plugin.json`
 
 ```json
 {
   "name": "ck-git",
-  "description": "Smart git commands following project conventions",
-  "version": "1.0.0",
-  "author": {
-    "name": "claudekit"
-  },
-  "homepage": "https://github.com/claudekit/plugins/tree/main/plugins/ck-git",
-  "repository": "https://github.com/claudekit/plugins",
-  "license": "MIT",
-  "keywords": ["git", "commit", "workflow", "conventional-commits"],
-  "commands": "./commands/",
-  "skills": "./skills/"
+  "description": "Smart git commands following project conventions"
 }
 ```
 
-### 3. Skills Architecture
+**Extended manifest** (when additional metadata is useful):
+
+```json
+{
+  "name": "ck-quality",
+  "description": "Code quality checks and automated fixes",
+  "author": {
+    "name": "claudekit"
+  },
+  "repository": "https://github.com/claudekit/plugins"
+}
+```
+
+**Pattern from official plugins**: Commands, skills, agents, and hooks are auto-discovered from standard directories - no need to declare paths in manifest.
+
+### 3. Patterns from Official Plugins
+
+Analysis of `anthropics/claude-plugins-official` revealed key patterns to follow:
+
+#### Skill Description Triggers
+
+Official skills use specific description patterns that help the model know when to invoke them:
+
+| Plugin | Description Pattern |
+|--------|-------------------|
+| code-review | "Use when reviewing code changes, pull requests, or discussing code quality" |
+| commit-commands | "Use when user wants to commit changes following project conventions" |
+| feature-dev | "Use when developing new features that require planning and implementation" |
+
+**Pattern**: Descriptions should include "Use when..." phrases that map to natural language requests.
+
+#### Hook Event Patterns
+
+| Hook Type | Purpose | Example Plugin |
+|-----------|---------|----------------|
+| `SessionStart` | Modify behavior at session start | output-style (sets formatting preferences) |
+| `PreToolUse` | Validate before tool execution | security-guidance (security checks) |
+| `PostToolUse` | React after tool execution | hookify (quality checks) |
+| `Stop` | Execute on conversation stop | ralph-loop (iterative workflows) |
+
+**SessionStart Example** (from output-style plugins):
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "echo 'Applying concise output style...'" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**PreToolUse Example** (for validation):
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "security-check ${file_path}" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Agent Example Blocks
+
+Official plugins include example invocation patterns in skill descriptions:
+
+```markdown
+## Example Usage
+
+<agent-example>
+User: Review my recent changes for security issues
+Assistant: I'll analyze your changes for potential security vulnerabilities...
+</agent-example>
+```
+
+This helps train the model on expected invocation patterns.
+
+### 4. Skills Architecture
 
 Skills are model-invoked, meaning Claude automatically decides when to use them based on context. This provides a more natural user experience than explicit command invocation.
 
@@ -521,7 +586,7 @@ The forked context returns a clean summary to the main conversation.
 
 Skills using `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
 
-### 4. Hooks in Plugins
+### 5. Hooks in Plugins
 
 Hooks are bundled within plugins and use the `${CLAUDE_PLUGIN_ROOT}` variable for paths since plugins are copied to cache on installation.
 
@@ -595,9 +660,8 @@ else
   claudekit-hooks --version
 fi
 ```
-```
 
-### 5. Subagents as Plugin Agents
+### 6. Subagents as Plugin Agents
 
 **File**: `plugins/ck-experts/.claude-plugin/plugin.json`
 
@@ -633,7 +697,7 @@ You are a TypeScript expert specializing in:
 [Existing agent content...]
 ```
 
-### 6. Command Namespace Migration
+### 7. Command Namespace Migration
 
 Commands move from flat structure to namespaced plugin structure. All plugins use `ck-` prefix to avoid conflicts:
 
@@ -957,3 +1021,31 @@ Just describe what you want (confirmation required for changes):
 ### Internal References
 - [Embedded Hooks System Spec](./archive/feat-embedded-hooks-system.md)
 - [Domain Expert Subagents Spec](./archive/feat-domain-expert-subagents.md)
+
+## Appendix: Official Plugins Analysis
+
+Analysis of `anthropics/claude-plugins-official` repository (15+ plugins) revealed these implementation patterns:
+
+### Plugin Categories Analyzed
+
+| Category | Plugins | Key Features |
+|----------|---------|--------------|
+| **Reference** | example-plugin | Minimal structure, documentation |
+| **Git Workflow** | commit-commands | Skill triggers, commit conventions |
+| **Code Review** | code-review, pr-review-toolkit | Multi-aspect analysis, fork context |
+| **Development** | feature-dev, plugin-dev | Planning workflows, skill chaining |
+| **Hooks** | hookify | PostToolUse quality checks |
+| **LSP** | *-lsp plugins | Language server integration |
+| **Output Style** | output-style-* | SessionStart behavior modification |
+| **Loops** | ralph-loop | Stop hook for iteration |
+| **Security** | security-guidance | PreToolUse validation |
+| **Other** | agent-sdk-dev, code-simplifier, frontend-design | Domain-specific expertise |
+
+### Key Takeaways
+
+1. **Minimal Manifests**: Most official plugins use only `name` and `description` in plugin.json
+2. **Trigger Patterns**: Descriptions include "Use when..." phrases for model invocation
+3. **Self-Contained**: No shared libraries between plugins
+4. **Hook Variety**: SessionStart, PreToolUse, PostToolUse, and Stop hooks all have valid use cases
+5. **Agent Examples**: Include `<agent-example>` blocks in skill descriptions for training
+6. **Fork Context**: Complex analysis skills use `context: fork` for clean output
