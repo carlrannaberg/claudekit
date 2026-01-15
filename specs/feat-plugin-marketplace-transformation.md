@@ -54,7 +54,7 @@ Transform claudekit into a plugin marketplace where:
 - **MCP Server Integration**: Not creating MCP servers (separate concern)
 - **LSP Server Integration**: Not creating language servers
 - **Preserving Redundant Features**: Components with built-in Claude Code equivalents will be deleted, not migrated
-- **CLI Deprecation**: The claudekit CLI continues for hook execution
+- **Full CLI Deprecation**: The `claudekit-hooks` CLI remains for hook execution; main CLI (`claudekit setup`, `claudekit list`) is deprecated
 - **Enterprise Features**: Focus on open-source community distribution
 
 ## Deprecated Components (Delete During Migration)
@@ -150,6 +150,23 @@ Only skills with **actual workflows** are worth keeping:
 2. Delete entire `src/agents/` directory
 3. Move code-review and refactor workflows to ck-quality skills
 4. Update CLAUDE.md to remove subagent references
+
+### Main CLI Commands - DEPRECATE
+
+**Reason**: Plugin marketplace replaces CLI-based setup and discovery.
+
+| CLI Command | Replacement |
+|-------------|-------------|
+| `claudekit setup` | `/plugin marketplace add claudekit/plugins` + `/plugin install ck-*` |
+| `claudekit list` | Built-in Claude Code plugin/skill listing |
+
+**Keep**: `claudekit-hooks run <hook-name>` - Still required for hook execution.
+
+**Migration action**:
+1. Remove `cli/commands/setup.ts` and `cli/commands/list.ts`
+2. Keep `cli/hooks-cli.ts` (provides `claudekit-hooks` binary)
+3. Update package.json to only export `claudekit-hooks` binary
+4. npm package name stays `claudekit` for continuity
 
 ### Components to Keep (Not Built-in)
 
@@ -793,7 +810,7 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 # Or install all plugins
 /plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-core@claudekit
 
-# For hooks functionality, also install claudekit CLI
+# For hooks functionality, install claudekit-hooks CLI
 npm install -g claudekit
 ```
 
@@ -894,7 +911,7 @@ The transformation maintains compatibility through:
 
 ### Hook Execution Requirements
 
-**Critical**: Hooks require the claudekit CLI to be installed globally.
+**Critical**: Hooks require the `claudekit-hooks` CLI to be installed globally (`npm install -g claudekit`).
 
 | Component | Plugin-Only Install | Plugin + CLI Install |
 |-----------|--------------------|--------------------|
@@ -973,9 +990,9 @@ Without this, hooks will show: "[claudekit] Hook failed - ensure claudekit is in
 
 ## ⚠️ Hook Setup Required
 
-Plugins with hooks (ck-quality) require claudekit CLI:
+Plugins with hooks (ck-quality) require claudekit-hooks:
 ```bash
-npm install -g claudekit
+npm install -g claudekit  # provides claudekit-hooks CLI
 ```
 
 If hooks fail: `npm install -g claudekit`
@@ -1009,7 +1026,7 @@ Just describe what you want (confirmation required for changes):
    - ✅ **Decision**: Independent plugin versions, marketplace tracks compatibility
 
 3. **Hook Distribution**
-   - ✅ **Decision**: Keep in claudekit CLI, document dependency prominently
+   - ✅ **Decision**: Keep `claudekit-hooks` CLI in npm package, deprecate main CLI commands
 
 4. **Skill Granularity**
    - ✅ **Decision**: Broader skills for natural language, commands for precision
