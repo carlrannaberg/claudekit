@@ -235,17 +235,16 @@ claudekit-plugins/
 │   │   │   └── plugin.json
 │   │   └── skills/
 │   │       ├── create.md           # Model-invocable
-│   │       ├── validate.md         # disable-model-invocation: true
-│   │       ├── decompose.md        # disable-model-invocation: true
-│   │       └── execute.md          # disable-model-invocation: true
+│   │       ├── validate.md         # Model-invocable
+│   │       ├── decompose.md        # Model-invocable
+│   │       └── execute.md          # disable-model-invocation: true (orchestrates agents)
 │   ├── ck-quality/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── skills/
 │   │   │   # validate-and-fix DELETED - use built-in hooks instead
 │   │   │   ├── code-review.md      # Model-invocable (from code-review-expert)
-│   │   │   ├── refactor.md         # Model-invocable (from refactoring-expert)
-│   │   │   └── verify-setup.md     # disable-model-invocation: true
+│   │   │   └── refactor.md         # Model-invocable (from refactoring-expert)
 │   │   └── hooks/
 │   │       └── hooks.json
 │   ├── ck-agents-md/
@@ -259,8 +258,7 @@ claudekit-plugins/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── skills/
-│   │   │   ├── cleanup.md          # disable-model-invocation: true
-│   │   │   └── verify-setup.md     # disable-model-invocation: true
+│   │   │   └── cleanup.md          # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
 │   │   # NOTE: ck-experts DELETED - "expert" agents are just role-playing prompts
@@ -681,17 +679,16 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `repo-init` | ck-git | ❌ Disabled | - | - |
 | ~~`create`~~ | ~~ck-checkpoint~~ | - | - | DELETED - use built-in `/rewind` |
 | `create` | ck-spec | ✅ Enabled | `fork` + Plan | "create spec", "write specification" |
-| `validate` | ck-spec | ❌ Disabled | - | - |
-| `decompose` | ck-spec | ❌ Disabled | - | - |
-| `execute` | ck-spec | ❌ Disabled | - | - |
+| `validate` | ck-spec | ✅ Enabled | inline | "validate spec", "is spec complete" |
+| `decompose` | ck-spec | ✅ Enabled | inline | "break into tasks", "decompose spec" |
+| `execute` | ck-spec | ❌ Disabled | - | - (orchestrates agents, explicit only) |
 | `code-review` | ck-quality | ✅ Enabled | `fork` + Explore | "review code", "check my changes" |
 | ~~`validate-and-fix`~~ | ~~ck-quality~~ | - | - | DELETED - use built-in hooks |
-| `verify-setup` | ck-quality | ❌ Disabled | - | - |
 | `init` | ck-agents-md | ❌ Disabled | - | - |
 | `migration` | ck-agents-md | ❌ Disabled | - | - |
 | `cli` | ck-agents-md | ❌ Disabled | - | - |
+| `refactor` | ck-quality | ✅ Enabled | inline | "refactor this", "clean up code" |
 | `cleanup` | ck-dev | ❌ Disabled | - | - |
-| `verify-setup` | ck-dev | ❌ Disabled | - | - |
 
 Skills with `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
 
@@ -736,106 +733,9 @@ Hooks are bundled within plugins and use the `${CLAUDE_PLUGIN_ROOT}` variable fo
 }
 ```
 
-**Hook Dependency Enforcement**:
+**Hook Dependency**: Hooks require `claudekit-hooks` CLI. If not installed, hooks fail with an error message directing users to run `npm install -g claudekit`.
 
-Each plugin with hooks includes a setup verification command:
-
-**File**: `plugins/ck-quality/commands/verify-setup.md`
-
-```yaml
----
-description: Verify claudekit-hooks is installed for hook functionality
-allowed-tools: Bash
----
-
-# Verify Claudekit Setup
-
-Check if claudekit-hooks is available for hook functionality:
-
-```bash
-if ! command -v claudekit-hooks &> /dev/null; then
-  echo "⚠️  claudekit-hooks not found!"
-  echo ""
-  echo "Hooks in this plugin require claudekit to be installed globally."
-  echo "Install with: npm install -g claudekit"
-  echo ""
-  echo "Without claudekit, the following features won't work:"
-  echo "  - Automatic TypeScript type checking on file save"
-  echo "  - Automatic linting on file save"
-  echo "  - Todo completion validation on stop"
-  exit 1
-else
-  echo "✅ claudekit-hooks is installed and ready"
-  claudekit-hooks --version
-fi
-```
-
-**File**: `plugins/ck-dev/commands/verify-setup.md`
-
-```yaml
----
-description: Verify claudekit-hooks is installed for hook functionality
-allowed-tools: Bash
----
-
-# Verify Claudekit Setup
-
-Check if claudekit-hooks is available for hook functionality:
-
-```bash
-if ! command -v claudekit-hooks &> /dev/null; then
-  echo "⚠️  claudekit-hooks not found!"
-  echo ""
-  echo "Hooks in this plugin require claudekit to be installed globally."
-  echo "Install with: npm install -g claudekit"
-  echo ""
-  echo "Without claudekit, the following features won't work:"
-  echo "  - Automatic checkpoint creation on stop"
-  echo "  - Codebase map generation"
-  exit 1
-else
-  echo "✅ claudekit-hooks is installed and ready"
-  claudekit-hooks --version
-fi
-```
-
-### 6. Subagents as Plugin Agents
-
-**File**: `plugins/ck-experts/.claude-plugin/plugin.json`
-
-```json
-{
-  "name": "ck-experts",
-  "description": "Specialized AI subagents for technical domains",
-  "version": "1.0.0",
-  "agents": "./agents/"
-}
-```
-
-Agents are markdown files defining specialized expertise:
-
-**File**: `plugins/ck-experts/agents/typescript-expert.md`
-
-```markdown
----
-name: typescript-expert
-description: TypeScript and JavaScript expert with deep knowledge of type-level programming, performance optimization, and modern tooling
----
-
-# TypeScript Expert
-
-You are a TypeScript expert specializing in:
-- Type-level programming and advanced generics
-- Build optimization and module resolution
-- Migration strategies and monorepo management
-- Performance debugging and optimization
-
-## Capabilities
-
-[Existing agent content...]
-```
-
-### 7. Skill Namespace Migration
+### 6. Skill Namespace Migration
 
 Skills move from flat structure to namespaced plugin structure. All plugins use `ck-` prefix to avoid conflicts. With the unified command/skill model, all invocations use `/plugin:skill` format:
 
@@ -952,16 +852,10 @@ Teams can pre-configure plugins in `.claude/settings.json`:
 
 1. Create hooks.json for relevant plugins
 2. Add fallback error messages for missing claudekit-hooks
-3. Create verify-setup skills for each plugin with hooks
+3. Ensure hook error messages direct users to install claudekit
 4. Document claudekit-hooks dependency prominently
 
-### Phase 4: Agent Migration
-
-1. Move subagent definitions to ck-experts plugin
-2. Update agent references in CLAUDE.md
-3. Test Task tool delegation
-
-### Phase 5: Publishing
+### Phase 4: Publishing
 
 1. Push to GitHub repository (`claudekit/plugins`)
 2. Submit to claude-plugins.dev
@@ -998,8 +892,6 @@ Plugins with automatic hooks (ck-quality, ck-dev) require:
   npm install -g claudekit
 
 Without this, hooks will show: "[claudekit] Hook failed - ensure claudekit is installed"
-
-Run /ck-quality:verify-setup to check your installation.
 ```
 
 ### Breaking Changes
@@ -1068,17 +960,17 @@ Plugins with hooks (ck-quality, ck-dev) require claudekit CLI:
 npm install -g claudekit
 ```
 
-Verify with: `/ck-quality:verify-setup`
+If hooks fail: `npm install -g claudekit`
 
 ## Available Plugins
 
 | Plugin | Description | Skills | Model-Invocable | Hooks |
 |--------|-------------|--------|-----------------|-------|
 | ck-git | Git automation | commit, push, status, checkout, repo-init | commit | No |
-| ck-spec | Specifications | create, validate, decompose, execute | create | No |
-| ck-quality | Code quality | code-review, refactor, verify-setup | code-review, refactor | **Yes** |
+| ck-spec | Specifications | create, validate, decompose, execute | create, validate, decompose | No |
+| ck-quality | Code quality | code-review, refactor | code-review, refactor | **Yes** |
 | ck-agents-md | AI config | init, migration, cli | - | No |
-| ck-dev | Development utilities | cleanup, verify-setup | - | **Yes** |
+| ck-dev | Development utilities | cleanup | - | **Yes** |
 
 > **Note**: Checkpoints are built-in to Claude Code. Use `/rewind` or Esc+Esc.
 
@@ -1133,8 +1025,7 @@ Just describe what you want (confirmation required for changes):
 
 ### Phase 3: Integration (Week 3)
 - Configure hooks for plugins with fallback error messages
-- Add verify-setup commands
-- Migrate subagents to ck-experts plugin
+- Ensure hook error messages are informative
 - End-to-end testing
 
 ### Phase 4: Publishing (Week 4)
