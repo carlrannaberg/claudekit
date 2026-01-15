@@ -84,6 +84,20 @@ The following claudekit components are **redundant** due to built-in Claude Code
 3. Remove checkpoint hooks from `cli/hooks/`
 4. Update CLAUDE.md to reference built-in `/rewind` instead
 
+### validate-and-fix - DELETE
+
+**Reason**: Claude Code's built-in hook system handles quality checks automatically. The `/validate-and-fix` command was a workaround before hooks existed.
+
+**Built-in replacement**:
+- Configure hooks in `.claude/settings.json` for automatic linting/typechecking
+- PostToolUse hooks run automatically after file edits
+- No need for a manual "fix issues" command
+
+**Migration action**:
+1. Delete `src/commands/validate-and-fix.md`
+2. Ensure quality hooks are configured in ck-quality plugin
+3. Users get automatic validation without explicit commands
+
 ### ck-experts - CONSOLIDATE & CONVERT TO SKILLS
 
 **Reason**: Current 30+ subagents create decision paralysis. Most are too niche or overlap. Subagents are better packaged as skills for model invocation.
@@ -237,7 +251,7 @@ claudekit-plugins/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── skills/
-│   │   │   ├── validate-and-fix.md # Model-invocable
+│   │   │   # validate-and-fix DELETED - use built-in hooks instead
 │   │   │   ├── code-review.md      # Model-invocable
 │   │   │   └── verify-setup.md     # disable-model-invocation: true
 │   │   └── hooks/
@@ -692,7 +706,7 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `decompose` | ck-spec | ❌ Disabled | - | - |
 | `execute` | ck-spec | ❌ Disabled | - | - |
 | `code-review` | ck-quality | ✅ Enabled | `fork` + Explore | "review code", "check my changes" |
-| `validate-and-fix` | ck-quality | ✅ Enabled | `fork` + Explore | "check quality", "fix issues" |
+| ~~`validate-and-fix`~~ | ~~ck-quality~~ | - | - | DELETED - use built-in hooks |
 | `verify-setup` | ck-quality | ❌ Disabled | - | - |
 | `init` | ck-agents-md | ❌ Disabled | - | - |
 | `migration` | ck-agents-md | ❌ Disabled | - | - |
@@ -858,7 +872,7 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 | `/spec:validate` | ck-spec | `/ck-spec:validate` |
 | `/spec:decompose` | ck-spec | `/ck-spec:decompose` |
 | `/spec:execute` | ck-spec | `/ck-spec:execute` |
-| `/validate-and-fix` | ck-quality | `/ck-quality:validate-and-fix` |
+| ~~`/validate-and-fix`~~ | - | DELETED - use built-in hooks |
 | `/code-review` | ck-quality | `/ck-quality:code-review` |
 | `/agents-md:init` | ck-agents-md | `/ck-agents-md:init` |
 | `/agents-md:migration` | ck-agents-md | `/ck-agents-md:migration` |
@@ -1082,7 +1096,7 @@ Verify with: `/ck-quality:verify-setup`
 |--------|-------------|--------|-----------------|-------|
 | ck-git | Git automation | commit, push, status, checkout | commit | No |
 | ck-spec | Specifications | create, validate, decompose, execute | create | No |
-| ck-quality | Code quality | validate-and-fix, code-review, refactor, verify-setup | validate-and-fix, code-review, refactor | **Yes** |
+| ck-quality | Code quality | code-review, refactor, verify-setup | code-review, refactor | **Yes** |
 | ck-dev | Development utilities | cleanup, verify-setup | - | **Yes** |
 | ck-experts | Domain experts | 7 consolidated agents | - | No |
 
@@ -1093,7 +1107,6 @@ Verify with: `/ck-quality:verify-setup`
 Just describe what you want (confirmation required for changes):
 - "commit my changes" → commit skill (confirms before staging)
 - "review my code" → code-review skill
-- "fix lint issues" → validate-and-fix skill
 - "refactor this code" → refactor skill
 ```
 
