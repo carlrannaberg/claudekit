@@ -57,6 +57,98 @@ Transform claudekit into a plugin marketplace where:
 - **CLI Deprecation**: The claudekit CLI continues for hook execution
 - **Enterprise Features**: Focus on open-source community distribution
 
+## Deprecated Components (Delete During Migration)
+
+The following claudekit components are **redundant** due to built-in Claude Code features added since claudekit was created:
+
+### ck-checkpoint - DELETE
+
+**Reason**: Claude Code 2.0+ has native checkpointing that supersedes this functionality.
+
+| Claudekit | Built-in Equivalent |
+|-----------|---------------------|
+| `/checkpoint:create` | Automatic per-prompt checkpoints |
+| `/checkpoint:list` | Esc+Esc opens rewind menu with history |
+| `/checkpoint:restore` | `/rewind` command or Esc+Esc menu |
+
+**Built-in features**:
+- Automatic checkpoint on every user prompt
+- `/rewind` slash command
+- Esc+Esc keyboard shortcut for rewind menu
+- Options: rewind conversation only, code only, or both
+- 30-day persistence across sessions
+
+**Migration action**:
+1. Do NOT create ck-checkpoint plugin
+2. Delete `src/commands/checkpoint/` directory
+3. Remove checkpoint hooks from `cli/hooks/`
+4. Update CLAUDE.md to reference built-in `/rewind` instead
+
+### ck-experts - CONSOLIDATE & CONVERT TO SKILLS
+
+**Reason**: Current 30+ subagents create decision paralysis. Most are too niche or overlap. Subagents are better packaged as skills for model invocation.
+
+**Current subagents** (30+):
+```
+webpack-expert, vite-expert, typescript-expert, typescript-build-expert,
+typescript-type-expert, react-expert, react-performance-expert, css-styling-expert,
+accessibility-expert, nextjs-expert, testing-expert, jest-testing-expert,
+vitest-testing-expert, playwright-expert, database-expert, postgres-expert,
+mongodb-expert, docker-expert, github-actions-expert, devops-expert, git-expert,
+nodejs-expert, linting-expert, oracle, code-search, triage-expert, cli-expert,
+ai-sdk-expert, research-expert, refactoring-expert, code-review-expert,
+nestjs-expert, loopback-expert, kafka-expert
+```
+
+#### Consolidation Plan
+
+| Keep (Consolidated) | Absorbs | Reason |
+|---------------------|---------|--------|
+| **typescript-expert** | typescript-build-expert, typescript-type-expert, nodejs-expert | One expert for all TS/JS |
+| **react-expert** | react-performance-expert, nextjs-expert | One expert for React ecosystem |
+| **testing-expert** | jest-testing-expert, vitest-testing-expert, playwright-expert | One expert for all testing |
+| **database-expert** | postgres-expert, mongodb-expert | One expert for databases |
+| **devops-expert** | docker-expert, github-actions-expert, cli-expert | One expert for infrastructure |
+| **git-expert** | - | Git workflows are common need |
+| **refactoring-expert** | linting-expert | Code improvement |
+
+#### Delete (Too Niche or Low Value)
+
+| Delete | Reason |
+|--------|--------|
+| webpack-expert | Niche, devops-expert covers |
+| vite-expert | Niche, devops-expert covers |
+| css-styling-expert | Too niche |
+| accessibility-expert | Too niche |
+| loopback-expert | Very niche framework |
+| nestjs-expert | Niche framework |
+| kafka-expert | Very niche |
+| ai-sdk-expert | Niche |
+| oracle | Unclear purpose |
+| triage-expert | Redundant |
+| research-expert | general-purpose does this |
+| code-search | Built-in Explore agent does this |
+
+#### Convert to Skills (in ck-quality)
+
+| Current Agent | Convert To | Model Invocation |
+|---------------|------------|------------------|
+| code-review-expert | `code-review` skill | ✅ Enabled |
+| refactoring-expert | `refactor` skill | ✅ Enabled |
+
+**Result**: 30+ agents → 7 consolidated agents + 2 skills
+
+### Components to Keep (Not Built-in)
+
+| Component | Reason to Keep |
+|-----------|----------------|
+| **ck-git** | No built-in git commands |
+| **ck-spec** | Plan Mode is exploration only, not formal specs |
+| **ck-quality** | Built-in `/review` is minimal |
+| **ck-agents-md** | AGENTS.md pattern not native |
+| **ck-dev** | Cleanup utilities not built-in |
+| **ck-experts** | 7 consolidated domain experts (down from 30+) |
+
 ## Technical Dependencies
 
 ### Claude Code Requirements
@@ -132,13 +224,7 @@ claudekit-plugins/
 │   │   │   └── checkout.md         # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
-│   ├── ck-checkpoint/
-│   │   ├── .claude-plugin/
-│   │   │   └── plugin.json
-│   │   └── skills/
-│   │       ├── create.md           # Model-invocable
-│   │       ├── list.md             # disable-model-invocation: true
-│   │       └── restore.md          # disable-model-invocation: true
+│   │   # NOTE: ck-checkpoint DELETED - use built-in /rewind
 │   ├── ck-spec/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
@@ -174,11 +260,14 @@ claudekit-plugins/
 │   └── ck-experts/
 │       ├── .claude-plugin/
 │       │   └── plugin.json
-│       └── agents/
-│           ├── typescript-expert.md
-│           ├── react-expert.md
-│           ├── testing-expert.md
-│           └── ...
+│       └── agents/                 # 7 consolidated experts (down from 30+)
+│           ├── typescript-expert.md  # Absorbs: typescript-build, typescript-type, nodejs
+│           ├── react-expert.md       # Absorbs: react-performance, nextjs
+│           ├── testing-expert.md     # Absorbs: jest, vitest, playwright
+│           ├── database-expert.md    # Absorbs: postgres, mongodb
+│           ├── devops-expert.md      # Absorbs: docker, github-actions, cli
+│           ├── git-expert.md
+│           └── refactoring-expert.md # Absorbs: linting
 └── README.md
 ```
 
@@ -208,11 +297,6 @@ claudekit-plugins/
       "name": "ck-git",
       "source": "./plugins/ck-git",
       "description": "Smart git commands with conventional commit support. Use when committing, pushing, or managing git workflow."
-    },
-    {
-      "name": "ck-checkpoint",
-      "source": "./plugins/ck-checkpoint",
-      "description": "Git stash-based checkpointing for safe experimentation. Use when creating save points or restoring state."
     },
     {
       "name": "ck-spec",
@@ -602,9 +686,7 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `push` | ck-git | ❌ Disabled | - | - |
 | `status` | ck-git | ❌ Disabled | - | - |
 | `checkout` | ck-git | ❌ Disabled | - | - |
-| `create` | ck-checkpoint | ✅ Enabled | inline | "create checkpoint", "save state" |
-| `list` | ck-checkpoint | ❌ Disabled | - | - |
-| `restore` | ck-checkpoint | ❌ Disabled | - | - |
+| ~~`create`~~ | ~~ck-checkpoint~~ | - | - | DELETED - use built-in `/rewind` |
 | `create` | ck-spec | ✅ Enabled | `fork` + Plan | "create spec", "write specification" |
 | `validate` | ck-spec | ❌ Disabled | - | - |
 | `decompose` | ck-spec | ❌ Disabled | - | - |
@@ -769,9 +851,9 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 | `/git:commit` | ck-git | `/ck-git:commit` |
 | `/git:push` | ck-git | `/ck-git:push` |
 | `/git:status` | ck-git | `/ck-git:status` |
-| `/checkpoint:create` | ck-checkpoint | `/ck-checkpoint:create` |
-| `/checkpoint:list` | ck-checkpoint | `/ck-checkpoint:list` |
-| `/checkpoint:restore` | ck-checkpoint | `/ck-checkpoint:restore` |
+| ~~`/checkpoint:create`~~ | - | DELETED → use built-in `/rewind` |
+| ~~`/checkpoint:list`~~ | - | DELETED → use Esc+Esc |
+| ~~`/checkpoint:restore`~~ | - | DELETED → use built-in `/rewind` |
 | `/spec:create` | ck-spec | `/ck-spec:create` |
 | `/spec:validate` | ck-spec | `/ck-spec:validate` |
 | `/spec:decompose` | ck-spec | `/ck-spec:decompose` |
@@ -793,11 +875,11 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 
 # Install specific plugins
 /plugin install ck-git@claudekit
-/plugin install ck-checkpoint@claudekit
 /plugin install ck-quality@claudekit
+# Note: Checkpoints are built-in - use /rewind instead
 
 # Or install all plugins
-/plugin install ck-git@claudekit ck-checkpoint@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-dev@claudekit ck-experts@claudekit
+/plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-dev@claudekit ck-experts@claudekit
 
 # For hooks functionality, also install claudekit CLI
 npm install -g claudekit
@@ -999,18 +1081,20 @@ Verify with: `/ck-quality:verify-setup`
 | Plugin | Description | Skills | Model-Invocable | Hooks |
 |--------|-------------|--------|-----------------|-------|
 | ck-git | Git automation | commit, push, status, checkout | commit | No |
-| ck-checkpoint | State management | create, list, restore | create | No |
-| ck-quality | Code quality | validate-and-fix, code-review, verify-setup | validate-and-fix, code-review | **Yes** |
+| ck-spec | Specifications | create, validate, decompose, execute | create | No |
+| ck-quality | Code quality | validate-and-fix, code-review, refactor, verify-setup | validate-and-fix, code-review, refactor | **Yes** |
 | ck-dev | Development utilities | cleanup, verify-setup | - | **Yes** |
-| ...
+| ck-experts | Domain experts | 7 consolidated agents | - | No |
+
+> **Note**: Checkpoints are built-in to Claude Code. Use `/rewind` or Esc+Esc.
 
 ## Model-Invocable Skills
 
 Just describe what you want (confirmation required for changes):
 - "commit my changes" → commit skill (confirms before staging)
-- "create a checkpoint" → create skill
 - "review my code" → code-review skill
 - "fix lint issues" → validate-and-fix skill
+- "refactor this code" → refactor skill
 ```
 
 ## Open Questions
