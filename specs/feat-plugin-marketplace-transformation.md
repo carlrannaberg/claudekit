@@ -225,7 +225,8 @@ claudekit-plugins/
 │   │   │   ├── commit.md           # Model-invocable
 │   │   │   ├── push.md             # disable-model-invocation: true
 │   │   │   ├── status.md           # disable-model-invocation: true
-│   │   │   └── checkout.md         # disable-model-invocation: true
+│   │   │   ├── checkout.md         # disable-model-invocation: true
+│   │   │   └── repo-init.md        # disable-model-invocation: true (gh repo create)
 │   │   └── hooks/
 │   │       └── hooks.json
 │   │   # NOTE: ck-checkpoint DELETED - use built-in /rewind
@@ -677,6 +678,7 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `push` | ck-git | ❌ Disabled | - | - |
 | `status` | ck-git | ❌ Disabled | - | - |
 | `checkout` | ck-git | ❌ Disabled | - | - |
+| `repo-init` | ck-git | ❌ Disabled | - | - |
 | ~~`create`~~ | ~~ck-checkpoint~~ | - | - | DELETED - use built-in `/rewind` |
 | `create` | ck-spec | ✅ Enabled | `fork` + Plan | "create spec", "write specification" |
 | `validate` | ck-spec | ❌ Disabled | - | - |
@@ -842,6 +844,7 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 | `/git:commit` | ck-git | `/ck-git:commit` |
 | `/git:push` | ck-git | `/ck-git:push` |
 | `/git:status` | ck-git | `/ck-git:status` |
+| `/gh:repo-init` | ck-git | `/ck-git:repo-init` |
 | ~~`/checkpoint:create`~~ | - | DELETED → use built-in `/rewind` |
 | ~~`/checkpoint:list`~~ | - | DELETED → use Esc+Esc |
 | ~~`/checkpoint:restore`~~ | - | DELETED → use built-in `/rewind` |
@@ -1071,7 +1074,7 @@ Verify with: `/ck-quality:verify-setup`
 
 | Plugin | Description | Skills | Model-Invocable | Hooks |
 |--------|-------------|--------|-----------------|-------|
-| ck-git | Git automation | commit, push, status, checkout | commit | No |
+| ck-git | Git automation | commit, push, status, checkout, repo-init | commit | No |
 | ck-spec | Specifications | create, validate, decompose, execute | create | No |
 | ck-quality | Code quality | code-review, refactor, verify-setup | code-review, refactor | **Yes** |
 | ck-agents-md | AI config | init, migration, cli | - | No |
