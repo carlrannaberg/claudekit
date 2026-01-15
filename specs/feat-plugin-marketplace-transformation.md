@@ -84,13 +84,16 @@ The following claudekit components are **redundant** due to built-in Claude Code
 3. Delete `cli/hooks/create-checkpoint.ts`
 4. Update CLAUDE.md to reference built-in `/rewind` instead
 
+**Hooks to delete**:
+- `create-checkpoint` - Built-in checkpoints
+- `thinking-level` - Claude Code removed this functionality
+
 **Hooks to keep** (no built-in equivalents):
 - `check-any-changed`, `check-comment-replacement`, `check-todos`, `check-unused-parameters`
 - `codebase-map` (project exploration)
 - `lint-changed`, `lint-project`
 - `self-review`
 - `test-changed`, `test-project`
-- `thinking-level`
 - `typecheck-changed`, `typecheck-project`
 
 ### validate-and-fix - DELETE
