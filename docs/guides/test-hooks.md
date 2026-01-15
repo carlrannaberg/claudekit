@@ -61,15 +61,23 @@ This configures both hooks in `.claude/settings.json`:
 
 ## Test File Discovery
 
-The `test-changed` hook finds related test files using these patterns:
+The `test-changed` hook finds related test files using a two-step strategy:
 
-**Same directory:**
-- `filename.test.js`
-- `filename.spec.js`
+**Step 1: Co-located tests (checked first):**
+- `filename.test.js` (same directory)
+- `filename.spec.js` (same directory)
+- `__tests__/filename.test.js` (adjacent __tests__ subdirectory)
+- `__tests__/filename.spec.js` (adjacent __tests__ subdirectory)
 
-**Tests directory:**
-- `__tests__/filename.test.js`
-- `__tests__/filename.spec.js`
+**Step 2: Separate test directories (searched recursively if co-located not found):**
+- `tests/**/filename.test.*` (any extension)
+- `tests/**/filename.spec.*` (any extension)
+- `test/**/filename.test.*` (any extension)
+- `test/**/filename.spec.*` (any extension)
+- `__tests__/**/filename.test.*` (any extension)
+- `__tests__/**/filename.spec.*` (any extension)
+
+This supports both co-located test patterns and separate test directories like `tests/unit/` or `test/integration/`.
 
 **Skipped files:**
 - Test files themselves (*.test.* or *.spec.*)

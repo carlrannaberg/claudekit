@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import fastGlob from 'fast-glob';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
@@ -37,7 +38,7 @@ export class TestChangedHook extends BaseHook {
     // filePath is guaranteed to be defined here due to shouldProcessFileByExtension check
     const validFilePath = filePath as string;
 
-    // Skip test files themselves using the same extensions pattern
+    // Skip test files themselves - we can't reliably determine which test config to use
     const allowedExtensions = config.extensions || ['js', 'jsx', 'ts', 'tsx'];
     const testPattern = createExtensionPattern(allowedExtensions.map(ext => `test.${ext}`).concat(allowedExtensions.map(ext => `spec.${ext}`)));
     if (testPattern.test(validFilePath)) {
@@ -47,7 +48,7 @@ export class TestChangedHook extends BaseHook {
     this.progress(`🧪 Running tests related to: ${validFilePath}...`);
 
     // Find related test files
-    const testFiles = await this.findRelatedTestFiles(validFilePath);
+    const testFiles = await this.findRelatedTestFiles(validFilePath, projectRoot);
 
     if (testFiles.length === 0) {
       this.warning(`No test files found for ${path.basename(validFilePath)}`);
@@ -62,7 +63,12 @@ export class TestChangedHook extends BaseHook {
 
     // Run tests
     const testCommand = config.command ?? packageManager.test;
-    const result = await this.execCommand(testCommand, ['--', ...testFiles], {
+
+    // Only use '--' separator if running through npm/yarn/pnpm
+    const usesSeparator = testCommand.startsWith('npm ') || testCommand.startsWith('yarn ') || testCommand.startsWith('pnpm ');
+    const args = usesSeparator ? ['--', ...testFiles] : testFiles;
+
+    const result = await this.execCommand(testCommand, args, {
       cwd: projectRoot,
     });
 
@@ -93,13 +99,24 @@ export class TestChangedHook extends BaseHook {
     return { exitCode: 0 };
   }
 
-  private async findRelatedTestFiles(filePath: string): Promise<string[]> {
+  /**
+   * Find test files related to the given source file.
+   *
+   * Searches in two phases:
+   * 1. Co-located tests in same directory or __tests__ subdirectory
+   * 2. Tests in project-wide test directories (tests/, test/, __tests__/)
+   *
+   * @param filePath - Absolute path to the source file
+   * @param projectRoot - Project root directory for glob search base
+   * @returns Array of absolute paths to related test files
+   */
+  private async findRelatedTestFiles(filePath: string, projectRoot: string): Promise<string[]> {
     const baseName = path.basename(filePath, path.extname(filePath));
     const dirName = path.dirname(filePath);
     const ext = path.extname(filePath);
 
-    // Common test file patterns
-    const testPatterns = [
+    // Step 1: Check co-located test files
+    const coLocatedPatterns = [
       `${dirName}/${baseName}.test${ext}`,
       `${dirName}/${baseName}.spec${ext}`,
       `${dirName}/__tests__/${baseName}.test${ext}`,
@@ -107,9 +124,30 @@ export class TestChangedHook extends BaseHook {
     ];
 
     const foundFiles: string[] = [];
-    for (const pattern of testPatterns) {
+    for (const pattern of coLocatedPatterns) {
       if (await this.fileExists(pattern)) {
         foundFiles.push(pattern);
+      }
+    }
+
+    // Step 2: If no co-located tests found, search in tests directories
+    if (foundFiles.length === 0) {
+      // Search for {baseName}.test.* and {baseName}.spec.* in any tests folder
+      const testDirPattern = `**/{tests,test,__tests__}/**/${baseName}.{test,spec}.*`;
+
+      try {
+        const globResults = await fastGlob(testDirPattern, {
+          cwd: projectRoot,
+          ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+          absolute: true,
+        });
+        foundFiles.push(...globResults);
+      } catch (error) {
+        // Ignore glob errors and continue
+        if (this.debug) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`Failed to search test directories: ${errorMessage}`);
+        }
       }
     }
 
