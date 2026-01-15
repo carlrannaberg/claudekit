@@ -98,6 +98,14 @@ The following claudekit components are **redundant** due to built-in Claude Code
 2. Ensure quality hooks are configured in ck-quality plugin
 3. Users get automatic validation without explicit commands
 
+### dev:cleanup - DELETE
+
+**Reason**: Cleanup is too arbitrary and project-specific. Different projects have different temp file patterns. Users can simply ask Claude to "clean up debug files" if needed.
+
+**Migration action**:
+1. Delete `src/commands/dev/cleanup.md`
+2. No replacement needed - users can describe what to clean up directly
+
 ### ck-experts - DELETE ENTIRELY
 
 **Reason**: "Expert" agents are just role-playing prompts. They tell Claude to "act as an expert in X" - but Claude already knows TypeScript, React, testing, databases, git, and DevOps. They add no real value.
@@ -151,7 +159,7 @@ Only skills with **actual workflows** are worth keeping:
 | **ck-spec** | Plan Mode is exploration only, not formal specs |
 | **ck-quality** | Built-in `/review` is minimal; includes code-review & refactor skills |
 | **ck-agents-md** | AGENTS.md pattern not native |
-| **ck-dev** | Cleanup utilities not built-in |
+| **ck-core** | Hook management utilities for claudekit hooks |
 
 ## Technical Dependencies
 
@@ -221,49 +229,45 @@ claudekit-plugins/
 │   ├── ck-git/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── skills/
-│   │   │   ├── commit.md           # Model-invocable
-│   │   │   ├── push.md             # disable-model-invocation: true
-│   │   │   ├── status.md           # disable-model-invocation: true
-│   │   │   ├── checkout.md         # disable-model-invocation: true
-│   │   │   └── repo-init.md        # disable-model-invocation: true (gh repo create)
-│   │   └── hooks/
-│   │       └── hooks.json
+│   │   └── skills/
+│   │       ├── commit/SKILL.md         # Model-invocable
+│   │       ├── push/SKILL.md           # disable-model-invocation: true
+│   │       ├── status/SKILL.md         # disable-model-invocation: true
+│   │       ├── checkout/SKILL.md       # disable-model-invocation: true
+│   │       └── repo-init/SKILL.md      # disable-model-invocation: true
 │   │   # NOTE: ck-checkpoint DELETED - use built-in /rewind
 │   ├── ck-spec/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   └── skills/
-│   │       ├── create.md           # Model-invocable
-│   │       ├── validate.md         # Model-invocable
-│   │       ├── decompose.md        # Model-invocable
-│   │       └── execute.md          # disable-model-invocation: true (orchestrates agents)
+│   │       ├── create/SKILL.md         # Model-invocable
+│   │       ├── validate/SKILL.md       # Model-invocable
+│   │       ├── decompose/SKILL.md      # Model-invocable
+│   │       └── execute/SKILL.md        # disable-model-invocation: true
 │   ├── ck-quality/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── skills/
 │   │   │   # validate-and-fix DELETED - use built-in hooks instead
-│   │   │   ├── code-review.md      # Model-invocable (from code-review-expert)
-│   │   │   └── refactor.md         # Model-invocable (from refactoring-expert)
+│   │   │   ├── code-review/SKILL.md    # Model-invocable
+│   │   │   └── refactor/SKILL.md       # Model-invocable
 │   │   └── hooks/
 │   │       └── hooks.json
 │   ├── ck-agents-md/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   └── skills/
-│   │       ├── init.md             # disable-model-invocation: true
-│   │       ├── migration.md        # disable-model-invocation: true
-│   │       └── cli.md              # disable-model-invocation: true
-│   ├── ck-dev/
+│   │       ├── init/SKILL.md           # disable-model-invocation: true
+│   │       ├── migration/SKILL.md      # disable-model-invocation: true
+│   │       └── cli/SKILL.md            # disable-model-invocation: true
+│   │   # NOTE: ck-dev DELETED - cleanup is too arbitrary, hook skills moved to ck-core
+│   ├── ck-core/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── skills/
-│   │   │   ├── cleanup.md          # disable-model-invocation: true
-│   │   │   ├── hook-disable.md     # disable-model-invocation: true
-│   │   │   ├── hook-enable.md      # disable-model-invocation: true
-│   │   │   └── hook-status.md      # disable-model-invocation: true
-│   │   └── hooks/
-│   │       └── hooks.json
+│   │   └── skills/
+│   │       ├── hook-disable/SKILL.md   # disable-model-invocation: true
+│   │       ├── hook-enable/SKILL.md    # disable-model-invocation: true
+│   │       └── hook-status/SKILL.md    # disable-model-invocation: true
 │   │   # NOTE: ck-experts DELETED - "expert" agents are just role-playing prompts
 │   │   # code-review and refactor skills moved to ck-quality
 └── README.md
@@ -271,7 +275,7 @@ claudekit-plugins/
 
 **Note**: No `shared/` directory. Each plugin is fully self-contained because plugins are copied to cache on installation - symlinks and external references won't survive packaging.
 
-**Note**: As of Claude Code v2.1.3, slash commands and skills are unified. All items in `skills/` can be invoked with `/skill-name`. Add `disable-model-invocation: true` to frontmatter to prevent automatic model invocation.
+**Note**: As of Claude Code v2.1.3, slash commands and skills are unified. All items in `skills/` can be invoked with `/plugin:skill` (e.g., `/ck-git:commit`). Add `disable-model-invocation: true` to frontmatter to prevent automatic model invocation.
 
 ## Detailed Design
 
@@ -287,7 +291,7 @@ claudekit-plugins/
     "email": "maintainer@claudekit.dev"
   },
   "metadata": {
-    "description": "Development workflow tools for Claude Code - Git automation, checkpointing, specifications, code quality, and domain experts",
+    "description": "Development workflow tools for Claude Code - Git automation, specifications, code quality, and AI configuration",
     "version": "1.0.0"
   },
   "plugins": [
@@ -312,9 +316,9 @@ claudekit-plugins/
       "description": "AGENTS.md configuration management. Use when setting up AI assistant configuration."
     },
     {
-      "name": "ck-dev",
-      "source": "./plugins/ck-dev",
-      "description": "Development utilities and cleanup. Use when cleaning debug files or development artifacts. Note: hooks require npm install -g claudekit"
+      "name": "ck-core",
+      "source": "./plugins/ck-core",
+      "description": "Claudekit hook management utilities. Use when enabling, disabling, or checking hook status."
     }
   ]
 }
@@ -423,9 +427,9 @@ This helps train the model on expected invocation patterns.
 ### 4. Skills Architecture
 
 As of Claude Code v2.1.3, **commands and skills are unified**. Everything is a skill:
-- All skills can be invoked with `/skill-name`
+- All skills can be invoked explicitly with `/plugin:skill` (e.g., `/ck-git:commit`)
 - By default, the model can also invoke skills automatically based on context
-- Add `disable-model-invocation: true` to frontmatter to require explicit `/skill-name` invocation
+- Add `disable-model-invocation: true` to frontmatter to require explicit invocation only
 
 This simplifies the mental model: one format, one directory, one concept.
 
@@ -445,7 +449,7 @@ allowed-tools: Bash, Read
 name: push
 description: Push commits to remote repository
 allowed-tools: Bash
-disable-model-invocation: true  # Explicit /push only - too dangerous for auto-invoke
+disable-model-invocation: true  # Explicit /ck-git:push only - too dangerous for auto-invoke
 ---
 ```
 
@@ -485,22 +489,25 @@ The `agent` field specifies which agent type runs the forked context (only works
 
 #### Skill Structure
 
+Each skill is a directory containing a required `SKILL.md` file and optional resources:
+
 ```
 skills/
-└── git-commit/
-    ├── SKILL.md           # Main skill definition
-    ├── examples.md        # Usage examples (optional)
-    └── reference.md       # Detailed reference (optional)
+└── commit/
+    ├── SKILL.md           # Required - main skill definition
+    ├── scripts/           # Optional - executable code (Python/Bash)
+    ├── references/        # Optional - documentation loaded as needed
+    └── assets/            # Optional - templates, icons, fonts
 ```
 
 #### Skill Definition Format
 
-**File**: `plugins/ck-git/skills/git-commit/SKILL.md`
+**File**: `plugins/ck-git/skills/commit/SKILL.md`
 
 ```yaml
 ---
-name: git-commit
-description: Create commits following project conventions. Use when user wants to commit changes, save work, or create a checkpoint of current state.
+name: commit
+description: Create commits following project conventions. Use when user wants to commit changes or save work.
 allowed-tools: Bash, Read, Grep
 user-invocable: true
 ---
@@ -511,7 +518,7 @@ user-invocable: true
 
 Automatically invoke this skill when the user:
 - Says "commit my changes" or "save my work"
-- Asks to "create a commit" or "checkpoint my progress"
+- Asks to "create a commit"
 - Wants to "push my changes" (commit first, then push)
 - Mentions committing with a specific message
 
@@ -606,7 +613,7 @@ git status
 
 #### Forked Skill Example (Complex Analysis)
 
-**File**: `plugins/ck-quality/skills/code-review/SKILL.md`
+**File**: `plugins/ck-quality/skills/code-review/SKILL.md` (uses `context: fork`)
 
 ```yaml
 ---
@@ -691,10 +698,10 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `migration` | ck-agents-md | ❌ Disabled | - | - |
 | `cli` | ck-agents-md | ❌ Disabled | - | - |
 | `refactor` | ck-quality | ✅ Enabled | inline | "refactor this", "clean up code" |
-| `cleanup` | ck-dev | ❌ Disabled | - | - |
-| `hook-disable` | ck-dev | ❌ Disabled | - | - |
-| `hook-enable` | ck-dev | ❌ Disabled | - | - |
-| `hook-status` | ck-dev | ❌ Disabled | - | - |
+| ~~`cleanup`~~ | ~~ck-dev~~ | - | - | DELETED - too arbitrary |
+| `hook-disable` | ck-core | ❌ Disabled | - | - |
+| `hook-enable` | ck-core | ❌ Disabled | - | - |
+| `hook-status` | ck-core | ❌ Disabled | - | - |
 
 Skills with `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
 
@@ -763,10 +770,10 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 | `/agents-md:init` | ck-agents-md | `/ck-agents-md:init` |
 | `/agents-md:migration` | ck-agents-md | `/ck-agents-md:migration` |
 | `/agents-md:cli` | ck-agents-md | `/ck-agents-md:cli` |
-| `/dev:cleanup` | ck-dev | `/ck-dev:cleanup` |
-| `/hook:disable` | ck-dev | `/ck-dev:hook-disable` |
-| `/hook:enable` | ck-dev | `/ck-dev:hook-enable` |
-| `/hook:status` | ck-dev | `/ck-dev:hook-status` |
+| ~~`/dev:cleanup`~~ | - | DELETED - too arbitrary |
+| `/hook:disable` | ck-core | `/ck-core:hook-disable` |
+| `/hook:enable` | ck-core | `/ck-core:hook-enable` |
+| `/hook:status` | ck-core | `/ck-core:hook-status` |
 
 ## User Experience
 
@@ -782,7 +789,7 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 # Note: Checkpoints are built-in - use /rewind instead
 
 # Or install all plugins
-/plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-dev@claudekit
+/plugin install ck-git@claudekit ck-spec@claudekit ck-quality@claudekit ck-agents-md@claudekit ck-core@claudekit
 
 # For hooks functionality, also install claudekit CLI
 npm install -g claudekit
@@ -811,11 +818,11 @@ User: yes
 Claude: [Creates commit after confirmation]
 ```
 
-**Subagent Delegation**:
+**Code Review**:
 ```
-User: Help me fix this TypeScript error
-Claude: I'll delegate to the typescript-expert for this...
-[Uses Task tool with ck-experts plugin agent]
+User: Review my changes for security issues
+Claude: I'll analyze your changes for security vulnerabilities...
+[Executes code-review skill in forked context]
 ```
 
 ### Team Configuration
@@ -834,9 +841,10 @@ Teams can pre-configure plugins in `.claude/settings.json`:
   },
   "enabledPlugins": {
     "ck-git@claudekit": true,
-    "ck-checkpoint@claudekit": true,
+    "ck-spec@claudekit": true,
     "ck-quality@claudekit": true,
-    "ck-experts@claudekit": true
+    "ck-agents-md@claudekit": true,
+    "ck-core@claudekit": true
   }
 }
 ```
@@ -855,7 +863,7 @@ Teams can pre-configure plugins in `.claude/settings.json`:
 1. Add `disable-model-invocation: true` to skills that should be explicit-only
 2. Add "Use when..." trigger descriptions to model-invocable skills
 3. Add confirmation gates to destructive model-invocable skills
-4. Test model auto-invocation and explicit `/skill` invocation
+4. Test model auto-invocation and explicit `/plugin:skill` invocation
 
 ### Phase 3: Hook Integration
 
@@ -889,7 +897,6 @@ The transformation maintains compatibility through:
 | Component | Plugin-Only Install | Plugin + CLI Install |
 |-----------|--------------------|--------------------|
 | Skills | ✅ Works | ✅ Works |
-| Agents | ✅ Works | ✅ Works |
 | Hooks | ❌ Fails with error message | ✅ Works |
 
 **Installation guidance** (shown in README and plugin descriptions):
@@ -897,7 +904,7 @@ The transformation maintains compatibility through:
 ```
 ⚠️  HOOKS REQUIRE ADDITIONAL SETUP
 
-Plugins with automatic hooks (ck-quality, ck-dev) require:
+Plugins with automatic hooks (ck-quality) require:
   npm install -g claudekit
 
 Without this, hooks will show: "[claudekit] Hook failed - ensure claudekit is installed"
@@ -916,7 +923,7 @@ Without this, hooks will show: "[claudekit] Hook failed - ensure claudekit is in
 ### Plugin Validation
 
 1. Validate all plugin manifests with JSON schema
-2. Test skill execution from plugin context (explicit `/skill`)
+2. Test skill execution from plugin context (explicit `/plugin:skill`)
 3. Test model auto-invocation for enabled skills
 4. Verify `disable-model-invocation: true` prevents auto-invocation
 5. Test hook execution with `${CLAUDE_PLUGIN_ROOT}` references
@@ -964,7 +971,7 @@ Without this, hooks will show: "[claudekit] Hook failed - ensure claudekit is in
 
 ## ⚠️ Hook Setup Required
 
-Plugins with hooks (ck-quality, ck-dev) require claudekit CLI:
+Plugins with hooks (ck-quality) require claudekit CLI:
 ```bash
 npm install -g claudekit
 ```
@@ -979,7 +986,7 @@ If hooks fail: `npm install -g claudekit`
 | ck-spec | Specifications | create, validate, decompose, execute | create, validate, decompose | No |
 | ck-quality | Code quality | code-review, refactor | code-review, refactor | **Yes** |
 | ck-agents-md | AI config | init, migration, cli | - | No |
-| ck-dev | Development utilities | cleanup, hook-disable, hook-enable, hook-status | - | **Yes** |
+| ck-core | Hook management | hook-disable, hook-enable, hook-status | - | No |
 
 > **Note**: Checkpoints are built-in to Claude Code. Use `/rewind` or Esc+Esc.
 
@@ -1009,7 +1016,7 @@ Just describe what you want (confirmation required for changes):
    - ✅ **Decision**: Both official and community registries
 
 6. **Plugin Naming**
-   - ✅ **Decision**: Use `ck-` prefix to avoid conflicts (ck-git, ck-checkpoint, etc.)
+   - ✅ **Decision**: Use `ck-` prefix to avoid conflicts (ck-git, ck-spec, etc.)
 
 ## Success Metrics
 
@@ -1027,7 +1034,7 @@ Just describe what you want (confirmation required for changes):
 - Create marketplace.json
 
 ### Phase 2: Skills (Week 2)
-- Develop SKILL.md for top 5 commands
+- Create skill directories with SKILL.md for top 5 skills
 - Implement confirmation gates for destructive operations
 - Test skill auto-invocation
 - Iterate on trigger descriptions
