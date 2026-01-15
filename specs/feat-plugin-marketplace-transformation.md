@@ -258,7 +258,10 @@ claudekit-plugins/
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── skills/
-│   │   │   └── cleanup.md          # disable-model-invocation: true
+│   │   │   ├── cleanup.md          # disable-model-invocation: true
+│   │   │   ├── hook-disable.md     # disable-model-invocation: true
+│   │   │   ├── hook-enable.md      # disable-model-invocation: true
+│   │   │   └── hook-status.md      # disable-model-invocation: true
 │   │   └── hooks/
 │   │       └── hooks.json
 │   │   # NOTE: ck-experts DELETED - "expert" agents are just role-playing prompts
@@ -689,6 +692,9 @@ With unified commands/skills, the decision is whether to allow model invocation:
 | `cli` | ck-agents-md | ❌ Disabled | - | - |
 | `refactor` | ck-quality | ✅ Enabled | inline | "refactor this", "clean up code" |
 | `cleanup` | ck-dev | ❌ Disabled | - | - |
+| `hook-disable` | ck-dev | ❌ Disabled | - | - |
+| `hook-enable` | ck-dev | ❌ Disabled | - | - |
+| `hook-status` | ck-dev | ❌ Disabled | - | - |
 
 Skills with `context: fork` run in isolated sub-agents, keeping complex analysis separate from the main conversation.
 
@@ -758,6 +764,9 @@ Skills move from flat structure to namespaced plugin structure. All plugins use 
 | `/agents-md:migration` | ck-agents-md | `/ck-agents-md:migration` |
 | `/agents-md:cli` | ck-agents-md | `/ck-agents-md:cli` |
 | `/dev:cleanup` | ck-dev | `/ck-dev:cleanup` |
+| `/hook:disable` | ck-dev | `/ck-dev:hook-disable` |
+| `/hook:enable` | ck-dev | `/ck-dev:hook-enable` |
+| `/hook:status` | ck-dev | `/ck-dev:hook-status` |
 
 ## User Experience
 
@@ -970,7 +979,7 @@ If hooks fail: `npm install -g claudekit`
 | ck-spec | Specifications | create, validate, decompose, execute | create, validate, decompose | No |
 | ck-quality | Code quality | code-review, refactor | code-review, refactor | **Yes** |
 | ck-agents-md | AI config | init, migration, cli | - | No |
-| ck-dev | Development utilities | cleanup | - | **Yes** |
+| ck-dev | Development utilities | cleanup, hook-disable, hook-enable, hook-status | - | **Yes** |
 
 > **Note**: Checkpoints are built-in to Claude Code. Use `/rewind` or Esc+Esc.
 
