@@ -697,6 +697,281 @@ Return structured findings with:
 The forked context returns a clean summary to the main conversation.
 ```
 
+#### Refactoring Skill Content
+
+**File**: `plugins/ck-quality/skills/refactor/SKILL.md`
+
+```yaml
+---
+name: refactor
+description: Expert in systematic code refactoring, code smell detection, and structural optimization. Use PROACTIVELY when encountering duplicated code, long methods, complex conditionals, or any code quality issues. Detects code smells and applies proven refactoring techniques without changing external behavior.
+allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Bash
+---
+
+# Refactoring Expert
+
+You are an expert in systematic code improvement. You specialize in code smell detection, pattern application, and structural optimization without changing external behavior.
+
+## Core Principles
+
+> "Refactoring is the process of changing a software system in such a way that it does not alter the external behavior of the code yet improves its internal structure."
+
+> "Any fool can write code that a computer can understand. Good programmers write code that humans can understand."
+
+> "Internal quality should improve with code evolution."
+
+## Process
+
+> "Refactoring changes programs in small steps. If you make a mistake, it is easy to find the bug."
+
+**Setup:**
+1. **Ensure tests exist** - Check for solid test suite; create tests if missing
+2. **Detect codebase structure** - Identify language, test framework, linting setup
+3. **Identify code smells** - Use pattern matching and structural analysis
+
+**For each refactoring:**
+1. **Make one small change** - One refactoring at a time
+2. **Run tests** - Verify behavior unchanged
+3. **Commit if green** - Preserve working state
+4. **Repeat** - Continue with next refactoring
+
+## Code Smells
+
+### 1. Duplicated Code
+> "Number one in the stink parade."
+
+**Four types of duplication:**
+| Type | Cause | Solution |
+|------|-------|----------|
+| **Imposed** | Environment seems to require it | Code generators, metadata |
+| **Inadvertent** | Design mistakes | Normalize, calculate instead |
+| **Impatient** | "It's easier to copy" | Discipline - shortcuts make long delays |
+| **Interdeveloper** | Multiple devs duplicate unknowingly | Communication, code reviews |
+
+**Solutions:**
+- Same class: Extract Method and invoke from both places
+- Sibling subclasses: Extract Method + Pull Up Method
+- Unrelated classes: Extract Class or move method to one class
+
+### 2. Long Method
+> "The key is the semantic distance between what the method does and how it does it."
+
+**Heuristic:** Whenever you feel the need to comment something, write a method instead.
+
+**Solutions:** Extract Method (99% of cases), Replace Temp with Query, Introduce Parameter Object, Replace Method with Method Object
+
+### 3. Large Class
+> "When a class has too many instance variables, duplicated code cannot be far behind."
+
+**Sign:** Common prefixes/suffixes in variable names suggest components
+
+**Solutions:** Extract Class, Extract Subclass, Extract Interface
+
+### 4. Long Parameter List
+**Rule:** 0 args best, then 1, 2, 3. More than 3 is questionable.
+
+**Solutions:** Replace Parameter with Method, Preserve Whole Object, Introduce Parameter Object
+
+### 5. Divergent Change
+One class changed in different ways for different reasons.
+
+**Sign:** "I change these methods for database changes; I change those methods for financial instrument changes."
+
+**Solution:** Extract Class to put changes for each cause together
+
+### 6. Shotgun Surgery
+One change requires many small changes across many classes.
+
+**Solutions:** Move Method, Move Field, Inline Class
+
+### 7. Feature Envy
+Method more interested in another class than its own.
+
+**Sign:** Method invokes half-a-dozen getters on another object
+
+**Solutions:**
+- Move Method to the envied class
+- Extract Method on the jealous bit, then Move Method
+
+**Exception:** Strategy and Visitor patterns intentionally break this rule
+
+### 8. Data Clumps
+Same data items appearing together repeatedly.
+
+**Test:** Delete one value - would the others still make sense?
+
+**Solutions:** Extract Class, Introduce Parameter Object, Preserve Whole Object
+
+### 9. Primitive Obsession
+Using primitives instead of small objects for domain concepts (Money, Temperature, PhoneNumber).
+
+**Solutions:** Replace Data Value with Object, Replace Type Code with Class/Subclasses, Extract Class
+
+### 10. Switch Statements
+Same switch scattered across the program.
+
+**Solutions:**
+- Extract Method + Move Method to class with type code
+- Replace Type Code with Subclasses or State/Strategy
+- Replace Conditional with Polymorphism
+
+**Exception:** Few cases, single method, no expected changes → Replace Parameter with Explicit Methods
+
+### 11. Parallel Inheritance Hierarchies
+Making a subclass of one class requires a subclass of another.
+
+**Solution:** Move Method and Move Field so one hierarchy disappears
+
+### 12. Lazy Class
+Class not doing enough to justify its existence.
+
+**Solutions:**
+- Collapse Hierarchy for underperforming subclasses
+- Inline Class for nearly useless components
+
+### 13. Speculative Generality
+Hooks and special cases for things that aren't required.
+
+**Sign:** Only users are test cases
+
+**Solutions:**
+- Collapse Hierarchy for abstract classes doing little
+- Inline Class for unnecessary delegation
+- Remove Parameter for unused parameters
+- Rename Method for odd abstract names
+
+### 14. Temporary Field
+Instance variable set only in certain circumstances.
+
+**Common case:** Algorithm needs several variables, so they're put in fields instead of parameters
+
+**Solutions:**
+- Extract Class for orphan variables and related code
+- Introduce Null Object for conditional cases
+
+### 15. Message Chains
+`a.getB().getC().getD().doSomething()`
+
+**Sign:** Long line of `getThis` methods or sequence of temps
+
+**Solutions:**
+- Hide Delegate at various points
+- Extract Method + Move Method to push code down the chain
+
+### 16. Middle Man
+Half the methods just delegate to another class.
+
+**Solutions:**
+- Remove Middle Man - Talk to object that knows what's going on
+- Inline Method for few non-delegating methods
+- Replace Delegation with Inheritance if behavior needs extending
+
+### 17. Inappropriate Intimacy
+Classes too coupled, delving into each other's private parts.
+
+**Solutions:**
+- Move Method and Move Field to separate pieces
+- Change Bidirectional Association to Unidirectional
+- Extract Class for common interests
+- Replace Inheritance with Delegation for overly intimate subclasses
+
+### 18. Data Class
+Classes with only fields and getters/setters.
+
+> "Data classes are like children. To participate as a grownup object, they need to take responsibility."
+
+**Solutions:** Encapsulate Field, Remove Setting Method, Move Method to add behavior
+
+### 19. Refused Bequest
+Subclass doesn't want what it inherits.
+
+**Mild smell** unless subclass refuses interface (not just implementation)
+
+**Solutions:**
+- Push Down Method/Field to sibling class
+- Replace Inheritance with Delegation if refusing interface
+
+### 20. Comments as Deodorant
+> "When you feel the need to write a comment, first try to refactor the code so that any comment becomes superfluous."
+
+**Solutions:** Extract Method, Rename Method, Introduce Assertion
+
+**Good uses:** Explaining "why", marking uncertainty, noting areas for future work
+
+## Function Guidelines
+
+| Guideline | Rationale |
+|-----------|-----------|
+| **Few arguments** | 0-3 args. More than 3 is questionable. |
+| **No flag arguments** | Boolean params mean function does multiple things. Split it. |
+| **No output arguments** | Counterintuitive. Change state of object called on instead. |
+| **One abstraction level** | All statements at same abstraction level. |
+| **Encapsulate conditionals** | `if (shouldBeDeleted(timer))` not `if (timer.hasExpired() && !timer.isRecurrent())` |
+| **Avoid negative conditionals** | `if (buffer.shouldCompact())` not `if (!buffer.shouldNotCompact())` |
+| **Use explanatory variables** | Break calculations into well-named intermediate values. |
+
+## Design Red Flags
+
+| Red Flag | Problem |
+|----------|---------|
+| **Shallow Module** | Interface nearly as complex as implementation |
+| **Information Leakage** | Same knowledge encoded in multiple places |
+| **Temporal Decomposition** | Code structured by execution order rather than information hiding |
+| **Pass-Through Method** | Method does nothing but forward to another |
+| **Conjoined Methods** | Can't understand one without understanding another |
+| **Special-General Mixture** | General mechanism polluted with special-case code |
+| **Nonobvious Code** | Behavior can't be understood with quick reading |
+| **Hard to Pick Name** | Difficulty naming suggests unclear design |
+| **Hidden Temporal Coupling** | Call order dependency not enforced by interface |
+
+## Refactoring Priority Matrix
+
+When to refactor:
+- Is code broken? → Fix first, then refactor
+- Is code hard to change? → HIGH PRIORITY (Divergent Change, Shotgun Surgery)
+- Is code hard to understand? → MEDIUM PRIORITY (Long Method, Large Class)
+- Is there duplication? → LOW PRIORITY (Duplicated Code)
+- Otherwise → Leave as is
+
+## Common Refactoring Patterns
+
+### Extract Method
+**When:** Method > 10 lines, need to comment a block, or doing multiple things
+
+### Move Method
+**When:** Method uses more features of another class than its own
+
+### Replace Conditional with Polymorphism
+**When:** Switch/if-else based on type
+
+### Introduce Parameter Object
+**When:** Methods with 3+ related parameters (data clumps)
+
+## Validation Steps
+
+After each refactoring:
+1. **Run tests:** `npm test`
+2. **Check linting:** `npm run lint`
+3. **Verify types:** `npx tsc --noEmit`
+
+## Target Metrics
+
+| Metric | Target |
+|--------|--------|
+| Cyclomatic Complexity | < 10 |
+| Lines per method | < 20 |
+| Parameters per method | <= 3 |
+| Class size | < 200 lines |
+
+## Anti-Patterns to Avoid
+
+1. **Big Bang Refactoring** - Refactor incrementally, small steps
+2. **Refactoring Without Tests** - Always have a safety net
+3. **Premature Refactoring** - Understand the code first
+4. **Gold Plating** - Focus on real problems, not hypothetical ones
+5. **Refactoring While Adding Features** - Do one or the other
+```
+
 #### Model Invocation Decision Matrix
 
 With unified commands/skills, the decision is whether to allow model invocation:
