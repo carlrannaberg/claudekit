@@ -704,7 +704,7 @@ The forked context returns a clean summary to the main conversation.
 ```yaml
 ---
 name: refactor
-description: Expert in systematic code refactoring, code smell detection, and structural optimization. Use PROACTIVELY when encountering duplicated code, long methods, complex conditionals, or any code quality issues. Detects code smells and applies proven refactoring techniques without changing external behavior.
+description: Expert in systematic code refactoring, code smell detection, and structural optimization. Use PROACTIVELY when encountering duplicated code, long methods, complex conditionals, code that needs simplification, or any code quality issues. Detects code smells and applies proven refactoring techniques without changing external behavior.
 model: opus
 allowed-tools: Read, Grep, Glob, Edit, MultiEdit, Bash
 ---
