@@ -7,7 +7,7 @@ argument-hint: '[what to review] - e.g., "recent changes", "src/components", "*.
 # Code Review
 
 ## Current Repository State
-!`git status --short && echo "---" && git diff --stat && echo "---" && git log --oneline -5`
+!`git status --short && echo && git diff --stat && echo && git log --oneline -5`
 
 ## Pre-Review Analysis: Think This Through End-to-End
 
