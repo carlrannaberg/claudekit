@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-03-31
+
+### Fixed
+- **Shell Argument Escaping**: Fixed command execution to properly handle special characters in file paths
+  - Added shell quoting for arguments containing special characters like parentheses in Next.js route groups
+  - Prevents shell interpretation errors when running commands on files with complex names
+  - Resolves issue #28 where hooks would fail on modern frontend project structures
+- **Test Command Execution**: Improved compatibility with different test runners and package managers
+  - Fixed test command argument passing to work correctly with both npm/yarn/pnpm and direct test commands
+  - Only uses '--' separator when running through package managers, avoiding errors with direct test executables
+  - Ensures consistent test execution across different project configurations
+
+### Improved
+- **Test File Discovery**: Enhanced test-changed hook with more robust test file detection
+  - Added two-phase test file search: first co-located tests, then project-wide test directories
+  - Integrated fast-glob for efficient searching in tests/, test/, and __tests__ directories
+  - Added comprehensive JSDoc documentation for test discovery logic
+  - Better error handling for glob operations with graceful fallbacks
+
 ## [0.9.4] - 2025-09-29
 
 ### Fixed
