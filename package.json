@@ -103,6 +103,10 @@
     "development",
     "workflow"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carlrannaberg/claudekit.git"
+  },
   "author": "",
   "license": "MIT"
 }

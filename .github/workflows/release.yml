@@ -98,7 +98,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '24'
         registry-url: 'https://registry.npmjs.org'
     
     - name: Install dependencies
@@ -152,7 +152,7 @@ jobs:
         git push origin "v$VERSION"
     
     - name: Publish to npm
-      run: npm publish --access public --provenance
+      run: npm publish --access public
     
     - name: Extract changelog for version
       id: changelog
