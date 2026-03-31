@@ -198,12 +198,23 @@ export function getExecOptions(options: ExecAsyncOptions = {}, command?: string)
   return baseOptions;
 }
 
+/**
+ * Shell-quote an argument if it contains characters that would be
+ * interpreted by /bin/sh (e.g. parentheses in Next.js route groups).
+ */
+function shellQuoteArg(arg: string): string {
+  if (/[^a-zA-Z0-9_\-./=:@]/.test(arg)) {
+    return `'${arg.replace(/'/g, "'\\''")}'`;
+  }
+  return arg;
+}
+
 export async function execCommand(
   command: string,
   args: string[] = [],
   options: { cwd?: string; timeout?: number } = {}
 ): Promise<ExecResult> {
-  const fullCommand = `${command} ${args.join(' ')}`.trim();
+  const fullCommand = `${command} ${args.map(shellQuoteArg).join(' ')}`.trim();
   const start = Date.now();
   try {
     const { stdout, stderr } = await execAsync(fullCommand, getExecOptions({
