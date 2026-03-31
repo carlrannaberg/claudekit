@@ -26,6 +26,7 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   check-prerequisites:
@@ -151,9 +152,7 @@ jobs:
         git push origin "v$VERSION"
     
     - name: Publish to npm
-      run: npm publish --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npm publish --access public --provenance
     
     - name: Extract changelog for version
       id: changelog
