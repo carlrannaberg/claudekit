@@ -171,8 +171,9 @@ export function getExecOptions(options: ExecAsyncOptions = {}, command?: string)
   const baseEnv = {
     ...processEnv,
     ...options.env,
-    // Ensure CI-like behavior for process cleanup
-    CI: process.env['CI'] ?? 'false',
+    // Ensure CI-like behavior for process cleanup — hooks run non-interactively,
+    // so CI=true prevents vitest from entering watch mode via TTY detection
+    CI: process.env['CI'] ?? 'true',
   };
   
   const baseOptions: ExecAsyncOptions = {
