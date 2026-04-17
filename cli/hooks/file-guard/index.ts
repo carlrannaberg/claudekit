@@ -103,15 +103,12 @@ export class FileGuardHook extends BaseHook {
   }
 
   private allow(): HookResult {
-    return {
-      exitCode: 0,
-      jsonResponse: {
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          permissionDecision: 'allow',
-        },
-      },
-    };
+    // Return exit 0 with no jsonResponse. Emitting permissionDecision: 'allow'
+    // would tell Claude Code to bypass its own permission prompt, which
+    // effectively grants Edit/Write/etc. access even when the user has not
+    // allow-listed those tools. Letting the hook stay silent hands control
+    // back to Claude Code's normal permission flow.
+    return { exitCode: 0 };
   }
 
   private deny(reason: string): HookResult {

@@ -53,10 +53,20 @@ run_file_guard() {
 }
 
 # Check if hook response contains specific decision
+# Note: "allow" is represented by the absence of a permissionDecision
+# (the hook exits silently and lets Claude Code handle the permission prompt)
 check_permission_decision() {
     local output="$1"
     local expected_decision="$2"
-    
+
+    if [ "$expected_decision" = "allow" ]; then
+        if echo "$output" | grep -q '"permissionDecision"'; then
+            return 1
+        else
+            return 0
+        fi
+    fi
+
     if echo "$output" | grep -q "\"permissionDecision\":\"$expected_decision\""; then
         return 0
     else

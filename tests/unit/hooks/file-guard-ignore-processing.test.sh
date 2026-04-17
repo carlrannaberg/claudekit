@@ -52,11 +52,21 @@ run_file_guard() {
     echo "$payload" | node "$CLI_PATH" run file-guard
 }
 
-# Check if hook response contains specific decision
+# Check if hook response matches the expected decision. For "allow" the hook
+# now stays silent (no permissionDecision emitted) so Claude Code's own
+# permission flow stays in control; for "deny" it must emit the deny decision.
 check_permission_decision() {
     local output="$1"
     local expected_decision="$2"
-    
+
+    if [[ "$expected_decision" == "allow" ]]; then
+        if ! echo "$output" | grep -q '"permissionDecision"'; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+
     if echo "$output" | grep -q "\"permissionDecision\":\"$expected_decision\""; then
         return 0
     else
