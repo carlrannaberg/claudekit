@@ -60,11 +60,21 @@ run_file_guard() {
     echo "$payload" | node "$CLI_PATH" run file-guard
 }
 
-# Check if hook response contains specific decision
+# Check if hook response matches the expected decision. For "allow" the hook
+# now stays silent (no permissionDecision emitted) so Claude Code's own
+# permission flow stays in control; for "deny" it must emit the deny decision.
 check_permission_decision() {
     local output="$1"
     local expected_decision="$2"
-    
+
+    if [[ "$expected_decision" == "allow" ]]; then
+        if ! echo "$output" | grep -q '"permissionDecision"'; then
+            return 0
+        else
+            return 1
+        fi
+    fi
+
     if echo "$output" | grep -q "\"permissionDecision\":\"$expected_decision\""; then
         return 0
     else
@@ -791,18 +801,18 @@ test_deny_response_format() {
 }
 
 test_allow_response_format() {
-    # Purpose: Verify the allow response has correct PreToolUse format
-    # This ensures Claude Code can properly interpret the response
-    
+    # Purpose: Verify the hook emits no permissionDecision for non-protected files,
+    # so Claude Code's own permission flow stays in control. Emitting
+    # permissionDecision: 'allow' here would cause Claude Code to skip the normal
+    # permission prompt even for files the user has not allow-listed.
+
     local output
     output=$(run_file_guard "Read" "src/index.js" 2>/dev/null || true)
-    
-    # Check for required PreToolUse fields
-    if echo "$output" | grep -q '"hookEventName":"PreToolUse"' && \
-       echo "$output" | grep -q '"permissionDecision":"allow"'; then
-        assert_pass "Allow response has correct PreToolUse format"
+
+    if ! echo "$output" | grep -q '"permissionDecision"'; then
+        assert_pass "Non-protected file produces no permissionDecision"
     else
-        assert_fail "Allow response format incorrect, got: $output"
+        assert_fail "Non-protected file should not emit permissionDecision, got: $output"
     fi
 }
 
