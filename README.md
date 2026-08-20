@@ -311,6 +311,10 @@ Session-based hook control allows you to temporarily disable hooks within specif
 
 [Hook configuration →](docs/reference/hooks.md) | [Profiling guide →](docs/guides/hook-profiling.md)
 
+### Related Resources
+
+- [awesome-claude-code-hooks](https://github.com/loqimean/awesome-claude-code-hooks) - A curated list of hooks for Claude Code
+
 ## Subagents
 
 Specialized AI assistants for different domains:
