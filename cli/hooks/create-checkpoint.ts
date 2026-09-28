@@ -7,6 +7,12 @@ interface CreateCheckpointConfig {
   maxCheckpoints?: number;
 }
 
+interface StashEntry {
+  ref: string; // e.g. stash@{2}
+  sha: string;
+  subject: string;
+}
+
 export class CreateCheckpointHook extends BaseHook {
   name = 'create-checkpoint';
 
@@ -78,22 +84,53 @@ export class CreateCheckpointHook extends BaseHook {
     maxCount: number,
     projectRoot: string
   ): Promise<void> {
-    // Get list of checkpoints
-    const { stdout } = await this.execCommand('git', ['stash', 'list'], { cwd: projectRoot });
+    // Entries are listed newest first. Only entries written by this hook count;
+    // the user's own stashes are never touched.
+    const checkpoints = (await this.listStash(projectRoot)).filter((entry) =>
+      this.isAutoCheckpoint(entry.subject, prefix)
+    );
 
-    const checkpoints = stdout
-      .split('\n')
-      .filter((line) => line.includes(`${prefix}-checkpoint`))
-      .map((line, index) => ({ line, index }));
+    if (checkpoints.length <= maxCount) {
+      return;
+    }
 
-    // Remove old checkpoints if over limit
-    if (checkpoints.length > maxCount) {
-      const toRemove = checkpoints.slice(maxCount);
-      for (const checkpoint of toRemove.reverse()) {
-        await this.execCommand('git', ['stash', 'drop', `stash@{${checkpoint.index}}`], {
-          cwd: projectRoot,
-        });
+    // Drop the oldest first. Positions in the stash list shift whenever an entry is
+    // added or dropped, so look each entry up again by its commit SHA before
+    // dropping it rather than trusting a position computed earlier.
+    const toRemove = checkpoints.slice(maxCount).reverse();
+    for (const target of toRemove) {
+      const entries = await this.listStash(projectRoot);
+      const current =
+        entries.find((entry) => entry.ref === target.ref && entry.sha === target.sha) ??
+        entries.find((entry) => entry.sha === target.sha);
+      if (current === undefined) {
+        continue;
+      }
+      await this.execCommand('git', ['stash', 'drop', current.ref], { cwd: projectRoot });
+    }
+  }
+
+  private isAutoCheckpoint(subject: string, prefix: string): boolean {
+    return subject.startsWith(`${prefix}-checkpoint: Auto-save at `);
+  }
+
+  private async listStash(projectRoot: string): Promise<StashEntry[]> {
+    const { stdout, exitCode } = await this.execCommand(
+      'git',
+      ['stash', 'list', '--format=%gd%x09%H%x09%gs'],
+      { cwd: projectRoot }
+    );
+    if (exitCode !== 0) {
+      return [];
+    }
+
+    const entries: StashEntry[] = [];
+    for (const line of stdout.split('\n')) {
+      const [ref, sha, ...subject] = line.split('\t');
+      if (ref !== undefined && ref !== '' && sha !== undefined && sha !== '') {
+        entries.push({ ref, sha, subject: subject.join('\t') });
       }
     }
+    return entries;
   }
 }
