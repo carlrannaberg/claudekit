@@ -111,4 +111,40 @@ describe('CreateCheckpointHook', () => {
       expect(stashContents(repo)).toEqual(['c3', 'c2', 'manual']);
     });
   });
+
+  describe('multiple worktrees', () => {
+    it('keeps checkpoints from different worktrees separate', async () => {
+      const other = path.join(tmp, 'other');
+      git(repo, 'worktree', 'add', '-q', other);
+
+      await checkpoint(repo, 'main-1');
+      await checkpoint(other, 'other-1');
+      await checkpoint(repo, 'main-2');
+      await checkpoint(other, 'other-2');
+      await checkpoint(repo, 'main-3');
+
+      // The stash is shared, so both worktrees see the same list. Each worktree
+      // keeps its own two most recent checkpoints.
+      expect(stashContents(repo)).toEqual(['main-3', 'other-2', 'main-2', 'other-1']);
+    });
+
+    it('still cleans up checkpoints written in the old message format', async () => {
+      writeFileSync(path.join(repo, 'f.txt'), 'legacy\n');
+      const sha = git(repo, 'stash', 'create');
+      git(
+        repo,
+        'stash',
+        'store',
+        '-m',
+        'claude-checkpoint: Auto-save at 2025-01-01T00:00:00.000Z',
+        sha
+      );
+      git(repo, 'checkout', '-q', '--', 'f.txt');
+
+      await checkpoint(repo, 'c1');
+      await checkpoint(repo, 'c2');
+
+      expect(stashContents(repo)).toEqual(['c2', 'c1']);
+    });
+  });
 });

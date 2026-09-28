@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { realpathSync } from 'node:fs';
 import type { HookContext, HookResult } from './base.js';
 import { BaseHook } from './base.js';
 import { getHookConfig } from '../utils/claudekit-config.js';
@@ -46,9 +48,12 @@ export class CreateCheckpointHook extends BaseHook {
       return { exitCode: 0, suppressOutput: true };
     }
 
-    // Create checkpoint with timestamp
+    // Create checkpoint with timestamp. The stash is shared by all worktrees of a
+    // repository, so tag the message with this worktree's id; cleanup then only
+    // counts and drops this worktree's checkpoints.
     const timestamp = new Date().toISOString();
-    const message = `${prefix}-checkpoint: Auto-save at ${timestamp}`;
+    const worktreeId = await this.getWorktreeId(projectRoot);
+    const message = `${prefix}-checkpoint: Auto-save at ${timestamp}${worktreeSuffix(worktreeId)}`;
 
     // Add all files temporarily
     await this.execCommand('git', ['add', '-A'], { cwd: projectRoot });
@@ -68,7 +73,7 @@ export class CreateCheckpointHook extends BaseHook {
       await this.execCommand('git', ['reset'], { cwd: projectRoot });
 
       // Clean up old checkpoints if needed
-      await this.cleanupOldCheckpoints(prefix, maxCheckpoints, projectRoot);
+      await this.cleanupOldCheckpoints(prefix, maxCheckpoints, worktreeId, projectRoot);
     }
 
     // Silent success
@@ -82,12 +87,13 @@ export class CreateCheckpointHook extends BaseHook {
   private async cleanupOldCheckpoints(
     prefix: string,
     maxCount: number,
+    worktreeId: string | undefined,
     projectRoot: string
   ): Promise<void> {
-    // Entries are listed newest first. Only entries written by this hook count;
-    // the user's own stashes are never touched.
+    // Entries are listed newest first. Only entries written by this hook for this
+    // worktree count; the user's own stashes are never touched.
     const checkpoints = (await this.listStash(projectRoot)).filter((entry) =>
-      this.isAutoCheckpoint(entry.subject, prefix)
+      this.isOwnAutoCheckpoint(entry.subject, prefix, worktreeId)
     );
 
     if (checkpoints.length <= maxCount) {
@@ -110,8 +116,46 @@ export class CreateCheckpointHook extends BaseHook {
     }
   }
 
-  private isAutoCheckpoint(subject: string, prefix: string): boolean {
-    return subject.startsWith(`${prefix}-checkpoint: Auto-save at `);
+  /**
+   * True for checkpoints this hook wrote from the current worktree. Checkpoints in
+   * the old format, which has no worktree id, belong to no worktree in particular,
+   * so every worktree counts them as its own; being the oldest, they are dropped
+   * first.
+   */
+  private isOwnAutoCheckpoint(
+    subject: string,
+    prefix: string,
+    worktreeId: string | undefined
+  ): boolean {
+    const head = `${prefix}-checkpoint: Auto-save at `;
+    if (!subject.startsWith(head)) {
+      return false;
+    }
+    const rest = subject.slice(head.length);
+    const isOldFormat = !rest.includes(' ');
+    return isOldFormat || rest.endsWith(worktreeSuffix(worktreeId));
+  }
+
+  /** A short id that is stable for a worktree and different for each worktree. */
+  private async getWorktreeId(projectRoot: string): Promise<string | undefined> {
+    const { stdout, exitCode } = await this.execCommand(
+      'git',
+      ['rev-parse', '--absolute-git-dir'],
+      {
+        cwd: projectRoot,
+      }
+    );
+    const gitDir = stdout.trim();
+    if (exitCode !== 0 || gitDir === '') {
+      return undefined;
+    }
+    let resolved = gitDir;
+    try {
+      resolved = realpathSync(gitDir);
+    } catch {
+      // Keep the path git reported.
+    }
+    return createHash('sha1').update(resolved).digest('hex').slice(0, 8);
   }
 
   private async listStash(projectRoot: string): Promise<StashEntry[]> {
@@ -133,4 +177,8 @@ export class CreateCheckpointHook extends BaseHook {
     }
     return entries;
   }
+}
+
+function worktreeSuffix(worktreeId: string | undefined): string {
+  return worktreeId === undefined ? '' : ` (worktree ${worktreeId})`;
 }
