@@ -212,7 +212,7 @@ function shellQuoteArg(arg: string): string {
 export async function execCommand(
   command: string,
   args: string[] = [],
-  options: { cwd?: string; timeout?: number } = {}
+  options: { cwd?: string; timeout?: number; env?: Record<string, string> } = {}
 ): Promise<ExecResult> {
   const fullCommand = `${command} ${args.map(shellQuoteArg).join(' ')}`.trim();
   const start = Date.now();
@@ -221,6 +221,7 @@ export async function execCommand(
       cwd: options.cwd ?? process.cwd(),
       timeout: options.timeout ?? 30000,
       maxBuffer: 1024 * 1024 * 10, // 10MB
+      ...(options.env !== undefined ? { env: options.env } : {}),
     }, fullCommand));
     const durationMs = Date.now() - start;
     return { 
