@@ -134,9 +134,9 @@ export abstract class BaseHook {
   protected async execCommand(
     command: string,
     args: string[] = [],
-    options?: { cwd?: string; timeout?: number }
+    options?: { cwd?: string; timeout?: number; env?: Record<string, string> }
   ): Promise<ExecResult> {
-    const mergedOptions: { cwd?: string; timeout?: number } = {
+    const mergedOptions: { cwd?: string; timeout?: number; env?: Record<string, string> } = {
       ...options,
     };
 

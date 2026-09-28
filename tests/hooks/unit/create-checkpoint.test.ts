@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { CreateCheckpointHook } from '../../../cli/hooks/create-checkpoint.js';
@@ -145,6 +145,47 @@ describe('CreateCheckpointHook', () => {
       await checkpoint(repo, 'c2');
 
       expect(stashContents(repo)).toEqual(['c2', 'c1']);
+    });
+  });
+
+  describe('snapshot', () => {
+    it("leaves the user's staged changes as they were", async () => {
+      // Stage one hunk of f.txt (as with `git add -p`), leave a second edit
+      // unstaged, and add an untracked file.
+      writeFileSync(path.join(repo, 'f.txt'), 'base\nstaged\n');
+      git(repo, 'add', 'f.txt');
+      writeFileSync(path.join(repo, 'f.txt'), 'base\nstaged\nunstaged\n');
+      writeFileSync(path.join(repo, 'new.txt'), 'untracked\n');
+
+      const cachedBefore = git(repo, 'diff', '--cached');
+      const worktreeBefore = git(repo, 'diff');
+      const statusBefore = git(repo, 'status', '--porcelain');
+
+      const result = await hook.execute(context(repo));
+
+      expect(result.exitCode).toBe(0);
+      expect(stashSubjects(repo)).toHaveLength(1);
+      expect(git(repo, 'diff', '--cached')).toBe(cachedBefore);
+      expect(git(repo, 'diff')).toBe(worktreeBefore);
+      expect(git(repo, 'status', '--porcelain')).toBe(statusBefore);
+    });
+
+    it('can be restored with git stash apply, including untracked files', async () => {
+      writeFileSync(path.join(repo, 'f.txt'), 'base\nstaged\n');
+      git(repo, 'add', 'f.txt');
+      writeFileSync(path.join(repo, 'f.txt'), 'base\nstaged\nunstaged\n');
+      writeFileSync(path.join(repo, 'new.txt'), 'untracked\n');
+
+      await hook.execute(context(repo));
+
+      git(repo, 'reset', '-q', '--hard');
+      rmSync(path.join(repo, 'new.txt'));
+      git(repo, 'stash', 'apply', '-q', 'stash@{0}');
+
+      expect(git(repo, 'show', ':f.txt')).toBe('base'); // restored as unstaged
+      expect(git(repo, 'diff', 'HEAD', '--', 'f.txt')).toContain('+unstaged');
+      expect(readFileSync(path.join(repo, 'f.txt'), 'utf8')).toBe('base\nstaged\nunstaged\n');
+      expect(readFileSync(path.join(repo, 'new.txt'), 'utf8')).toBe('untracked\n');
     });
   });
 });
